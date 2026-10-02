@@ -5,8 +5,8 @@ Giai đoạn 2: LLM chấm M5 cho Top-K → điểm cuối = tổng có trọng 
 
 Mỗi mô hình trả về điểm 0–100. Công thức xem docs/KE-HOACH (mục 6).
 """
+
 from dataclasses import dataclass, field
-from decimal import Decimal
 
 from catalog.models import Student, Topic
 
@@ -18,7 +18,7 @@ WEIGHTS_VERSION = "expert-v0"
 @dataclass
 class Candidate:
     topic: Topic
-    scores: dict = field(default_factory=dict)      # skill, academic, field, semantic, llm → 0..100 (None = chưa có)
+    scores: dict = field(default_factory=dict)  # skill, academic, field, semantic, llm → 0..100 (None = chưa có)
     reasons: list = field(default_factory=list)
 
     def final(self, weights):
@@ -66,12 +66,15 @@ def m1_skill(p: Profile, topic: Topic):
 
 # ---------------------------------------------------------------- M2: học lực
 def m2_academic(p: Profile, topic: Topic):
-    """M2 = 100 · (0,4·GPA/4 + 0,6·điểm TB các môn liên quan/10). Môn liên quan = môn tiên quyết + môn cùng lĩnh vực đề tài.
+    """M2 = 100 · (0,4·GPA/4 + 0,6·điểm TB các môn liên quan/10).
+    Môn liên quan = môn tiên quyết + môn cùng lĩnh vực đề tài.
     Thang cố định theo quy chế (không chuẩn hoá theo dữ liệu) để điểm không đổi khi thêm sinh viên."""
     topic_fields = {f.id for f in topic.fields.all()}
-    related = {pre.course_id for pre in topic.prerequisites.all()} | {c for c, f in p.course_fields.items() if f in topic_fields}
+    related = {pre.course_id for pre in topic.prerequisites.all()} | {
+        c for c, f in p.course_fields.items() if f in topic_fields
+    }
     scores = [p.courses[c] for c in related if c in p.courses]
-    avg = sum(scores) / len(scores) if scores else p.gpa * 2.5        # không có môn liên quan → quy đổi từ GPA
+    avg = sum(scores) / len(scores) if scores else p.gpa * 2.5  # không có môn liên quan → quy đổi từ GPA
     return 100 * (0.4 * p.gpa / 4 + 0.6 * avg / 10)
 
 
@@ -89,7 +92,9 @@ def m3_field(p: Profile, topic: Topic):
 # ---------------------------------------------------------------- M4: độ gần nghĩa (embedding)
 class SemanticModel:
     """Mô hình ngôn ngữ biến câu thành vector 384 chiều; hai câu càng gần nghĩa thì cosine càng lớn.
-    Tải một lần (khoảng 470 MB, chạy CPU). Vector đề tài được nhớ theo (id, version) nên chỉ tính lại khi GV sửa đề tài."""
+    Tải một lần (khoảng 470 MB, chạy CPU). Vector đề tài được nhớ theo (id, version)
+    nên chỉ tính lại khi GV sửa đề tài."""
+
     NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     _model = None
     _topic_vecs = {}
@@ -97,7 +102,10 @@ class SemanticModel:
     @classmethod
     def model(cls):
         if cls._model is None:
-            from sentence_transformers import SentenceTransformer      # import muộn: các phần khác không phải chờ tải mô hình
+            from sentence_transformers import (
+                SentenceTransformer,  # import muộn: các phần khác không phải chờ tải mô hình
+            )
+
             cls._model = SentenceTransformer(cls.NAME)
         return cls._model
 
@@ -109,7 +117,7 @@ class SemanticModel:
     def topic_vectors(cls, topics):
         todo = [t for t in topics if (t.id, t.version) not in cls._topic_vecs]
         if todo:
-            for t, v in zip(todo, cls.encode(f"{t.title}. {t.description}" for t in todo)):
+            for t, v in zip(todo, cls.encode(f"{t.title}. {t.description}" for t in todo), strict=True):
                 cls._topic_vecs[(t.id, t.version)] = v
         return [cls._topic_vecs[(t.id, t.version)] for t in topics]
 
@@ -125,21 +133,28 @@ def score_student(student: Student, topics=None, weights=None, top_k=15, semanti
     semantic=False: bỏ M4 (dùng cho thực nghiệm ablation và kiểm thử nhanh)."""
     weights = weights or DEFAULT_WEIGHTS
     p = Profile(student)
-    topics = topics if topics is not None else Topic.objects.filter(status=Topic.Status.OPEN).prefetch_related(
-        "skills__skill", "prerequisites__course", "fields")
+    topics = (
+        topics
+        if topics is not None
+        else Topic.objects.filter(status=Topic.Status.OPEN).prefetch_related(
+            "skills__skill", "prerequisites__course", "fields"
+        )
+    )
     out = []
     for t in topics:
         ok, why = eligible(p, t)
         if not ok:
             continue
         s1, missing = m1_skill(p, t)
-        c = Candidate(t, {"skill": s1, "academic": m2_academic(p, t), "field": m3_field(p, t), "semantic": None, "llm": None})
+        c = Candidate(
+            t, {"skill": s1, "academic": m2_academic(p, t), "field": m3_field(p, t), "semantic": None, "llm": None}
+        )
         if missing:
             c.reasons.append("Cần bổ sung: " + ", ".join(missing))
         out.append(c)
     if semantic and out and student.about.strip():
         sv = SemanticModel.encode([student.about])[0]
-        for c, tv in zip(out, SemanticModel.topic_vectors([c.topic for c in out])):
+        for c, tv in zip(out, SemanticModel.topic_vectors([c.topic for c in out]), strict=True):
             c.scores["semantic"] = m4_semantic(sv, tv)
     out.sort(key=lambda c: c.final(weights), reverse=True)
     return out[:top_k]
@@ -147,7 +162,8 @@ def score_student(student: Student, topics=None, weights=None, top_k=15, semanti
 
 def explain(c: Candidate):
     """Lời giải thích bằng mẫu câu từ điểm thành phần (dùng khi chưa có/không có LLM)."""
-    s = c.scores; parts = []
+    s = c.scores
+    parts = []
     if s["skill"] >= 80:
         parts.append("bạn đáp ứng tốt các kỹ năng đề tài cần")
     elif s["skill"] >= 50:

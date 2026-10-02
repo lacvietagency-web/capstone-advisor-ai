@@ -17,3 +17,13 @@
 ## Quy ước
 - Giao diện, comment code, tài liệu: tiếng Việt. Tên biến/hàm: tiếng Anh.
 - Không đưa file `.env`, mật khẩu, API key lên repo.
+
+## Code sạch (bắt buộc, CI tự kiểm)
+Học theo cách GVHD tổ chức OpenCPS (chia tầng, CI tự động, review PR):
+- **`ruff check .` và `ruff format --check .` phải sạch** — chạy `ruff check . --fix && ruff format .` trước khi commit.
+- **Chia tầng:** view chỉ nhận request → gọi service → trả template. Logic nghiệp vụ/AI nằm trong `services.py`, `engine.py`,
+  `solver.py`; model chỉ khai báo dữ liệu. Không viết truy vấn phức tạp trong template.
+- **Hàm ngắn, một việc:** độ phức tạp ≤ 10 (ruff C901); hàm dài thì tách.
+- **Mỗi model có `__str__`** (trang quản trị đọc được), mỗi công thức có docstring tiếng Việt kèm công thức toán.
+- **Có kiểm thử** cho mọi công thức và luồng nghiệp vụ; kiểm thử nghiệm thu do Claude viết trước, code phải đạt.
+- **Commit nhỏ, message rõ** (tiếng Việt, nói được *làm gì* và *vì sao*); không commit file sinh ra (db, .env, .venv).

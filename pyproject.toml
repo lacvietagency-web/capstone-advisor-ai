@@ -1,0 +1,17 @@
+# Chuẩn code sạch của dự án (kiểm tra tự động trong CI): ruff check . && ruff format --check .
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["*/migrations/*", ".venv"]
+
+[tool.ruff.lint]
+# E/W: lỗi trình bày · F: lỗi logic (biến thừa, import thừa) · I: sắp xếp import · B: lỗi hay gặp · UP: cú pháp Python hiện đại
+# N: đặt tên chuẩn · C90: hàm quá phức tạp · SIM: viết gọn · DJ: quy tắc riêng cho Django
+select = ["E", "W", "F", "I", "B", "UP", "N", "C90", "SIM", "DJ"]
+ignore = ["E741"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10        # hàm phức tạp hơn mức này phải tách nhỏ
+
+[tool.ruff.lint.per-file-ignores]
+"*/tests.py" = ["E501"]

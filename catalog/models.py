@@ -1,4 +1,5 @@
 """Dữ liệu nghiệp vụ: danh mục, sinh viên, giảng viên, đề tài, đợt đăng ký, nguyện vọng."""
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -17,6 +18,7 @@ class Major(models.Model):
 
 class Field(models.Model):
     """Lĩnh vực đề tài: Web, AI, Mobile, Dữ liệu, An toàn thông tin…"""
+
     name = models.CharField("Lĩnh vực", max_length=80, unique=True)
 
     class Meta:
@@ -58,10 +60,11 @@ class Student(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="student")
     student_code = models.CharField("Mã sinh viên", max_length=20, unique=True)
     major = models.ForeignKey(Major, verbose_name="Chuyên ngành", on_delete=models.PROTECT)
-    gpa = models.DecimalField("GPA (thang 4)", max_digits=3, decimal_places=2,
-                              validators=[MinValueValidator(0), MaxValueValidator(4)])
+    gpa = models.DecimalField(
+        "GPA (thang 4)", max_digits=3, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(4)]
+    )
     about = models.TextField("Tự giới thiệu, kinh nghiệm, định hướng nghề", blank=True)
-    profile_version = models.PositiveIntegerField(default=1, editable=False)   # tăng mỗi lần sửa hồ sơ → làm mới điểm AI
+    profile_version = models.PositiveIntegerField(default=1, editable=False)  # tăng mỗi lần sửa hồ sơ → làm mới điểm AI
 
     class Meta:
         verbose_name = verbose_name_plural = "Sinh viên"
@@ -79,26 +82,38 @@ class StudentSkill(models.Model):
         unique_together = ("student", "skill")
         verbose_name = verbose_name_plural = "Kỹ năng sinh viên"
 
+    def __str__(self):
+        return f"{self.student} · {self.skill} ({self.level}/5)"
+
 
 class StudentInterest(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="interests")
     field = models.ForeignKey(Field, on_delete=models.PROTECT)
-    level = models.PositiveSmallIntegerField("Mức quan tâm (1–3)", validators=[MinValueValidator(1), MaxValueValidator(3)])
+    level = models.PositiveSmallIntegerField(
+        "Mức quan tâm (1–3)", validators=[MinValueValidator(1), MaxValueValidator(3)]
+    )
 
     class Meta:
         unique_together = ("student", "field")
         verbose_name = verbose_name_plural = "Lĩnh vực quan tâm"
 
+    def __str__(self):
+        return f"{self.student} · {self.field} ({self.level}/3)"
+
 
 class StudentCourseResult(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="course_results")
     course = models.ForeignKey(Course, on_delete=models.PROTECT)
-    score = models.DecimalField("Điểm (thang 10)", max_digits=4, decimal_places=2,
-                                validators=[MinValueValidator(0), MaxValueValidator(10)])
+    score = models.DecimalField(
+        "Điểm (thang 10)", max_digits=4, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(10)]
+    )
 
     class Meta:
         unique_together = ("student", "course")
         verbose_name = verbose_name_plural = "Điểm môn học"
+
+    def __str__(self):
+        return f"{self.student} · {self.course}: {self.score}"
 
 
 class Lecturer(models.Model):
@@ -154,6 +169,9 @@ class TopicSkill(models.Model):
         unique_together = ("topic", "skill")
         verbose_name = verbose_name_plural = "Kỹ năng yêu cầu"
 
+    def __str__(self):
+        return f"{self.topic} · {self.skill} ≥ {self.required_level}"
+
 
 class TopicPrerequisite(models.Model):
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name="prerequisites")
@@ -164,8 +182,12 @@ class TopicPrerequisite(models.Model):
         unique_together = ("topic", "course")
         verbose_name = verbose_name_plural = "Môn tiên quyết"
 
+    # ---------------------------------------------------------------- đăng ký
 
-# ---------------------------------------------------------------- đăng ký
+    def __str__(self):
+        return f"{self.topic} · {self.course} ≥ {self.min_score}"
+
+
 class RegistrationPeriod(models.Model):
     class Status(models.TextChoices):
         OPEN = "OPEN", "Đang mở đăng ký"
@@ -187,6 +209,7 @@ class RegistrationPeriod(models.Model):
 
 class Preference(models.Model):
     """Nguyện vọng của sinh viên: tối đa 3, rank 1 là NV1."""
+
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="preferences")
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     period = models.ForeignKey(RegistrationPeriod, on_delete=models.CASCADE)
@@ -197,9 +220,13 @@ class Preference(models.Model):
         unique_together = [("student", "period", "rank"), ("student", "period", "topic")]
         verbose_name = verbose_name_plural = "Nguyện vọng"
 
+    def __str__(self):
+        return f"{self.student} · NV{self.rank}: {self.topic}"
+
 
 class AuditLog(models.Model):
     """Nhật ký: ai sửa gì, lúc nào — để Khoa truy vết khi có khiếu nại."""
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     action = models.CharField(max_length=40)
     entity = models.CharField(max_length=60)
@@ -210,3 +237,6 @@ class AuditLog(models.Model):
     class Meta:
         ordering = ["-at"]
         verbose_name = verbose_name_plural = "Nhật ký thay đổi"
+
+    def __str__(self):
+        return f"{self.at:%d/%m/%Y %H:%M} {self.user} {self.action} {self.entity}#{self.entity_id}"

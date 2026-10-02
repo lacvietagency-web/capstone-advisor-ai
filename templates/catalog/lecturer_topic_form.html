@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h4">{% if topic.pk %}Sửa đề tài{% else %}Thêm đề tài{% endif %}</h1>
+<form method="post">{% csrf_token %}{{ form.as_p }}
+  <h2 class="h6">Kỹ năng yêu cầu</h2>{{ skill_formset.management_form }}
+  <table class="table"><tr><th>Kỹ năng</th><th>Mức yêu cầu</th><th>Trọng số</th><th>Bắt buộc</th><th>Xoá</th></tr>
+  {% for f in skill_formset %}<tr>{{ f.id }}<td>{{ f.skill }}</td><td>{{ f.required_level }}</td><td>{{ f.weight }}</td><td>{{ f.is_mandatory }}</td><td>{{ f.DELETE }}</td></tr>{% endfor %}</table>
+  <button class="btn btn-primary">Lưu</button> <a href="{% url 'lecturer_topics' %}">Huỷ</a>
+</form>
+{% endblock %}

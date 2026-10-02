@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h4">Đăng ký nguyện vọng</h1>
+{% for m in messages %}<div class="alert alert-success">{{ m }}</div>{% endfor %}
+{% if not period %}<div class="alert alert-info">Hiện chưa có đợt đăng ký nào đang mở.</div>{% else %}
+<p>Đợt: <strong>{{ period.name }}</strong> (đến {{ period.end_at|date:"d/m/Y H:i" }})</p>
+<h2 class="h6">Gợi ý cho bạn</h2>
+<ul>{% for r in top5 %}<li>{{ r.topic.title }} — {{ r.final_score|floatformat:0 }}/100</li>{% empty %}<li>Chưa có gợi ý.</li>{% endfor %}</ul>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Lưu nguyện vọng</button></form>
+{% endif %}
+{% endblock %}

@@ -44,4 +44,4 @@ class EngineTests(TestCase):
         self.assertFalse(ok); self.assertIn("Python", why)
 
     def test_ranking_runs(self):
-        self.assertEqual(score_student(self.st)[0].topic, self.t)
+        self.assertEqual(score_student(self.st, semantic=False)[0].topic, self.t)

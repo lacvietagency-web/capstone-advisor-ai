@@ -86,9 +86,43 @@ def m3_field(p: Profile, topic: Topic):
     return 100 * sum(p.interests.get(f, 0) / 3 for f in topic_fields) / len(topic_fields)
 
 
+# ---------------------------------------------------------------- M4: độ gần nghĩa (embedding)
+class SemanticModel:
+    """Mô hình ngôn ngữ biến câu thành vector 384 chiều; hai câu càng gần nghĩa thì cosine càng lớn.
+    Tải một lần (khoảng 470 MB, chạy CPU). Vector đề tài được nhớ theo (id, version) nên chỉ tính lại khi GV sửa đề tài."""
+    NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    _model = None
+    _topic_vecs = {}
+
+    @classmethod
+    def model(cls):
+        if cls._model is None:
+            from sentence_transformers import SentenceTransformer      # import muộn: các phần khác không phải chờ tải mô hình
+            cls._model = SentenceTransformer(cls.NAME)
+        return cls._model
+
+    @classmethod
+    def encode(cls, texts):
+        return cls.model().encode(list(texts), normalize_embeddings=True, show_progress_bar=False)
+
+    @classmethod
+    def topic_vectors(cls, topics):
+        todo = [t for t in topics if (t.id, t.version) not in cls._topic_vecs]
+        if todo:
+            for t, v in zip(todo, cls.encode(f"{t.title}. {t.description}" for t in todo)):
+                cls._topic_vecs[(t.id, t.version)] = v
+        return [cls._topic_vecs[(t.id, t.version)] for t in topics]
+
+
+def m4_semantic(student_vec, topic_vec):
+    """M4 = 100 · max(0, cos(e_SV, e_đềtài)). Vector đã chuẩn hoá độ dài 1 nên cosine = tích vô hướng."""
+    return 100 * max(0.0, float(student_vec @ topic_vec))
+
+
 # ---------------------------------------------------------------- ghép lại
-def score_student(student: Student, topics=None, weights=None, top_k=15):
-    """Giai đoạn 1 cho một sinh viên: lọc cứng + M1–M3 (M4/M5 sẽ cắm vào ở tuần 8–9). Trả về danh sách Candidate đã xếp hạng."""
+def score_student(student: Student, topics=None, weights=None, top_k=15, semantic=True):
+    """Giai đoạn 1 cho một sinh viên: lọc cứng + M1–M4 → Top-K. (M5 LLM chấm thêm ở giai đoạn 2.)
+    semantic=False: bỏ M4 (dùng cho thực nghiệm ablation và kiểm thử nhanh)."""
     weights = weights or DEFAULT_WEIGHTS
     p = Profile(student)
     topics = topics if topics is not None else Topic.objects.filter(status=Topic.Status.OPEN).prefetch_related(
@@ -103,6 +137,10 @@ def score_student(student: Student, topics=None, weights=None, top_k=15):
         if missing:
             c.reasons.append("Cần bổ sung: " + ", ".join(missing))
         out.append(c)
+    if semantic and out and student.about.strip():
+        sv = SemanticModel.encode([student.about])[0]
+        for c, tv in zip(out, SemanticModel.topic_vectors([c.topic for c in out])):
+            c.scores["semantic"] = m4_semantic(sv, tv)
     out.sort(key=lambda c: c.final(weights), reverse=True)
     return out[:top_k]
 
@@ -116,6 +154,8 @@ def explain(c: Candidate):
         parts.append("bạn đáp ứng một phần kỹ năng đề tài cần")
     if s["field"] >= 50:
         parts.append("đề tài thuộc lĩnh vực bạn quan tâm")
+    if (s.get("semantic") or 0) >= 35:
+        parts.append("mô tả đề tài gần với định hướng bạn tự giới thiệu")
     if s["academic"] >= 70:
         parts.append("kết quả các môn liên quan của bạn tốt")
     text = ("Phù hợp vì " + ", ".join(parts) + ".") if parts else "Mức phù hợp trung bình."

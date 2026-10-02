@@ -27,6 +27,6 @@ class Command(BaseCommand):
                                               m2_academic=c.scores["academic"], m3_field=c.scores["field"],
                                               m4_semantic=c.scores["semantic"], m5_llm=c.scores["llm"],
                                               final_score=c.final(DEFAULT_WEIGHTS), reason=explain(c),
-                                              weights_version=WEIGHTS_VERSION, model_version="m1-m3-v1")
+                                              weights_version=WEIGHTS_VERSION, model_version="m1-m4-minilm-v1")
                 n += 1
         self.stdout.write(self.style.SUCCESS(f"Đã lưu {n} gợi ý."))

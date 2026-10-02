@@ -10,6 +10,34 @@ urlpatterns = [
     path("trang-chu/", home, name="home"),
     path("dang-nhap/", auth_views.LoginView.as_view(), name="login"),
     path("dang-xuat/", auth_views.LogoutView.as_view(), name="logout"),
+    path(
+        "doi-mat-khau/",
+        auth_views.PasswordChangeView.as_view(
+            template_name="registration/password_change_form.html",
+        ),
+        name="password_change",
+    ),
+    path(
+        "doi-mat-khau/xong/",
+        auth_views.PasswordChangeDoneView.as_view(
+            template_name="registration/password_change_done.html",
+        ),
+        name="password_change_done",
+    ),
+    path(
+        "doi-mat-khau/",
+        auth_views.PasswordChangeView.as_view(
+            template_name="registration/password_change_form.html",
+        ),
+        name="doi_mat_khau",
+    ),
+    path(
+        "doi-mat-khau/xong/",
+        auth_views.PasswordChangeDoneView.as_view(
+            template_name="registration/password_change_done.html",
+        ),
+        name="doi_mat_khau_done",
+    ),
     path("ho-so/", cv.student_profile, name="student_profile"),
     path("nguyen-vong/", cv.student_preferences, name="student_preferences"),
     path("de-tai/", cv.lecturer_topics, name="lecturer_topics"),

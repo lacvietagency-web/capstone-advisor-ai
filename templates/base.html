@@ -46,6 +46,10 @@
           </a>
           {% endif %}
 
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'password_change' %}">
+            <i class="bi bi-key-fill me-1"></i>Đổi mật khẩu
+          </a>
+
           <form method="post" action="{% url 'logout' %}" class="m-0">
             {% csrf_token %}
             <button type="submit" class="btn btn-sm btn-outline-secondary w-100">

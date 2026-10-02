@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h4">Hồ sơ năng lực</h1>
+{% for m in messages %}<div class="alert alert-success">{{ m }}</div>{% endfor %}
+<form method="post">{% csrf_token %}
+  <h2 class="h6 mt-3">Tự giới thiệu</h2>{{ about_form.as_p }}
+  <h2 class="h6 mt-3">Kỹ năng (mức 1–5)</h2>{{ skill_formset.management_form }}
+  <table class="table"><tr><th>Kỹ năng</th><th>Mức</th><th>Xoá</th></tr>
+  {% for f in skill_formset %}<tr>{{ f.id }}<td>{{ f.skill }}</td><td>{{ f.level }}</td><td>{{ f.DELETE }}</td></tr>{% endfor %}</table>
+  <h2 class="h6 mt-3">Lĩnh vực quan tâm (mức 1–3)</h2>{{ interest_formset.management_form }}
+  <table class="table"><tr><th>Lĩnh vực</th><th>Mức</th><th>Xoá</th></tr>
+  {% for f in interest_formset %}<tr>{{ f.id }}<td>{{ f.field }}</td><td>{{ f.level }}</td><td>{{ f.DELETE }}</td></tr>{% endfor %}</table>
+  <button class="btn btn-primary">Lưu hồ sơ</button>
+</form>
+{% endblock %}

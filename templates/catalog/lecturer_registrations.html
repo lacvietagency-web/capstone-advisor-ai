@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h4">Sinh viên đăng ký: {{ topic.title }}</h1>
+<table class="table"><tr><th>Sinh viên</th><th>Nguyện vọng</th><th>GPA</th><th>Mức phù hợp (AI)</th></tr>
+{% for row in rows %}<tr><td>{{ row.pref.student }}</td><td>NV{{ row.pref.rank }}</td><td>{{ row.pref.student.gpa }}</td>
+<td>{% if row.rec %}{{ row.rec.final_score|floatformat:0 }}/100{% else %}—{% endif %}</td></tr>
+{% empty %}<tr><td colspan="4">Chưa có sinh viên đăng ký.</td></tr>{% endfor %}</table>
+{% endblock %}

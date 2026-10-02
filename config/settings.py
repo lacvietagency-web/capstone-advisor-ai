@@ -146,3 +146,6 @@ STATICFILES_DIRS = [BASE_DIR / 'static']   # CSS/JS dùng chung của giao diệ
 LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'groq')
 LLM_MODEL = os.getenv('LLM_MODEL', 'openai/gpt-oss-120b')
 LLM_API_KEY = os.getenv('LLM_API_KEY', '')
+
+# Tắt M4 (mô hình ngôn ngữ ~470 MB) khi chạy kiểm thử nhanh: RECOMMEND_SEMANTIC=0
+RECOMMEND_SEMANTIC = os.getenv('RECOMMEND_SEMANTIC', '1') == '1'

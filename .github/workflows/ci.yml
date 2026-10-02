@@ -10,3 +10,4 @@ jobs:
       - run: pip install "Django>=5.1,<5.2" python-dotenv PuLP
       - run: python manage.py check
       - run: python manage.py test
+        env: { RECOMMEND_SEMANTIC: "0" }

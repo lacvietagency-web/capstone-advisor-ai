@@ -127,3 +127,12 @@ class CommandTests(TestCase):
         call_command("allocate_period", algorithm="ILP", verbosity=0)
         self.assertEqual(Allocation.objects.count(), 20)
         self.assertTrue(all(a.status == "DRAFT" and a.source == "ILP" for a in Allocation.objects.all()))
+
+    def test_allocate_period_greedy_saves_drafts(self):
+        from allocate.models import Allocation
+
+        call_command("seed_demo", students=20, lecturers=4, topics=10, verbosity=0)
+        call_command("recommend_all", verbosity=0)
+        call_command("allocate_period", algorithm="GREEDY", verbosity=0)
+        self.assertEqual(Allocation.objects.count(), 20)
+        self.assertTrue(all(a.status == "DRAFT" and a.source == "GREEDY" for a in Allocation.objects.all()))

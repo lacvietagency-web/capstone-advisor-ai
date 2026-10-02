@@ -44,5 +44,7 @@ urlpatterns = [
     path("de-tai/them/", cv.lecturer_topic_edit, name="lecturer_topic_new"),
     path("de-tai/<int:pk>/sua/", cv.lecturer_topic_edit, name="lecturer_topic_edit"),
     path("de-tai/<int:pk>/dang-ky/", cv.lecturer_registrations, name="lecturer_registrations"),
+    path("danh-sach-de-tai/", cv.topic_list, name="topic_list"),
+    path("danh-sach-de-tai/<int:pk>/", cv.topic_detail, name="topic_detail"),
     path("quan-tri/", admin.site.urls),
 ]

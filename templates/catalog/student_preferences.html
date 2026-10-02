@@ -7,5 +7,6 @@
 <h2 class="h6">Gợi ý cho bạn</h2>
 <ul>{% for r in top5 %}<li>{{ r.topic.title }} — {{ r.final_score|floatformat:0 }}/100</li>{% empty %}<li>Chưa có gợi ý.</li>{% endfor %}</ul>
 <form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Lưu nguyện vọng</button></form>
+<p class="mt-3"><a href="{% url 'topic_list' %}">← Xem danh sách đề tài để tìm kiếm và tra cứu chi tiết</a></p>
 {% endif %}
 {% endblock %}

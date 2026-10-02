@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách đề tài — Capstone Advisor AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Danh sách đề tài tốt nghiệp</h1>
+  <p class="page-subtitle">Tra cứu, tìm kiếm và lọc đề tài theo lĩnh vực, giảng viên hướng dẫn và độ khó.</p>
+</div>
+
+<!-- Bộ lọc tìm kiếm đề tài -->
+<div class="app-card mb-4">
+  <form method="get" action="{% url 'topic_list' %}">
+    <div class="row g-3">
+      <!-- Tìm kiếm theo tên -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <label for="filter-query" class="form-label">Tìm kiếm tên đề tài</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input
+            type="text"
+            id="filter-query"
+            name="q"
+            class="form-control"
+            placeholder="Nhập tên đề tài..."
+            value="{{ search_query }}"
+          >
+        </div>
+      </div>
+
+      <!-- Lọc theo lĩnh vực -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <label for="filter-field" class="form-label">Lĩnh vực</label>
+        <select id="filter-field" name="field" class="form-select">
+          <option value="">-- Tất cả lĩnh vực --</option>
+          {% for f in fields %}
+            <option value="{{ f.id }}" {% if selected_field == f.id|stringformat:"s" %}selected{% endif %}>
+              {{ f.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Lọc theo giảng viên -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <label for="filter-lecturer" class="form-label">Giảng viên hướng dẫn</label>
+        <select id="filter-lecturer" name="lecturer" class="form-select">
+          <option value="">-- Tất cả giảng viên --</option>
+          {% for l in lecturers %}
+            <option value="{{ l.id }}" {% if selected_lecturer == l.id|stringformat:"s" %}selected{% endif %}>
+              {{ l.user.get_full_name|default:l.user.username }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Lọc theo độ khó -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <label for="filter-difficulty" class="form-label">Độ khó</label>
+        <select id="filter-difficulty" name="difficulty" class="form-select">
+          <option value="">-- Tất cả độ khó --</option>
+          {% for val, label in difficulties %}
+            <option value="{{ val }}" {% if selected_difficulty == val|stringformat:"s" %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 mt-3 pt-2 border-top">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-funnel me-1"></i>Lọc đề tài
+      </button>
+      <a href="{% url 'topic_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Xóa bộ lọc
+      </a>
+      <div class="ms-auto text-muted small">
+        Tìm thấy <strong>{{ page_obj.paginator.count }}</strong> đề tài
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Danh sách đề tài -->
+<div class="topic-list-container">
+  {% for t in topics %}
+    <div class="app-card mb-3">
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3">
+        <!-- Thông tin tiêu đề & giảng viên -->
+        <div class="flex-grow-1">
+          <h2 class="card-heading mb-1">
+            <a href="{% url 'topic_detail' t.id %}" class="text-decoration-none text-strong">
+              {{ t.title }}
+            </a>
+          </h2>
+
+          <div class="small text-muted mb-2">
+            <i class="bi bi-person me-1"></i>GVHD:
+            <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>
+            {% if t.lecturer.department %} · {{ t.lecturer.department }}{% endif %}
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            {% for f in t.fields.all %}
+              <span class="badge bg-light text-secondary border">{{ f.name }}</span>
+            {% endfor %}
+            <span class="badge-difficulty">
+              <i class="bi bi-speedometer2 me-1"></i>{{ t.get_difficulty_display }}
+            </span>
+          </div>
+
+          <p class="text-muted mb-3 small" style="line-height: 1.5;">
+            {{ t.description|truncatewords:45 }}
+          </p>
+
+          <div class="d-flex flex-wrap align-items-center gap-3 small text-muted">
+            <div>
+              <i class="bi bi-people me-1"></i>Sức chứa: <strong>{{ t.capacity }}</strong> SV
+            </div>
+            <div>
+              <i class="bi bi-bookmark-check me-1"></i>Số người đã đăng ký NV1: <strong>{{ t.nv1_count }}</strong>
+            </div>
+            {% if t.min_gpa > 0 %}
+              <div>
+                <i class="bi bi-mortarboard me-1"></i>GPA tối thiểu: <strong>{{ t.min_gpa|floatformat:2 }}</strong>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Điểm phù hợp nếu sinh viên đăng nhập -->
+        <div class="d-flex flex-column align-items-sm-end gap-2 flex-shrink-0">
+          {% if is_student and t.recommendation %}
+            <div class="ai-score" title="Mức độ phù hợp tổng hợp theo mô hình AI">
+              <div class="d-flex align-items-baseline">
+                <span class="ai-score-number">{{ t.recommendation.final_score|floatformat:0 }}</span>
+                <span class="ai-score-denom">/100</span>
+              </div>
+              <div class="ai-score-label">Điểm phù hợp</div>
+            </div>
+          {% endif %}
+
+          <div class="d-flex gap-2 mt-2">
+            <a href="{% url 'topic_detail' t.id %}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-info-circle me-1"></i>Chi tiết
+            </a>
+            {% if is_student %}
+              <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-bookmark-plus me-1"></i>Đăng ký NV
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="app-card text-center py-5">
+      <div class="empty-state">
+        <div class="empty-state-icon"><i class="bi bi-search"></i></div>
+        <h3 class="empty-state-title">Không tìm thấy đề tài nào</h3>
+        <p class="empty-state-desc">Hãy thử thay đổi điều kiện lọc hoặc từ khóa tìm kiếm để xem các đề tài khác.</p>
+        <a href="{% url 'topic_list' %}" class="btn btn-outline-secondary mt-3">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Xem tất cả đề tài
+        </a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Phân trang -->
+{% if page_obj.has_other_pages %}
+  <nav aria-label="Phân trang đề tài" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?{{ querystring }}&page={{ page_obj.previous_page_number }}" aria-label="Trang trước">
+            <span aria-hidden="true">&laquo; Trang trước</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&laquo; Trang trước</span>
+        </li>
+      {% endif %}
+
+      {% for p in page_obj.paginator.page_range %}
+        {% if p == page_obj.number %}
+          <li class="page-item active" aria-current="page">
+            <span class="page-link">{{ p }}</span>
+          </li>
+        {% elif p >= page_obj.number|add:"-3" and p <= page_obj.number|add:"3" %}
+          <li class="page-item">
+            <a class="page-link" href="?{{ querystring }}&page={{ p }}">{{ p }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?{{ querystring }}&page={{ page_obj.next_page_number }}" aria-label="Trang sau">
+            <span aria-hidden="true">Trang sau &raquo;</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Trang sau &raquo;</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}

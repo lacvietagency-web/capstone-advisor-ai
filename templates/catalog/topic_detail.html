@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}{{ topic.title }} — Capstone Advisor AI{% endblock %}
+
+{% block content %}
+<!-- Điều hướng quay lại -->
+<div class="mb-3">
+  <a href="{% url 'topic_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách đề tài
+  </a>
+</div>
+
+<!-- Tiêu đề đề tài & thông tin giảng viên -->
+<div class="app-card mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+    <div>
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        {% for f in topic.fields.all %}
+          <span class="badge bg-light text-secondary border">{{ f.name }}</span>
+        {% endfor %}
+        <span class="badge-difficulty">
+          <i class="bi bi-speedometer2 me-1"></i>Độ khó: {{ topic.get_difficulty_display }}
+        </span>
+        <span class="status-badge {% if topic.status == 'OPEN' %}status-open{% elif topic.status == 'CLOSED' %}status-closed{% else %}status-pending{% endif %}">
+          <span class="dot"></span>{{ topic.get_status_display }}
+        </span>
+      </div>
+
+      <h1 class="card-heading fs-3 mb-2">{{ topic.title }}</h1>
+
+      <div class="text-muted">
+        <i class="bi bi-person-circle me-1"></i>Giảng viên hướng dẫn:
+        <strong class="text-strong">{{ topic.lecturer.user.get_full_name|default:topic.lecturer.user.username }}</strong>
+        {% if topic.lecturer.department %}
+          <span class="ms-1">· {{ topic.lecturer.department }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if is_student %}
+      <div class="d-flex flex-column align-items-md-end gap-2 flex-shrink-0">
+        <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary">
+          <i class="bi bi-bookmark-plus me-1"></i>Đăng ký nguyện vọng
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Đánh giá mức độ phù hợp của SV với đề tài nếu có -->
+{% if is_student %}
+  <div class="app-card mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+      <h2 class="card-heading mb-0">
+        <i class="bi bi-stars text-primary me-2"></i>Mức độ phù hợp với hồ sơ của bạn
+      </h2>
+      {% if recommendation %}
+        <span class="badge bg-light text-primary border">AI đánh giá</span>
+      {% endif %}
+    </div>
+
+    {% if recommendation %}
+      <div class="row align-items-center g-3 mb-3">
+        <div class="col-12 col-sm-auto">
+          <div class="ai-score" style="min-width: 120px; padding: 12px 18px;">
+            <div class="d-flex align-items-baseline">
+              <span class="ai-score-number" style="font-size: 32px;">{{ recommendation.final_score|floatformat:0 }}</span>
+              <span class="ai-score-denom">/100</span>
+            </div>
+            <div class="ai-score-label">
+              {% if recommendation.final_score >= 85 %}
+                Phù hợp rất cao
+              {% elif recommendation.final_score >= 70 %}
+                Phù hợp cao
+              {% elif recommendation.final_score >= 55 %}
+                Khá phù hợp
+              {% else %}
+                Cần cân nhắc
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm">
+          <!-- 5 thanh điểm thành phần M1-M5 -->
+          <div class="row g-2">
+            <div class="col-12 col-md-4 score-factor-item">
+              <div class="score-factor-header">
+                <span class="score-factor-title">M1 Kỹ năng</span>
+                <span class="score-factor-value">{{ recommendation.m1_skill|floatformat:0 }}</span>
+              </div>
+              <div class="progress score-progress">
+                <div class="progress-bar" style="width: {{ recommendation.m1_skill|floatformat:0 }}%;"></div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-4 score-factor-item">
+              <div class="score-factor-header">
+                <span class="score-factor-title">M2 Học lực</span>
+                <span class="score-factor-value">{{ recommendation.m2_academic|floatformat:0 }}</span>
+              </div>
+              <div class="progress score-progress">
+                <div class="progress-bar" style="width: {{ recommendation.m2_academic|floatformat:0 }}%;"></div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-4 score-factor-item">
+              <div class="score-factor-header">
+                <span class="score-factor-title">M3 Lĩnh vực</span>
+                <span class="score-factor-value">{{ recommendation.m3_field|floatformat:0 }}</span>
+              </div>
+              <div class="progress score-progress">
+                <div class="progress-bar" style="width: {{ recommendation.m3_field|floatformat:0 }}%;"></div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6 score-factor-item">
+              <div class="score-factor-header">
+                <span class="score-factor-title">M4 Ngữ nghĩa</span>
+                <span class="score-factor-value">
+                  {% if recommendation.m4_semantic is not None %}{{ recommendation.m4_semantic|floatformat:0 }}{% else %}—{% endif %}
+                </span>
+              </div>
+              <div class="progress score-progress">
+                <div class="progress-bar" style="width: {% if recommendation.m4_semantic is not None %}{{ recommendation.m4_semantic|floatformat:0 }}{% else %}0{% endif %}%;"></div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6 score-factor-item">
+              <div class="score-factor-header">
+                <span class="score-factor-title">M5 Đánh giá AI</span>
+                <span class="score-factor-value">
+                  {% if recommendation.m5_llm is not None %}{{ recommendation.m5_llm|floatformat:0 }}{% else %}—{% endif %}
+                </span>
+              </div>
+              <div class="progress score-progress">
+                <div class="progress-bar" style="width: {% if recommendation.m5_llm is not None %}{{ recommendation.m5_llm|floatformat:0 }}{% else %}0{% endif %}%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if recommendation.reason %}
+        <div class="recommendation-reason mt-2">
+          <div class="recommendation-reason-title">
+            <i class="bi bi-lightbulb me-1"></i>Vì sao đề tài này phù hợp?
+          </div>
+          <div>{{ recommendation.reason|linebreaksbr }}</div>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="text-muted small py-2">
+        <i class="bi bi-info-circle me-1"></i>Chưa có điểm đánh giá phù hợp cho đề tài này (đề tài nằm ngoài Top gợi ý hoặc hồ sơ chưa được cập nhật). Bạn vẫn có thể đăng ký bình thường nếu cảm thấy đề tài phù hợp.
+      </div>
+    {% endif %}
+
+    <div class="mt-3 pt-2 border-top">
+      <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary">
+        <i class="bi bi-bookmark-plus me-1"></i>Đăng ký nguyện vọng cho đề tài này
+      </a>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Chi tiết đề tài: 2 cột -->
+<div class="row g-4">
+  <!-- Cột trái: Mô tả, Kỹ năng, Môn tiên quyết -->
+  <div class="col-12 col-lg-8">
+    <!-- Mô tả đề tài -->
+    <div class="app-card mb-4">
+      <h2 class="card-heading border-bottom pb-2 mb-3">Mô tả đề tài</h2>
+      <div class="topic-description" style="line-height: 1.7; white-space: pre-line;">
+        {{ topic.description }}
+      </div>
+    </div>
+
+    <!-- Kỹ năng yêu cầu -->
+    <div class="app-card mb-4">
+      <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+        <h2 class="card-heading mb-0">Kỹ năng yêu cầu</h2>
+        <span class="badge bg-light text-muted border">{{ skills|length }} kỹ năng</span>
+      </div>
+
+      {% if skills %}
+        <div class="table-responsive">
+          <table class="table app-table">
+            <thead>
+              <tr>
+                <th>Kỹ năng</th>
+                <th>Mức yêu cầu</th>
+                <th>Trọng số</th>
+                <th>Tính chất</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in skills %}
+                <tr>
+                  <td><strong class="text-strong">{{ s.skill.name }}</strong></td>
+                  <td>
+                    <div class="d-flex align-items-center gap-1">
+                      <span>Mức {{ s.required_level }}/5</span>
+                      <div class="progress flex-grow-1 ms-2" style="height: 6px; width: 60px;">
+                        <div class="progress-bar" style="width: {% widthratio s.required_level 5 100 %}%;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ s.weight }}</td>
+                  <td>
+                    {% if s.is_mandatory %}
+                      <span class="badge bg-danger">Bắt buộc</span>
+                    {% else %}
+                      <span class="badge bg-light text-secondary border">Tùy chọn</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-muted py-2 small">
+          <i class="bi bi-check-circle me-1"></i>Đề tài không đặt yêu cầu kỹ năng cụ thể.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Môn học tiên quyết -->
+    <div class="app-card mb-4">
+      <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+        <h2 class="card-heading mb-0">Môn học tiên quyết</h2>
+        <span class="badge bg-light text-muted border">{{ prerequisites|length }} môn</span>
+      </div>
+
+      {% if prerequisites %}
+        <div class="table-responsive">
+          <table class="table app-table">
+            <thead>
+              <tr>
+                <th>Mã môn</th>
+                <th>Tên môn học</th>
+                <th>Điểm tối thiểu</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in prerequisites %}
+                <tr>
+                  <td><code>{{ p.course.code }}</code></td>
+                  <td><strong class="text-strong">{{ p.course.name }}</strong></td>
+                  <td><span class="badge bg-light text-primary border">≥ {{ p.min_score|floatformat:1 }} / 10</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-muted py-2 small">
+          <i class="bi bi-info-circle me-1"></i>Đề tài không yêu cầu môn học tiên quyết.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Cột phải: Thông số đề tài -->
+  <div class="col-12 col-lg-4">
+    <div class="app-card mb-4">
+      <h2 class="card-heading border-bottom pb-2 mb-3">Thông số đề tài</h2>
+
+      <div class="d-flex flex-column gap-3">
+        <div>
+          <div class="profile-stat-label">Sức chứa</div>
+          <div class="profile-stat-value">
+            <i class="bi bi-people me-1 text-primary"></i>{{ topic.capacity }} sinh viên
+          </div>
+        </div>
+
+        <div>
+          <div class="profile-stat-label">Số người đã đăng ký NV1</div>
+          <div class="profile-stat-value">
+            <i class="bi bi-bookmark-check me-1 text-success"></i>{{ nv1_count }} sinh viên
+          </div>
+        </div>
+
+        <div>
+          <div class="profile-stat-label">GPA tối thiểu</div>
+          <div class="profile-stat-value">
+            <i class="bi bi-mortarboard me-1 text-info"></i>{{ topic.min_gpa|floatformat:2 }}
+          </div>
+        </div>
+
+        <div>
+          <div class="profile-stat-label">Độ khó</div>
+          <div class="profile-stat-value">
+            <span class="badge-difficulty">{{ topic.get_difficulty_display }}</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="profile-stat-label">Trạng thái</div>
+          <div class="profile-stat-value">
+            <span class="status-badge {% if topic.status == 'OPEN' %}status-open{% elif topic.status == 'CLOSED' %}status-closed{% else %}status-pending{% endif %}">
+              <span class="dot"></span>{{ topic.get_status_display }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {% if is_student %}
+        <div class="mt-4 pt-3 border-top">
+          <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary w-100">
+            <i class="bi bi-bookmark-plus me-1"></i>Đăng ký nguyện vọng
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

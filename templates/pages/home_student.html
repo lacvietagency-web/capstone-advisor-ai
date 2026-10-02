@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h4">Xin chào {{ student.user.get_full_name }}</h1>
+<p class="text-muted">{{ student.student_code }} · {{ student.major }} · GPA {{ student.gpa }}</p>
+<div class="row g-4">
+  <div class="col-lg-7"><div class="card"><div class="card-body">
+    <h2 class="h5">Đề tài gợi ý cho bạn</h2>
+    {% for r in recommendations %}
+      <div class="border-bottom py-2"><strong>{{ r.rank }}. {{ r.topic.title }}</strong> — <span class="badge bg-success">{{ r.final_score|floatformat:1 }}%</span>
+        <div class="small text-muted">Kỹ năng {{ r.m1_skill|floatformat:0 }} · Học lực {{ r.m2_academic|floatformat:0 }} · Lĩnh vực {{ r.m3_field|floatformat:0 }}{% if r.m4_semantic is not None %} · Ngữ nghĩa {{ r.m4_semantic|floatformat:0 }}{% endif %}{% if r.m5_llm is not None %} · LLM {{ r.m5_llm|floatformat:0 }}{% endif %}</div>
+        {% if r.reason %}<div class="small">{{ r.reason }}</div>{% endif %}</div>
+    {% empty %}<p class="text-muted">Chưa có gợi ý. (Sẽ có từ tuần 7 khi làm xong phần AI.)</p>{% endfor %}
+  </div></div></div>
+  <div class="col-lg-5"><div class="card"><div class="card-body">
+    <h2 class="h5">Nguyện vọng của bạn</h2>
+    {% for p in preferences %}<div>NV{{ p.rank }}: {{ p.topic.title }}</div>{% empty %}<p class="text-muted">Chưa đăng ký nguyện vọng.</p>{% endfor %}
+  </div></div></div>
+</div>
+{% endblock %}

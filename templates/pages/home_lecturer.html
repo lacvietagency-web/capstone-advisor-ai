@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h4">Đề tài của tôi</h1>
+<table class="table table-striped bg-white"><thead><tr><th>Đề tài</th><th>Độ khó</th><th>Số SV</th><th>Trạng thái</th></tr></thead><tbody>
+{% for t in topics %}<tr><td>{{ t.title }}</td><td>{{ t.get_difficulty_display }}</td><td>{{ t.capacity }}</td><td>{{ t.get_status_display }}</td></tr>
+{% empty %}<tr><td colspan="4" class="text-muted">Chưa có đề tài.</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}

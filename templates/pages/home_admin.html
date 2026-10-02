@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h4">Bảng điều khiển Khoa</h1>
+<div class="row g-3 mb-4"><div class="col-md-3"><div class="card text-center"><div class="card-body"><div class="display-6">{{ n_topics }}</div>đề tài</div></div></div></div>
+<h2 class="h5">Đợt đăng ký</h2>
+<ul>{% for p in periods %}<li>{{ p.name }} — {{ p.get_status_display }}</li>{% empty %}<li class="text-muted">Chưa có đợt nào.</li>{% endfor %}</ul>
+<a class="btn btn-primary" href="/quan-tri/">Vào trang quản trị dữ liệu</a>
+{% endblock %}

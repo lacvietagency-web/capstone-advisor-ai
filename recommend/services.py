@@ -7,7 +7,7 @@ from catalog.models import Topic
 from recommend.engine import DEFAULT_WEIGHTS, WEIGHTS_VERSION, explain, score_student
 from recommend.models import Recommendation
 
-MODEL_VERSION = "m1-m4-minilm-v1"
+MODEL_VERSION = "m1-m5-v1"
 
 
 def open_topics():
@@ -19,10 +19,17 @@ def open_topics():
 
 
 @transaction.atomic
-def refresh_student(student, topics=None, top=5, semantic=None):
+def refresh_student(student, topics=None, top=5, semantic=None, llm=None):
     semantic = settings.RECOMMEND_SEMANTIC if semantic is None else semantic
+    llm = getattr(settings, "RECOMMEND_LLM", True) if llm is None else llm
     Recommendation.objects.filter(student=student).delete()
-    cands = score_student(student, topics if topics is not None else open_topics(), semantic=semantic)[:top]
+    cands = score_student(
+        student,
+        topics if topics is not None else open_topics(),
+        semantic=semantic,
+        llm=llm,
+    )[:top]
+
     for rank, c in enumerate(cands, 1):
         Recommendation.objects.create(
             student=student,

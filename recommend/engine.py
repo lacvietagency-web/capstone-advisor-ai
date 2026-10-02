@@ -8,7 +8,26 @@ Mỗi mô hình trả về điểm 0–100. Công thức xem docs/KE-HOACH (mụ
 
 from dataclasses import dataclass, field
 
+from django.conf import settings
+
 from catalog.models import Student, Topic
+from recommend.llm import batch_score_llm, score_pair
+
+__all__ = [
+    "DEFAULT_WEIGHTS",
+    "WEIGHTS_VERSION",
+    "Candidate",
+    "Profile",
+    "SemanticModel",
+    "eligible",
+    "explain",
+    "m1_skill",
+    "m2_academic",
+    "m3_field",
+    "m4_semantic",
+    "score_pair",
+    "score_student",
+]
 
 # Trọng số w1..w5 (kỹ năng, học lực, lĩnh vực, ngữ nghĩa, LLM). Bản chính thức sẽ lấy từ AHP do GVHD so sánh cặp.
 DEFAULT_WEIGHTS = {"skill": 0.25, "academic": 0.20, "field": 0.15, "semantic": 0.20, "llm": 0.20}
@@ -20,6 +39,7 @@ class Candidate:
     topic: Topic
     scores: dict = field(default_factory=dict)  # skill, academic, field, semantic, llm → 0..100 (None = chưa có)
     reasons: list = field(default_factory=list)
+    llm_reason: str = ""
 
     def final(self, weights):
         """Tổng có trọng số; thành phần chưa có (None) bị bỏ và chia lại trọng số các thành phần còn lại."""
@@ -128,9 +148,19 @@ def m4_semantic(student_vec, topic_vec):
 
 
 # ---------------------------------------------------------------- ghép lại
-def score_student(student: Student, topics=None, weights=None, top_k=15, semantic=True):
-    """Giai đoạn 1 cho một sinh viên: lọc cứng + M1–M4 → Top-K. (M5 LLM chấm thêm ở giai đoạn 2.)
-    semantic=False: bỏ M4 (dùng cho thực nghiệm ablation và kiểm thử nhanh)."""
+def compute_stage1_candidates(
+    student: Student,
+    topics=None,
+    weights=None,
+    top_k: int = 15,
+    semantic: bool = True,
+) -> list[Candidate]:
+    """Giai đoạn 1: Lọc cứng (BR1) và tính điểm M1-M4 để chọn ra Top-K ứng viên (mặc định 15 đề tài).
+    - M1: Khớp kỹ năng (0..100)
+    - M2: Học lực và môn liên quan (0..100)
+    - M3: Khớp lĩnh vực quan tâm (0..100)
+    - M4: Độ gần nghĩa ngữ nghĩa qua embedding MiniLM (0..100, nếu semantic=True)
+    """
     weights = weights or DEFAULT_WEIGHTS
     p = Profile(student)
     topics = (
@@ -142,7 +172,7 @@ def score_student(student: Student, topics=None, weights=None, top_k=15, semanti
     )
     out = []
     for t in topics:
-        ok, why = eligible(p, t)
+        ok, _ = eligible(p, t)
         if not ok:
             continue
         s1, missing = m1_skill(p, t)
@@ -160,7 +190,50 @@ def score_student(student: Student, topics=None, weights=None, top_k=15, semanti
     return out[:top_k]
 
 
-def explain(c: Candidate):
+def apply_stage2_llm(student: Student, cands: list[Candidate], weights: dict) -> list[Candidate]:
+    """Giai đoạn 2: Gọi LLM chấm M5 theo rubric 100 điểm cho Top-K ứng viên:
+    - Trộn ngẫu nhiên thứ tự đề tài trước khi gửi, ghép lại theo topic_id.
+    - Kiểm tra tổng rubric: total = feasibility + career + nature + motivation (0..100).
+      Nếu sai thì bỏ điểm M5 của đề tài đó (m5=None), đề tài vẫn được xếp hạng bằng M1–M4.
+    - Lỗi mạng/JSON sau 1 lần thử lại → m5=None (Candidate.final tự chia lại trọng số).
+    - Xếp hạng lại theo điểm cuối có trọng số w1..w5.
+    """
+    # điểm LLM sai rubric chỉ bỏ M5 của đề tài đó (Candidate.final chia lại trọng số), KHÔNG loại đề tài
+    scored_dict, _invalid = batch_score_llm(student, [c.topic for c in cands])
+
+    for c in cands:
+        if c.topic.id in scored_dict:
+            res = scored_dict[c.topic.id]
+            c.scores["llm"] = float(res.total)
+            c.llm_reason = res.reason
+
+    cands.sort(key=lambda c: c.final(weights), reverse=True)
+    return cands
+
+
+def score_student(
+    student: Student,
+    topics=None,
+    weights=None,
+    top_k: int = 15,
+    semantic: bool = True,
+    llm: bool | None = None,
+) -> list[Candidate]:
+    """Giai đoạn 1 + Giai đoạn 2 cho một sinh viên:
+    1. Giai đoạn 1: lọc cứng + M1-M4 → lấy Top-K ứng viên (mặc định 15).
+    2. Giai đoạn 2: LLM chấm M5 theo rubric 100 điểm cho Top-K → tính điểm cuối có trọng số → xếp hạng lại.
+    - semantic=False: bỏ M4 (dùng cho thực nghiệm ablation và kiểm thử nhanh).
+    - llm=False: bỏ M5 (hoặc tắt qua settings RECOMMEND_LLM=0).
+    """
+    weights = weights or DEFAULT_WEIGHTS
+    cands = compute_stage1_candidates(student, topics, weights, top_k, semantic)
+    should_run_llm = getattr(settings, "RECOMMEND_LLM", True) if llm is None else llm
+    if should_run_llm and cands:
+        cands = apply_stage2_llm(student, cands, weights)
+    return cands
+
+
+def explain_heuristic(c: Candidate) -> str:
     """Lời giải thích bằng mẫu câu từ điểm thành phần (dùng khi chưa có/không có LLM)."""
     s = c.scores
     parts = []
@@ -176,3 +249,15 @@ def explain(c: Candidate):
         parts.append("kết quả các môn liên quan của bạn tốt")
     text = ("Phù hợp vì " + ", ".join(parts) + ".") if parts else "Mức phù hợp trung bình."
     return " ".join([text] + c.reasons)
+
+
+def explain(c: Candidate) -> str:
+    """Lời giải thích hiển thị cho đề tài gợi ý:
+    - Dùng lý do (reason) của LLM nếu có, nối với 'Cần bổ sung: …' từ M1.
+    - Nếu không có LLM: giải thích bằng mẫu câu heurictic từ M1-M4.
+    """
+    missing = [r for r in c.reasons if r.startswith("Cần bổ sung:")]
+    missing_str = " ".join(missing)
+    if c.llm_reason:
+        return f"{c.llm_reason} {missing_str}".strip() if missing_str else c.llm_reason.strip()
+    return explain_heuristic(c)

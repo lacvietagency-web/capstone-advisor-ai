@@ -147,10 +147,13 @@ LOGOUT_REDIRECT_URL = "login"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]  # CSS/JS dùng chung của giao diện
 
-# LLM chấm điểm (M5) — đổi nhà cung cấp chỉ bằng biến môi trường: groq | gemini | ollama
+# LLM chấm điểm (M5) — đổi nhà cung cấp chỉ bằng biến môi trường: groq | gemini | ollama | fake
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "groq")
 LLM_MODEL = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 
 # Tắt M4 (mô hình ngôn ngữ ~470 MB) khi chạy kiểm thử nhanh: RECOMMEND_SEMANTIC=0
 RECOMMEND_SEMANTIC = os.getenv("RECOMMEND_SEMANTIC", "1") == "1"
+
+# Tắt M5 LLM khi chạy kiểm thử khác: RECOMMEND_LLM=0
+RECOMMEND_LLM = os.getenv("RECOMMEND_LLM", "1") == "1"

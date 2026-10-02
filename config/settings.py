@@ -140,6 +140,7 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']   # CSS/JS dùng chung của giao diện
 
 # LLM chấm điểm (M5) — đổi nhà cung cấp chỉ bằng biến môi trường: groq | gemini | ollama
 LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'groq')

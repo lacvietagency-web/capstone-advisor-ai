@@ -1,8 +1,24 @@
 """Trang quản trị cho Khoa: Django tự sinh màn hình thêm/sửa/xoá/tìm kiếm cho mọi bảng đăng ký ở đây."""
+
 from django.contrib import admin
 
-from .models import (AuditLog, Course, Field, Lecturer, Major, Preference, RegistrationPeriod, Skill, Student,
-                     StudentCourseResult, StudentInterest, StudentSkill, Topic, TopicPrerequisite, TopicSkill)
+from .models import (
+    AuditLog,
+    Course,
+    Field,
+    Lecturer,
+    Major,
+    Preference,
+    RegistrationPeriod,
+    Skill,
+    Student,
+    StudentCourseResult,
+    StudentInterest,
+    StudentSkill,
+    Topic,
+    TopicPrerequisite,
+    TopicSkill,
+)
 
 admin.site.site_header = "Capstone Advisor AI — Quản trị Khoa"
 admin.site.site_title = "Capstone Advisor AI"

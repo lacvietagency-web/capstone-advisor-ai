@@ -1,4 +1,5 @@
 """Kết quả gợi ý: lưu điểm từng thành phần M1–M5 để hiển thị, giải thích và làm thực nghiệm."""
+
 from django.db import models
 
 from catalog.models import Student, Topic
@@ -11,7 +12,7 @@ class Recommendation(models.Model):
     m2_academic = models.FloatField("M2 học lực")
     m3_field = models.FloatField("M3 lĩnh vực")
     m4_semantic = models.FloatField("M4 ngữ nghĩa", null=True, blank=True)
-    m5_llm = models.FloatField("M5 LLM", null=True, blank=True)     # trống nếu đề tài ngoài Top-K hoặc LLM lỗi
+    m5_llm = models.FloatField("M5 LLM", null=True, blank=True)  # trống nếu đề tài ngoài Top-K hoặc LLM lỗi
     final_score = models.FloatField("Điểm cuối")
     rank = models.PositiveSmallIntegerField("Thứ hạng", null=True, blank=True)
     reason = models.TextField("Lý do", blank=True)
@@ -24,9 +25,13 @@ class Recommendation(models.Model):
         ordering = ["student", "rank"]
         verbose_name = verbose_name_plural = "Kết quả gợi ý"
 
+    def __str__(self):
+        return f"{self.student} · #{self.rank} {self.topic} ({self.final_score:.1f})"
+
 
 class LLMScore(models.Model):
     """Bộ nhớ đệm điểm LLM: cùng hồ sơ + cùng đề tài + cùng prompt + cùng model thì không gọi lại API."""
+
     cache_key = models.CharField(max_length=64, unique=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
@@ -37,3 +42,6 @@ class LLMScore(models.Model):
 
     class Meta:
         verbose_name = verbose_name_plural = "Điểm LLM (cache)"
+
+    def __str__(self):
+        return f"LLM {self.model} · {self.student} · {self.topic}"

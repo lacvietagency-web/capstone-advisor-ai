@@ -31,7 +31,7 @@ Theo thiết kế mục 38 & 40 trong `docs/ui/DESIGN.md`, Bảng điều khiể
   - *Gợi ý cấu hình bổ sung trong `config/settings.py`*:
     ```python
     STATICFILES_DIRS = [
-        BASE_DIR / 'static',
+        BASE_DIR / "static",
     ]
     ```
   - *Hiện trạng*: Hiện `settings.py` có `STATIC_URL = 'static/'` và `STATIC_ROOT = BASE_DIR / 'staticfiles'`, nhưng chưa khai báo `STATICFILES_DIRS`.

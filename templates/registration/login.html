@@ -1,13 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Đăng nhập{% endblock %}
-{% block content %}
-<div class="row justify-content-center"><div class="col-md-5"><div class="card shadow-sm"><div class="card-body p-4">
-  <h1 class="h4 mb-3">Đăng nhập</h1>
-  {% if form.errors %}<div class="alert alert-danger">Sai tên đăng nhập hoặc mật khẩu.</div>{% endif %}
-  <form method="post">{% csrf_token %}
-    <div class="mb-3"><label class="form-label">Tên đăng nhập</label><input class="form-control" name="username" autofocus required></div>
-    <div class="mb-3"><label class="form-label">Mật khẩu</label><input class="form-control" type="password" name="password" required></div>
-    <button class="btn btn-primary w-100">Đăng nhập</button>
-  </form>
-</div></div></div></div>
-{% endblock %}
+
+{% block title %}Đăng nhập — Capstone Advisor AI{% endblock %}
+
+{% block body %}
+<div class="login-wrapper">
+  <div class="login-container">
+    <div class="login-brand-header">
+      <div class="d-inline-flex align-items-center justify-content-center gap-2 mb-2">
+        <span class="badge" style="background-color: var(--ca-primary-soft); color: var(--ca-primary); font-size: 13px; font-weight: 700; padding: 4px 8px;">AI</span>
+        <h1 class="login-brand-title mb-0">Capstone Advisor AI</h1>
+      </div>
+      <p class="login-brand-desc">Tư vấn và phân công đồ án tốt nghiệp bằng AI</p>
+    </div>
+
+    <div class="login-card">
+      <h2 class="card-heading mb-4 text-center">Đăng nhập</h2>
+
+      {% if form.errors %}
+        <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2" role="alert">
+          <i class="bi bi-exclamation-circle-fill"></i>
+          <div>Sai tên đăng nhập hoặc mật khẩu.</div>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="id_username" class="form-label">Tên đăng nhập</label>
+          <input type="text" name="username" id="id_username" class="form-control" autofocus required autocomplete="username" placeholder="Ví dụ: sv001, gv001...">
+        </div>
+        <div class="mb-4">
+          <label for="id_password" class="form-label">Mật khẩu</label>
+          <input type="password" name="password" id="id_password" class="form-control" required autocomplete="current-password" placeholder="Nhập mật khẩu">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">
+          Đăng nhập
+        </button>
+      </form>
+    </div>
+
+    <div class="login-footer">
+      Đồ án tốt nghiệp · Khoa CNTT – EAUT
+    </div>
+  </div>
+</div>
+{% endblock body %}

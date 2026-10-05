@@ -27,7 +27,8 @@ def _prepare_solver_data(period, students):
 
     - prefs[sv] = danh sách đề tài theo thứ tự NV, ĐÃ BỎ các NV giảng viên từ chối (UC12).
       SV bị từ chối hết vẫn có mặt với danh sách rỗng → được ghi nhận "chưa xếp".
-    - scores lấy từ bảng Recommendation; cặp nào chưa có (SV chọn ngoài Top gợi ý) thì tính bù bằng M1–M4.
+    - scores lấy từ bảng Recommendation; cặp nào chưa có thì tính bù bằng M1–M4.
+    - NV vào đề tài SV không đủ điều kiện (lọc cứng) bị bỏ, giống NV bị từ chối.
     """
     prefs = {s.id: [] for s in students}
     for sid, tid, status in (
@@ -48,6 +49,10 @@ def _prepare_solver_data(period, students):
         if missing:  # không gọi LLM ở đây: phân công phải nhanh và tái lập được
             for c in score_student(s, missing, semantic=False, llm=False):
                 scores[s.id, c.topic.id] = float(c.final(DEFAULT_WEIGHTS))
+    # score_student đã lọc cứng (GPA, môn tiên quyết, kỹ năng bắt buộc): NV vẫn chưa có điểm = SV KHÔNG đủ điều kiện
+    # → không được xếp vào đề tài đó (chặn thêm một lớp, phòng dữ liệu nhập từ Excel/admin bỏ qua form)
+    for s in students:
+        prefs[s.id] = [t for t in prefs[s.id] if (s.id, t) in scores]
 
     topics = Topic.objects.all()
     cap = {t.id: t.capacity for t in topics}

@@ -3,7 +3,7 @@
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 
-from catalog.models import Preference, Student
+from catalog.models import Preference, RegistrationPeriod, Student
 from recommend.llm import FakeLLMProvider
 from recommend.models import Recommendation
 from recommend.services import refresh_student, score_preferences
@@ -44,12 +44,16 @@ class PreferenceM5Tests(TestCase):
         FakeLLMProvider.reset()
 
     def test_chosen_topic_outside_top_k_gets_m5(self):
-        refresh_student(self.st, top_k=1)  # chỉ 1 đề tài được LLM chấm ở giai đoạn 2
-        rec = Recommendation.objects.filter(student=self.st, m5_llm__isnull=True).first()
+        rec = None
+        for st in Student.objects.order_by("pk"):  # tìm SV có đề tài đủ điều kiện mà chưa được LLM chấm
+            refresh_student(st, top_k=1)  # chỉ 1 đề tài được LLM chấm ở giai đoạn 2
+            rec = Recommendation.objects.filter(student=st, m5_llm__isnull=True).first()
+            if rec:
+                self.st = st
+                break
         self.assertIsNotNone(rec)
         Preference.objects.filter(student=self.st).delete()
-        period = Preference.objects.values_list("period", flat=True).first()
-        Preference.objects.create(student=self.st, topic=rec.topic, period_id=period, rank=1)
+        Preference.objects.create(student=self.st, topic=rec.topic, period=RegistrationPeriod.objects.first(), rank=1)
         score_preferences(self.st)
         rec.refresh_from_db()
         self.assertIsNotNone(rec.m5_llm)

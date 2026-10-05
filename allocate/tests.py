@@ -662,3 +662,29 @@ class StudentAllocationResultTests(TestCase):
         self.assertEqual(r_home.status_code, 200)
         content_home = r_home.content.decode("utf-8")
         self.assertIn("Xếp bổ sung", content_home)
+
+
+@override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
+class HardFilterAllocationTests(TestCase):
+    def test_ineligible_preference_never_allocated(self):
+        """NV vào đề tài SV chưa đủ điều kiện (nhập thẳng qua admin, lách form) → ILP không xếp vào đề tài đó."""
+        from allocate.models import Allocation
+        from allocate.services import run_allocation
+        from catalog.models import Preference, RegistrationPeriod, Student, Topic
+        from recommend.engine import Profile, eligible
+
+        call_command("seed_demo", students=10, lecturers=3, topics=10, verbosity=0)
+        call_command("recommend_all", verbosity=0)
+        period = RegistrationPeriod.objects.first()
+        pairs = []
+        for st in Student.objects.all():
+            prof = Profile(st)
+            bad = [t for t in Topic.objects.all() if not eligible(prof, t)[0]]
+            if bad:
+                Preference.objects.filter(student=st, period=period).delete()
+                Preference.objects.create(student=st, period=period, topic=bad[0], rank=1)
+                pairs.append((st, bad[0]))
+        self.assertTrue(pairs)
+        run_allocation(period, "ILP")
+        for st, topic in pairs:
+            self.assertFalse(Allocation.objects.filter(period=period, student=st, topic=topic).exists())

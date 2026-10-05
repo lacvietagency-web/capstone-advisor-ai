@@ -98,7 +98,7 @@ def student_preferences(request):
                         break
         except (Topic.DoesNotExist, ValueError):
             pass
-    form = PreferenceForm(request.POST or None, initial=initial)
+    form = PreferenceForm(request.POST or None, initial=initial, student=st)
     scores = {r.topic_id: r for r in Recommendation.objects.filter(student=st)}
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():

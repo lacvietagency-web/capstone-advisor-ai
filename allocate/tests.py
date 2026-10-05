@@ -361,3 +361,330 @@ class AllocationFlowTests(TestCase):
         new_alloc = Allocation.objects.get(student=st)
         self.assertIsNone(new_alloc.topic)
         self.assertIsNone(new_alloc.preference_rank)
+
+
+@override_settings(RECOMMEND_SEMANTIC=False)
+class StudentAllocationResultTests(TestCase):
+    """[UC08] Kiểm thử sinh viên xem kết quả phân công đồ án tốt nghiệp."""
+
+    def setUp(self):
+        from django.utils import timezone
+
+        from accounts.models import User
+        from catalog.models import Field, Lecturer, Major, RegistrationPeriod, Skill, Student, Topic
+
+        self.major = Major.objects.create(name="Công nghệ thông tin")
+        self.field = Field.objects.create(name="Trí tuệ nhân tạo")
+        self.skill = Skill.objects.create(name="Python", field=self.field)
+
+        # Tạo tài khoản sinh viên
+        self.u_sv = User.objects.create_user(username="sv_test", password="password123", role=User.Role.STUDENT)
+        self.student = Student.objects.create(
+            user=self.u_sv, student_code="SV001", major=self.major, gpa=3.6, about="SV chuyên cần"
+        )
+
+        # Tạo tài khoản giảng viên
+        self.u_gv = User.objects.create_user(
+            username="gv_test", password="password123", role=User.Role.LECTURER, first_name="A", last_name="Nguyễn Văn"
+        )
+        self.lecturer = Lecturer.objects.create(user=self.u_gv, department="Bộ môn Khoa học máy tính", max_students=5)
+
+        # Tạo đề tài
+        self.topic = Topic.objects.create(
+            lecturer=self.lecturer,
+            title="Nghiên cứu ứng dụng Học máy trong phân loại văn bản",
+            description="Mô tả đề tài chi tiết...",
+            capacity=1,
+            status=Topic.Status.OPEN,
+        )
+        self.topic.fields.add(self.field)
+
+        # Tạo tài khoản khoa / admin
+        self.u_admin = User.objects.create_user(username="admin_test", password="password123", role=User.Role.ADMIN)
+
+        # Đợt đăng ký
+        now = timezone.now()
+        self.period = RegistrationPeriod.objects.create(
+            name="Đợt 1 - 2026",
+            start_at=now,
+            end_at=now + timezone.timedelta(days=30),
+            status=RegistrationPeriod.Status.OPEN,
+        )
+
+    def test_access_permissions(self):
+        """Khách vãng lai bị chuyển hướng đăng nhập; GV và Khoa bị 403; SV vào được."""
+        # Khách vãng lai
+        res = self.client.get("/ket-qua/")
+        self.assertEqual(res.status_code, 302)
+
+        # Giảng viên -> 403 Forbidden
+        self.client.force_login(self.u_gv)
+        res = self.client.get("/ket-qua/")
+        self.assertEqual(res.status_code, 403)
+
+        # Admin Khoa -> 403 Forbidden
+        self.client.force_login(self.u_admin)
+        res = self.client.get("/ket-qua/")
+        self.assertEqual(res.status_code, 403)
+
+        # Sinh viên -> 200 OK
+        self.client.force_login(self.u_sv)
+        res = self.client.get("/ket-qua/")
+        self.assertEqual(res.status_code, 200)
+
+    def test_when_period_not_published_shows_waiting_status(self):
+        """Khi đợt chưa công bố (status != PUBLISHED): trang chủ SV và /ket-qua/ hiện trạng thái chờ."""
+        from allocate.models import Allocation
+
+        # Giả lập đã có bản ghi Allocation dạng DRAFT
+        Allocation.objects.create(
+            period=self.period,
+            student=self.student,
+            topic=self.topic,
+            preference_rank=1,
+            match_score=92.5,
+            status=Allocation.Status.DRAFT,
+        )
+
+        self.client.force_login(self.u_sv)
+
+        # Kiểm tra trang /ket-qua/
+        res_kq = self.client.get("/ket-qua/")
+        self.assertEqual(res_kq.status_code, 200)
+        self.assertFalse(res_kq.context["is_published"])
+        content_kq = res_kq.content.decode("utf-8")
+        self.assertIn("Hội đồng Khoa đang thẩm định phân công", content_kq)
+        # Kết quả nháp tuyệt đối không được công bố
+        self.assertNotIn("Chúc mừng bạn đã được phân công", content_kq)
+
+        # Kiểm tra trang chủ /trang-chu/
+        res_home = self.client.get("/trang-chu/")
+        self.assertEqual(res_home.status_code, 200)
+        content_home = res_home.content.decode("utf-8")
+        self.assertIn("Hội đồng Khoa đang thẩm định phân công", content_home)
+        self.assertNotIn("Chúc mừng bạn đã được phân công", content_home)
+
+    def test_when_period_published_shows_assigned_details(self):
+        """Khi đợt PUBLISHED: trang chủ SV và /ket-qua/ hiện đề tài được phân, GVHD, NV đạt, điểm phù hợp."""
+        from allocate.models import Allocation
+        from catalog.models import RegistrationPeriod
+
+        self.period.status = RegistrationPeriod.Status.PUBLISHED
+        self.period.save()
+
+        Allocation.objects.create(
+            period=self.period,
+            student=self.student,
+            topic=self.topic,
+            preference_rank=1,
+            match_score=88.5,
+            status=Allocation.Status.OFFICIAL,
+        )
+
+        self.client.force_login(self.u_sv)
+
+        # 1. Kiểm tra màn hình /ket-qua/
+        res_kq = self.client.get("/ket-qua/")
+        self.assertEqual(res_kq.status_code, 200)
+        self.assertTrue(res_kq.context["is_published"])
+        self.assertEqual(res_kq.context["topic"], self.topic)
+        self.assertEqual(res_kq.context["preference_rank"], 1)
+        self.assertEqual(res_kq.context["match_score"], 88.5)
+
+        content_kq = res_kq.content.decode("utf-8")
+        self.assertIn("Đề tài được phân", content_kq)
+        self.assertIn(self.topic.title, content_kq)
+        self.assertIn("GVHD", content_kq)
+        self.assertIn("Nguyễn Văn A", content_kq)
+        self.assertIn("NV đạt", content_kq)
+        self.assertIn("NV1", content_kq)
+        self.assertIn("Điểm phù hợp", content_kq)
+        self.assertTrue("88,5" in content_kq or "88.5" in content_kq)
+
+        # 2. Kiểm tra trang chủ sinh viên
+        res_home = self.client.get("/trang-chu/")
+        self.assertEqual(res_home.status_code, 200)
+        content_home = res_home.content.decode("utf-8")
+        self.assertIn("Đề tài được phân", content_home)
+        self.assertIn(self.topic.title, content_home)
+        self.assertIn("GVHD", content_home)
+        self.assertIn("Nguyễn Văn A", content_home)
+        self.assertIn("NV đạt", content_home)
+        self.assertIn("NV1", content_home)
+        self.assertIn("Điểm phù hợp", content_home)
+        self.assertTrue("88,5" in content_home or "88.5" in content_home)
+
+    def test_when_period_published_but_student_unassigned(self):
+        """Khi đợt PUBLISHED nhưng sinh viên chưa được xếp: hiện thông báo chưa phân công."""
+        from allocate.models import Allocation
+        from catalog.models import RegistrationPeriod
+
+        self.period.status = RegistrationPeriod.Status.PUBLISHED
+        self.period.save()
+
+        Allocation.objects.create(
+            period=self.period,
+            student=self.student,
+            topic=None,
+            preference_rank=None,
+            match_score=None,
+            status=Allocation.Status.OFFICIAL,
+        )
+
+        self.client.force_login(self.u_sv)
+
+        res_kq = self.client.get("/ket-qua/")
+        self.assertEqual(res_kq.status_code, 200)
+        self.assertTrue(res_kq.context["is_published"])
+        self.assertTrue(res_kq.context["unassigned"])
+        content_kq = res_kq.content.decode("utf-8")
+        self.assertIn("Chưa được phân công đề tài", content_kq)
+
+        res_home = self.client.get("/trang-chu/")
+        self.assertEqual(res_home.status_code, 200)
+        content_home = res_home.content.decode("utf-8")
+        self.assertIn("Bạn hiện chưa được phân công đề tài", content_home)
+
+    def test_filter_by_period_id(self):
+        """Sinh viên có thể chọn xem kết quả giữa các đợt khác nhau qua query param period_id."""
+        from django.utils import timezone
+
+        from allocate.models import Allocation
+        from catalog.models import RegistrationPeriod
+
+        # Đợt 1 đã công bố
+        self.period.status = RegistrationPeriod.Status.PUBLISHED
+        self.period.save()
+        Allocation.objects.create(
+            period=self.period,
+            student=self.student,
+            topic=self.topic,
+            preference_rank=2,
+            match_score=75.0,
+            status=Allocation.Status.OFFICIAL,
+        )
+
+        # Đợt 2 mới mở, chưa công bố
+        now = timezone.now() + timezone.timedelta(days=60)
+        period2 = RegistrationPeriod.objects.create(
+            name="Đợt 2 - 2026",
+            start_at=now,
+            end_at=now + timezone.timedelta(days=30),
+            status=RegistrationPeriod.Status.OPEN,
+        )
+
+        self.client.force_login(self.u_sv)
+
+        # Xem đợt 1 -> hiển thị kết quả chính thức
+        r1 = self.client.get(f"/ket-qua/?period_id={self.period.pk}")
+        self.assertEqual(r1.status_code, 200)
+        self.assertTrue(r1.context["is_published"])
+        self.assertEqual(r1.context["preference_rank"], 2)
+
+        # Xem đợt 2 -> hiển thị trạng thái chờ
+        r2 = self.client.get(f"/ket-qua/?period_id={period2.pk}")
+        self.assertEqual(r2.status_code, 200)
+        self.assertFalse(r2.context["is_published"])
+        self.assertIn("Hội đồng Khoa đang thẩm định phân công", r2.content.decode("utf-8"))
+
+    def test_service_when_no_period_exists(self):
+        """Khi hệ thống chưa có đợt nào, service trả về is_published=False và period=None."""
+        from allocate.services import get_student_allocation_result
+        from catalog.models import RegistrationPeriod
+
+        RegistrationPeriod.objects.all().delete()
+        res = get_student_allocation_result(self.student)
+        self.assertFalse(res["is_published"])
+        self.assertIsNone(res["period"])
+        self.assertIn("Chưa có đợt đăng ký nào", res["status_text"])
+
+    def test_service_score_fallback_to_recommendation(self):
+        """Nếu Allocation chưa lưu điểm thì tự động lấy điểm từ bảng Recommendation."""
+        from allocate.models import Allocation
+        from allocate.services import get_student_allocation_result
+        from catalog.models import RegistrationPeriod
+        from recommend.models import Recommendation
+
+        self.period.status = RegistrationPeriod.Status.PUBLISHED
+        self.period.save()
+
+        # Tạo recommendation
+        Recommendation.objects.create(
+            student=self.student,
+            topic=self.topic,
+            final_score=83.5,
+            m1_skill=80,
+            m2_academic=85,
+            m3_field=90,
+        )
+
+        Allocation.objects.create(
+            period=self.period,
+            student=self.student,
+            topic=self.topic,
+            preference_rank=1,
+            match_score=None,  # Để trống điểm trong Allocation
+            status=Allocation.Status.OFFICIAL,
+        )
+
+        res = get_student_allocation_result(self.student, self.period.pk)
+        self.assertTrue(res["is_published"])
+        self.assertEqual(res["match_score"], 83.5)
+
+    def test_manual_allocation_display_xep_bo_sung(self):
+        """Khi SV được xếp bổ sung ở Pha 2 (preference_rank=None), giao diện hiện 'Xếp bổ sung'."""
+        from allocate.models import Allocation
+        from catalog.models import RegistrationPeriod
+
+        self.period.status = RegistrationPeriod.Status.PUBLISHED
+        self.period.save()
+
+        Allocation.objects.create(
+            period=self.period,
+            student=self.student,
+            topic=self.topic,
+            preference_rank=None,  # Khoa chỉ định Pha 2
+            match_score=78.0,
+            status=Allocation.Status.OFFICIAL,
+            source=Allocation.Source.MANUAL,
+        )
+
+        self.client.force_login(self.u_sv)
+
+        # /ket-qua/
+        r_kq = self.client.get("/ket-qua/")
+        self.assertEqual(r_kq.status_code, 200)
+        content_kq = r_kq.content.decode("utf-8")
+        self.assertIn("Xếp bổ sung", content_kq)
+
+        # /trang-chu/
+        r_home = self.client.get("/trang-chu/")
+        self.assertEqual(r_home.status_code, 200)
+        content_home = r_home.content.decode("utf-8")
+        self.assertIn("Xếp bổ sung", content_home)
+
+
+@override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
+class HardFilterAllocationTests(TestCase):
+    def test_ineligible_preference_never_allocated(self):
+        """NV vào đề tài SV chưa đủ điều kiện (nhập thẳng qua admin, lách form) → ILP không xếp vào đề tài đó."""
+        from allocate.models import Allocation
+        from allocate.services import run_allocation
+        from catalog.models import Preference, RegistrationPeriod, Student, Topic
+        from recommend.engine import Profile, eligible
+
+        call_command("seed_demo", students=10, lecturers=3, topics=10, verbosity=0)
+        call_command("recommend_all", verbosity=0)
+        period = RegistrationPeriod.objects.first()
+        pairs = []
+        for st in Student.objects.all():
+            prof = Profile(st)
+            bad = [t for t in Topic.objects.all() if not eligible(prof, t)[0]]
+            if bad:
+                Preference.objects.filter(student=st, period=period).delete()
+                Preference.objects.create(student=st, period=period, topic=bad[0], rank=1)
+                pairs.append((st, bad[0]))
+        self.assertTrue(pairs)
+        run_allocation(period, "ILP")
+        for st, topic in pairs:
+            self.assertFalse(Allocation.objects.filter(period=period, student=st, topic=topic).exists())

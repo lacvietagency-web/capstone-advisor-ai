@@ -1,45 +1,522 @@
 {% extends "base.html" %}
+
+{% block title %}Sinh viên đăng ký: {{ topic.title }} — Capstone Advisor AI{% endblock %}
+
 {% block content %}
-<h1 class="h4">Sinh viên đăng ký: {{ topic.title }}</h1>
-{% for m in messages %}<div class="alert alert-success">{{ m }}</div>{% endfor %}
-<table class="table">
-  <thead>
-    <tr>
-      <th>Sinh viên</th>
-      <th>Nguyện vọng</th>
-      <th>GPA</th>
-      <th>Mức phù hợp (AI)</th>
-      <th>Trạng thái</th>
-      <th>Thao tác</th>
-    </tr>
-  </thead>
-  <tbody>
+<!-- Back to topics link (DESIGN.md Section 15) -->
+<a href="{% url 'lecturer_topics' %}" class="back-link">
+  <i class="bi bi-chevron-left"></i>Đề tài của tôi
+</a>
+
+<div class="page-header mb-3">
+  <div class="page-kicker">ĐỀ TÀI</div>
+  <h1 class="page-title">Sinh viên đăng ký</h1>
+  <p class="page-subtitle">Xem nguyện vọng và mức độ phù hợp của sinh viên với đề tài.</p>
+</div>
+
+<!-- Topic Information Card (DESIGN.md Section 15) -->
+<div class="topic-header-card">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+    <div>
+      <h2 class="h5 fw-bold text-strong mb-2">{{ topic.title }}</h2>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        {% for f in topic.fields.all %}
+          <span class="badge badge-field">
+            <i class="bi bi-tag me-1"></i>{{ f.name }}
+          </span>
+        {% endfor %}
+        <span class="badge badge-subtle">
+          <i class="bi bi-bar-chart me-1"></i>Độ khó: {{ topic.get_difficulty_display }}
+        </span>
+        <span class="badge badge-subtle">
+          <i class="bi bi-person-check me-1"></i>Chỉ tiêu: {{ topic.capacity }} SV
+        </span>
+        {% if topic.min_gpa > 0 %}
+          <span class="badge badge-subtle">
+            <i class="bi bi-award me-1"></i>GPA ≥ {{ topic.min_gpa }}
+          </span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="flex-shrink-0 text-md-end">
+      <span class="badge bg-light text-secondary border px-3 py-2 fs-6">
+        <i class="bi bi-people-fill text-primary me-1"></i>
+        <strong>{{ rows|length }}</strong> sinh viên đã đăng ký
+      </span>
+    </div>
+  </div>
+</div>
+
+{% if rows %}
+  <!-- Section Title & Tooltip (DESIGN.md Section 25) -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <h3 class="h6 fw-bold mb-0 text-strong">Danh sách sinh viên</h3>
+      <span class="badge bg-light text-muted border" style="font-size: 11px;">
+        Mức phù hợp AI
+        <i class="bi bi-info-circle ms-1 text-primary info-icon"
+           data-bs-toggle="tooltip"
+           data-bs-placement="top"
+           data-bs-title="Hệ thống tổng hợp nhiều tiêu chí như kỹ năng, học tập, lĩnh vực quan tâm, tương đồng nội dung và đánh giá ngữ cảnh để ước lượng mức độ phù hợp giữa sinh viên và đề tài."></i>
+      </span>
+    </div>
+  </div>
+
+  <!-- Desktop Table (DESIGN.md Section 16 - d-none d-md-block) -->
+  <div class="app-card p-0 overflow-hidden d-none d-md-block mb-4">
+    <div class="table-responsive">
+      <table class="table reg-table align-middle">
+        <thead>
+          <tr>
+            <th scope="col" style="min-width: 240px;">Sinh viên</th>
+            <th scope="col" style="width: 130px;">Nguyện vọng</th>
+            <th scope="col" style="width: 110px;">Điểm AI</th>
+            <th scope="col" style="width: 170px;">Mức phù hợp</th>
+            <th scope="col" style="width: 230px;" class="text-end">Duyệt / Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr class="reg-row">
+              <!-- Sinh viên -->
+              <td>
+                <div class="fw-semibold text-strong">
+                  {{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}
+                </div>
+                <div class="small text-muted mt-1">
+                  <span>{{ row.pref.student.student_code }}</span>
+                  <span class="mx-1">·</span>
+                  <span>{{ row.pref.student.major.name }}</span>
+                  <span class="mx-1">·</span>
+                  <span>GPA {{ row.pref.student.gpa }}</span>
+                </div>
+              </td>
+
+              <!-- Nguyện vọng -->
+              <td>
+                <span class="badge-nv">Nguyện vọng {{ row.pref.rank }}</span>
+              </td>
+
+              <!-- Điểm AI -->
+              <td>
+                {% if row.rec %}
+                  <span class="fs-5 fw-bold text-strong">{{ row.rec.final_score|floatformat:0 }}</span>
+                  <span class="text-muted small">/100</span>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+
+              <!-- Mức phù hợp -->
+              <td>
+                {% if row.rec %}
+                  {% if row.rec.final_score >= 80 %}
+                    <span class="score-badge score-badge-high">
+                      <i class="bi bi-check-circle-fill"></i>Phù hợp cao
+                    </span>
+                  {% elif row.rec.final_score >= 65 %}
+                    <span class="score-badge score-badge-medium">
+                      <i class="bi bi-info-circle-fill"></i>Khá phù hợp
+                    </span>
+                  {% elif row.rec.final_score >= 50 %}
+                    <span class="score-badge score-badge-review">
+                      <i class="bi bi-exclamation-circle-fill"></i>Cần xem thêm
+                    </span>
+                  {% else %}
+                    <span class="score-badge score-badge-low">
+                      <i class="bi bi-dash-circle-fill"></i>Mức phù hợp thấp
+                    </span>
+                  {% endif %}
+                {% else %}
+                  <span class="score-badge score-badge-none">
+                    <i class="bi bi-clock"></i>Chưa đánh giá
+                  </span>
+                {% endif %}
+              </td>
+
+              <!-- Chi tiết Action -->
+              <td class="text-end">
+                {% include "catalog/_pref_actions.html" with extra_class="justify-content-end mb-2" %}
+                <button class="btn btn-sm btn-outline-primary"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#analysis-desktop-{{ forloop.counter }}"
+                        aria-expanded="false"
+                        aria-controls="analysis-desktop-{{ forloop.counter }}">
+                  Xem phân tích
+                  <i class="bi bi-chevron-down ms-1"></i>
+                </button>
+              </td>
+            </tr>
+
+            <!-- Expandable Analysis Row (DESIGN.md Section 20 & 27) -->
+            <tr>
+              <td colspan="5" class="p-0 border-0">
+                <div class="collapse" id="analysis-desktop-{{ forloop.counter }}">
+                  <div class="ai-breakdown-card m-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                      <div>
+                        <h4 class="h6 fw-bold mb-1 text-strong">
+                          Phân tích mức phù hợp: {{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}
+                        </h4>
+                        <div class="small text-muted">
+                          Nguyện vọng {{ row.pref.rank }} · Đăng ký lúc {{ row.pref.created_at|date:"d/m/Y H:i" }}
+                        </div>
+                      </div>
+
+                      {% if row.rec %}
+                        <div>
+                          <span class="fs-5 fw-bold text-primary">{{ row.rec.final_score|floatformat:0 }}/100</span>
+                        </div>
+                      {% endif %}
+                    </div>
+
+                    <!-- Mandatory Disclaimer (DESIGN.md Section 24) -->
+                    <div class="ai-disclaimer">
+                      <i class="bi bi-shield-check me-1"></i>
+                      Điểm phù hợp là thông tin hỗ trợ giảng viên tham khảo, không phải quyết định phân công cuối cùng.
+                    </div>
+
+                    {% if row.rec %}
+                      <!-- Components M1–M5 (DESIGN.md Section 20-23) -->
+                      <div class="row g-3 mb-3">
+                        <!-- M1 -->
+                        <div class="col-12 col-md-6">
+                          <div class="score-component">
+                            <div class="score-component-header">
+                              <div>
+                                <span class="score-component-title">Kỹ năng phù hợp</span>
+                                <span class="score-component-code">(M1)</span>
+                              </div>
+                              <span class="score-component-val">{{ row.rec.m1_skill|floatformat:0 }}/100</span>
+                            </div>
+                            <div class="score-component-desc">So sánh kỹ năng của sinh viên với các kỹ năng đề tài yêu cầu.</div>
+                            <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m1_skill|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                              <div class="progress-bar" style="width: {{ row.rec.m1_skill|floatformat:0 }}%;"></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- M2 -->
+                        <div class="col-12 col-md-6">
+                          <div class="score-component">
+                            <div class="score-component-header">
+                              <div>
+                                <span class="score-component-title">Kết quả học tập liên quan</span>
+                                <span class="score-component-code">(M2)</span>
+                              </div>
+                              <span class="score-component-val">{{ row.rec.m2_academic|floatformat:0 }}/100</span>
+                            </div>
+                            <div class="score-component-desc">Xem xét kết quả các môn hoặc nhóm kiến thức liên quan tới đề tài.</div>
+                            <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m2_academic|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                              <div class="progress-bar" style="width: {{ row.rec.m2_academic|floatformat:0 }}%;"></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- M3 -->
+                        <div class="col-12 col-md-6">
+                          <div class="score-component">
+                            <div class="score-component-header">
+                              <div>
+                                <span class="score-component-title">Lĩnh vực quan tâm</span>
+                                <span class="score-component-code">(M3)</span>
+                              </div>
+                              <span class="score-component-val">{{ row.rec.m3_field|floatformat:0 }}/100</span>
+                            </div>
+                            <div class="score-component-desc">Đánh giá mức độ trùng khớp giữa lĩnh vực sinh viên quan tâm và đề tài.</div>
+                            <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m3_field|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                              <div class="progress-bar" style="width: {{ row.rec.m3_field|floatformat:0 }}%;"></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- M4 -->
+                        <div class="col-12 col-md-6">
+                          <div class="score-component">
+                            <div class="score-component-header">
+                              <div>
+                                <span class="score-component-title">Tương đồng nội dung</span>
+                                <span class="score-component-code">(M4)</span>
+                              </div>
+                              <span class="score-component-val">
+                                {% if row.rec.m4_semantic is not None %}
+                                  {{ row.rec.m4_semantic|floatformat:0 }}/100
+                                {% else %}
+                                  Chưa đánh giá
+                                {% endif %}
+                              </span>
+                            </div>
+                            <div class="score-component-desc">So sánh ngữ nghĩa giữa hồ sơ/nguyện vọng của sinh viên và nội dung đề tài.</div>
+                            {% if row.rec.m4_semantic is not None %}
+                              <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m4_semantic|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar" style="width: {{ row.rec.m4_semantic|floatformat:0 }}%;"></div>
+                              </div>
+                            {% endif %}
+                          </div>
+                        </div>
+
+                        <!-- M5 -->
+                        <div class="col-12">
+                          <div class="score-component">
+                            <div class="score-component-header">
+                              <div>
+                                <span class="score-component-title">Đánh giá ngữ cảnh AI</span>
+                                <span class="score-component-code">(M5)</span>
+                              </div>
+                              <span class="score-component-val">
+                                {% if row.rec.m5_llm is not None %}
+                                  {{ row.rec.m5_llm|floatformat:0 }}/100
+                                {% else %}
+                                  Chưa đánh giá
+                                {% endif %}
+                              </span>
+                            </div>
+                            <div class="score-component-desc">AI xem xét tổng thể thông tin của sinh viên và đề tài theo bộ tiêu chí định trước.</div>
+                            {% if row.rec.m5_llm is not None %}
+                              <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m5_llm|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar" style="width: {{ row.rec.m5_llm|floatformat:0 }}%;"></div>
+                              </div>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+
+                      {% if row.rec.reason %}
+                        <div class="ai-reason-box">
+                          <div class="fw-semibold small text-primary mb-1">
+                            <i class="bi bi-chat-left-quote me-1"></i>Đánh giá tổng hợp:
+                          </div>
+                          {{ row.rec.reason|linebreaksbr }}
+                        </div>
+                      {% endif %}
+                    {% else %}
+                      <!-- Pending / No Score (DESIGN.md Section 30) -->
+                      <div class="alert alert-light border text-secondary small mb-0">
+                        <i class="bi bi-hourglass-split me-1"></i>
+                        Hệ thống chưa có kết quả đánh giá cho sinh viên này. Điểm phù hợp sẽ được cập nhật khi hoàn tất đánh giá.
+                      </div>
+                    {% endif %}
+
+                    {% if row.pref.student.about %}
+                      <div class="mt-3 pt-3 border-top small text-secondary">
+                        <strong class="text-strong">Giới thiệu của sinh viên:</strong>
+                        <div class="mt-1">{{ row.pref.student.about|linebreaksbr }}</div>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile Card List (DESIGN.md Section 17 - d-md-none) -->
+  <div class="d-md-none d-flex flex-column gap-3 mb-4">
     {% for row in rows %}
-    <tr>
-      <td>{{ row.pref.student }}</td>
-      <td>NV{{ row.pref.rank }}</td>
-      <td>{{ row.pref.student.gpa }}</td>
-      <td>{% if row.rec %}{{ row.rec.final_score|floatformat:0 }}/100{% else %}—{% endif %}</td>
-      <td>{{ row.pref.get_status_display }}</td>
-      <td>
-        <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" style="display:inline-block;">
-          {% csrf_token %}
-          <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
-          <input type="hidden" name="action" value="accept">
-          <button type="submit" class="btn btn-sm btn-success">Đồng ý</button>
-        </form>
-        <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" style="display:inline-block;">
-          {% csrf_token %}
-          <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
-          <input type="hidden" name="action" value="reject">
-          <button type="submit" class="btn btn-sm btn-danger">Từ chối</button>
-        </form>
-      </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="6">Chưa có sinh viên đăng ký.</td></tr>
+      <div class="card reg-card">
+        <!-- Student Info & NV Badge -->
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+          <div>
+            <h4 class="h6 fw-bold text-strong mb-1">
+              {{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}
+            </h4>
+            <div class="small text-muted">
+              <span>{{ row.pref.student.student_code }}</span>
+              <span class="mx-1">·</span>
+              <span>{{ row.pref.student.major.name }}</span>
+            </div>
+            <div class="small text-muted mt-1">
+              <span>GPA: <strong>{{ row.pref.student.gpa }}</strong></span>
+            </div>
+          </div>
+          <span class="badge-nv flex-shrink-0">NV{{ row.pref.rank }}</span>
+        </div>
+
+        <!-- Overall Score Display -->
+        <div class="d-flex align-items-center justify-content-between my-3 p-2 bg-light rounded-3">
+          <span class="small fw-semibold text-secondary">Mức phù hợp:</span>
+          {% if row.rec %}
+            {% if row.rec.final_score >= 80 %}
+              <span class="score-badge score-badge-high">
+                {{ row.rec.final_score|floatformat:0 }}/100 · Phù hợp cao
+              </span>
+            {% elif row.rec.final_score >= 65 %}
+              <span class="score-badge score-badge-medium">
+                {{ row.rec.final_score|floatformat:0 }}/100 · Khá phù hợp
+              </span>
+            {% elif row.rec.final_score >= 50 %}
+              <span class="score-badge score-badge-review">
+                {{ row.rec.final_score|floatformat:0 }}/100 · Cần xem thêm
+              </span>
+            {% else %}
+              <span class="score-badge score-badge-low">
+                {{ row.rec.final_score|floatformat:0 }}/100 · Mức phù hợp thấp
+              </span>
+            {% endif %}
+          {% else %}
+            <span class="score-badge score-badge-none">Chưa đánh giá</span>
+          {% endif %}
+        </div>
+
+        {% include "catalog/_pref_actions.html" with extra_class="mb-2" %}
+
+        <!-- Toggle Analysis Button -->
+        <button class="btn btn-sm btn-outline-primary w-100"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#analysis-mobile-{{ forloop.counter }}"
+                aria-expanded="false"
+                aria-controls="analysis-mobile-{{ forloop.counter }}">
+          Xem phân tích mức phù hợp
+          <i class="bi bi-chevron-down ms-1"></i>
+        </button>
+
+        <!-- Mobile Analysis Collapse -->
+        <div class="collapse mt-3" id="analysis-mobile-{{ forloop.counter }}">
+          <div class="ai-breakdown-card p-3">
+            <!-- Mandatory Disclaimer (DESIGN.md Section 24) -->
+            <div class="ai-disclaimer">
+              <i class="bi bi-shield-check me-1"></i>
+              Điểm phù hợp là thông tin hỗ trợ giảng viên tham khảo, không phải quyết định phân công cuối cùng.
+            </div>
+
+            {% if row.rec %}
+              <div class="d-flex flex-column gap-3 mb-3">
+                <!-- M1 -->
+                <div class="score-component">
+                  <div class="score-component-header">
+                    <div>
+                      <span class="score-component-title">Kỹ năng phù hợp</span>
+                      <span class="score-component-code">(M1)</span>
+                    </div>
+                    <span class="score-component-val">{{ row.rec.m1_skill|floatformat:0 }}/100</span>
+                  </div>
+                  <div class="score-component-desc">So sánh kỹ năng với yêu cầu đề tài.</div>
+                  <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m1_skill|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: {{ row.rec.m1_skill|floatformat:0 }}%;"></div>
+                  </div>
+                </div>
+
+                <!-- M2 -->
+                <div class="score-component">
+                  <div class="score-component-header">
+                    <div>
+                      <span class="score-component-title">Kết quả học tập</span>
+                      <span class="score-component-code">(M2)</span>
+                    </div>
+                    <span class="score-component-val">{{ row.rec.m2_academic|floatformat:0 }}/100</span>
+                  </div>
+                  <div class="score-component-desc">Xem xét các môn học liên quan tới đề tài.</div>
+                  <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m2_academic|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: {{ row.rec.m2_academic|floatformat:0 }}%;"></div>
+                  </div>
+                </div>
+
+                <!-- M3 -->
+                <div class="score-component">
+                  <div class="score-component-header">
+                    <div>
+                      <span class="score-component-title">Lĩnh vực quan tâm</span>
+                      <span class="score-component-code">(M3)</span>
+                    </div>
+                    <span class="score-component-val">{{ row.rec.m3_field|floatformat:0 }}/100</span>
+                  </div>
+                  <div class="score-component-desc">Mức độ trùng khớp lĩnh vực quan tâm.</div>
+                  <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m3_field|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: {{ row.rec.m3_field|floatformat:0 }}%;"></div>
+                  </div>
+                </div>
+
+                <!-- M4 -->
+                <div class="score-component">
+                  <div class="score-component-header">
+                    <div>
+                      <span class="score-component-title">Tương đồng nội dung</span>
+                      <span class="score-component-code">(M4)</span>
+                    </div>
+                    <span class="score-component-val">
+                      {% if row.rec.m4_semantic is not None %}
+                        {{ row.rec.m4_semantic|floatformat:0 }}/100
+                      {% else %}
+                        Chưa đánh giá
+                      {% endif %}
+                    </span>
+                  </div>
+                  <div class="score-component-desc">So sánh ngữ nghĩa hồ sơ và nội dung đề tài.</div>
+                  {% if row.rec.m4_semantic is not None %}
+                    <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m4_semantic|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar" style="width: {{ row.rec.m4_semantic|floatformat:0 }}%;"></div>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <!-- M5 -->
+                <div class="score-component">
+                  <div class="score-component-header">
+                    <div>
+                      <span class="score-component-title">Đánh giá ngữ cảnh AI</span>
+                      <span class="score-component-code">(M5)</span>
+                    </div>
+                    <span class="score-component-val">
+                      {% if row.rec.m5_llm is not None %}
+                        {{ row.rec.m5_llm|floatformat:0 }}/100
+                      {% else %}
+                        Chưa đánh giá
+                      {% endif %}
+                    </span>
+                  </div>
+                  <div class="score-component-desc">AI đánh giá tổng thể thông tin sinh viên và đề tài.</div>
+                  {% if row.rec.m5_llm is not None %}
+                    <div class="progress ai-progress" role="progressbar" aria-valuenow="{{ row.rec.m5_llm|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar" style="width: {{ row.rec.m5_llm|floatformat:0 }}%;"></div>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              {% if row.rec.reason %}
+                <div class="ai-reason-box mb-2">
+                  <div class="fw-semibold small text-primary mb-1">
+                    <i class="bi bi-chat-left-quote me-1"></i>Đánh giá tổng hợp:
+                  </div>
+                  {{ row.rec.reason|linebreaksbr }}
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="alert alert-light border text-secondary small mb-0">
+                <i class="bi bi-hourglass-split me-1"></i>
+                Hệ thống chưa có kết quả đánh giá cho sinh viên này.
+              </div>
+            {% endif %}
+
+            {% if row.pref.student.about %}
+              <div class="mt-3 pt-3 border-top small text-secondary">
+                <strong class="text-strong">Giới thiệu của sinh viên:</strong>
+                <div class="mt-1">{{ row.pref.student.about|linebreaksbr }}</div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
     {% endfor %}
-  </tbody>
-</table>
-<a href="{% url 'lecturer_topics' %}" class="btn btn-secondary mt-2">← Quay lại danh sách đề tài</a>
+  </div>
+
+{% else %}
+  <!-- Empty State (DESIGN.md Section 28) -->
+  <div class="card app-card py-5">
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <i class="bi bi-people"></i>
+      </div>
+      <h2 class="empty-state-title">Chưa có sinh viên đăng ký</h2>
+      <p class="empty-state-desc">
+        Khi sinh viên thêm đề tài này vào danh sách nguyện vọng, hồ sơ và đánh giá mức độ phù hợp sẽ hiển thị tại đây.
+      </p>
+    </div>
+  </div>
+{% endif %}
 {% endblock %}

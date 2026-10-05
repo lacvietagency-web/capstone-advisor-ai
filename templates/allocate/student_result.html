@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Kết quả phân công đồ án — Capstone Advisor AI{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+    <div>
+      <h1 class="mb-1">Kết quả phân công đồ án tốt nghiệp</h1>
+      <p class="page-subtitle mb-0">Tra cứu kết quả phân công đề tài và giảng viên hướng dẫn chính thức từ Khoa.</p>
+    </div>
+    {% if periods|length > 1 %}
+      <div class="d-flex align-items-center gap-2">
+        <label for="periodSelect" class="form-label text-nowrap mb-0 small text-muted">Chọn đợt:</label>
+        <select id="periodSelect" class="form-select form-select-sm" onchange="if(this.value) window.location.href='?period_id=' + this.value;">
+          {% for p in periods %}
+            <option value="{{ p.pk }}" {% if period and period.pk == p.pk %}selected{% endif %}>
+              {{ p.name }} ({{ p.get_status_display }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if not period %}
+  <!-- Không có đợt đăng ký -->
+  <div class="app-card text-center py-5">
+    <div class="empty-state">
+      <div class="empty-state-icon text-muted mb-3"><i class="bi bi-calendar-x fs-1"></i></div>
+      <h3 class="empty-state-title">Chưa có đợt đăng ký nào</h3>
+      <p class="empty-state-desc text-muted">Hiện tại hệ thống chưa có đợt đăng ký đồ án tốt nghiệp nào được tạo.</p>
+    </div>
+  </div>
+
+{% elif not is_published %}
+  <!-- Đợt CHƯA CÔNG BỐ: Hiện trạng thái chờ -->
+  <div class="app-card border-info-subtle bg-light mb-4">
+    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+      <span class="badge bg-info text-dark px-3 py-2"><i class="bi bi-clock-history me-1"></i>Đang thẩm định</span>
+      <span class="text-muted small">Đợt đăng ký: <strong>{{ period.name }}</strong></span>
+    </div>
+
+    <div class="row align-items-center g-4 py-2">
+      <div class="col-12 col-lg-8">
+        <div class="d-flex align-items-start gap-3">
+          <div class="rounded-circle bg-info-subtle p-3 text-info d-flex align-items-center justify-content-center flex-shrink-0" style="width: 56px; height: 56px;">
+            <i class="bi bi-hourglass-split fs-2"></i>
+          </div>
+          <div>
+            <h2 class="card-heading fs-4 mb-2 text-primary">Hội đồng Khoa đang thẩm định phân công</h2>
+            <p class="text-secondary mb-2">
+              Kết quả phân công đề tài cho đợt <strong>{{ period.name }}</strong> hiện chưa được công bố chính thức.
+              Hội đồng Khoa đang thẩm định phân công, rà soát chỉ tiêu giảng viên và chạy thuật toán tối ưu để đảm bảo kết quả tốt nhất.
+            </p>
+            <p class="text-muted small mb-0">
+              <i class="bi bi-info-circle me-1"></i>Trạng thái hiện tại: <strong>{{ period.get_status_display }}</strong>. Kết quả chính thức sẽ được công bố tại trang này ngay sau khi hoàn tất xét duyệt.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-4 border-start-lg">
+        <div class="p-3 bg-white rounded border">
+          <div class="small fw-semibold text-muted text-uppercase mb-2">Quy trình phân công</div>
+          <div class="d-flex flex-column gap-2 small">
+            <div class="d-flex align-items-center gap-2 text-success">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>1. Đăng ký nguyện vọng NV1–NV3</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 text-primary fw-semibold">
+              <i class="bi bi-arrow-right-circle-fill"></i>
+              <span>2. Khoa thẩm định & chạy tối ưu</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 text-muted">
+              <i class="bi bi-circle"></i>
+              <span>3. Công bố kết quả chính thức</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% elif unassigned or not topic %}
+  <!-- Đợt ĐÃ CÔNG BỐ nhưng sinh viên chưa được xếp -->
+  <div class="app-card border-warning-subtle bg-light mb-4">
+    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+      <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-exclamation-triangle-fill me-1"></i>Chưa được phân công</span>
+      <span class="text-muted small">Đợt đăng ký: <strong>{{ period.name }}</strong> (Đã công bố)</span>
+    </div>
+    <div class="d-flex align-items-start gap-3 py-2">
+      <div class="rounded-circle bg-warning-subtle p-3 text-warning d-flex align-items-center justify-content-center flex-shrink-0" style="width: 56px; height: 56px;">
+        <i class="bi bi-info-circle fs-2"></i>
+      </div>
+      <div>
+        <h2 class="card-heading fs-4 mb-2">Chưa được phân công đề tài</h2>
+        <p class="text-secondary mb-2">
+          Đợt <strong>{{ period.name }}</strong> đã công bố kết quả chính thức. Do các đề tài bạn đăng ký đã đủ chỉ tiêu hoặc chưa đáp ứng đủ tiêu chí tiên quyết, bạn chưa được phân công đề tài trong đợt phân công này.
+        </p>
+        <p class="text-secondary mb-0">
+          Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung (Pha 2) vào các đề tài còn chỉ tiêu.
+        </p>
+      </div>
+    </div>
+  </div>
+
+{% else %}
+  <!-- Đợt ĐÃ CÔNG BỐ: Hiện đề tài được phân, GVHD, NV đạt, điểm phù hợp -->
+  <div class="app-card border-success-subtle bg-light mb-4">
+    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i>Đã công bố chính thức</span>
+        <span class="text-muted small">Đợt đăng ký: <strong>{{ period.name }}</strong></span>
+      </div>
+      <span class="badge bg-light text-success border">Quyết định phân công chính thức</span>
+    </div>
+
+    <!-- Thông điệp chúc mừng -->
+    <div class="alert alert-success d-flex align-items-center gap-3 mb-4" role="alert">
+      <i class="bi bi-award-fill fs-2 text-success flex-shrink-0"></i>
+      <div>
+        <h2 class="h5 mb-1 text-success fw-bold">Chúc mừng bạn đã được phân công đề tài tốt nghiệp!</h2>
+        <div class="small text-secondary">
+          Hội đồng Khoa đã phê duyệt kết quả phân công chính thức cho sinh viên <strong>{{ student.student_code }} – {{ student.user.get_full_name|default:student.user.username }}</strong>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Chi tiết phân công 4 thông tin bắt buộc: đề tài được phân, GVHD, NV đạt, điểm phù hợp -->
+    <div class="row g-4">
+      <!-- Cột trái: Đề tài được phân -->
+      <div class="col-12 col-lg-7">
+        <div class="app-card h-100 bg-white">
+          <div class="profile-stat-label text-uppercase mb-2 text-primary fw-semibold">Đề tài được phân</div>
+          <h2 class="card-heading fs-4 mb-2">
+            <a href="{% url 'topic_detail' topic.pk %}" class="text-dark text-decoration-none hover-primary">
+              {{ topic.title }}
+            </a>
+          </h2>
+          {% if topic.fields.all %}
+            <div class="d-flex flex-wrap gap-1 mb-3">
+              {% for f in topic.fields.all %}
+                <span class="badge bg-light text-muted border">{{ f.name }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <div class="text-secondary small mb-3">
+            {{ topic.description|linebreaksbr }}
+          </div>
+          <div class="pt-2 border-top d-flex gap-2">
+            <a href="{% url 'topic_detail' topic.pk %}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye me-1"></i>Xem chi tiết đề tài
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột phải: GVHD, NV đạt, Điểm phù hợp -->
+      <div class="col-12 col-lg-5">
+        <div class="d-flex flex-column gap-3 h-100">
+          <!-- GVHD -->
+          <div class="app-card bg-white p-3">
+            <div class="profile-stat-label text-uppercase mb-1 text-muted">GVHD (Giảng viên hướng dẫn)</div>
+            <div class="d-flex align-items-center gap-2 mt-2">
+              <div class="user-avatar-initials bg-primary text-white" style="width: 40px; height: 40px; font-size: 16px;">
+                {{ lecturer.user.first_name|slice:":1"|default:lecturer.user.username|slice:":1"|upper }}
+              </div>
+              <div>
+                <div class="fw-bold fs-6 text-strong">
+                  {{ lecturer.user.get_full_name|default:lecturer.user.username }}
+                </div>
+                {% if lecturer.department %}
+                  <div class="small text-muted">{{ lecturer.department }}</div>
+                {% endif %}
+                {% if lecturer.user.email %}
+                  <div class="small text-muted">
+                    <i class="bi bi-envelope me-1"></i>{{ lecturer.user.email }}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- NV đạt & Điểm phù hợp -->
+          <div class="row g-3">
+            <!-- NV đạt -->
+            <div class="col-6">
+              <div class="app-card bg-white p-3 h-100 text-center">
+                <div class="profile-stat-label text-uppercase mb-2 text-muted">NV đạt</div>
+                <div class="mt-1">
+                  {% if preference_rank %}
+                    <span class="badge bg-primary fs-5 px-3 py-2">NV{{ preference_rank }}</span>
+                    <div class="small text-muted mt-2">Nguyện vọng {{ preference_rank }}</div>
+                  {% else %}
+                    <span class="badge bg-secondary fs-6 px-2 py-2">Xếp bổ sung</span>
+                    <div class="small text-muted mt-2">Khoa phân công (Pha 2)</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Điểm phù hợp -->
+            <div class="col-6">
+              <div class="app-card bg-white p-3 h-100 text-center">
+                <div class="profile-stat-label text-uppercase mb-2 text-muted">Điểm phù hợp</div>
+                <div class="mt-1">
+                  {% if match_score is not None %}
+                    <div class="d-flex align-items-baseline justify-content-center">
+                      <span class="ai-score-number text-primary fs-2">{{ match_score|floatformat:1 }}</span>
+                      <span class="ai-score-denom text-muted">/100</span>
+                    </div>
+                    <div class="ai-score-label mt-1 text-muted small">
+                      {% if match_score >= 85 %}
+                        Phù hợp rất cao
+                      {% elif match_score >= 70 %}
+                        Phù hợp cao
+                      {% elif match_score >= 55 %}
+                        Khá phù hợp
+                      {% else %}
+                        Đạt chuẩn
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ghi chú các bước tiếp theo -->
+          <div class="app-card bg-white p-3 border-info-subtle">
+            <div class="fw-semibold small text-primary mb-2">
+              <i class="bi bi-lightbulb me-1"></i>Các bước tiếp theo dành cho bạn:
+            </div>
+            <ul class="small text-secondary ps-3 mb-0">
+              <li>Chủ động liên hệ GVHD qua email để trao đổi đề cương chi tiết.</li>
+              <li>Tham gia buổi họp phân công theo lịch của Khoa.</li>
+              <li>Bắt đầu nghiên cứu tài liệu và xây dựng kế hoạch thực hiện.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="mt-4">
+  <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Quay lại Trang chủ
+  </a>
+</div>
+{% endblock %}

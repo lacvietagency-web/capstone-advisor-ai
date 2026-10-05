@@ -1,10 +1,148 @@
 {% extends "base.html" %}
+
+{% block title %}Đề tài của tôi — Capstone Advisor AI{% endblock %}
+
 {% block content %}
-<h1 class="h4">Đề tài của tôi</h1>
-{% for m in messages %}<div class="alert alert-success">{{ m }}</div>{% endfor %}
-<a class="btn btn-primary mb-3" href="{% url 'lecturer_topic_new' %}">+ Thêm đề tài</a>
-<table class="table"><tr><th>Đề tài</th><th>Lĩnh vực</th><th>Số SV</th><th>Trạng thái</th><th></th></tr>
-{% for t in topics %}<tr><td>{{ t.title }}</td><td>{{ t.fields.all|join:", " }}</td><td>{{ t.capacity }}</td><td>{{ t.get_status_display }}</td>
-<td><a href="{% url 'lecturer_topic_edit' t.pk %}">Sửa</a> · <a href="{% url 'lecturer_registrations' t.pk %}">SV đăng ký</a></td></tr>
-{% empty %}<tr><td colspan="5">Chưa có đề tài.</td></tr>{% endfor %}</table>
+<!-- Page Header (DESIGN.md Section 6 & 9) -->
+<div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
+  <div>
+    <div class="page-kicker">ĐỀ TÀI</div>
+    <h1 class="page-title">Đề tài của tôi</h1>
+    <p class="page-subtitle">Quản lý đề tài hướng dẫn và theo dõi sinh viên đăng ký.</p>
+  </div>
+  <a class="btn btn-primary flex-shrink-0" href="{% url 'lecturer_topic_new' %}">
+    <i class="bi bi-plus-lg me-1"></i>Thêm đề tài
+  </a>
+</div>
+
+{% if topics %}
+  <!-- Summary Bar (DESIGN.md Section 9.1) -->
+  <div class="d-flex align-items-center gap-2 mb-3 text-secondary" style="font-size: 14px;">
+    <span class="fw-semibold text-strong">{{ topics|length }} đề tài</span>
+    {% if total_registrations is not None %}
+      <span>·</span>
+      <span>{{ total_registrations }} lượt đăng ký</span>
+    {% endif %}
+  </div>
+
+  <!-- Topics Card List (DESIGN.md Section 9.1 & 9.2) -->
+  <div class="d-flex flex-column gap-3">
+    {% for t in topics %}
+      <article class="card app-card topic-card">
+        <div class="card-body p-3 p-lg-4">
+          <!-- Top Row: Title & Status Badge -->
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-2 mb-2">
+            <h2 class="topic-title mb-0">
+              <a href="{% url 'lecturer_topic_edit' t.pk %}" class="topic-title-link text-decoration-none">
+                {{ t.title }}
+              </a>
+            </h2>
+            <div class="flex-shrink-0">
+              {% if t.status == 'OPEN' %}
+                <span class="status-badge status-open">
+                  <span class="dot"></span>{{ t.get_status_display }}
+                </span>
+              {% elif t.status == 'CLOSED' %}
+                <span class="status-badge status-closed">
+                  <span class="dot"></span>{{ t.get_status_display }}
+                </span>
+              {% elif t.status == 'DRAFT' %}
+                <span class="status-badge status-pending">
+                  <span class="dot"></span>{{ t.get_status_display }}
+                </span>
+              {% else %}
+                <span class="status-badge status-closed">
+                  <span class="dot"></span>{{ t.get_status_display }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Description (clamped to 2 lines) -->
+          {% if t.description %}
+            <p class="topic-desc mb-3">
+              {{ t.description }}
+            </p>
+          {% endif %}
+
+          <!-- Meta attributes & tags -->
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            {% for f in t.fields.all %}
+              <span class="badge badge-field">
+                <i class="bi bi-tag me-1"></i>{{ f.name }}
+              </span>
+            {% endfor %}
+
+            <span class="badge badge-subtle">
+              <i class="bi bi-bar-chart me-1"></i>Độ khó: {{ t.get_difficulty_display }}
+            </span>
+
+            {% with sc=t.skills.count %}
+              {% if sc > 0 %}
+                <span class="badge badge-subtle">
+                  <i class="bi bi-tools me-1"></i>{{ sc }} kỹ năng yêu cầu
+                </span>
+              {% endif %}
+            {% endwith %}
+
+            <span class="badge badge-subtle">
+              <i class="bi bi-person-check me-1"></i>Chỉ tiêu: {{ t.capacity }} SV
+            </span>
+
+            {% if t.min_gpa > 0 %}
+              <span class="badge badge-subtle">
+                <i class="bi bi-award me-1"></i>GPA ≥ {{ t.min_gpa }}
+              </span>
+            {% endif %}
+          </div>
+
+          <!-- Bottom Row: Registrations Count & Actions -->
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 pt-3 border-top" style="border-color: var(--gray-200) !important;">
+            <div>
+              {% with reg_count=t.preference_set.count %}
+                {% if reg_count > 0 %}
+                  <span class="registered-count has-registrations">
+                    <i class="bi bi-people-fill text-primary me-1"></i>
+                    <strong>{{ reg_count }}</strong> sinh viên đăng ký
+                  </span>
+                {% else %}
+                  <span class="registered-count no-registrations text-muted">
+                    <i class="bi bi-people me-1"></i>
+                    Chưa có sinh viên đăng ký
+                  </span>
+                {% endif %}
+              {% endwith %}
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row gap-2">
+              <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-people me-1"></i>Xem đăng ký
+              </a>
+              <a href="{% url 'lecturer_topic_edit' t.pk %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+              </a>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <!-- Empty State (DESIGN.md Section 28) -->
+  <div class="card app-card py-5">
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <i class="bi bi-file-earmark-plus"></i>
+      </div>
+      <h2 class="empty-state-title">Chưa có đề tài</h2>
+      <p class="empty-state-desc mb-4">
+        Tạo đề tài đầu tiên để sinh viên có thể đăng ký và hệ thống đánh giá mức độ phù hợp.
+      </p>
+      <a class="btn btn-primary" href="{% url 'lecturer_topic_new' %}">
+        <i class="bi bi-plus-lg me-1"></i>Thêm đề tài
+      </a>
+    </div>
+  </div>
+{% endif %}
 {% endblock %}

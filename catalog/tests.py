@@ -48,15 +48,49 @@ class BusinessFlowTests(TestCase):
     def login(self, user):
         self.client.login(username=user, password="123456")
 
-    def test_student_preferences_no_duplicates(self):
+    def eligible_topics(self, username, ok=True):
+        from recommend.engine import Profile, eligible
+
+        prof = Profile(Student.objects.get(user__username=username))
+        return [t for t in Topic.objects.order_by("pk") if eligible(prof, t)[0] == ok]
+
+    def student_with_choices(self, n=3):
+        """SV đủ điều kiện ít nhất n đề tài (dữ liệu mẫu có lọc cứng nên không phải SV nào cũng đủ)."""
+        for st in Student.objects.order_by("pk"):
+            if len(self.eligible_topics(st.user.username)) >= n:
+                return st.user.username
+        self.fail(f"không có SV đủ điều kiện {n} đề tài")
+
+    def test_ineligible_topic_is_rejected_with_reason(self):
+        """Lọc cứng: SV không đăng ký được đề tài chưa đủ điều kiện (GPA / môn tiên quyết / kỹ năng bắt buộc)."""
         self.login("sv001")
-        t1, t2 = Topic.objects.all()[:2]
+        bad = self.eligible_topics("sv001", ok=False)
+        self.assertTrue(bad, "dữ liệu mẫu phải có đề tài sv001 chưa đủ điều kiện")
+        r = self.client.post("/nguyen-vong/", {"nv1": bad[0].pk})
+        self.assertContains(r, "Chưa đủ điều kiện đăng ký")
+        self.assertFalse(Preference.objects.filter(student__user__username="sv001", topic=bad[0]).exists())
+
+    def test_resaving_preferences_keeps_lecturer_decision(self):
+        """SV lưu lại nguyện vọng: đề tài giữ nguyên thì giữ kết quả GV đã duyệt; đề tài mới thì 'Chờ duyệt'."""
+        sv = self.student_with_choices(3)
+        self.login(sv)
+        t1, t2, t3 = self.eligible_topics(sv)[:3]
+        self.client.post("/nguyen-vong/", {"nv1": t1.pk, "nv2": t2.pk})
+        Preference.objects.filter(student__user__username=sv, topic=t1).update(status=Preference.Status.ACCEPTED)
+        self.client.post("/nguyen-vong/", {"nv1": t1.pk, "nv2": t3.pk})
+        status = dict(Preference.objects.filter(student__user__username=sv).values_list("topic_id", "status"))
+        self.assertEqual(status, {t1.pk: Preference.Status.ACCEPTED, t3.pk: Preference.Status.PENDING})
+
+    def test_student_preferences_no_duplicates(self):
+        sv = self.student_with_choices(2)
+        self.login(sv)
+        t1, t2 = self.eligible_topics(sv)[:2]
         r = self.client.post("/nguyen-vong/", {"nv1": t1.pk, "nv2": t1.pk})
         self.assertContains(r, "không được trùng")
         self.client.post("/nguyen-vong/", {"nv1": t1.pk, "nv2": t2.pk})
         self.assertEqual(
             list(
-                Preference.objects.filter(student__user__username="sv001")
+                Preference.objects.filter(student__user__username=sv)
                 .order_by("rank")
                 .values_list("topic_id", flat=True)
             ),

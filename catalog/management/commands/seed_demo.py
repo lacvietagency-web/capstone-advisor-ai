@@ -32,6 +32,7 @@ from catalog.models import (
     TopicPrerequisite,
     TopicSkill,
 )
+from recommend.engine import Profile, eligible
 
 FIELDS = {
     "Web": ["HTML/CSS", "JavaScript", "React", "Django", "Spring Boot", "PHP"],
@@ -245,10 +246,13 @@ class Command(BaseCommand):
         for c in rnd.sample(list(self.courses.values()), 6):
             score = round(min(10, max(3, rnd.gauss(7, 1.3))), 1)
             StudentCourseResult.objects.create(student=st, course=c, score=score)
+        # SV chỉ đăng ký được đề tài đủ điều kiện (lọc cứng như form thật); đề tài hot dễ được chọn hơn
+        profile = Profile(st)
+        pool = [(t, h) for t, h in zip(topics, hotness, strict=True) if eligible(profile, t)[0]]
         chosen = []
-        while len(chosen) < 3:  # 3 nguyện vọng khác nhau, đề tài hot dễ được chọn hơn
-            t = rnd.choices(topics, weights=hotness)[0]
-            if t not in chosen:
-                chosen.append(t)
+        while pool and len(chosen) < 3:
+            t = rnd.choices([t for t, _ in pool], weights=[h for _, h in pool])[0]
+            chosen.append(t)
+            pool = [(x, h) for x, h in pool if x != t]
         for rank, t in enumerate(chosen, 1):
             Preference.objects.create(student=st, topic=t, period=period, rank=rank)

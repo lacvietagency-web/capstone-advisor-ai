@@ -1,15 +1,614 @@
 {% extends "base.html" %}
+
+{% block title %}Hồ sơ năng lực — Capstone Advisor AI{% endblock %}
+
 {% block content %}
-<h1 class="h4">Hồ sơ năng lực</h1>
-{% for m in messages %}<div class="alert alert-success">{{ m }}</div>{% endfor %}
-<form method="post">{% csrf_token %}
-  <h2 class="h6 mt-3">Tự giới thiệu</h2>{{ about_form.as_p }}
-  <h2 class="h6 mt-3">Kỹ năng (mức 1–5)</h2>{{ skill_formset.management_form }}
-  <table class="table"><tr><th>Kỹ năng</th><th>Mức</th><th>Xoá</th></tr>
-  {% for f in skill_formset %}<tr>{{ f.id }}<td>{{ f.skill }}</td><td>{{ f.level }}</td><td>{{ f.DELETE }}</td></tr>{% endfor %}</table>
-  <h2 class="h6 mt-3">Lĩnh vực quan tâm (mức 1–3)</h2>{{ interest_formset.management_form }}
-  <table class="table"><tr><th>Lĩnh vực</th><th>Mức</th><th>Xoá</th></tr>
-  {% for f in interest_formset %}<tr>{{ f.id }}<td>{{ f.field }}</td><td>{{ f.level }}</td><td>{{ f.DELETE }}</td></tr>{% endfor %}</table>
-  <button class="btn btn-primary">Lưu hồ sơ</button>
-</form>
+<div class="profile-page">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="profile-breadcrumb mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}">Sinh viên</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Hồ sơ năng lực</li>
+    </ol>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="profile-header">
+    <h1 class="profile-title">Hồ sơ năng lực</h1>
+    <p class="profile-subtitle">
+      Cập nhật thông tin để hệ thống hiểu năng lực và định hướng của bạn khi đề xuất đề tài tốt nghiệp.
+    </p>
+  </div>
+
+  <!-- Profile Completeness Indicator Card -->
+  <div class="profile-section-card mb-4" id="card-completeness">
+    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-pie-chart text-primary fs-5" aria-hidden="true"></i>
+        <span class="fw-semibold text-strong">Mức độ hoàn thiện hồ sơ</span>
+      </div>
+      <span class="fw-bold text-primary fs-5" id="completeness-percentage">0%</span>
+    </div>
+    <div class="progress" role="progressbar" id="completeness-progressbar" aria-label="Mức độ hoàn thiện hồ sơ" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="height: 8px;">
+      <div class="progress-bar" id="completeness-bar" style="width: 0%; background-color: var(--ca-primary-500);"></div>
+    </div>
+    <div class="small text-muted mt-2 d-flex align-items-center gap-2" id="completeness-tip">
+      <i class="bi bi-info-circle text-primary" aria-hidden="true"></i>
+      <span id="completeness-tip-text">Đang đánh giá thông tin hồ sơ...</span>
+    </div>
+  </div>
+
+  <!-- Form Error Alert Banner if validation fails -->
+  {% if about_form.errors or skill_formset.errors or interest_formset.errors or skill_formset.non_form_errors or interest_formset.non_form_errors %}
+    <div class="alert alert-danger d-flex align-items-start gap-2 mb-4" role="alert">
+      <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1 fs-5"></i>
+      <div>
+        <div class="fw-semibold">Không thể lưu hồ sơ.</div>
+        <div class="small">Vui lòng kiểm tra lại các trường được đánh dấu lỗi bên dưới.</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="post" id="student-profile-form" novalidate>
+    {% csrf_token %}
+
+    <!-- 01: Giới thiệu bản thân -->
+    <section class="profile-section-card" id="section-about">
+      <div class="profile-section-heading">
+        <div class="profile-section-number">01</div>
+        <div>
+          <h2 class="profile-section-title">Giới thiệu bản thân</h2>
+          <p class="profile-section-desc">Chia sẻ ngắn về kinh nghiệm, định hướng và loại đồ án bạn muốn thực hiện.</p>
+        </div>
+      </div>
+
+      <div class="profile-section-content">
+        <div class="form-group mb-2">
+          <label for="{{ about_form.about.id_for_label }}" class="form-label">
+            Giới thiệu
+          </label>
+          {{ about_form.about }}
+          {% if about_form.about.errors %}
+            <div class="form-error-msg">
+              <i class="bi bi-exclamation-circle"></i>
+              <span>{{ about_form.about.errors.0 }}</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
+          <div class="profile-help-text">
+            <i class="bi bi-lightbulb me-1"></i>Gợi ý: Nên viết 2–4 câu về thế mạnh, công nghệ đã học hoặc định hướng đồ án bạn muốn làm.
+          </div>
+          <div class="char-counter" id="about-char-count">
+            0 ký tự
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02: Kỹ năng -->
+    <section class="profile-section-card" id="section-skills">
+      <div class="profile-section-heading">
+        <div class="profile-section-number">02</div>
+        <div>
+          <h2 class="profile-section-title">Kỹ năng</h2>
+          <p class="profile-section-desc">Bổ sung công nghệ và kỹ năng bạn đã sử dụng kèm mức độ thành thạo (thang điểm 1–5).</p>
+        </div>
+      </div>
+
+      <div class="profile-section-content">
+        {{ skill_formset.management_form }}
+
+        {% if skill_formset.non_form_errors %}
+          <div class="alert alert-danger small py-2 mb-3">
+            {{ skill_formset.non_form_errors }}
+          </div>
+        {% endif %}
+
+        <!-- Empty state notice when student has no skills yet -->
+        {% if not student.skills.exists %}
+          <div class="p-3 mb-3 rounded-3 bg-light border text-center" id="skill-empty-hint">
+            <i class="bi bi-tools text-primary fs-4 d-block mb-1"></i>
+            <div class="fw-semibold text-strong">Bạn chưa thêm kỹ năng nào</div>
+            <div class="small text-muted">Hãy bổ sung các công nghệ hoặc kỹ năng bạn đã học (Python, Django, SQL...) để hệ thống gợi ý đề tài chuẩn xác.</div>
+          </div>
+        {% endif %}
+
+        <!-- Desktop Header Row -->
+        <div class="formset-header">
+          <div>Kỹ năng</div>
+          <div>Mức độ (1–5)</div>
+          <div class="text-end">Hành động</div>
+        </div>
+
+        <!-- Skills Rows Container -->
+        <div class="formset-container" id="skill-forms-container">
+          {% for f in skill_formset %}
+            <div class="formset-row skill-row" data-form-index="{{ forloop.counter0 }}">
+              {% for hidden in f.hidden_fields %}
+                {{ hidden }}
+              {% endfor %}
+
+              <!-- Skill field -->
+              <div class="row-field-item row-field-content">
+                <label class="form-label d-md-none small fw-semibold" for="{{ f.skill.id_for_label }}">Kỹ năng</label>
+                {{ f.skill }}
+                {% if f.skill.errors %}
+                  <div class="form-error-msg">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>{{ f.skill.errors.0 }}</span>
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Level field -->
+              <div class="row-field-item row-field-content">
+                <label class="form-label d-md-none small fw-semibold" for="{{ f.level.id_for_label }}">Mức độ (1–5)</label>
+                <div class="d-flex align-items-center gap-2">
+                  {{ f.level }}
+                  <span class="badge bg-light text-muted border level-pill" style="min-width: 68px; font-size: 11px;">Mức 1–5</span>
+                </div>
+                {% if f.level.errors %}
+                  <div class="form-error-msg">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>{{ f.level.errors.0 }}</span>
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Delete Action -->
+              <div class="row-field-item text-md-end">
+                <div class="d-none">
+                  {{ f.DELETE }}
+                </div>
+                <button type="button" class="btn btn-delete-row" aria-label="Xóa kỹ năng này">
+                  <i class="bi bi-trash3 me-1"></i>Xóa
+                </button>
+              </div>
+
+              {% if f.non_field_errors %}
+                <div class="text-danger small col-12 mt-1">{{ f.non_field_errors }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Add Skill Button & Help Text -->
+        <div class="mt-3">
+          <button type="button" class="btn btn-add-formset" id="btn-add-skill">
+            <i class="bi bi-plus-lg me-1"></i>Thêm kỹ năng
+          </button>
+          <div class="profile-help-text mt-2">
+            <i class="bi bi-info-circle me-1"></i>Mức độ thành thạo: 1 = Mới tiếp cận, 2 = Cơ bản, 3 = Khá, 4 = Tốt, 5 = Thành thạo chuyên sâu.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03: Lĩnh vực quan tâm -->
+    <section class="profile-section-card" id="section-interests">
+      <div class="profile-section-heading">
+        <div class="profile-section-number">03</div>
+        <div>
+          <h2 class="profile-section-title">Lĩnh vực quan tâm</h2>
+          <p class="profile-section-desc">Những hướng nghiên cứu hoặc phát triển bạn muốn ưu tiên khi lựa chọn đề tài (thang điểm 1–3).</p>
+        </div>
+      </div>
+
+      <div class="profile-section-content">
+        {{ interest_formset.management_form }}
+
+        {% if interest_formset.non_form_errors %}
+          <div class="alert alert-danger small py-2 mb-3">
+            {{ interest_formset.non_form_errors }}
+          </div>
+        {% endif %}
+
+        <!-- Empty state notice when student has no interests yet -->
+        {% if not student.interests.exists %}
+          <div class="p-3 mb-3 rounded-3 bg-light border text-center" id="interest-empty-hint">
+            <i class="bi bi-lightbulb text-primary fs-4 d-block mb-1"></i>
+            <div class="fw-semibold text-strong">Bạn chưa chọn lĩnh vực quan tâm nào</div>
+            <div class="small text-muted">Hãy chọn các hướng bạn muốn làm (Web, Trí tuệ nhân tạo, Di động...) để ưu tiên tìm đề tài.</div>
+          </div>
+        {% endif %}
+
+        <!-- Desktop Header Row -->
+        <div class="formset-header">
+          <div>Lĩnh vực</div>
+          <div>Mức quan tâm (1–3)</div>
+          <div class="text-end">Hành động</div>
+        </div>
+
+        <!-- Interests Rows Container -->
+        <div class="formset-container" id="interest-forms-container">
+          {% for f in interest_formset %}
+            <div class="formset-row interest-row" data-form-index="{{ forloop.counter0 }}">
+              {% for hidden in f.hidden_fields %}
+                {{ hidden }}
+              {% endfor %}
+
+              <!-- Field selector -->
+              <div class="row-field-item row-field-content">
+                <label class="form-label d-md-none small fw-semibold" for="{{ f.field.id_for_label }}">Lĩnh vực</label>
+                {{ f.field }}
+                {% if f.field.errors %}
+                  <div class="form-error-msg">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>{{ f.field.errors.0 }}</span>
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Level field -->
+              <div class="row-field-item row-field-content">
+                <label class="form-label d-md-none small fw-semibold" for="{{ f.level.id_for_label }}">Mức ưu tiên (1–3)</label>
+                <div class="d-flex align-items-center gap-2">
+                  {{ f.level }}
+                  <span class="badge bg-light text-muted border level-pill" style="min-width: 68px; font-size: 11px;">Mức 1–3</span>
+                </div>
+                {% if f.level.errors %}
+                  <div class="form-error-msg">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>{{ f.level.errors.0 }}</span>
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Delete Action -->
+              <div class="row-field-item text-md-end">
+                <div class="d-none">
+                  {{ f.DELETE }}
+                </div>
+                <button type="button" class="btn btn-delete-row" aria-label="Xóa lĩnh vực này">
+                  <i class="bi bi-trash3 me-1"></i>Xóa
+                </button>
+              </div>
+
+              {% if f.non_field_errors %}
+                <div class="text-danger small col-12 mt-1">{{ f.non_field_errors }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Add Interest Button & Help Text -->
+        <div class="mt-3">
+          <button type="button" class="btn btn-add-formset" id="btn-add-interest">
+            <i class="bi bi-plus-lg me-1"></i>Thêm lĩnh vực
+          </button>
+          <div class="profile-help-text mt-2">
+            <i class="bi bi-info-circle me-1"></i>Mức độ quan tâm: 1 = Quan tâm tìm hiểu, 2 = Yêu thích, 3 = Ưu tiên hàng đầu cho đồ án tốt nghiệp.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Actions -->
+    <div class="profile-actions">
+      <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-back">
+        <i class="bi bi-arrow-left me-1"></i>Về trang tổng quan
+      </a>
+      <button type="submit" class="btn btn-save-profile" id="btn-save-profile">
+        <i class="bi bi-check-lg me-1"></i>Lưu hồ sơ
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Template for dynamically adding skill rows -->
+<template id="empty-skill-template">
+  <div class="formset-row skill-row" data-form-index="__prefix__">
+    {% for hidden in skill_formset.empty_form.hidden_fields %}
+      {{ hidden }}
+    {% endfor %}
+    <div class="row-field-item row-field-content">
+      <label class="form-label d-md-none small fw-semibold">Kỹ năng</label>
+      {{ skill_formset.empty_form.skill }}
+    </div>
+    <div class="row-field-item row-field-content">
+      <label class="form-label d-md-none small fw-semibold">Mức độ (1–5)</label>
+      <div class="d-flex align-items-center gap-2">
+        {{ skill_formset.empty_form.level }}
+        <span class="badge bg-light text-muted border level-pill" style="min-width: 68px; font-size: 11px;">Mức 1–5</span>
+      </div>
+    </div>
+    <div class="row-field-item text-md-end">
+      <div class="d-none">
+        {{ skill_formset.empty_form.DELETE }}
+      </div>
+      <button type="button" class="btn btn-delete-row" aria-label="Xóa kỹ năng này">
+        <i class="bi bi-trash3 me-1"></i>Xóa
+      </button>
+    </div>
+  </div>
+</template>
+
+<!-- Template for dynamically adding interest rows -->
+<template id="empty-interest-template">
+  <div class="formset-row interest-row" data-form-index="__prefix__">
+    {% for hidden in interest_formset.empty_form.hidden_fields %}
+      {{ hidden }}
+    {% endfor %}
+    <div class="row-field-item row-field-content">
+      <label class="form-label d-md-none small fw-semibold">Lĩnh vực quan tâm</label>
+      {{ interest_formset.empty_form.field }}
+    </div>
+    <div class="row-field-item row-field-content">
+      <label class="form-label d-md-none small fw-semibold">Mức ưu tiên (1–3)</label>
+      <div class="d-flex align-items-center gap-2">
+        {{ interest_formset.empty_form.level }}
+        <span class="badge bg-light text-muted border level-pill" style="min-width: 68px; font-size: 11px;">Mức 1–3</span>
+      </div>
+    </div>
+    <div class="row-field-item text-md-end">
+      <div class="d-none">
+        {{ interest_formset.empty_form.DELETE }}
+      </div>
+      <button type="button" class="btn btn-delete-row" aria-label="Xóa lĩnh vực này">
+        <i class="bi bi-trash3 me-1"></i>Xóa
+      </button>
+    </div>
+  </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // 1. Character counter for "Giới thiệu bản thân"
+  const aboutTextarea = document.getElementById("id_about");
+  const charCounter = document.getElementById("about-char-count");
+
+  function updateCharCount() {
+    if (aboutTextarea && charCounter) {
+      const count = aboutTextarea.value.trim().length;
+      charCounter.textContent = count + " ký tự";
+    }
+  }
+
+  if (aboutTextarea) {
+    aboutTextarea.addEventListener("input", updateCharCount);
+    updateCharCount();
+  }
+
+  // 2. Level labels for skills (1-5) and interests (1-3)
+  function getSkillLevelText(val) {
+    switch (parseInt(val, 10)) {
+      case 1: return "1 - Mới học";
+      case 2: return "2 - Cơ bản";
+      case 3: return "3 - Khá";
+      case 4: return "4 - Tốt";
+      case 5: return "5 - Chuyên sâu";
+      default: return "Mức 1–5";
+    }
+  }
+
+  function getInterestLevelText(val) {
+    switch (parseInt(val, 10)) {
+      case 1: return "1 - Quan tâm";
+      case 2: return "2 - Yêu thích";
+      case 3: return "3 - Ưu tiên";
+      default: return "Mức 1–3";
+    }
+  }
+
+  function setupRowControls(row, type) {
+    const levelInput = row.querySelector('input[type="number"]');
+    const levelPill = row.querySelector(".level-pill");
+    const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+    const deleteBtn = row.querySelector(".btn-delete-row, .btn-undo-row");
+
+    if (levelInput && levelPill) {
+      if (type === "skill") {
+        levelInput.min = "1";
+        levelInput.max = "5";
+        levelInput.placeholder = "1–5";
+      } else {
+        levelInput.min = "1";
+        levelInput.max = "3";
+        levelInput.placeholder = "1–3";
+      }
+
+      function updatePill() {
+        const val = levelInput.value;
+        if (type === "skill") {
+          levelPill.textContent = getSkillLevelText(val);
+        } else {
+          levelPill.textContent = getInterestLevelText(val);
+        }
+      }
+
+      levelInput.addEventListener("input", function() {
+        updatePill();
+        updateCompleteness();
+      });
+      updatePill();
+    }
+
+    const selectEl = row.querySelector("select");
+    if (selectEl) {
+      selectEl.addEventListener("change", updateCompleteness);
+    }
+
+    if (deleteCheckbox && deleteBtn) {
+      function syncDeleteState() {
+        if (deleteCheckbox.checked) {
+          row.classList.add("row-deleted");
+          deleteBtn.className = "btn btn-undo-row";
+          deleteBtn.innerHTML = '<i class="bi bi-arrow-counterclockwise me-1"></i>Hoàn tác';
+          deleteBtn.setAttribute("aria-label", "Hoàn tác xóa dòng này");
+        } else {
+          row.classList.remove("row-deleted");
+          deleteBtn.className = "btn btn-delete-row";
+          deleteBtn.innerHTML = '<i class="bi bi-trash3 me-1"></i>Xóa';
+          deleteBtn.setAttribute("aria-label", "Xóa dòng này");
+        }
+      }
+
+      deleteBtn.addEventListener("click", function () {
+        deleteCheckbox.checked = !deleteCheckbox.checked;
+        syncDeleteState();
+        updateCompleteness();
+      });
+
+      syncDeleteState();
+    }
+  }
+
+  // Initialize existing rows
+  document.querySelectorAll("#skill-forms-container .skill-row").forEach(function (row) {
+    setupRowControls(row, "skill");
+  });
+
+  document.querySelectorAll("#interest-forms-container .interest-row").forEach(function (row) {
+    setupRowControls(row, "interest");
+  });
+
+  // 3. Dynamic row addition for Skills
+  const btnAddSkill = document.getElementById("btn-add-skill");
+  const skillContainer = document.getElementById("skill-forms-container");
+  const totalSkillInput = document.getElementById("id_skills-TOTAL_FORMS");
+  const skillTemplate = document.getElementById("empty-skill-template");
+
+  if (btnAddSkill && skillContainer && totalSkillInput && skillTemplate) {
+    btnAddSkill.addEventListener("click", function () {
+      const currentIndex = parseInt(totalSkillInput.value, 10);
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = skillTemplate.innerHTML.replace(/__prefix__/g, currentIndex);
+      const newRow = tempDiv.firstElementChild;
+
+      skillContainer.appendChild(newRow);
+      totalSkillInput.value = currentIndex + 1;
+
+      setupRowControls(newRow, "skill");
+
+      // Hide empty hint if visible
+      const emptyHint = document.getElementById("skill-empty-hint");
+      if (emptyHint) emptyHint.style.display = "none";
+
+      const select = newRow.querySelector("select");
+      if (select) select.focus();
+
+      updateCompleteness();
+    });
+  }
+
+  // 4. Dynamic row addition for Interests
+  const btnAddInterest = document.getElementById("btn-add-interest");
+  const interestContainer = document.getElementById("interest-forms-container");
+  const totalInterestInput = document.getElementById("id_interests-TOTAL_FORMS");
+  const interestTemplate = document.getElementById("empty-interest-template");
+
+  if (btnAddInterest && interestContainer && totalInterestInput && interestTemplate) {
+    btnAddInterest.addEventListener("click", function () {
+      const currentIndex = parseInt(totalInterestInput.value, 10);
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = interestTemplate.innerHTML.replace(/__prefix__/g, currentIndex);
+      const newRow = tempDiv.firstElementChild;
+
+      interestContainer.appendChild(newRow);
+      totalInterestInput.value = currentIndex + 1;
+
+      setupRowControls(newRow, "interest");
+
+      // Hide empty hint if visible
+      const emptyHint = document.getElementById("interest-empty-hint");
+      if (emptyHint) emptyHint.style.display = "none";
+
+      const select = newRow.querySelector("select");
+      if (select) select.focus();
+
+      updateCompleteness();
+    });
+  }
+
+  // 5. Dynamic Profile Completeness Calculation
+  const completenessPercent = document.getElementById("completeness-percentage");
+  const completenessBar = document.getElementById("completeness-bar");
+  const completenessTip = document.getElementById("completeness-tip-text");
+
+  function updateCompleteness() {
+    if (!completenessPercent || !completenessBar || !completenessTip) return;
+
+    let score = 0;
+    const missingTips = [];
+
+    // Check "About" (30 points)
+    const aboutLen = aboutTextarea ? aboutTextarea.value.trim().length : 0;
+    if (aboutLen >= 20) {
+      score += 30;
+    } else if (aboutLen > 0) {
+      score += 15;
+      missingTips.push("Mở rộng thêm phần giới thiệu bản thân (nên từ 2–4 câu)");
+    } else {
+      missingTips.push("Bổ sung phần giới thiệu bản thân");
+    }
+
+    // Check active skills (35 points)
+    let validSkillCount = 0;
+    document.querySelectorAll("#skill-forms-container .skill-row").forEach(function (row) {
+      const delBox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+      const sel = row.querySelector("select");
+      if ((!delBox || !delBox.checked) && sel && sel.value) {
+        validSkillCount++;
+      }
+    });
+
+    if (validSkillCount >= 3) {
+      score += 35;
+    } else if (validSkillCount >= 1) {
+      score += 20;
+      missingTips.push("Thêm thêm kỹ năng để AI đối sánh chính xác hơn");
+    } else {
+      missingTips.push("Bổ sung ít nhất 1 kỹ năng chuyên môn");
+    }
+
+    // Check active interests (35 points)
+    let validInterestCount = 0;
+    document.querySelectorAll("#interest-forms-container .interest-row").forEach(function (row) {
+      const delBox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+      const sel = row.querySelector("select");
+      if ((!delBox || !delBox.checked) && sel && sel.value) {
+        validInterestCount++;
+      }
+    });
+
+    if (validInterestCount >= 2) {
+      score += 35;
+    } else if (validInterestCount >= 1) {
+      score += 25;
+    } else {
+      missingTips.push("Chọn ít nhất một lĩnh vực quan tâm");
+    }
+
+    completenessPercent.textContent = score + "%";
+    completenessBar.style.width = score + "%";
+    completenessBar.setAttribute("aria-valuenow", score);
+
+    if (score >= 90) {
+      completenessTip.textContent = "Hồ sơ của bạn đã đầy đủ thông tin để hệ thống đề xuất đề tài tốt nghiệp phù hợp nhất.";
+    } else if (missingTips.length > 0) {
+      completenessTip.textContent = "Còn thiếu: " + missingTips.join(". ") + ".";
+    } else {
+      completenessTip.textContent = "Bổ sung thêm thông tin để hồ sơ của bạn hoàn thiện hơn.";
+    }
+  }
+
+  updateCompleteness();
+
+  // 6. Form Submit: Double submission prevention & loading state
+  const form = document.getElementById("student-profile-form");
+  const saveBtn = document.getElementById("btn-save-profile");
+
+  if (form && saveBtn) {
+    form.addEventListener("submit", function () {
+      saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang lưu hồ sơ...';
+      saveBtn.classList.add("disabled");
+      saveBtn.style.pointerEvents = "none";
+    });
+  }
+});
+</script>
 {% endblock %}

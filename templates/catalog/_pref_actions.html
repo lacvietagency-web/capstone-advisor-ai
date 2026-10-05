@@ -1,0 +1,26 @@
+{# [UC12] Trạng thái duyệt + nút Đồng ý / Từ chối cho một nguyện vọng (dùng chung bản máy tính và điện thoại) #}
+<div class="d-flex flex-wrap align-items-center gap-2 {{ extra_class }}">
+  {% if row.pref.status == "ACCEPTED" %}
+    <span class="badge text-bg-success"><i class="bi bi-check2 me-1"></i>{{ row.pref.get_status_display }}</span>
+  {% elif row.pref.status == "REJECTED" %}
+    <span class="badge text-bg-danger"><i class="bi bi-x me-1"></i>{{ row.pref.get_status_display }}</span>
+  {% else %}
+    <span class="badge text-bg-light border">{{ row.pref.get_status_display }}</span>
+  {% endif %}
+  {% if row.pref.status != "ACCEPTED" %}
+  <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" class="m-0">
+    {% csrf_token %}
+    <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
+    <input type="hidden" name="action" value="accept">
+    <button type="submit" class="btn btn-sm btn-success">Đồng ý</button>
+  </form>
+  {% endif %}
+  {% if row.pref.status != "REJECTED" %}
+  <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" class="m-0">
+    {% csrf_token %}
+    <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
+    <input type="hidden" name="action" value="reject">
+    <button type="submit" class="btn btn-sm btn-outline-danger">Từ chối</button>
+  </form>
+  {% endif %}
+</div>

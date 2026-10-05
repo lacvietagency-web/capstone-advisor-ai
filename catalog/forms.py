@@ -38,8 +38,9 @@ class PreferenceForm(forms.Form):
     nv2 = forms.ModelChoiceField(Topic.objects.none(), label="Nguyện vọng 2", required=False)
     nv3 = forms.ModelChoiceField(Topic.objects.none(), label="Nguyện vọng 3", required=False)
 
-    def __init__(self, *args, topics=None, **kw):
+    def __init__(self, *args, topics=None, student=None, **kw):
         super().__init__(*args, **kw)
+        self.student = student
         for f in ("nv1", "nv2", "nv3"):
             self.fields[f].queryset = topics if topics is not None else Topic.objects.filter(status=Topic.Status.OPEN)
 
@@ -48,6 +49,16 @@ class PreferenceForm(forms.Form):
         chosen = [t for t in (data.get("nv1"), data.get("nv2"), data.get("nv3")) if t]
         if len(chosen) != len(set(chosen)):
             raise forms.ValidationError("Các nguyện vọng không được trùng đề tài.")
+        if self.student is not None:  # lọc cứng: không cho đăng ký đề tài chưa đủ điều kiện, nói rõ lý do
+            from recommend.engine import Profile, eligible
+
+            profile = Profile(self.student)
+            for name in ("nv1", "nv2", "nv3"):
+                topic = data.get(name)
+                if topic:
+                    ok, why = eligible(profile, topic)
+                    if not ok:
+                        self.add_error(name, f"Chưa đủ điều kiện đăng ký đề tài này: {why}.")
         return data
 
 

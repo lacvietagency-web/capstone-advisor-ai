@@ -11,6 +11,7 @@ from .models import Allocation
 from .services import (
     calculate_period_metrics,
     get_phase2_suggestions,
+    get_student_allocation_result,
     manual_assign,
     publish_allocations,
     run_allocation,
@@ -141,5 +142,34 @@ def allocation_dashboard(request):
             "suggest_student": suggest_student,
             "suggestions": suggestions,
             "open_topics": open_topics,
+        },
+    )
+
+
+def _check_student(user):
+    """Kiểm tra quyền truy cập: chỉ tài khoản sinh viên có hồ sơ mới được phép."""
+    if not (getattr(user, "is_student", False) and hasattr(user, "student")):
+        raise PermissionDenied("Chỉ sinh viên mới có quyền truy cập trang này.")
+    return user.student
+
+
+@login_required
+def student_allocation_result(request):
+    """Màn hình xem kết quả phân công đồ án tốt nghiệp dành cho sinh viên (UC08).
+
+    Công thức điểm tổng hợp:
+        S(s, t) = sum(w_k * M_k) theo chuẩn AHP (kỹ năng, học lực, lĩnh vực, ngữ nghĩa, AI).
+    Khi đợt PUBLISHED: hiển thị đề tài được phân, GVHD, NV đạt, điểm phù hợp.
+    Khi chưa công bố: hiển thị trạng thái chờ 'Hội đồng Khoa đang thẩm định phân công'.
+    """
+    student = _check_student(request.user)
+    period_id = request.GET.get("period_id")
+    result_data = get_student_allocation_result(student, period_id=period_id)
+    return render(
+        request,
+        "allocate/student_result.html",
+        {
+            "student": student,
+            **result_data,
         },
     )

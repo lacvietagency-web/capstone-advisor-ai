@@ -1,6 +1,7 @@
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 
+from accounts.models import User
 from catalog.models import Field, Lecturer, Preference, RegistrationPeriod, Skill, Student, Topic
 from recommend.models import Recommendation
 
@@ -10,6 +11,13 @@ class BusinessFlowTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("seed_demo", students=5, lecturers=2, topics=6, verbosity=0)
+        User.objects.create_user(
+            username="admin001",
+            password="123456",
+            role=User.Role.ADMIN,
+            first_name="Ban",
+            last_name="CNK",
+        )
 
     def login(self, user):
         self.client.login(username=user, password="123456")
@@ -64,6 +72,122 @@ class BusinessFlowTests(TestCase):
         self.client.logout()
         self.login("gv001")
         self.assertEqual(self.client.get("/nguyen-vong/").status_code, 403)
+
+    def test_lecturer_profile_get_open_period(self):
+        self.login("gv001")
+        r = self.client.get("/ho-so-giang-vien/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Hồ sơ Giảng viên")
+        self.assertFalse(r.context["is_locked"])
+
+    def test_lecturer_updates_profile_when_open(self):
+        self.login("gv001")
+        lec = Lecturer.objects.get(user__username="gv001")
+        f1, f2 = Field.objects.all()[:2]
+        r = self.client.post(
+            "/ho-so-giang-vien/",
+            {
+                "department": "Bộ môn Công nghệ phần mềm",
+                "fields": [f1.pk, f2.pk],
+                "max_students": 10,
+            },
+        )
+        self.assertEqual(r.status_code, 302)
+        lec.refresh_from_db()
+        self.assertEqual(lec.department, "Bộ môn Công nghệ phần mềm")
+        self.assertEqual(lec.max_students, 10)
+        self.assertEqual(set(lec.fields.values_list("pk", flat=True)), {f1.pk, f2.pk})
+
+    def test_lecturer_cannot_update_quota_when_period_closed(self):
+        period = RegistrationPeriod.objects.first()
+        period.status = RegistrationPeriod.Status.CLOSED
+        period.save()
+
+        self.login("gv001")
+        lec = Lecturer.objects.get(user__username="gv001")
+        old_quota = lec.max_students
+        new_quota = old_quota + 5
+
+        r_get = self.client.get("/ho-so-giang-vien/")
+        self.assertEqual(r_get.status_code, 200)
+        self.assertTrue(r_get.context["is_locked"])
+        self.assertContains(r_get, "khoá")
+
+        f = Field.objects.first()
+        r_post = self.client.post(
+            "/ho-so-giang-vien/",
+            {
+                "department": "Bộ môn Trí tuệ nhân tạo",
+                "fields": [f.pk],
+                "max_students": new_quota,
+            },
+        )
+        self.assertEqual(r_post.status_code, 200)
+        self.assertContains(r_post, "chỉ Khoa mới có quyền")
+        lec.refresh_from_db()
+        self.assertEqual(lec.max_students, old_quota)
+
+    def test_lecturer_can_update_dept_and_fields_when_period_closed(self):
+        period = RegistrationPeriod.objects.first()
+        period.status = RegistrationPeriod.Status.CLOSED
+        period.save()
+
+        self.login("gv001")
+        lec = Lecturer.objects.get(user__username="gv001")
+        old_quota = lec.max_students
+        f = Field.objects.first()
+
+        r_post = self.client.post(
+            "/ho-so-giang-vien/",
+            {
+                "department": "Bộ môn Hệ thống thông tin",
+                "fields": [f.pk],
+                "max_students": old_quota,
+            },
+        )
+        self.assertEqual(r_post.status_code, 302)
+        lec.refresh_from_db()
+        self.assertEqual(lec.department, "Bộ môn Hệ thống thông tin")
+        self.assertEqual(lec.max_students, old_quota)
+        self.assertEqual(list(lec.fields.values_list("pk", flat=True)), [f.pk])
+
+    def test_faculty_admin_can_update_quota_when_period_closed(self):
+        period = RegistrationPeriod.objects.first()
+        period.status = RegistrationPeriod.Status.CLOSED
+        period.save()
+
+        lec = Lecturer.objects.get(user__username="gv001")
+        f = Field.objects.first()
+
+        self.login("admin001")
+        r = self.client.post(
+            f"/ho-so-giang-vien/{lec.pk}/",
+            {
+                "department": "Bộ môn Khoa học dữ liệu",
+                "fields": [f.pk],
+                "max_students": 15,
+            },
+        )
+        self.assertEqual(r.status_code, 302)
+        lec.refresh_from_db()
+        self.assertEqual(lec.department, "Bộ môn Khoa học dữ liệu")
+        self.assertEqual(lec.max_students, 15)
+
+    def test_student_cannot_access_lecturer_profile(self):
+        self.login("sv001")
+        self.assertEqual(self.client.get("/ho-so-giang-vien/").status_code, 403)
+        self.assertEqual(self.client.post("/ho-so-giang-vien/", {}).status_code, 403)
+
+    def test_unauthenticated_user_redirected(self):
+        r = self.client.get("/ho-so-giang-vien/")
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/dang-nhap/", r.url)
+
+    def test_lecturer_cannot_access_another_lecturer_profile(self):
+        self.login("gv001")
+        gv2 = Lecturer.objects.get(user__username="gv002")
+        r = self.client.get(f"/ho-so-giang-vien/{gv2.pk}/")
+        self.assertEqual(r.status_code, 403)
 
 
 @override_settings(RECOMMEND_SEMANTIC=False)

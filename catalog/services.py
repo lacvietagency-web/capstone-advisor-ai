@@ -7,12 +7,16 @@ Bao gồm các hàm:
 - Đếm số lượt đăng ký nguyện vọng 1 (NV1).
 - Lấy điểm phù hợp (AI recommendation) của sinh viên với đề tài.
 - Kiểm tra quyền truy cập đề tài (đề tài nháp DRAFT chỉ tác giả được xem).
+- Hồ sơ giảng viên: khoá chỉ tiêu, phân quyền, lưu kèm nhật ký [UC09].
 """
 
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.db import transaction
 from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404
 
-from catalog.models import Preference, Topic
+from catalog.models import AuditLog, Lecturer, Preference, RegistrationPeriod, Topic
 from recommend.models import Recommendation
 
 
@@ -172,3 +176,100 @@ def check_topic_view_permission(user, topic):
     if getattr(user, "is_lecturer", False) and hasattr(user, "lecturer"):
         return topic.lecturer_id == user.lecturer.id
     return False
+
+
+def is_quota_locked(period=None, lecturer=None) -> bool:
+    """Kiểm tra chỉ tiêu hướng dẫn của giảng viên có bị khoá hay không [UC09].
+
+    Công thức logic:
+        locked = is_closed(period) or getattr(lecturer, 'is_quota_locked', False)
+    trong đó:
+        is_closed(p) = (p.status in {CLOSED, OPTIMIZED, PUBLISHED})
+
+    Quy tắc nghiệp vụ:
+        - Nếu lecturer hoặc period có cờ `is_quota_locked` gán thủ công -> True.
+        - Nếu truyền period cụ thể: khoá khi trạng thái thuộc nhóm đã đóng (status != OPEN).
+        - Nếu không truyền period:
+            + Tồn tại đợt đang mở (OPEN) -> False (chưa khoá, GV được sửa).
+            + Không có đợt nào OPEN và đợt mới nhất đã đóng -> True (đã khoá).
+            + Không có đợt đăng ký nào trong hệ thống -> False.
+    """
+    if lecturer and getattr(lecturer, "is_quota_locked", False):
+        return True
+    if period and getattr(period, "is_quota_locked", False):
+        return True
+
+    closed_statuses = (
+        RegistrationPeriod.Status.CLOSED,
+        RegistrationPeriod.Status.OPTIMIZED,
+        RegistrationPeriod.Status.PUBLISHED,
+        "CLOSED",
+        "OPTIMIZED",
+        "PUBLISHED",
+    )
+
+    if period is not None:
+        return period.status in closed_statuses
+
+    if RegistrationPeriod.objects.filter(status=RegistrationPeriod.Status.OPEN).exists():
+        return False
+
+    latest = RegistrationPeriod.objects.order_by("-start_at", "-id").first()
+    return bool(latest and latest.status in closed_statuses)
+
+
+def get_target_lecturer(user, pk=None, lecturer_id_param=None):
+    """Xác định đối tượng giảng viên cần xem hoặc chỉnh sửa hồ sơ theo vai trò người dùng [UC09].
+
+    Quy tắc phân quyền:
+        - Sinh viên (is_student): Bị từ chối truy cập (PermissionDenied -> HTTP 403).
+        - Giảng viên (is_lecturer): Chỉ được truy cập hồ sơ của chính mình (pk trùng với user.lecturer.pk).
+        - Cán bộ Khoa (is_faculty_admin): Được phép xem và sửa hồ sơ của bất kỳ giảng viên nào.
+    """
+    if getattr(user, "is_faculty_admin", False):
+        target_id = pk or lecturer_id_param
+        if target_id:
+            return get_object_or_404(Lecturer, pk=target_id)
+        if hasattr(user, "lecturer"):
+            return user.lecturer
+        first_lec = Lecturer.objects.order_by("pk").first()
+        if first_lec:
+            return first_lec
+        raise PermissionDenied("Chưa có giảng viên nào trong hệ thống.")
+
+    if getattr(user, "is_lecturer", False) and hasattr(user, "lecturer"):
+        lec = user.lecturer
+        if pk and pk != lec.pk:
+            raise PermissionDenied("Giảng viên chỉ có quyền chỉnh sửa hồ sơ của chính mình.")
+        return lec
+
+    raise PermissionDenied("Bạn không có quyền truy cập trang này.")
+
+
+def save_lecturer_profile(lecturer, form, user=None, is_locked=False, is_faculty_admin=False):
+    """Lưu hồ sơ chuyên môn và chỉ tiêu của giảng viên kèm nhật ký kiểm toán [UC09].
+
+    Công thức bảo vệ chỉ tiêu tối đa:
+        final_max = (
+            form.cleaned_data['max_students']
+            if (not is_locked or is_faculty_admin)
+            else lecturer.max_students
+        )
+
+    Thực hiện cập nhật trong giao dịch atomic và ghi AuditLog ghi nhận chi tiết:
+    bộ môn, chỉ tiêu và danh sách các lĩnh vực chuyên môn được chọn.
+    """
+    with transaction.atomic():
+        saved_lec = form.save()
+        AuditLog.objects.create(
+            user=user,
+            action="update_lecturer_profile",
+            entity="Lecturer",
+            entity_id=str(saved_lec.pk),
+            detail={
+                "department": saved_lec.department,
+                "max_students": saved_lec.max_students,
+                "fields": list(saved_lec.fields.values_list("name", flat=True)),
+            },
+        )
+    return saved_lec

@@ -12,6 +12,7 @@ from recommend.models import Recommendation
 from recommend.services import refresh_student
 
 from .forms import (
+    LecturerProfileForm,
     PreferenceForm,
     StudentAboutForm,
     StudentInterestFormSet,
@@ -26,9 +27,12 @@ from .services import (
     filter_topics,
     get_student_match_score,
     get_student_recommendations_map,
+    get_target_lecturer,
     get_topic_nv1_count,
     get_visible_topics,
+    is_quota_locked,
     paginate_topics,
+    save_lecturer_profile,
 )
 
 
@@ -162,6 +166,59 @@ def lecturer_registrations(request, pk):
     scores = {r.student_id: r for r in Recommendation.objects.filter(topic=topic)}
     rows = [{"pref": p, "rec": scores.get(p.student_id)} for p in prefs]
     return render(request, "catalog/lecturer_registrations.html", {"topic": topic, "rows": rows})
+
+
+@login_required
+def lecturer_profile(request, pk=None):
+    """Màn hình cập nhật chuyên môn và chỉ tiêu của giảng viên [UC09].
+
+    Quy tắc nghiệp vụ:
+        - Giảng viên chỉ sửa hồ sơ của chính mình; chỉ tiêu bị khoá nếu đợt đã đóng.
+        - Cán bộ Khoa có thể sửa hồ sơ của bất kỳ GV nào và có thể sửa chỉ tiêu khi đợt đã đóng.
+    """
+    lec = get_target_lecturer(
+        request.user,
+        pk=pk,
+        lecturer_id_param=request.GET.get("lecturer_id") or request.GET.get("pk"),
+    )
+    locked = is_quota_locked(lecturer=lec)
+    is_admin = bool(getattr(request.user, "is_faculty_admin", False))
+
+    form = LecturerProfileForm(
+        request.POST or None,
+        instance=lec,
+        is_locked=locked,
+        is_faculty_admin=is_admin,
+    )
+    if request.method == "POST" and form.is_valid():
+        saved_lec = save_lecturer_profile(
+            lecturer=lec,
+            form=form,
+            user=request.user,
+            is_locked=locked,
+            is_faculty_admin=is_admin,
+        )
+        messages.success(request, "Đã cập nhật hồ sơ giảng viên thành công.")
+        if pk:
+            return redirect("lecturer_profile_detail", pk=saved_lec.pk)
+        if request.GET.get("lecturer_id"):
+            return redirect(f"/ho-so-giang-vien/?lecturer_id={saved_lec.pk}")
+        return redirect("lecturer_profile")
+
+    lecturers_list = (
+        Lecturer.objects.select_related("user").order_by("user__last_name", "user__first_name") if is_admin else None
+    )
+    return render(
+        request,
+        "catalog/lecturer_profile.html",
+        {
+            "lecturer": lec,
+            "form": form,
+            "is_locked": locked,
+            "is_faculty_admin": is_admin,
+            "lecturers_list": lecturers_list,
+        },
+    )
 
 
 # ---------------------------------------------------------------- tra cứu đề tài

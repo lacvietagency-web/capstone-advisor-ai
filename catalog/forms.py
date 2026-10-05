@@ -3,7 +3,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from .models import Student, StudentInterest, StudentSkill, Topic, TopicSkill
+from .models import Lecturer, Student, StudentInterest, StudentSkill, Topic, TopicSkill
 
 ABOUT_HINT = "Ví dụ: Em thích làm backend, đã làm web bán hàng bằng Django, muốn làm Backend Developer…"
 
@@ -61,3 +61,43 @@ class TopicForm(forms.ModelForm):
 TopicSkillFormSet = inlineformset_factory(
     Topic, TopicSkill, fields=["skill", "required_level", "weight", "is_mandatory"], extra=2, can_delete=True
 )
+
+
+class LecturerProfileForm(forms.ModelForm):
+    """Form cập nhật chuyên môn (bộ môn, lĩnh vực) và chỉ tiêu tối đa của GV [UC09]."""
+
+    class Meta:
+        model = Lecturer
+        fields = ["department", "fields", "max_students"]
+        widgets = {
+            "fields": forms.CheckboxSelectMultiple,
+        }
+
+    def __init__(self, *args, is_locked=False, is_faculty_admin=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_locked = is_locked
+        self.is_faculty_admin = is_faculty_admin
+        if self.is_locked and not self.is_faculty_admin:
+            self.fields["max_students"].required = False
+            self.fields["max_students"].widget.attrs["readonly"] = True
+            self.fields[
+                "max_students"
+            ].help_text = "Đợt đăng ký đã đóng. Chỉ tiêu đã bị khoá (chỉ Khoa mới có quyền điều chỉnh)."
+
+    def clean_max_students(self):
+        """Kiểm tra tính hợp lệ của chỉ tiêu tối đa khi đợt đã đóng.
+
+        Công thức:
+            Nếu is_locked == True và is_faculty_admin == False:
+                Chỉ cho phép giữ nguyên instance.max_students.
+                Nếu người dùng thay đổi giá trị -> raise ValidationError.
+        """
+        val = self.cleaned_data.get("max_students")
+        if self.is_locked and not self.is_faculty_admin and self.instance and self.instance.pk:
+            if val is None:
+                return self.instance.max_students
+            if val != self.instance.max_students:
+                raise forms.ValidationError(
+                    "Đợt đăng ký đã đóng. Chỉ tiêu đã bị khoá, chỉ Khoa mới có quyền điều chỉnh."
+                )
+        return val

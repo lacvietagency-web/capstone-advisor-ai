@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Hồ sơ Giảng viên — {{ lecturer.user.get_full_name|default:lecturer.user.username }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h4 mb-1">Hồ sơ Giảng viên</h1>
+    <p class="text-muted mb-0">Cập nhật thông tin bộ môn, lĩnh vực chuyên môn và chỉ tiêu hướng dẫn tốt nghiệp.</p>
+  </div>
+  {% if is_faculty_admin and lecturers_list %}
+  <div class="d-flex align-items-center gap-2">
+    <label for="select-lecturer" class="form-label mb-0 text-nowrap fw-semibold small">Chọn GV:</label>
+    <select id="select-lecturer" class="form-select form-select-sm" onchange="if (this.value) window.location.href='/ho-so-giang-vien/' + this.value + '/';">
+      {% for item in lecturers_list %}
+        <option value="{{ item.pk }}" {% if item.pk == lecturer.pk %}selected{% endif %}>
+          {{ item.user.get_full_name|default:item.user.username }} ({{ item.department|default:"Chưa gán bộ môn" }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+</div>
+
+{% if is_locked and not is_faculty_admin %}
+  <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+    <i class="bi bi-lock-fill me-2 fs-5"></i>
+    <div>
+      <strong>Chỉ tiêu đã khoá:</strong> Đợt đăng ký hiện đã đóng. Bạn vẫn có thể cập nhật bộ môn và lĩnh vực chuyên môn, nhưng chỉ cán bộ Khoa mới có quyền điều chỉnh chỉ tiêu hướng dẫn.
+    </div>
+  </div>
+{% endif %}
+
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+      <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; font-size: 1.25rem; font-weight: bold;">
+        {{ lecturer.user.first_name|first|default:"G" }}
+      </div>
+      <div>
+        <h5 class="card-title mb-0">{{ lecturer.user.get_full_name|default:lecturer.user.username }}</h5>
+        <div class="text-muted small">Tài khoản: <code>{{ lecturer.user.username }}</code> · Vai trò: {{ lecturer.user.get_role_display }}</div>
+      </div>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {% for error in form.non_field_errors %}{{ error }}<br>{% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="mb-3">
+        <label for="{{ form.department.id_for_label }}" class="form-label fw-semibold">
+          {{ form.department.label }}
+        </label>
+        {{ form.department }}
+        {% if form.department.errors %}
+          <div class="text-danger small mt-1">{% for err in form.department.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label for="{{ form.max_students.id_for_label }}" class="form-label fw-semibold d-flex align-items-center justify-content-between">
+          <span>{{ form.max_students.label }}</span>
+          {% if is_locked and not is_faculty_admin %}
+            <span class="badge bg-secondary"><i class="bi bi-lock-fill me-1"></i>Đã khoá bởi Khoa</span>
+          {% endif %}
+        </label>
+        {{ form.max_students }}
+        {% if form.max_students.help_text %}
+          <div class="form-text text-muted">{{ form.max_students.help_text }}</div>
+        {% endif %}
+        {% if form.max_students.errors %}
+          <div class="text-danger small mt-1">{% for err in form.max_students.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-semibold">{{ form.fields.label }}</label>
+        <div class="card p-3 bg-light border-0">
+          <div class="row row-cols-1 row-cols-md-2 g-2">
+            {% for checkbox in form.fields %}
+              <div class="col">
+                <div class="form-check">
+                  {{ checkbox.tag }}
+                  <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% if form.fields.errors %}
+          <div class="text-danger small mt-1">{% for err in form.fields.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary px-4">
+          <i class="bi bi-check-lg me-1"></i>Lưu thông tin
+        </button>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">Huỷ</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

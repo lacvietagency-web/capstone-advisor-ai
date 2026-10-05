@@ -128,6 +128,167 @@ class CommandTests(TestCase):
         self.assertEqual(Allocation.objects.count(), 20)
         self.assertTrue(all(a.status == "DRAFT" and a.source == "ILP" for a in Allocation.objects.all()))
 
+
+@override_settings(RECOMMEND_SEMANTIC=False)
+class AllocationFlowTests(TestCase):
+    def setUp(self):
+        from accounts.models import User
+        from catalog.models import Lecturer, RegistrationPeriod, Student
+
+        call_command("seed_demo", students=10, lecturers=3, topics=8, verbosity=0)
+        call_command("recommend_all", verbosity=0)
+
+        self.period = RegistrationPeriod.objects.first()
+        self.admin_user = User.objects.create_user(username="admin_khoa", password="password123", role=User.Role.ADMIN)
+        self.student_user = Student.objects.first().user
+        self.lecturer_user = Lecturer.objects.first().user
+
+    def test_access_permissions(self):
+        """Khách và người dùng không phải Khoa bị từ chối truy cập."""
+        # Khách vãng lai
+        res = self.client.get("/khoa/phan-cong/")
+        self.assertEqual(res.status_code, 302)
+
+        # Sinh viên -> 403 Forbidden
+        self.client.force_login(self.student_user)
+        res = self.client.get("/khoa/phan-cong/")
+        self.assertEqual(res.status_code, 403)
+
+        # Giảng viên -> 403 Forbidden
+        self.client.force_login(self.lecturer_user)
+        res = self.client.get("/khoa/phan-cong/")
+        self.assertEqual(res.status_code, 403)
+
+        # Khoa (Admin) -> 200 OK
+        self.client.force_login(self.admin_user)
+        res = self.client.get("/khoa/phan-cong/")
+        self.assertEqual(res.status_code, 200)
+
+    def test_run_ilp_and_greedy_flow(self):
+        """Khoa chạy phân công ILP và Greedy qua giao diện, ghi nhận AuditLog."""
+        from allocate.models import Allocation
+        from catalog.models import AuditLog, RegistrationPeriod
+
+        self.client.force_login(self.admin_user)
+
+        # Chạy ILP
+        res = self.client.post("/khoa/phan-cong/", {"action": "run_ilp", "period_id": self.period.pk})
+        self.assertRedirects(res, f"/khoa/phan-cong/?period_id={self.period.pk}")
+
+        self.period.refresh_from_db()
+        self.assertEqual(self.period.status, RegistrationPeriod.Status.OPTIMIZED)
+        self.assertEqual(Allocation.objects.filter(period=self.period).count(), 10)
+        self.assertTrue(
+            all(
+                a.status == Allocation.Status.DRAFT and a.source == Allocation.Source.ILP
+                for a in Allocation.objects.all()
+            )
+        )
+        self.assertTrue(
+            AuditLog.objects.filter(user=self.admin_user, action="run_allocation", entity="RegistrationPeriod").exists()
+        )
+
+        # Chạy Greedy
+        res = self.client.post("/khoa/phan-cong/", {"action": "run_greedy", "period_id": self.period.pk})
+        self.assertRedirects(res, f"/khoa/phan-cong/?period_id={self.period.pk}")
+        self.assertTrue(
+            all(
+                a.status == Allocation.Status.DRAFT and a.source == Allocation.Source.GREEDY
+                for a in Allocation.objects.all()
+            )
+        )
+
+    def test_filter_unassigned_and_metrics_display(self):
+        """Kiểm tra chức năng lọc danh sách chưa xếp và hiển thị số liệu metrics."""
+        from allocate.models import Allocation
+        from allocate.services import run_allocation
+
+        run_allocation(self.period, algorithm="ILP")
+
+        # Đặt 1 sinh viên thành chưa xếp để kiểm tra bộ lọc
+        alloc = Allocation.objects.filter(period=self.period).first()
+        alloc.topic = None
+        alloc.preference_rank = None
+        alloc.match_score = None
+        alloc.save()
+
+        self.client.force_login(self.admin_user)
+        res = self.client.get(f"/khoa/phan-cong/?period_id={self.period.pk}&unassigned_only=1")
+        self.assertEqual(res.status_code, 200)
+        expected_unassigned = Allocation.objects.filter(period=self.period, topic__isnull=True).count()
+        self.assertEqual(len(res.context["allocations"]), expected_unassigned)
+        self.assertTrue(all(a.topic is None for a in res.context["allocations"]))
+        self.assertIsNotNone(res.context["metrics"])
+        self.assertIn("Tỉ lệ phân công", res.content.decode("utf-8"))
+
+    def test_phase2_suggestions_and_manual_assign(self):
+        """Pha 2: Gợi ý đề tài cho SV chưa xếp và Khoa chỉnh tay (source=MANUAL)."""
+        from allocate.models import Allocation
+        from allocate.services import run_allocation
+        from catalog.models import AuditLog, Topic
+
+        run_allocation(self.period, algorithm="ILP")
+
+        # Lấy 1 sinh viên và đưa về trạng thái chưa xếp
+        unassigned_alloc = Allocation.objects.filter(period=self.period).first()
+        st = unassigned_alloc.student
+        unassigned_alloc.topic = None
+        unassigned_alloc.save()
+
+        self.client.force_login(self.admin_user)
+        # Xem gợi ý Pha 2
+        res = self.client.get(f"/khoa/phan-cong/?period_id={self.period.pk}&suggest_student_id={st.pk}")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.context["suggest_student"], st)
+        suggestions = res.context["suggestions"]
+        self.assertIsInstance(suggestions, list)
+        if len(suggestions) > 1:
+            self.assertGreaterEqual(suggestions[0]["score"], suggestions[1]["score"])
+
+        # Khoa chọn tay đề tài
+        chosen_topic = Topic.objects.filter(status=Topic.Status.OPEN).first()
+        post_res = self.client.post(
+            "/khoa/phan-cong/",
+            {
+                "action": "manual_assign",
+                "student_id": st.pk,
+                "topic_id": chosen_topic.pk,
+            },
+        )
+        self.assertRedirects(post_res, f"/khoa/phan-cong/?period_id={self.period.pk}")
+
+        unassigned_alloc.refresh_from_db()
+        self.assertEqual(unassigned_alloc.topic, chosen_topic)
+        self.assertEqual(unassigned_alloc.source, Allocation.Source.MANUAL)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                user=self.admin_user, action="manual_assign", entity="Allocation", entity_id=str(unassigned_alloc.pk)
+            ).exists()
+        )
+
+    def test_publish_allocations_flow(self):
+        """Nút Chốt chuyển DRAFT->OFFICIAL, đợt->PUBLISHED và ghi AuditLog."""
+        from allocate.models import Allocation
+        from allocate.services import run_allocation
+        from catalog.models import AuditLog, RegistrationPeriod
+
+        run_allocation(self.period, algorithm="ILP")
+
+        self.client.force_login(self.admin_user)
+        res = self.client.post("/khoa/phan-cong/", {"action": "publish", "period_id": self.period.pk})
+        self.assertRedirects(res, f"/khoa/phan-cong/?period_id={self.period.pk}")
+
+        self.period.refresh_from_db()
+        self.assertEqual(self.period.status, RegistrationPeriod.Status.PUBLISHED)
+        self.assertTrue(
+            all(a.status == Allocation.Status.OFFICIAL for a in Allocation.objects.filter(period=self.period))
+        )
+        self.assertTrue(
+            AuditLog.objects.filter(
+                user=self.admin_user, action="publish_allocations", entity="RegistrationPeriod"
+            ).exists()
+        )
+
     def test_allocate_period_greedy_saves_drafts(self):
         from allocate.models import Allocation
 

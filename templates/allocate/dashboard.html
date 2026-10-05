@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Phân công đề tài — Capstone Advisor AI{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+  <div>
+    <h1>Phân công đề tài tốt nghiệp</h1>
+    <p class="page-subtitle">Tối ưu phân công nguyện vọng, điều chỉnh thủ công Pha 2 và công bố kết quả.</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Về trang chủ
+    </a>
+  </div>
+</div>
+
+<!-- Bộ chọn đợt và hành động điều hành -->
+<div class="app-card mb-4">
+  <div class="row g-3 align-items-center justify-content-between">
+    <div class="col-12 col-md-5">
+      <form method="get" class="d-flex align-items-center gap-2">
+        <label for="periodSelect" class="form-label mb-0 fw-semibold text-nowrap">Đợt đăng ký:</label>
+        <select name="period_id" id="periodSelect" class="form-select" onchange="this.form.submit()">
+          {% for p in periods %}
+            <option value="{{ p.pk }}" {% if period and period.pk == p.pk %}selected{% endif %}>
+              {{ p.name }} ({{ p.get_status_display }})
+            </option>
+          {% endfor %}
+        </select>
+        {% if unassigned_only %}
+          <input type="hidden" name="unassigned_only" value="1">
+        {% endif %}
+      </form>
+    </div>
+
+    {% if period %}
+    <div class="col-12 col-md-7 d-flex flex-wrap justify-content-md-end gap-2">
+      <!-- Nút chạy ILP -->
+      <form method="post" class="m-0">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="run_ilp">
+        <button type="submit" class="btn btn-primary" title="Tối ưu toàn cục theo hàm mục tiêu ILP">
+          <i class="bi bi-cpu me-1"></i>Chạy tối ưu ILP
+        </button>
+      </form>
+
+      <!-- Nút chạy Greedy -->
+      <form method="post" class="m-0">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="run_greedy">
+        <button type="submit" class="btn btn-outline-secondary" title="Thuật toán tham lam theo từng vòng nguyện vọng">
+          <i class="bi bi-lightning me-1"></i>Chạy Greedy
+        </button>
+      </form>
+
+      <!-- Nút Chốt và Công bố -->
+      <form method="post" class="m-0" onsubmit="return confirm('Bạn có chắc chắn muốn chốt danh sách phân công chính thức và công bố cho sinh viên không?');">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="publish">
+        <button type="submit" class="btn btn-success" {% if not allocations or period.status == 'PUBLISHED' %}disabled{% endif %}>
+          <i class="bi bi-check2-circle me-1"></i>Chốt &amp; Công bố
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if period %}
+  <div class="mt-3 pt-3 border-top d-flex flex-wrap align-items-center gap-3 small text-muted">
+    <span><i class="bi bi-calendar3 me-1"></i>Thời gian: <strong>{{ period.start_at|date:"d/m/Y" }} – {{ period.end_at|date:"d/m/Y" }}</strong></span>
+    <span>
+      Trạng thái đợt:
+      {% if period.status == 'OPEN' %}
+        <span class="status-badge status-open"><span class="dot"></span>{{ period.get_status_display }}</span>
+      {% elif period.status == 'CLOSED' %}
+        <span class="status-badge status-closed"><span class="dot"></span>{{ period.get_status_display }}</span>
+      {% elif period.status == 'OPTIMIZED' %}
+        <span class="status-badge status-pending"><span class="dot"></span>{{ period.get_status_display }}</span>
+      {% elif period.status == 'PUBLISHED' %}
+        <span class="status-badge status-info"><span class="dot"></span>{{ period.get_status_display }}</span>
+      {% endif %}
+    </span>
+    <span>Tổng số phân công: <strong>{{ allocations|length }}</strong></span>
+  </div>
+  {% endif %}
+</div>
+
+{% if metrics %}
+<!-- Thẻ chỉ số chất lượng phân công (Metrics) -->
+<div class="section-header">
+  <h2 class="section-title">Chỉ số đánh giá (Metrics)</h2>
+  <p class="section-subtitle">Đo lường mức độ đáp ứng nguyện vọng, độ phù hợp và ràng buộc chỉ tiêu.</p>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3 col-lg">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Tỉ lệ phân công</div>
+      <div class="kpi-card-value">{% widthratio metrics.assigned_rate 1 100 %}%</div>
+      <div class="kpi-card-sub">sinh viên được xếp</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Đạt NV1</div>
+      <div class="kpi-card-value text-success">{% widthratio metrics.nv1_rate 1 100 %}%</div>
+      <div class="kpi-card-sub">nguyện vọng 1</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Đạt Top 3</div>
+      <div class="kpi-card-value text-primary">{% widthratio metrics.top3_rate 1 100 %}%</div>
+      <div class="kpi-card-sub">nguyện vọng 1–3</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Thứ hạng TB</div>
+      <div class="kpi-card-value">{{ metrics.mean_rank|floatformat:2 }}</div>
+      <div class="kpi-card-sub">nguyện vọng trung bình</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Điểm TB / P10</div>
+      <div class="kpi-card-value">{{ metrics.avg_match|floatformat:1 }} / {{ metrics.p10_match|floatformat:1 }}</div>
+      <div class="kpi-card-sub">phù hợp trung bình / p10</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Vi phạm chỉ tiêu</div>
+      <div class="kpi-card-value {% if metrics.quota_violations > 0 %}text-danger{% else %}text-success{% endif %}">
+        {{ metrics.quota_violations }}
+      </div>
+      <div class="kpi-card-sub">vượt chỉ tiêu GV</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Thời gian chạy</div>
+      <div class="kpi-card-value text-muted">{{ metrics.elapsed_time|default:"0.0"|floatformat:3 }}s</div>
+      <div class="kpi-card-sub">thời gian bộ giải</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Giao diện Pha 2: Gợi ý đề tài cho sinh viên chưa xếp -->
+{% if suggest_student %}
+<div class="app-card border-primary mb-4" id="phase2Section">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <span class="badge bg-primary mb-1">Pha 2: Gợi ý chỉnh tay</span>
+      <h3 class="card-heading fs-5 mb-0">
+        Gợi ý đề tài cho sinh viên: <strong>{{ suggest_student.student_code }} — {{ suggest_student.user.get_full_name }}</strong>
+      </h3>
+      <div class="small text-muted mt-1">
+        GPA: <strong>{{ suggest_student.gpa }}</strong> · Chuyên ngành: <strong>{{ suggest_student.major.name }}</strong>
+      </div>
+    </div>
+    <a href="?period_id={{ period.pk }}{% if unassigned_only %}&unassigned_only=1{% endif %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-x-lg me-1"></i>Đóng gợi ý
+    </a>
+  </div>
+
+  {% if suggestions %}
+    <div class="table-responsive">
+      <table class="table app-table align-middle">
+        <thead>
+          <tr>
+            <th>Tên đề tài</th>
+            <th>Giảng viên</th>
+            <th class="text-center">Điểm phù hợp</th>
+            <th class="text-center">Chỗ đề tài</th>
+            <th class="text-center">Chỉ tiêu GV</th>
+            <th class="text-end">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sug in suggestions %}
+          <tr>
+            <td>
+              <div class="fw-semibold text-strong">{{ sug.topic.title }}</div>
+              <div class="small text-muted">Độ khó: {{ sug.topic.get_difficulty_display }} · GPA sàn: {{ sug.topic.min_gpa }}</div>
+            </td>
+            <td>{{ sug.topic.lecturer.user.get_full_name|default:sug.topic.lecturer.user.username }}</td>
+            <td class="text-center">
+              <span class="badge bg-success-subtle text-success fs-6 fw-bold">{{ sug.score }}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-light text-dark border">còn {{ sug.remaining_cap }} chỗ</span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-light text-dark border">còn {{ sug.remaining_quota }} chỉ tiêu</span>
+            </td>
+            <td class="text-end">
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="manual_assign">
+                <input type="hidden" name="student_id" value="{{ suggest_student.pk }}">
+                <input type="hidden" name="topic_id" value="{{ sug.topic.pk }}">
+                <button type="submit" class="btn btn-sm btn-primary">
+                  <i class="bi bi-person-check me-1"></i>Xếp đề tài này
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-warning mb-0">
+      <i class="bi bi-exclamation-triangle me-1"></i>Hiện không có đề tài nào còn chỗ mà sinh viên này đáp ứng đủ điều kiện (GPA, môn tiên quyết, kỹ năng bắt buộc).
+    </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Bảng danh sách phân công nháp -->
+<div class="section-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+  <div>
+    <h2 class="section-title">Bảng phân công sinh viên</h2>
+    <p class="section-subtitle">Xem kết quả phân công, lọc sinh viên chưa xếp và chỉnh sửa thủ công.</p>
+  </div>
+  <div class="btn-group">
+    <a href="?period_id={{ period.pk }}" class="btn btn-sm {% if not unassigned_only %}btn-primary{% else %}btn-outline-primary{% endif %}">
+      Tất cả ({{ allocations|length }})
+    </a>
+    <a href="?period_id={{ period.pk }}&unassigned_only=1" class="btn btn-sm {% if unassigned_only %}btn-primary{% else %}btn-outline-primary{% endif %}">
+      <i class="bi bi-filter me-1"></i>Chưa xếp
+    </a>
+  </div>
+</div>
+
+<div class="app-card p-0 overflow-hidden mb-4">
+  {% if allocations %}
+    <div class="table-responsive">
+      <table class="table app-table align-middle">
+        <thead>
+          <tr>
+            <th style="min-width: 130px;">Mã SV</th>
+            <th style="min-width: 180px;">Họ tên</th>
+            <th class="text-center" style="width: 80px;">GPA</th>
+            <th style="min-width: 250px;">Đề tài phân công</th>
+            <th style="min-width: 160px;">Giảng viên</th>
+            <th class="text-center" style="width: 100px;">NV đạt</th>
+            <th class="text-center" style="width: 100px;">Điểm</th>
+            <th class="text-center" style="width: 110px;">Nguồn</th>
+            <th class="text-center" style="width: 110px;">Trạng thái</th>
+            <th class="text-end" style="min-width: 180px;">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in allocations %}
+            <tr class="{% if not a.topic %}table-warning{% endif %}">
+              <td>
+                <span class="fw-semibold">{{ a.student.student_code }}</span>
+              </td>
+              <td>
+                <div class="fw-medium text-strong">{{ a.student.user.get_full_name|default:a.student.user.username }}</div>
+              </td>
+              <td class="text-center">{{ a.student.gpa }}</td>
+              <td>
+                {% if a.topic %}
+                  <div class="fw-medium text-strong">{{ a.topic.title }}</div>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger fs-6 fw-normal">
+                    <i class="bi bi-exclamation-circle me-1"></i>Chưa xếp
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                {% if a.topic and a.topic.lecturer %}
+                  {{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if a.preference_rank %}
+                  <span class="badge bg-primary">NV{{ a.preference_rank }}</span>
+                {% elif a.topic %}
+                  <span class="badge bg-secondary">Ngoài NV</span>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if a.match_score is not None %}
+                  <span class="fw-semibold">{{ a.match_score|floatformat:1 }}</span>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if a.source == 'ILP' %}
+                  <span class="badge bg-info-subtle text-info border">ILP</span>
+                {% elif a.source == 'GREEDY' %}
+                  <span class="badge bg-warning-subtle text-warning border">Greedy</span>
+                {% elif a.source == 'MANUAL' %}
+                  <span class="badge bg-primary-subtle text-primary border">Khoa xếp</span>
+                {% else %}
+                  <span class="badge bg-light text-dark border">{{ a.get_source_display }}</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if a.status == 'OFFICIAL' %}
+                  <span class="status-badge status-open"><span class="dot"></span>Chính thức</span>
+                {% else %}
+                  <span class="status-badge status-pending"><span class="dot"></span>Nháp</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="d-flex justify-content-end align-items-center gap-1">
+                  {% if not a.topic %}
+                    <a href="?period_id={{ period.pk }}&suggest_student_id={{ a.student.pk }}{% if unassigned_only %}&unassigned_only=1{% endif %}#phase2Section" class="btn btn-sm btn-outline-primary" title="Gợi ý đề tài còn chỗ theo điều kiện và điểm">
+                      <i class="bi bi-lightbulb me-1"></i>Gợi ý Pha 2
+                    </a>
+                  {% endif %}
+
+                  <!-- Nút mở dropdown chỉnh tay -->
+                  <div class="dropdown d-inline">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      Chỉnh tay
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 320px;">
+                      <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="manual_assign">
+                        <input type="hidden" name="student_id" value="{{ a.student.pk }}">
+                        <label class="form-label small fw-semibold">Chọn đề tài cho {{ a.student.student_code }}:</label>
+                        <select name="topic_id" class="form-select form-select-sm mb-2">
+                          <option value="none">-- Để trống (chưa xếp) --</option>
+                          {% for t in open_topics %}
+                            <option value="{{ t.pk }}" {% if a.topic and a.topic.pk == t.pk %}selected{% endif %}>
+                              {{ t.title }} ({{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }})
+                            </option>
+                          {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                          <i class="bi bi-save me-1"></i>Lưu chỉnh tay
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state py-5">
+      <div class="empty-state-icon"><i class="bi bi-clipboard-x"></i></div>
+      <h3 class="empty-state-title">Chưa có dữ liệu phân công</h3>
+      <p class="empty-state-desc">
+        {% if unassigned_only %}
+          Không có sinh viên nào chưa được xếp đề tài.
+        {% else %}
+          Đợt này chưa chạy thuật toán phân công. Hãy bấm nút <strong>Chạy tối ưu ILP</strong> hoặc <strong>Chạy Greedy</strong> ở trên.
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

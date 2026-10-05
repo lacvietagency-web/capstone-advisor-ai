@@ -34,6 +34,32 @@ DEFAULT_WEIGHTS = {"skill": 0.25, "academic": 0.20, "field": 0.15, "semantic": 0
 WEIGHTS_VERSION = "expert-v0"
 
 
+def get_active_weights():
+    """Lấy bộ trọng số đang dùng (is_active=True) từ CSDL. Nếu không có → DEFAULT_WEIGHTS."""
+    try:
+        from recommend.models import WeightSet
+
+        active = WeightSet.objects.filter(is_active=True).first()
+        if active and active.weights:
+            return active.weights
+    except Exception:
+        pass
+    return DEFAULT_WEIGHTS
+
+
+def get_active_weights_version():
+    """Lấy tên phiên bản bộ trọng số đang dùng từ CSDL. Nếu không có → WEIGHTS_VERSION."""
+    try:
+        from recommend.models import WeightSet
+
+        active = WeightSet.objects.filter(is_active=True).first()
+        if active and active.name:
+            return active.name
+    except Exception:
+        pass
+    return WEIGHTS_VERSION
+
+
 @dataclass
 class Candidate:
     topic: Topic
@@ -161,7 +187,7 @@ def compute_stage1_candidates(
     - M3: Khớp lĩnh vực quan tâm (0..100)
     - M4: Độ gần nghĩa ngữ nghĩa qua embedding MiniLM (0..100, nếu semantic=True)
     """
-    weights = weights or DEFAULT_WEIGHTS
+    weights = weights or get_active_weights()
     p = Profile(student)
     topics = (
         topics
@@ -225,7 +251,7 @@ def score_student(
     - semantic=False: bỏ M4 (dùng cho thực nghiệm ablation và kiểm thử nhanh).
     - llm=False: bỏ M5 (hoặc tắt qua settings RECOMMEND_LLM=0).
     """
-    weights = weights or DEFAULT_WEIGHTS
+    weights = weights or get_active_weights()
     cands = compute_stage1_candidates(student, topics, weights, top_k, semantic)
     should_run_llm = getattr(settings, "RECOMMEND_LLM", True) if llm is None else llm
     if should_run_llm and cands:

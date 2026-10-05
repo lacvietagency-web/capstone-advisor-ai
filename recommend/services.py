@@ -4,7 +4,12 @@ from django.conf import settings
 from django.db import transaction
 
 from catalog.models import Topic
-from recommend.engine import DEFAULT_WEIGHTS, WEIGHTS_VERSION, explain, score_student
+from recommend.engine import (
+    explain,
+    get_active_weights,
+    get_active_weights_version,
+    score_student,
+)
 from recommend.models import Recommendation
 
 MODEL_VERSION = "m1-m5-v1"
@@ -23,9 +28,12 @@ def refresh_student(student, topics=None, top=5, semantic=None, llm=None):
     semantic = settings.RECOMMEND_SEMANTIC if semantic is None else semantic
     llm = getattr(settings, "RECOMMEND_LLM", True) if llm is None else llm
     Recommendation.objects.filter(student=student).delete()
+    weights = get_active_weights()
+    weights_version = get_active_weights_version()
     cands = score_student(
         student,
         topics if topics is not None else open_topics(),
+        weights=weights,
         semantic=semantic,
         llm=llm,
     )[:top]
@@ -40,9 +48,9 @@ def refresh_student(student, topics=None, top=5, semantic=None, llm=None):
             m3_field=c.scores["field"],
             m4_semantic=c.scores["semantic"],
             m5_llm=c.scores["llm"],
-            final_score=c.final(DEFAULT_WEIGHTS),
+            final_score=c.final(weights),
             reason=explain(c),
-            weights_version=WEIGHTS_VERSION,
+            weights_version=weights_version,
             model_version=MODEL_VERSION,
         )
     return len(cands)

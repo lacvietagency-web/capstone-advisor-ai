@@ -1,7 +1,9 @@
 from django.core.management import call_command
 from django.test import TestCase
+from django.utils import timezone
 
 from accounts.models import User
+from catalog.models import Lecturer, Major, Preference, RegistrationPeriod, Student, Topic
 
 
 class RoleAccessTests(TestCase):
@@ -19,8 +21,21 @@ class RoleAccessTests(TestCase):
         self.assertEqual(self.client.get("/quan-tri/").status_code, 302)
 
     def test_lecturer_home(self):
+        """Giảng viên đăng nhập vào /trang-chu/ thấy danh sách đề tài và các thẻ số liệu."""
         self.client.login(username="gv001", password="123456")
-        self.assertContains(self.client.get("/trang-chu/"), "Đề tài của tôi")
+        resp = self.client.get("/trang-chu/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Đề tài của tôi")
+        self.assertContains(resp, "Số đề tài")
+        self.assertContains(resp, "Tổng SV đăng ký")
+        self.assertContains(resp, "Số NV đang chờ duyệt")
+        self.assertContains(resp, "Số đã đồng ý")
+        self.assertContains(resp, "Chờ duyệt")
+        self.assertContains(resp, "Duyệt ngay")
+        self.assertIn("n_topics", resp.context)
+        self.assertIn("n_students", resp.context)
+        self.assertIn("n_pending", resp.context)
+        self.assertIn("n_accepted", resp.context)
 
     def test_admin_home(self):
         self.client.login(username="admin", password="admin123")
@@ -207,3 +222,179 @@ class PasswordChangeTests(TestCase):
         self.assertRedirects(resp, "/doi-mat-khau/xong/")
         lecturer_user.refresh_from_db()
         self.assertTrue(lecturer_user.check_password("LecNewPass456#"))
+
+
+class LecturerHomeDashboardTests(TestCase):
+    """Kiểm thử màn hình trang chủ giảng viên (/trang-chu/, UC: Giảng viên theo dõi đề tài).
+
+    Quy tắc và công thức toán học kiểm tra:
+    1. Số đề tài do giảng viên phụ trách:
+       N_topics = |{t in Topic | t.lecturer = lecturer}|
+    2. Tổng sinh viên đăng ký vào các đề tài của giảng viên:
+       N_students = |{s in Student | ton_tai p in Preference: p.student = s va p.topic.lecturer = lecturer}|
+    3. Số nguyện vọng đang chờ duyệt:
+       N_pending = |{p in Preference | p.topic.lecturer = lecturer va p.status = 'PENDING'}|
+    4. Số nguyện vọng đã đồng ý:
+       N_accepted = |{p in Preference | p.topic.lecturer = lecturer va p.status = 'ACCEPTED'}|
+    5. Cột 'Chờ duyệt' cho từng đề tài:
+       pending_count(t) = |{p in Preference | p.topic = t va p.status = 'PENDING'}|
+    6. Điều hướng:
+       Nút 'Duyệt ngay' dẫn tới /de-tai/<topic_id>/dang-ky/
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        """Khởi tạo dữ liệu thử nghiệm cho giảng viên, đề tài và các nguyện vọng đăng ký."""
+        cls.major = Major.objects.create(name="Công nghệ thông tin")
+
+        # Tạo tài khoản giảng viên chính
+        cls.lec_user = User.objects.create_user(
+            username="gv_main",
+            email="gv_main@example.com",
+            password="Password123!",
+            role=User.Role.LECTURER,
+            first_name="Hùng",
+            last_name="Nguyễn Văn",
+        )
+        cls.lecturer = Lecturer.objects.create(user=cls.lec_user, department="CNTT", max_students=5)
+
+        # Tạo 2 đề tài cho giảng viên chính
+        cls.t1 = Topic.objects.create(
+            lecturer=cls.lecturer,
+            title="Đề tài AI 01",
+            capacity=2,
+            status=Topic.Status.OPEN,
+        )
+        cls.t2 = Topic.objects.create(
+            lecturer=cls.lecturer,
+            title="Đề tài Web 02",
+            capacity=2,
+            status=Topic.Status.OPEN,
+        )
+
+        # Tạo giảng viên khác và đề tài của họ để kiểm tra cách ly dữ liệu
+        cls.other_user = User.objects.create_user(
+            username="gv_other",
+            email="gv_other@example.com",
+            password="Password123!",
+            role=User.Role.LECTURER,
+        )
+        cls.other_lec = Lecturer.objects.create(user=cls.other_user, department="KTPM", max_students=5)
+        cls.t_other = Topic.objects.create(
+            lecturer=cls.other_lec,
+            title="Đề tài khác",
+            capacity=1,
+            status=Topic.Status.OPEN,
+        )
+
+        # Tạo đợt đăng ký
+        cls.period = RegistrationPeriod.objects.create(
+            name="Đợt 1 - 2026",
+            start_at=timezone.now(),
+            end_at=timezone.now(),
+            status=RegistrationPeriod.Status.OPEN,
+        )
+
+        # Tạo 4 sinh viên
+        cls.students = []
+        for i in range(1, 5):
+            u = User.objects.create_user(
+                username=f"sv_test_{i}",
+                password="Password123!",
+                role=User.Role.STUDENT,
+            )
+            st = Student.objects.create(user=u, student_code=f"SV202600{i}", major=cls.major, gpa=3.2)
+            cls.students.append(st)
+
+        # Đăng ký nguyện vọng:
+        # sv[0] -> t1 (PENDING)
+        Preference.objects.create(
+            student=cls.students[0], topic=cls.t1, period=cls.period, rank=1, status=Preference.Status.PENDING
+        )
+        # sv[1] -> t1 (PENDING)
+        Preference.objects.create(
+            student=cls.students[1], topic=cls.t1, period=cls.period, rank=1, status=Preference.Status.PENDING
+        )
+        # sv[1] -> t2 (ACCEPTED)  (sv[1] đăng ký 2 đề tài của cùng GV)
+        Preference.objects.create(
+            student=cls.students[1], topic=cls.t2, period=cls.period, rank=2, status=Preference.Status.ACCEPTED
+        )
+        # sv[2] -> t2 (ACCEPTED)
+        Preference.objects.create(
+            student=cls.students[2], topic=cls.t2, period=cls.period, rank=1, status=Preference.Status.ACCEPTED
+        )
+        # sv[3] -> t2 (REJECTED)
+        Preference.objects.create(
+            student=cls.students[3], topic=cls.t2, period=cls.period, rank=1, status=Preference.Status.REJECTED
+        )
+        # sv[3] -> t_other (PENDING - thuộc GV khác)
+        Preference.objects.create(
+            student=cls.students[3], topic=cls.t_other, period=cls.period, rank=2, status=Preference.Status.PENDING
+        )
+
+    def test_lecturer_dashboard_kpi_metrics(self):
+        """Kiểm tra độ chính xác của 4 thẻ số liệu trên trang chủ giảng viên:
+
+        N_topics = 2
+        N_students = 4 (sv0, sv1, sv2, sv3)
+        N_pending = 2 (t1: sv0 PENDING, sv1 PENDING)
+        N_accepted = 2 (t2: sv1 ACCEPTED, sv2 ACCEPTED)
+        """
+        self.client.login(username="gv_main", password="Password123!")
+        resp = self.client.get("/trang-chu/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, "pages/home_lecturer.html")
+
+        # Kiểm tra biến trong context
+        self.assertEqual(resp.context["n_topics"], 2)
+        self.assertEqual(resp.context["n_students"], 4)
+        self.assertEqual(resp.context["n_pending"], 2)
+        self.assertEqual(resp.context["n_accepted"], 2)
+
+        # Kiểm tra hiển thị các thẻ số liệu
+        self.assertContains(resp, "Số đề tài")
+        self.assertContains(resp, "Tổng SV đăng ký")
+        self.assertContains(resp, "Số NV đang chờ duyệt")
+        self.assertContains(resp, "Số đã đồng ý")
+        self.assertContains(resp, "Chờ duyệt")
+        self.assertContains(resp, "Đã đồng ý")
+
+    def test_topics_table_pending_column_and_review_links(self):
+        """Kiểm tra bảng đề tài hiển thị cột 'Chờ duyệt' và nút 'Duyệt ngay' trỏ tới /de-tai/<id>/dang-ky/."""
+        self.client.login(username="gv_main", password="Password123!")
+        resp = self.client.get("/trang-chu/")
+        self.assertEqual(resp.status_code, 200)
+
+        # Bảng có cột 'Chờ duyệt' trong thead
+        self.assertContains(resp, "Chờ duyệt")
+
+        # Bảng có nút 'Duyệt ngay'
+        self.assertContains(resp, "Duyệt ngay")
+
+        # Đường dẫn nút 'Duyệt ngay' trỏ tới /de-tai/<id>/dang-ky/
+        self.assertContains(resp, f"/de-tai/{self.t1.pk}/dang-ky/")
+        self.assertContains(resp, f"/de-tai/{self.t2.pk}/dang-ky/")
+
+        # Kiểm tra số lượng chờ duyệt của từng đề tài trong context
+        topics = list(resp.context["topics"])
+        topic_pending_map = {t.pk: t.pending_count for t in topics}
+        self.assertEqual(topic_pending_map[self.t1.pk], 2)
+        self.assertEqual(topic_pending_map[self.t2.pk], 0)
+
+    def test_lecturer_with_no_topics_shows_zeros(self):
+        """Giảng viên chưa đăng ký đề tài nào thì tất cả số liệu bằng 0."""
+        new_lec_user = User.objects.create_user(
+            username="gv_zero",
+            password="Password123!",
+            role=User.Role.LECTURER,
+        )
+        Lecturer.objects.create(user=new_lec_user, department="CNTT")
+
+        self.client.login(username="gv_zero", password="Password123!")
+        resp = self.client.get("/trang-chu/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["n_topics"], 0)
+        self.assertEqual(resp.context["n_students"], 0)
+        self.assertEqual(resp.context["n_pending"], 0)
+        self.assertEqual(resp.context["n_accepted"], 0)
+        self.assertContains(resp, "Chưa có đề tài")

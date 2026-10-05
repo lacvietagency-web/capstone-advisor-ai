@@ -8,13 +8,41 @@
   <p class="page-subtitle">Theo dõi các đề tài và tình trạng đăng ký của sinh viên.</p>
 </div>
 
-<!-- Mini stat row -->
+<!-- Thẻ số liệu Giảng viên -->
 <div class="row g-3 mb-4">
-  <div class="col-12 col-sm-6 col-md-4">
+  <!-- Thẻ 1: Số đề tài -->
+  <div class="col-6 col-lg-3">
     <div class="kpi-card">
-      <div class="kpi-card-label">Đề tài phụ trách</div>
-      <div class="kpi-card-value">{{ topics|length }}</div>
-      <div class="kpi-card-sub">trong hệ thống</div>
+      <div class="kpi-card-label">Số đề tài</div>
+      <div class="kpi-card-value">{% if n_topics is not None %}{{ n_topics }}{% else %}{{ topics|length }}{% endif %}</div>
+      <div class="kpi-card-sub">đề tài phụ trách</div>
+    </div>
+  </div>
+
+  <!-- Thẻ 2: Tổng SV đăng ký -->
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Tổng SV đăng ký</div>
+      <div class="kpi-card-value">{{ n_students|default:0 }}</div>
+      <div class="kpi-card-sub">sinh viên đăng ký</div>
+    </div>
+  </div>
+
+  <!-- Thẻ 3: Số NV đang chờ duyệt -->
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Số NV đang chờ duyệt</div>
+      <div class="kpi-card-value">{{ n_pending|default:0 }}</div>
+      <div class="kpi-card-sub">nguyện vọng Chờ duyệt</div>
+    </div>
+  </div>
+
+  <!-- Thẻ 4: Số đã đồng ý -->
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="kpi-card-label">Số đã đồng ý</div>
+      <div class="kpi-card-value">{{ n_accepted|default:0 }}</div>
+      <div class="kpi-card-sub">nguyện vọng Đã đồng ý</div>
     </div>
   </div>
 </div>
@@ -36,10 +64,11 @@
       <table class="table app-table">
         <thead>
           <tr>
-            <th scope="col" style="min-width: 280px;">Đề tài</th>
-            <th scope="col" style="width: 140px;">Độ khó</th>
-            <th scope="col" style="width: 120px;" class="text-center">Số SV</th>
-            <th scope="col" style="width: 160px;">Trạng thái</th>
+            <th scope="col" style="min-width: 260px;">Đề tài</th>
+            <th scope="col" style="width: 130px;">Độ khó</th>
+            <th scope="col" style="width: 100px;" class="text-center">Chỉ tiêu</th>
+            <th scope="col" style="width: 140px;">Trạng thái</th>
+            <th scope="col" style="width: 180px;" class="text-center">Chờ duyệt</th>
           </tr>
         </thead>
         <tbody>
@@ -79,6 +108,16 @@
                     <span class="dot"></span>{{ t.get_status_display }}
                   </span>
                 {% endif %}
+              </td>
+              <td class="text-center">
+                <div class="d-inline-flex align-items-center gap-2">
+                  <span class="badge {% if t.pending_count %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-light text-muted border{% endif %}">
+                    {{ t.pending_count|default:0 }}
+                  </span>
+                  <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-sm btn-outline-primary text-nowrap">
+                    Duyệt ngay
+                  </a>
+                </div>
               </td>
             </tr>
           {% endfor %}
@@ -130,6 +169,18 @@
                 {% endfor %}
               </div>
             {% endif %}
+
+            <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top">
+              <div class="small">
+                <span class="text-muted">Chờ duyệt:</span>
+                <span class="badge {% if t.pending_count %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-light text-muted border{% endif %} ms-1">
+                  {{ t.pending_count|default:0 }}
+                </span>
+              </div>
+              <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-sm btn-outline-primary text-nowrap">
+                Duyệt ngay
+              </a>
+            </div>
           </div>
         {% endfor %}
       </div>

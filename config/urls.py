@@ -41,6 +41,7 @@ urlpatterns = [
     ),
     path("ho-so/", cv.student_profile, name="student_profile"),
     path("nguyen-vong/", cv.student_preferences, name="student_preferences"),
+    path("ket-qua/", av.student_allocation_result, name="student_allocation_result"),
     path("de-tai/", cv.lecturer_topics, name="lecturer_topics"),
     path("de-tai/them/", cv.lecturer_topic_edit, name="lecturer_topic_new"),
     path("de-tai/<int:pk>/sua/", cv.lecturer_topic_edit, name="lecturer_topic_edit"),

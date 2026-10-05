@@ -6,6 +6,7 @@ Bao gồm các hàm:
 - get_phase2_suggestions: gợi ý các đề tài còn chỗ cho sinh viên chưa được xếp ở Pha 2.
 - manual_assign: Khoa chỉnh tay gán đề tài cho sinh viên.
 - publish_allocations: chốt kết quả phân công và công bố đợt.
+- get_student_allocation_result: tra cứu kết quả phân công đồ án dành cho sinh viên (UC08).
 """
 
 import time
@@ -262,3 +263,92 @@ def publish_allocations(period: RegistrationPeriod, user=None) -> int:
             detail={"status": RegistrationPeriod.Status.PUBLISHED, "total_allocations": updated_count},
         )
     return updated_count
+
+
+def _resolve_student_period(student: Student, period_id: int | None = None) -> RegistrationPeriod | None:
+    """Xác định đợt đăng ký phù hợp nhất cho sinh viên tra cứu kết quả."""
+    if period_id:
+        return RegistrationPeriod.objects.filter(pk=period_id).first()
+
+    period = RegistrationPeriod.objects.filter(allocations__student=student).order_by("-start_at", "-id").first()
+    if period:
+        return period
+
+    period = RegistrationPeriod.objects.filter(preference__student=student).order_by("-start_at", "-id").first()
+    if period:
+        return period
+
+    return RegistrationPeriod.objects.order_by("-start_at", "-id").first()
+
+
+def _format_published_result(alloc: Allocation | None, period: RegistrationPeriod, periods: list) -> dict:
+    """Đóng gói dữ liệu kết quả phân công khi đợt đã ở trạng thái PUBLISHED."""
+    topic = alloc.topic if alloc else None
+    lecturer = topic.lecturer if topic else None
+    score = alloc.match_score if alloc else None
+
+    if score is None and alloc and topic:
+        rec = Recommendation.objects.filter(student=alloc.student, topic=topic).first()
+        if rec:
+            score = rec.final_score
+
+    return {
+        "period": period,
+        "periods": periods,
+        "is_published": True,
+        "status_text": "Đã công bố",
+        "allocation": alloc,
+        "topic": topic,
+        "lecturer": lecturer,
+        "preference_rank": alloc.preference_rank if alloc else None,
+        "match_score": score,
+        "unassigned": bool(alloc and not alloc.topic),
+    }
+
+
+def get_student_allocation_result(student: Student, period_id: int | None = None) -> dict:
+    """Tra cứu kết quả phân công đồ án tốt nghiệp cho sinh viên (UC08).
+
+    Công thức tính điểm phù hợp tổng thể giữa sinh viên s và đề tài t:
+        S(s, t) = w_1 * M_1(s, t) + w_2 * M_2(s, t) + w_3 * M_3(s, t) + w_4 * M_4(s, t) + w_5 * M_5(s, t)
+    trong đó:
+        - M_1: Điểm tương đồng kỹ năng (Skill Match)
+        - M_2: Điểm học lực & kết quả môn học (Academic Match)
+        - M_3: Điểm phù hợp lĩnh vực quan tâm (Field Match)
+        - M_4: Điểm tương đồng ngữ nghĩa qua TF-IDF / Embedding (Semantic Match)
+        - M_5: Điểm đánh giá AI từ mô hình ngôn ngữ lớn LLM (LLM Evaluation)
+        - w_k: Trọng số các tiêu chí được xác định theo phương pháp AHP (sum(w_k) = 1.0).
+
+    Quy tắc hiển thị và bảo mật kết quả:
+        1. Đợt đã công bố (period.status == PUBLISHED):
+           - Công bố kết quả chính thức: đề tài được phân t*, Giảng viên hướng dẫn (GVHD),
+             nguyện vọng đạt rank(s, t*) in {1, 2, 3} hoặc xếp bổ sung, và điểm phù hợp S(s, t*).
+           - Trường hợp sinh viên chưa được phân công đề tài: hiển thị trạng thái chưa xếp và hướng dẫn Pha 2.
+        2. Đợt chưa công bố (status != PUBLISHED):
+           - Tuyệt đối ẩn kết quả nháp (DRAFT).
+           - Hiển thị trạng thái chờ: "Hội đồng Khoa đang thẩm định phân công".
+    """
+    period = _resolve_student_period(student, period_id)
+    periods = list(RegistrationPeriod.objects.order_by("-start_at"))
+
+    if not period or period.status != RegistrationPeriod.Status.PUBLISHED:
+        return {
+            "period": period,
+            "periods": periods,
+            "is_published": False,
+            "status_text": "Hội đồng Khoa đang thẩm định phân công" if period else "Chưa có đợt đăng ký nào",
+            "allocation": None,
+            "topic": None,
+            "lecturer": None,
+            "preference_rank": None,
+            "match_score": None,
+            "unassigned": False,
+        }
+
+    alloc = (
+        Allocation.objects.filter(period=period, student=student)
+        .select_related("topic__lecturer__user", "topic__lecturer")
+        .prefetch_related("topic__fields")
+        .first()
+    )
+    return _format_published_result(alloc, period, periods)

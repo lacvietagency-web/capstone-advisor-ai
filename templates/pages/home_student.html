@@ -31,6 +31,129 @@
   </div>
 </div>
 
+<!-- Khối Kết quả phân công đồ án (UC08) -->
+{% if allocation_result %}
+  {% if allocation_result.is_published %}
+    {% if allocation_result.topic %}
+      <!-- Đợt đã PUBLISHED: Sinh viên được phân công đề tài -->
+      <div class="app-card mb-4 border-success-subtle bg-light">
+        <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i>Đã công bố chính thức</span>
+            <span class="text-muted small">Đợt đăng ký: <strong>{{ allocation_result.period.name }}</strong></span>
+          </div>
+          <a href="{% url 'student_allocation_result' %}" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Xem chi tiết tại /ket-qua/
+          </a>
+        </div>
+
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-3 py-2 px-3" role="alert">
+          <i class="bi bi-award-fill text-success fs-5"></i>
+          <span class="fw-semibold">Chúc mừng bạn đã được phân công đề tài tốt nghiệp!</span>
+        </div>
+
+        <div class="row g-3 align-items-center">
+          <!-- Đề tài được phân -->
+          <div class="col-12 col-md-5">
+            <div class="profile-stat-label text-uppercase small text-muted">Đề tài được phân</div>
+            <div class="fw-bold fs-5 text-dark mt-1">
+              <a href="{% url 'topic_detail' allocation_result.topic.pk %}" class="text-dark text-decoration-none hover-primary">
+                {{ allocation_result.topic.title }}
+              </a>
+            </div>
+            {% if allocation_result.topic.fields.all %}
+              <div class="d-flex flex-wrap gap-1 mt-2">
+                {% for f in allocation_result.topic.fields.all %}
+                  <span class="badge bg-light text-muted border" style="font-size: 11px;">{{ f.name }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- GVHD -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="profile-stat-label text-uppercase small text-muted">GVHD</div>
+            <div class="fw-semibold text-strong mt-1">
+              <i class="bi bi-person-badge text-primary me-1"></i>
+              {{ allocation_result.lecturer.user.get_full_name|default:allocation_result.lecturer.user.username }}
+            </div>
+            {% if allocation_result.lecturer.department %}
+              <div class="small text-muted">{{ allocation_result.lecturer.department }}</div>
+            {% endif %}
+            {% if allocation_result.lecturer.user.email %}
+              <div class="small text-muted">{{ allocation_result.lecturer.user.email }}</div>
+            {% endif %}
+          </div>
+
+          <!-- NV đạt -->
+          <div class="col-6 col-sm-3 col-md-2">
+            <div class="profile-stat-label text-uppercase small text-muted">NV đạt</div>
+            <div class="mt-1">
+              {% if allocation_result.preference_rank %}
+                <span class="badge bg-primary fs-6 px-3 py-2">NV{{ allocation_result.preference_rank }}</span>
+              {% else %}
+                <span class="badge bg-secondary fs-6 px-2 py-2">Xếp bổ sung</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Điểm phù hợp -->
+          <div class="col-6 col-sm-3 col-md-2">
+            <div class="profile-stat-label text-uppercase small text-muted">Điểm phù hợp</div>
+            <div class="mt-1">
+              {% if allocation_result.match_score is not None %}
+                <span class="fw-bold fs-4 text-primary">{{ allocation_result.match_score|floatformat:1 }}</span>
+                <span class="text-muted small">/100</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <!-- Đợt đã PUBLISHED nhưng sinh viên chưa được xếp -->
+      <div class="app-card mb-4 border-warning-subtle bg-light">
+        <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 mb-2 pb-2 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i>Chưa phân công</span>
+            <span class="text-muted small">Đợt đăng ký: <strong>{{ allocation_result.period.name }}</strong> (Đã công bố)</span>
+          </div>
+          <a href="{% url 'student_allocation_result' %}" class="btn btn-sm btn-outline-secondary">
+            Xem chi tiết
+          </a>
+        </div>
+        <p class="mb-0 text-secondary">
+          Kết quả đợt <strong>{{ allocation_result.period.name }}</strong> đã công bố. Bạn hiện chưa được phân công đề tài. Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung trong Pha 2.
+        </p>
+      </div>
+    {% endif %}
+  {% elif allocation_result.period %}
+    <!-- Đợt CHƯA CÔNG BỐ: Hiện trạng thái chờ -->
+    <div class="app-card mb-4 border-info-subtle bg-light">
+      <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-info-subtle p-2 text-info d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+            <i class="bi bi-hourglass-split fs-4"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-info text-dark">Chờ công bố</span>
+              <h2 class="card-heading mb-0 fs-5 text-primary">Hội đồng Khoa đang thẩm định phân công</h2>
+            </div>
+            <p class="text-muted small mb-0 mt-1">
+              Đợt '{{ allocation_result.period.name }}' đang trong giai đoạn thẩm định và chạy thuật toán phân công tối ưu. Kết quả chính thức sẽ được công bố tại đây khi hoàn tất xét duyệt.
+            </p>
+          </div>
+        </div>
+        <a href="{% url 'student_allocation_result' %}" class="btn btn-sm btn-outline-primary text-nowrap align-self-stretch align-self-sm-center">
+          <i class="bi bi-eye me-1"></i>Xem trạng thái /ket-qua/
+        </a>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
 <div class="row g-4">
   <!-- Khối Đề tài gợi ý -->
   <div class="col-12 col-lg-8">

@@ -58,6 +58,11 @@
                 <i class="bi bi-collection me-1 d-lg-none"></i>Danh sách đề tài
               </a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link {% if '/ket-qua/' in request.path %}active{% endif %}" href="{% url 'student_allocation_result' %}">
+                <i class="bi bi-award me-1 d-lg-none"></i>Kết quả phân công
+              </a>
+            </li>
             {% elif user.is_lecturer %}
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match.url_name == 'home' or request.path == '/trang-chu/' %}active{% endif %}" href="{% url 'home' %}">

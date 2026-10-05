@@ -1,8 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
 <h1 class="h4">Sinh viên đăng ký: {{ topic.title }}</h1>
-<table class="table"><tr><th>Sinh viên</th><th>Nguyện vọng</th><th>GPA</th><th>Mức phù hợp (AI)</th></tr>
-{% for row in rows %}<tr><td>{{ row.pref.student }}</td><td>NV{{ row.pref.rank }}</td><td>{{ row.pref.student.gpa }}</td>
-<td>{% if row.rec %}{{ row.rec.final_score|floatformat:0 }}/100{% else %}—{% endif %}</td></tr>
-{% empty %}<tr><td colspan="4">Chưa có sinh viên đăng ký.</td></tr>{% endfor %}</table>
+{% for m in messages %}<div class="alert alert-success">{{ m }}</div>{% endfor %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Sinh viên</th>
+      <th>Nguyện vọng</th>
+      <th>GPA</th>
+      <th>Mức phù hợp (AI)</th>
+      <th>Trạng thái</th>
+      <th>Thao tác</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td>{{ row.pref.student }}</td>
+      <td>NV{{ row.pref.rank }}</td>
+      <td>{{ row.pref.student.gpa }}</td>
+      <td>{% if row.rec %}{{ row.rec.final_score|floatformat:0 }}/100{% else %}—{% endif %}</td>
+      <td>{{ row.pref.get_status_display }}</td>
+      <td>
+        <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" style="display:inline-block;">
+          {% csrf_token %}
+          <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
+          <input type="hidden" name="action" value="accept">
+          <button type="submit" class="btn btn-sm btn-success">Đồng ý</button>
+        </form>
+        <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" style="display:inline-block;">
+          {% csrf_token %}
+          <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
+          <input type="hidden" name="action" value="reject">
+          <button type="submit" class="btn btn-sm btn-danger">Từ chối</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">Chưa có sinh viên đăng ký.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+<a href="{% url 'lecturer_topics' %}" class="btn btn-secondary mt-2">← Quay lại danh sách đề tài</a>
 {% endblock %}

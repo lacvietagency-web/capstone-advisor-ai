@@ -57,10 +57,15 @@ class Command(BaseCommand):
         prefs = {}
         topics = set()
         students = set()
+        self.real_rank = {}  # (SV, đề tài) → số NV gốc; NV bị từ chối làm danh sách ngắn lại nên không dùng vị trí
         for p in preferences:
-            prefs.setdefault(p.student, []).append(p.topic)
-            topics.add(p.topic)
+            self.real_rank[p.student, p.topic] = p.rank
             students.add(p.student)
+            prefs.setdefault(p.student, [])
+            if p.status == Preference.Status.REJECTED:  # UC12: GV đã từ chối → không xếp vào đề tài này
+                continue
+            prefs[p.student].append(p.topic)
+            topics.add(p.topic)
 
         recs = Recommendation.objects.filter(student__in=students, topic__in=topics).values_list(
             "student_id", "topic_id", "final_score"
@@ -89,9 +94,7 @@ class Command(BaseCommand):
                 rank = None
                 score = None
                 if t is not None:
-                    st_prefs = prefs.get(s, [])
-                    if t in st_prefs:
-                        rank = st_prefs.index(t) + 1
+                    rank = self.real_rank.get((s, t))
                     score = scores.get((s, t), 0.0)
 
                 allocations.append(

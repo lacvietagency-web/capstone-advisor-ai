@@ -2,7 +2,7 @@ from django.core.management import call_command
 from django.test import TestCase, override_settings
 
 from accounts.models import User
-from catalog.models import Field, Lecturer, Preference, RegistrationPeriod, Skill, Student, Topic
+from catalog.models import AuditLog, Field, Lecturer, Preference, RegistrationPeriod, Skill, Student, Topic
 from recommend.models import Recommendation
 
 
@@ -72,6 +72,69 @@ class BusinessFlowTests(TestCase):
         self.client.logout()
         self.login("gv001")
         self.assertEqual(self.client.get("/nguyen-vong/").status_code, 403)
+
+    def test_lecturer_registrations_view_and_accept(self):
+        """[UC12] GV chủ đề tài xem danh sách đăng ký và duyệt Đồng ý nguyện vọng."""
+        self.login("gv001")
+        topic = Topic.objects.filter(lecturer__user__username="gv001").first()
+        pref = Preference.objects.filter(topic=topic).first()
+        self.assertIsNotNone(pref)
+        self.assertEqual(pref.status, Preference.Status.PENDING)
+
+        url = f"/de-tai/{topic.pk}/dang-ky/"
+        r_get = self.client.get(url)
+        self.assertEqual(r_get.status_code, 200)
+        self.assertContains(r_get, "Đồng ý")
+        self.assertContains(r_get, "Từ chối")
+
+        r_post = self.client.post(url, {"preference_id": pref.pk, "action": "accept"})
+        self.assertRedirects(r_post, url)
+        pref.refresh_from_db()
+        self.assertEqual(pref.status, Preference.Status.ACCEPTED)
+
+        # Kiểm tra ghi AuditLog
+        log = AuditLog.objects.filter(entity="Preference", entity_id=str(pref.pk)).first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.action, "accept_registration")
+        self.assertEqual(log.detail["status"], Preference.Status.ACCEPTED)
+
+    def test_lecturer_registrations_reject(self):
+        """[UC12] GV chủ đề tài từ chối nguyện vọng của sinh viên."""
+        self.login("gv001")
+        topic = Topic.objects.filter(lecturer__user__username="gv001").first()
+        pref = Preference.objects.filter(topic=topic).first()
+        self.assertIsNotNone(pref)
+
+        url = f"/de-tai/{topic.pk}/dang-ky/"
+        r_post = self.client.post(url, {"preference_id": pref.pk, "action": "reject"})
+        self.assertRedirects(r_post, url)
+        pref.refresh_from_db()
+        self.assertEqual(pref.status, Preference.Status.REJECTED)
+
+        # Kiểm tra ghi AuditLog
+        log = AuditLog.objects.filter(entity="Preference", entity_id=str(pref.pk), action="reject_registration").first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.detail["status"], Preference.Status.REJECTED)
+
+    def test_only_topic_owner_can_manage_registrations(self):
+        """[UC12] Chỉ GV chủ đề tài mới có quyền xem và duyệt đăng ký (GV khác bị 403)."""
+        topic_gv1 = Topic.objects.filter(lecturer__user__username="gv001").first()
+        pref = Preference.objects.filter(topic=topic_gv1).first()
+
+        # gv002 đăng nhập và cố truy cập đề tài của gv001
+        self.login("gv002")
+        url = f"/de-tai/{topic_gv1.pk}/dang-ky/"
+        r_get = self.client.get(url)
+        self.assertEqual(r_get.status_code, 403)
+
+        r_post = self.client.post(url, {"preference_id": pref.pk, "action": "accept"})
+        self.assertEqual(r_post.status_code, 403)
+
+        # Sinh viên đăng nhập cũng bị 403
+        self.client.logout()
+        self.login("sv001")
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.assertEqual(self.client.post(url, {"preference_id": pref.pk, "action": "accept"}).status_code, 403)
 
     def test_lecturer_profile_get_open_period(self):
         self.login("gv001")

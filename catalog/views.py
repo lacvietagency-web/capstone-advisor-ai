@@ -155,11 +155,73 @@ def lecturer_topic_edit(request, pk=None):
     return render(request, "catalog/lecturer_topic_form.html", {"form": form, "skill_formset": skills, "topic": topic})
 
 
+def _handle_preference_action(request, topic):
+    """Cập nhật trạng thái duyệt nguyện vọng (Đồng ý / Từ chối) và ghi AuditLog.
+
+    Quy tắc chuyển đổi trạng thái:
+        status(p) = ACCEPTED  nếu action in {ACCEPT, ĐỒNG Ý}
+        status(p) = REJECTED  nếu action in {REJECT, TỪ CHỐI}
+    Ghi vết kiểm toán:
+        AuditLog(user, action, entity='Preference', entity_id=p.id)
+    """
+    pref_id = request.POST.get("preference_id") or request.POST.get("pref_id")
+    student_id = request.POST.get("student_id")
+    if pref_id:
+        pref = get_object_or_404(Preference, pk=pref_id, topic=topic)
+    elif student_id:
+        pref = get_object_or_404(Preference, student_id=student_id, topic=topic)
+    else:
+        messages.error(request, "Thiếu thông tin nguyện vọng.")
+        return redirect("lecturer_registrations", pk=topic.pk)
+
+    action_clean = (request.POST.get("action") or request.POST.get("status") or "").strip().upper().replace(" ", "_")
+    if action_clean in ("ACCEPT", "ACCEPTED", "DONG_Y", "APPROVE", "ĐỒNG_Ý"):
+        new_status = Preference.Status.ACCEPTED
+        log_action = "accept_registration"
+    elif action_clean in ("REJECT", "REJECTED", "TU_CHOI", "TỪ_CHỐI"):
+        new_status = Preference.Status.REJECTED
+        log_action = "reject_registration"
+    else:
+        messages.error(request, "Thao tác không hợp lệ.")
+        return redirect("lecturer_registrations", pk=topic.pk)
+
+    with transaction.atomic():
+        pref.status = new_status
+        pref.save(update_fields=["status"])
+        AuditLog.objects.create(
+            user=request.user,
+            action=log_action,
+            entity="Preference",
+            entity_id=str(pref.pk),
+            detail={
+                "status": new_status,
+                "student_id": pref.student_id,
+                "topic_id": topic.pk,
+                "rank": pref.rank,
+            },
+        )
+
+    label = "đồng ý" if new_status == Preference.Status.ACCEPTED else "từ chối"
+    messages.success(request, f"Đã {label} nguyện vọng của sinh viên {pref.student}.")
+    return redirect("lecturer_registrations", pk=topic.pk)
+
+
 @login_required
 def lecturer_registrations(request, pk):
-    """Sinh viên đã đăng ký một đề tài, kèm nguyện vọng và mức phù hợp AI tính."""
+    """Màn hình danh sách sinh viên đăng ký đề tài của giảng viên [UC12].
+
+    Quyền truy cập:
+        Chỉ GV sở hữu đề tài (topic.lecturer == request.user.lecturer) được xem và duyệt.
+        Người khác sẽ nhận PermissionDenied (HTTP 403).
+    """
     lec = _lecturer(request)
-    topic = get_object_or_404(Topic, pk=pk, lecturer=lec)
+    topic = get_object_or_404(Topic, pk=pk)
+    if topic.lecturer != lec:
+        raise PermissionDenied
+
+    if request.method == "POST":
+        return _handle_preference_action(request, topic)
+
     prefs = (
         Preference.objects.filter(topic=topic).select_related("student__user", "period").order_by("rank", "created_at")
     )

@@ -89,8 +89,8 @@ class PeriodAdmin(admin.ModelAdmin):
 
 @admin.register(Preference)
 class PreferenceAdmin(admin.ModelAdmin):
-    list_display = ("student", "rank", "topic", "period", "created_at")
-    list_filter = ("period", "rank")
+    list_display = ("student", "rank", "topic", "status", "period", "created_at")
+    list_filter = ("period", "rank", "status")
 
 
 @admin.register(AuditLog)

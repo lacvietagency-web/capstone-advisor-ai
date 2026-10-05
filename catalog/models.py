@@ -210,10 +210,16 @@ class RegistrationPeriod(models.Model):
 class Preference(models.Model):
     """Nguyện vọng của sinh viên: tối đa 3, rank 1 là NV1."""
 
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Chờ duyệt"
+        ACCEPTED = "ACCEPTED", "Đồng ý"
+        REJECTED = "REJECTED", "Từ chối"
+
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="preferences")
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     period = models.ForeignKey(RegistrationPeriod, on_delete=models.CASCADE)
     rank = models.PositiveSmallIntegerField("Nguyện vọng", validators=[MinValueValidator(1), MaxValueValidator(3)])
+    status = models.CharField("Trạng thái", max_length=10, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

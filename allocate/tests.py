@@ -136,3 +136,67 @@ class CommandTests(TestCase):
         call_command("allocate_period", algorithm="GREEDY", verbosity=0)
         self.assertEqual(Allocation.objects.count(), 20)
         self.assertTrue(all(a.status == "DRAFT" and a.source == "GREEDY" for a in Allocation.objects.all()))
+
+    def test_rejected_preference_not_allocated_ilp(self):
+        """[UC12] Kiểm thử: SV bị từ chối không được xếp vào đề tài đó khi chạy ILP."""
+        from allocate.models import Allocation
+        from catalog.models import Preference
+
+        call_command("seed_demo", students=10, lecturers=3, topics=5, verbosity=0)
+        call_command("recommend_all", verbosity=0)
+        call_command("allocate_period", algorithm="ILP", verbosity=0)
+
+        assigned_alloc = Allocation.objects.filter(topic__isnull=False).first()
+        self.assertIsNotNone(assigned_alloc)
+        st = assigned_alloc.student
+        tp = assigned_alloc.topic
+
+        # Đánh dấu từ chối nguyện vọng này
+        Preference.objects.filter(student=st, topic=tp).update(status=Preference.Status.REJECTED)
+
+        # Chạy lại ILP
+        call_command("allocate_period", algorithm="ILP", verbosity=0)
+        new_alloc = Allocation.objects.get(student=st)
+        self.assertNotEqual(new_alloc.topic, tp, "Sinh viên bị từ chối không được xếp vào đề tài đó")
+
+    def test_rejected_preference_not_allocated_greedy(self):
+        """[UC12] Kiểm thử: SV bị từ chối không được xếp vào đề tài đó khi chạy GREEDY."""
+        from allocate.models import Allocation
+        from catalog.models import Preference
+
+        call_command("seed_demo", students=10, lecturers=3, topics=5, verbosity=0)
+        call_command("recommend_all", verbosity=0)
+        call_command("allocate_period", algorithm="GREEDY", verbosity=0)
+
+        assigned_alloc = Allocation.objects.filter(topic__isnull=False).first()
+        self.assertIsNotNone(assigned_alloc)
+        st = assigned_alloc.student
+        tp = assigned_alloc.topic
+
+        # Đánh dấu từ chối nguyện vọng này
+        Preference.objects.filter(student=st, topic=tp).update(status=Preference.Status.REJECTED)
+
+        # Chạy lại GREEDY
+        call_command("allocate_period", algorithm="GREEDY", verbosity=0)
+        new_alloc = Allocation.objects.get(student=st)
+        self.assertNotEqual(new_alloc.topic, tp, "Sinh viên bị từ chối không được xếp vào đề tài đó")
+
+    def test_all_preferences_rejected_results_in_unassigned(self):
+        """[UC12] Sinh viên bị từ chối tất cả nguyện vọng thì không được xếp đề tài (topic=None)."""
+        from allocate.models import Allocation
+        from catalog.models import Preference
+
+        call_command("seed_demo", students=10, lecturers=3, topics=5, verbosity=0)
+        call_command("recommend_all", verbosity=0)
+
+        pref = Preference.objects.first()
+        self.assertIsNotNone(pref)
+        st = pref.student
+
+        # Từ chối toàn bộ nguyện vọng của sinh viên này
+        Preference.objects.filter(student=st).update(status=Preference.Status.REJECTED)
+
+        call_command("allocate_period", algorithm="ILP", verbosity=0)
+        new_alloc = Allocation.objects.get(student=st)
+        self.assertIsNone(new_alloc.topic)
+        self.assertIsNone(new_alloc.preference_rank)

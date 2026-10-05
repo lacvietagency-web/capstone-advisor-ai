@@ -93,7 +93,7 @@ def call_llm_direct(
     """Gọi LLM trực tiếp không qua bộ nhớ đệm để kiểm tra phản hồi thực tế."""
     for _ in range(3):
         items = call_provider_with_retry(student, topics, provider, model, api_key)
-        if provider in ("groq", "gemini"):  # API miễn phí giới hạn lượt/phút → giãn lượt gọi
+        if provider in ("groq", "gemini", "omniroute"):  # API miễn phí giới hạn lượt/phút → giãn lượt gọi
             time.sleep(float(os.getenv("LLM_PACE", "30")))
         if items:
             break
@@ -289,7 +289,21 @@ def main() -> None:
             }
         )
 
-    # 3. Groq (chỉ khi có khoá Groq riêng)
+    # 3. OmniRoute: cùng model gpt-oss-120b qua nhiều nhà cung cấp (Cloudflare → Tinfoil → Groq), tự chuyển khi hết lượt
+    omni_key = os.getenv("OMNIROUTE_API_KEY", "")
+    if omni_key:
+        omni_model = os.getenv("OMNIROUTE_MODEL", "gptoss120")
+        providers_to_test.append(
+            {
+                "provider": "omniroute",
+                "model": omni_model,
+                "api_key": omni_key,
+                "label": f"gpt-oss-120b qua OmniRoute ({omni_model})",
+                "notes": "Cổng OmniRoute cục bộ, combo nhiều nhà cung cấp cùng model",
+            }
+        )
+
+    # 4. Groq (chỉ khi có khoá Groq riêng)
     groq_key = os.getenv("GROQ_API_KEY", "")
     if groq_key:
         providers_to_test.append(

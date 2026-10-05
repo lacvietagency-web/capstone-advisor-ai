@@ -1,0 +1,2 @@
+Provider_Label,Provider,Model,Num_Evaluated,Mean_MAE,Std_MAE,Mean_Spearman,Std_Spearman,Notes
+Ollama (Qwen2.5-3B),ollama,qwen2.5:3b,29,16.65,8.16,-0.1796,0.2982,Chạy thực nghiệm thực tế trên máy cục bộ

@@ -67,10 +67,26 @@ TABLES = {
             ("Thời gian (s)", num("runtime_seconds", 4)),
         ],
     ),
+    "rq2b": lambda: md_table(
+        read("rq2b_cross_host.csv"),
+        [
+            ("Nơi chạy A", lambda r: r["Host_A"]),
+            ("Nơi chạy B", lambda r: r["Host_B"]),
+            ("Số cặp", lambda r: r["Num_Pairs"]),
+            ("Số SV", lambda r: r["Num_Students"]),
+            ("MAE", num("MAE")),
+            ("Spearman ρ", num("Spearman", 3)),
+        ],
+    ),
 }
 
 
-CSV_NAME = {"rq1": "rq1_ablation.csv", "rq2": "rq2_llm_stability.csv", "rq3": "rq3_allocation.csv"}
+CSV_NAME = {
+    "rq1": "rq1_ablation.csv",
+    "rq2": "rq2_llm_stability.csv",
+    "rq3": "rq3_allocation.csv",
+    "rq2b": "rq2b_cross_host.csv",
+}
 
 
 def main():

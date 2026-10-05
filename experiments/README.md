@@ -94,8 +94,12 @@ python -m experiments.rq2_llm_stability --students 30 --topics-per-student 3
 
 **Bảng tổng hợp độ ổn định LLM:**
 <!-- BANG:rq2 -->
-_Chưa có số liệu: đang đo lại bằng API thật (Groq + Ollama) ngày 06/10/2026 sau khi hạn mức Groq hồi._
+| Nhà cung cấp | Mô hình | Số SV | MAE (TB ± ĐLC) | Spearman ρ (TB ± ĐLC) |
+| --- | --- | --- | --- | --- |
+| Ollama (Qwen2.5-3B) | `qwen2.5:3b` | 29 | 16.65 ± 8.16 | -0.180 ± 0.298 |
 <!-- /BANG:rq2 -->
+
+> Ngày 05/10 mới đo được Ollama (chạy tại máy). Groq gpt-oss-120b đo ngày 07/10 khi hạn mức hồi (bảng tự cập nhật).
 
 > Mọi dòng trong bảng RQ2 là lượt gọi API thật. Không có số liệu mô phỏng: provider nào thiếu khoá thì bị bỏ qua, không thay bằng số giả.
 
@@ -106,6 +110,18 @@ _Chưa có số liệu: đang đo lại bằng API thật (Groq + Ollama) ngày 
 Kết quả lưu tại: `experiments/results/rq2_llm_stability.csv` và `experiments/results/rq2_llm_stability.png`.
 
 ---
+
+### 2.4. RQ2b — Cùng model, khác nơi chạy
+
+Cùng model `gpt-oss-120b`, temperature 0, cùng prompt, nhưng chạy ở 2 nhà cung cấp (Groq trực tiếp và Tinfoil qua OmniRoute). So các cặp (SV, đề tài) đã được cả hai chấm, lấy từ cache, không gọi API: `python -m experiments.rq2b_cross_host`.
+
+<!-- BANG:rq2b -->
+| Nơi chạy A | Nơi chạy B | Số cặp | Số SV | MAE | Spearman ρ |
+| --- | --- | --- | --- | --- | --- |
+| Groq (openai/gpt-oss-120b) | OmniRoute/Tinfoil (gptoss120) | 268 | 18 | 9.19 | 0.634 |
+<!-- /BANG:rq2b -->
+
+> Ý nghĩa: "temperature 0" không bảo đảm điểm giống hệt nhau giữa các nơi chạy (khác phần cứng, lượng tử hoá, phiên bản). Vì vậy hệ thống lưu cache điểm M5 theo cả tên model + nơi chạy, và báo cáo phải ghi rõ nơi chạy.
 
 ## 3. RQ3: Phân Công Đề Tài — Greedy vs Quy Hoạch Tuyến Tính (ILP)
 

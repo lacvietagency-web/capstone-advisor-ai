@@ -157,6 +157,8 @@ def get_endpoint_url(provider: str) -> str:
         return "http://localhost:11434/v1/chat/completions"
     if provider == "gemini":
         return "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+    if provider == "omniroute":  # cổng OmniRoute cục bộ: nhiều nhà cung cấp cùng 1 model, tự chuyển khi hết hạn mức
+        return getattr(settings, "LLM_BASE_URL", "") or "http://127.0.0.1:20128/v1/chat/completions"
     return "https://api.groq.com/openai/v1/chat/completions"
 
 
@@ -168,7 +170,7 @@ def get_request_headers(provider: str, api_key: str) -> dict[str, str]:
         headers["User-Agent"] = "capstone-advisor/1.0"
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
-    elif provider in ("gemini", "ollama") and api_key:
+    elif provider in ("gemini", "ollama", "omniroute") and api_key:
         headers["Authorization"] = f"Bearer {api_key}"
     return headers
 
@@ -263,7 +265,7 @@ def call_openai_http(
     api_key: str,
 ) -> dict:
     """Gửi yêu cầu HTTP POST chuẩn OpenAI-compatible bằng urllib với temperature=0."""
-    if provider in ("groq", "gemini") and not api_key:
+    if provider in ("groq", "gemini", "omniroute") and not api_key:
         raise ValueError(f"Provider '{provider}' yêu cầu LLM_API_KEY nhưng chưa được cấu hình.")
 
     url = get_endpoint_url(provider)

@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; Nhập dữ liệu từ Excel
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module">
+    <h2>Nhập danh sách Sinh viên, Giảng viên, Đề tài, Kỹ năng từ tệp Excel (.xlsx)</h2>
+    <p>Hệ thống hỗ trợ nhập tự động các sheet sau trong cùng một tệp Excel:</p>
+    <ul>
+      <li><strong>SinhVien:</strong> Mã sinh viên, Họ đệm, Tên, GPA (thang 4), Email, Chuyên ngành.</li>
+      <li><strong>GiangVien:</strong> Mã giảng viên, Họ đệm, Tên, Email, Bộ môn, Chỉ tiêu, Lĩnh vực.</li>
+      <li><strong>DeTai:</strong> Tên đề tài, Mã giảng viên, Mô tả, Lĩnh vực, Độ khó, GPA tối thiểu, Số lượng.</li>
+      <li><strong>KyNang:</strong> Tên kỹ năng, Lĩnh vực.</li>
+    </ul>
+    <p>
+      <em>Lưu ý: Quá trình nhập được thực hiện nguyên tử (transaction). Nếu bất kỳ dòng nào bị lỗi, hệ thống sẽ báo chi tiết theo dòng và không lưu bất kỳ thay đổi nào.</em>
+    </p>
+    <p>
+      <a href="../mau-nhap-lieu/" class="button" style="background:#28a745; color:#fff; padding:6px 12px; border-radius:4px; text-decoration:none; display:inline-block; margin-bottom:15px;">
+        &darr; Tải tệp Excel mẫu (catalog/mau_nhap_lieu.xlsx)
+      </a>
+    </p>
+
+    <form method="post" enctype="multipart/form-data" action="">
+      {% csrf_token %}
+      {% if is_action %}
+        <input type="hidden" name="action" value="import_excel">
+        <input type="hidden" name="apply" value="1">
+        {% for obj in queryset %}
+          <input type="hidden" name="_selected_action" value="{{ obj.pk }}">
+        {% endfor %}
+      {% endif %}
+      <div style="margin: 15px 0;">
+        <label for="id_excel_file" style="font-weight:bold; display:block; margin-bottom:6px;">Chọn tệp Excel (.xlsx):</label>
+        <input type="file" name="excel_file" id="id_excel_file" accept=".xlsx" required style="padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+      </div>
+      <div class="submit-row" style="margin-top: 20px;">
+        <input type="submit" value="Tải lên và Nhập dữ liệu" class="default" style="background: #1f4e79; color:#fff; font-weight:bold; padding: 8px 16px; border:none; border-radius:4px; cursor:pointer;">
+        <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link" style="margin-left: 10px;">Hủy bỏ</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

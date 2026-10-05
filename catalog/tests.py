@@ -1,9 +1,35 @@
-from django.core.management import call_command
+from io import BytesIO
+from pathlib import Path
+
+import openpyxl
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
 
 from accounts.models import User
+from catalog.admin import StudentAdmin
+from catalog.importer import create_sample_excel, import_excel_data
 from catalog.models import AuditLog, Field, Lecturer, Preference, RegistrationPeriod, Skill, Student, Topic
 from recommend.models import Recommendation
+
+
+def create_in_memory_workbook(sheets_data: dict[str, list[list]]) -> BytesIO:
+    """Tạo workbook openpyxl trong bộ nhớ để phục vụ kiểm thử."""
+    wb = openpyxl.Workbook()
+    first = True
+    for sheet_name, rows in sheets_data.items():
+        if first:
+            ws = wb.active
+            ws.title = sheet_name
+            first = False
+        else:
+            ws = wb.create_sheet(title=sheet_name)
+        for row in rows:
+            ws.append(row)
+    bio = BytesIO()
+    wb.save(bio)
+    bio.seek(0)
+    return bio
 
 
 @override_settings(RECOMMEND_SEMANTIC=False)
@@ -543,3 +569,242 @@ class CatalogServiceTests(TestCase):
         # Đăng ký NV2 không được tính vào NV1
         Preference.objects.create(student=st2, topic=topic, period=period, rank=2)
         self.assertEqual(get_topic_nv1_count(topic), 1)
+
+
+@override_settings(RECOMMEND_SEMANTIC=False)
+class ExcelImportTests(TestCase):
+    """Kiểm thử toàn diện chức năng nhập dữ liệu từ Excel cho Khoa (UC15).
+
+    Đặc tả kiểm tra:
+        - Sheet SinhVien (mã, họ, tên, GPA, email)
+        - Sheet GiangVien, DeTai, KyNang
+        - Sử dụng thư viện openpyxl
+        - Báo lỗi chi tiết theo dòng
+        - Không lưu dữ liệu khi có lỗi (transaction atomic rollback)
+        - Lệnh quản trị import_excel <file.xlsx>
+        - Action và giao diện trong trang quản trị
+        - File mẫu catalog/mau_nhap_lieu.xlsx tạo bằng code
+    """
+
+    def setUp(self):
+        self.sample_path = Path(__file__).resolve().parent / "mau_nhap_lieu.xlsx"
+
+    def test_create_sample_excel_file(self):
+        """Kiểm tra tệp catalog/mau_nhap_lieu.xlsx được tạo đầy đủ 4 sheet chuẩn."""
+        create_sample_excel(self.sample_path)
+        self.assertTrue(self.sample_path.exists())
+        wb = openpyxl.load_workbook(self.sample_path)
+        self.assertIn("SinhVien", wb.sheetnames)
+        self.assertIn("GiangVien", wb.sheetnames)
+        self.assertIn("DeTai", wb.sheetnames)
+        self.assertIn("KyNang", wb.sheetnames)
+
+        # Kiểm tra tiêu đề sheet SinhVien
+        sv_headers = [cell for cell in next(wb["SinhVien"].iter_rows(values_only=True)) if cell]
+        self.assertIn("Mã sinh viên", sv_headers)
+        self.assertIn("GPA", sv_headers)
+        self.assertIn("Email", sv_headers)
+
+    def test_import_sample_excel_success(self):
+        """Kiểm tra nhập thành công dữ liệu từ tệp mẫu."""
+        create_sample_excel(self.sample_path)
+        success, errors, stats = import_excel_data(self.sample_path)
+        self.assertTrue(success)
+        self.assertEqual(errors, [])
+        self.assertEqual(stats["students"], 3)
+        self.assertEqual(stats["lecturers"], 3)
+        self.assertEqual(stats["topics"], 3)
+        self.assertEqual(stats["skills"], 6)
+
+        # Kiểm tra tính toàn vẹn dữ liệu sinh viên trong CSDL
+        sv = Student.objects.get(student_code="SV001")
+        self.assertEqual(sv.user.first_name, "An")
+        self.assertEqual(sv.user.last_name, "Nguyễn Văn")
+        self.assertEqual(float(sv.gpa), 3.50)
+        self.assertEqual(sv.user.email, "an.nv@eaut.edu.vn")
+        self.assertEqual(sv.user.role, User.Role.STUDENT)
+
+        # Kiểm tra giảng viên và đề tài
+        gv = Lecturer.objects.get(user__username="GV001")
+        self.assertEqual(gv.department, "Khoa CNTT")
+        self.assertEqual(gv.max_students, 5)
+
+        topic = Topic.objects.get(title__icontains="Hệ thống gợi ý")
+        self.assertEqual(topic.lecturer, gv)
+        self.assertEqual(topic.difficulty, Topic.Difficulty.MEDIUM)
+        self.assertTrue(topic.fields.filter(name="Trí tuệ nhân tạo").exists())
+
+    def test_import_command_success(self):
+        """Kiểm tra lệnh quản trị import_excel <file.xlsx> thực thi thành công."""
+        create_sample_excel(self.sample_path)
+        from io import StringIO
+
+        out = StringIO()
+        call_command("import_excel", str(self.sample_path), stdout=out)
+        self.assertIn("Đã nhập thành công", out.getvalue())
+        self.assertTrue(Student.objects.filter(student_code="SV001").exists())
+
+    def test_import_command_file_not_found(self):
+        """Kiểm tra lệnh import_excel báo lỗi khi file không tồn tại."""
+        with self.assertRaises(CommandError) as ctx:
+            call_command("import_excel", "non_existent_file_xyz.xlsx")
+        self.assertIn("không tồn tại", str(ctx.exception))
+
+    def test_invalid_gpa_row_error_and_transaction_rollback(self):
+        """Kiểm tra báo lỗi theo dòng khi GPA > 4.0 và hoàn tác giao dịch không lưu gì."""
+        data = {
+            "SinhVien": [
+                ["Mã sinh viên", "Họ đệm", "Tên", "GPA", "Email"],
+                ["SV101", "Nguyễn", "Hoàng", 3.2, "hoang@eaut.edu.vn"],
+                ["SV102", "Trần", "Tuấn", 4.5, "tuan@eaut.edu.vn"],  # Dòng 3 lỗi GPA > 4.0
+                ["SV103", "Lê", "Minh", 2.9, "minh@eaut.edu.vn"],
+            ]
+        }
+        bio = create_in_memory_workbook(data)
+        success, errors, stats = import_excel_data(bio)
+
+        self.assertFalse(success)
+        self.assertTrue(any("dòng 3" in e.lower() and "gpa" in e.lower() for e in errors))
+        # Khẳng định không có sinh viên nào được lưu vào CSDL (Atomic rollback)
+        self.assertEqual(Student.objects.count(), 0)
+        self.assertEqual(User.objects.filter(username__in=["SV101", "SV102", "SV103"]).count(), 0)
+
+    def test_invalid_email_and_missing_fields_row_errors(self):
+        """Kiểm tra báo lỗi theo dòng khi email sai định dạng hoặc thiếu trường bắt buộc."""
+        data = {
+            "SinhVien": [
+                ["Mã sinh viên", "Họ đệm", "Tên", "GPA", "Email"],
+                ["", "Nguyễn", "Thiếu Mã", 3.0, "m@eaut.edu.vn"],  # Dòng 2 thiếu mã
+                ["SV202", "Trần", "", 3.5, "t@eaut.edu.vn"],  # Dòng 3 thiếu tên
+                ["SV203", "Lê", "An", 3.5, "invalid-email"],  # Dòng 4 sai email
+            ]
+        }
+        bio = create_in_memory_workbook(data)
+        success, errors, _ = import_excel_data(bio)
+
+        self.assertFalse(success)
+        self.assertTrue(any("dòng 2" in e.lower() and "mã" in e.lower() for e in errors))
+        self.assertTrue(any("dòng 3" in e.lower() and "tên" in e.lower() for e in errors))
+        self.assertTrue(any("dòng 4" in e.lower() and "email" in e.lower() for e in errors))
+        self.assertEqual(Student.objects.count(), 0)
+
+    def test_duplicate_student_code_in_file_rollback(self):
+        """Kiểm tra trùng mã sinh viên ngay trong tệp Excel."""
+        data = {
+            "SinhVien": [
+                ["Mã sinh viên", "Họ đệm", "Tên", "GPA", "Email"],
+                ["SV301", "Nguyễn", "Văn A", 3.0, "a@eaut.edu.vn"],
+                ["SV301", "Nguyễn", "Văn B", 3.2, "b@eaut.edu.vn"],  # Dòng 3 trùng mã
+            ]
+        }
+        bio = create_in_memory_workbook(data)
+        success, errors, _ = import_excel_data(bio)
+
+        self.assertFalse(success)
+        self.assertTrue(any("dòng 3" in e.lower() and "trùng lặp" in e.lower() for e in errors))
+        self.assertEqual(Student.objects.count(), 0)
+
+    def test_detai_missing_lecturer_rollback(self):
+        """Kiểm tra đề tài trỏ tới giảng viên không tồn tại thì báo lỗi và rollback."""
+        data = {
+            "DeTai": [
+                ["Tên đề tài", "Mã giảng viên", "Mô tả", "Lĩnh vực"],
+                ["Đề tài không có GV", "GV_KHONG_TON_TAI", "Mô tả", "Web"],
+            ]
+        }
+        bio = create_in_memory_workbook(data)
+        success, errors, _ = import_excel_data(bio)
+
+        self.assertFalse(success)
+        self.assertTrue(any("dòng 2" in e.lower() and "giảng viên" in e.lower() for e in errors))
+        self.assertEqual(Topic.objects.count(), 0)
+
+    def test_kynang_duplicate_in_file(self):
+        """Kiểm tra trùng kỹ năng trong cùng sheet KyNang."""
+        data = {
+            "KyNang": [
+                ["Tên kỹ năng", "Lĩnh vực"],
+                ["Django", "Web"],
+                ["Django", "Web"],  # Trùng lặp
+            ]
+        }
+        bio = create_in_memory_workbook(data)
+        success, errors, _ = import_excel_data(bio)
+
+        self.assertFalse(success)
+        self.assertTrue(any("dòng 3" in e.lower() and "trùng lặp" in e.lower() for e in errors))
+        self.assertEqual(Skill.objects.count(), 0)
+
+    def test_invalid_file_format(self):
+        """Kiểm tra xử lý khi tệp tải lên không phải định dạng Excel hợp lệ."""
+        fake_file = BytesIO(b"Day khong phai la file excel")
+        success, errors, _ = import_excel_data(fake_file)
+        self.assertFalse(success)
+        self.assertTrue(any("không đúng định dạng" in e.lower() for e in errors))
+
+    def test_admin_import_views_and_action(self):
+        """Kiểm tra action và giao diện import trong Django Admin."""
+        User.objects.create_superuser("admin_test", "admin@eaut.edu.vn", "123456")
+        self.client.login(username="admin_test", password="123456")
+
+        from django.urls import reverse
+
+        # 1. GET giao diện import
+        url_import = reverse("admin:catalog_student_import_excel")
+        resp = self.client.get(url_import)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Nhập dữ liệu từ Excel")
+
+        # 2. GET tải tệp mẫu
+        url_sample = reverse("admin:catalog_student_sample_excel")
+        resp_sample = self.client.get(url_sample)
+        self.assertEqual(resp_sample.status_code, 200)
+        self.assertEqual(
+            resp_sample["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+        # 3. POST tệp hợp lệ qua giao diện admin
+        create_sample_excel(self.sample_path)
+        with open(self.sample_path, "rb") as f:
+            upload_file = SimpleUploadedFile(
+                "mau_nhap_lieu.xlsx",
+                f.read(),
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+            resp_post = self.client.post(url_import, {"excel_file": upload_file}, follow=True)
+            self.assertEqual(resp_post.status_code, 200)
+            self.assertContains(resp_post, "Nhập dữ liệu thành công")
+            self.assertTrue(Student.objects.filter(student_code="SV001").exists())
+            self.assertTrue(AuditLog.objects.filter(action="import_excel").exists())
+
+    def test_admin_action_direct_call(self):
+        """Kiểm tra gọi trực tiếp action import_excel trên StudentAdmin."""
+        admin_user = User.objects.create_superuser("admin_test2", "admin2@eaut.edu.vn", "123456")
+        self.client.login(username="admin_test2", password="123456")
+        from django.contrib.admin.sites import site
+        from django.test import RequestFactory
+
+        rf = RequestFactory()
+        create_sample_excel(self.sample_path)
+        with open(self.sample_path, "rb") as f:
+            from django.urls import reverse
+
+            upload_file = SimpleUploadedFile("mau.xlsx", f.read())
+            req = rf.post(
+                reverse("admin:catalog_student_changelist"),
+                {"action": "import_excel", "apply": "1"},
+            )
+            req.user = admin_user
+            req.FILES["excel_file"] = upload_file
+            # Giả lập messages framework trên request
+            from django.contrib.messages.storage.fallback import FallbackStorage
+
+            req.session = "session"
+            messages = FallbackStorage(req)
+            req._messages = messages
+
+            st_admin = StudentAdmin(Student, site)
+            res = st_admin.import_excel(req, Student.objects.none())
+            self.assertEqual(res.status_code, 302)
+            self.assertTrue(Student.objects.filter(student_code="SV001").exists())

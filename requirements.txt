@@ -4,4 +4,5 @@ PuLP>=2.9,<3
 mysqlclient>=2.2 ; platform_system != "Windows"   # MySQL; trên Windows nếu cài lỗi thì dùng SQLite mặc định
 sentence-transformers>=3.0
 torch>=2.2   # bản CPU: pip install torch --index-url https://download.pytorch.org/whl/cpu
+openpyxl>=3.1
 ruff>=0.6   # kiểm tra & định dạng code (chỉ cần khi phát triển)

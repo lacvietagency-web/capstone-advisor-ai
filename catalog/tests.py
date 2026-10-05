@@ -621,7 +621,12 @@ class ExcelImportTests(TestCase):
     """
 
     def setUp(self):
-        self.sample_path = Path(__file__).resolve().parent / "mau_nhap_lieu.xlsx"
+        import tempfile
+
+        # ghi ra thư mục tạm: kiểm thử không được sửa file mẫu catalog/mau_nhap_lieu.xlsx trong repo
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.sample_path = Path(self._tmp.name) / "mau_nhap_lieu.xlsx"
 
     def test_create_sample_excel_file(self):
         """Kiểm tra tệp catalog/mau_nhap_lieu.xlsx được tạo đầy đủ 4 sheet chuẩn."""

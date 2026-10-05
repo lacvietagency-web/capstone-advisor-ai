@@ -101,8 +101,8 @@
             </a>
             {% endif %}
 
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'password_change' %}">
-              <i class="bi bi-key-fill me-1"></i>Đổi mật khẩu
+            <a class="btn btn-sm btn-outline-secondary text-nowrap" href="{% url 'password_change' %}" title="Đổi mật khẩu" aria-label="Đổi mật khẩu">
+              <i class="bi bi-key-fill"></i><span class="d-lg-none ms-1">Đổi mật khẩu</span>
             </a>
 
             <form method="post" action="{% url 'logout' %}" class="m-0 w-100 w-lg-auto">

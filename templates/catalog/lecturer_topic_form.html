@@ -1,10 +1,328 @@
 {% extends "base.html" %}
+
+{% block title %}{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %} — Capstone Advisor AI{% endblock %}
+
 {% block content %}
-<h1 class="h4">{% if topic.pk %}Sửa đề tài{% else %}Thêm đề tài{% endif %}</h1>
-<form method="post">{% csrf_token %}{{ form.as_p }}
-  <h2 class="h6">Kỹ năng yêu cầu</h2>{{ skill_formset.management_form }}
-  <table class="table"><tr><th>Kỹ năng</th><th>Mức yêu cầu</th><th>Trọng số</th><th>Bắt buộc</th><th>Xoá</th></tr>
-  {% for f in skill_formset %}<tr>{{ f.id }}<td>{{ f.skill }}</td><td>{{ f.required_level }}</td><td>{{ f.weight }}</td><td>{{ f.is_mandatory }}</td><td>{{ f.DELETE }}</td></tr>{% endfor %}</table>
-  <button class="btn btn-primary">Lưu</button> <a href="{% url 'lecturer_topics' %}">Huỷ</a>
+<!-- Back to topics link (DESIGN.md Section 6 & 10) -->
+<a href="{% url 'lecturer_topics' %}" class="back-link">
+  <i class="bi bi-chevron-left"></i>Đề tài của tôi
+</a>
+
+<div class="page-header mb-4">
+  <div class="page-kicker">ĐỀ TÀI</div>
+  <h1 class="page-title">{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %}</h1>
+  <p class="page-subtitle">
+    {% if topic.pk %}
+      Cập nhật thông tin và yêu cầu của đề tài.
+    {% else %}
+      Cung cấp thông tin đề tài và các kỹ năng cần thiết để hỗ trợ quá trình tư vấn.
+    {% endif %}
+  </p>
+</div>
+
+<form method="post" novalidate class="topic-form" id="topicForm">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-4">
+      {% for err in form.non_field_errors %}{{ err }}<br>{% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Card 1: Thông tin đề tài (DESIGN.md Section 10.1) -->
+  <div class="form-section-card">
+    <h2 class="form-section-title">Thông tin đề tài</h2>
+    <p class="form-section-subtitle">Thông tin chung về mục tiêu, định hướng và phạm vi của đề tài.</p>
+
+    <!-- Tên đề tài -->
+    <div class="mb-3">
+      <label for="{{ form.title.id_for_label }}" class="form-label">
+        Tên đề tài <span class="text-danger">*</span>
+      </label>
+      {{ form.title }}
+      {% if form.title.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.title.errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+      <div class="field-helper-text">Tên rõ ràng, bao quát được mục tiêu và hướng nghiên cứu chính.</div>
+    </div>
+
+    <!-- Mô tả -->
+    <div class="mb-3">
+      <label for="{{ form.description.id_for_label }}" class="form-label">
+        Mô tả đề tài <span class="text-danger">*</span>
+      </label>
+      {{ form.description }}
+      {% if form.description.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.description.errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+      <div class="field-helper-text">Mô tả ngắn gọn mục tiêu, phạm vi và công nghệ dự kiến.</div>
+    </div>
+
+    <!-- Lĩnh vực -->
+    <div class="mb-3">
+      <label class="form-label">Lĩnh vực chuyên môn</label>
+      <div class="fields-checkbox-wrapper">
+        {{ form.fields }}
+      </div>
+      {% if form.fields.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.fields.errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+      <div class="field-helper-text">Chọn một hoặc nhiều lĩnh vực liên quan để hỗ trợ AI đối sánh với hồ sơ sinh viên.</div>
+    </div>
+
+    <!-- Row: Độ khó, GPA tối thiểu, Số SV tối đa -->
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-md-4">
+        <label for="{{ form.difficulty.id_for_label }}" class="form-label">Độ khó</label>
+        {{ form.difficulty }}
+        {% if form.difficulty.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.difficulty.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="col-12 col-sm-6 col-md-4">
+        <label for="{{ form.min_gpa.id_for_label }}" class="form-label">GPA tối thiểu</label>
+        {{ form.min_gpa }}
+        {% if form.min_gpa.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.min_gpa.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+        <div class="field-helper-text">Thang điểm 4.0 (để 0 nếu không yêu cầu)</div>
+      </div>
+
+      <div class="col-12 col-sm-6 col-md-4">
+        <label for="{{ form.capacity.id_for_label }}" class="form-label">Số sinh viên tối đa</label>
+        {{ form.capacity }}
+        {% if form.capacity.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.capacity.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+        <div class="field-helper-text">Chỉ tiêu sinh viên hướng dẫn</div>
+      </div>
+    </div>
+
+    <!-- Trạng thái -->
+    <div class="mb-0">
+      <label for="{{ form.status.id_for_label }}" class="form-label">Trạng thái đề tài</label>
+      {{ form.status }}
+      {% if form.status.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.status.errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+      <div class="field-helper-text">Chỉ các đề tài "Đang mở" mới có thể được sinh viên đăng ký nguyện vọng.</div>
+    </div>
+  </div>
+
+  <!-- Card 2: Kỹ năng yêu cầu (DESIGN.md Section 10.1 & 12) -->
+  <div class="form-section-card">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-2">
+      <div>
+        <h2 class="form-section-title">Kỹ năng yêu cầu</h2>
+        <p class="form-section-subtitle mb-0">Các kỹ năng giúp AI đánh giá mức độ phù hợp.</p>
+      </div>
+    </div>
+
+    <div class="alert alert-light border small text-muted mb-3 d-flex align-items-center gap-2">
+      <i class="bi bi-info-circle text-primary"></i>
+      <span>Kỹ năng yêu cầu được dùng như một tín hiệu trong đánh giá mức phù hợp; không phải tiêu chí duy nhất.</span>
+    </div>
+
+    {{ skill_formset.management_form }}
+
+    {% if skill_formset.non_form_errors %}
+      <div class="alert alert-danger mb-3">
+        {% for err in skill_formset.non_form_errors %}{{ err }}<br>{% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Desktop Grid Header -->
+    <div class="d-none d-md-grid skill-formset-grid px-3 py-2 fw-semibold text-secondary small bg-light rounded-top border border-bottom-0">
+      <div>Kỹ năng</div>
+      <div>Mức yêu cầu (1–5)</div>
+      <div>Trọng số</div>
+      <div>Bắt buộc</div>
+      <div class="text-center">Xóa</div>
+    </div>
+
+    <div id="skill-formset-container" class="skill-formset-table-wrapper mb-3">
+      {% for f in skill_formset %}
+        <div class="skill-formset-row" data-formset-row>
+          {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+          <div class="skill-formset-grid">
+            <!-- Skill select -->
+            <div>
+              <label class="form-label d-md-none small">Kỹ năng</label>
+              {{ f.skill }}
+              {% if f.skill.errors %}
+                <div class="invalid-feedback d-block small">
+                  {% for error in f.skill.errors %}{{ error }}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Required level (1-5) -->
+            <div>
+              <label class="form-label d-md-none small">Mức yêu cầu (1–5)</label>
+              {{ f.required_level }}
+              {% if f.required_level.errors %}
+                <div class="invalid-feedback d-block small">
+                  {% for error in f.required_level.errors %}{{ error }}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Weight -->
+            <div>
+              <label class="form-label d-md-none small">Trọng số</label>
+              {{ f.weight }}
+              {% if f.weight.errors %}
+                <div class="invalid-feedback d-block small">
+                  {% for error in f.weight.errors %}{{ error }}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Mandatory checkbox -->
+            <div>
+              <label class="form-label d-md-none small">Bắt buộc</label>
+              <div class="form-check pt-md-2">
+                {{ f.is_mandatory }}
+                <label class="form-check-label small" for="{{ f.is_mandatory.id_for_label }}">
+                  Bắt buộc
+                </label>
+              </div>
+              {% if f.is_mandatory.errors %}
+                <div class="invalid-feedback d-block small">
+                  {% for error in f.is_mandatory.errors %}{{ error }}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Delete checkbox -->
+            <div class="text-start text-md-center">
+              <label class="form-label d-md-none small text-danger">Xóa</label>
+              <div class="form-check pt-md-2 d-inline-block">
+                {{ f.DELETE }}
+                <label class="form-check-label small text-danger d-md-none ms-1" for="{{ f.DELETE.id_for_label }}">
+                  Xóa dòng này
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="add-skill-btn">
+      <i class="bi bi-plus-lg me-1"></i>Thêm kỹ năng
+    </button>
+  </div>
+
+  <!-- Action Buttons (DESIGN.md Section 10 & 13) -->
+  <div class="d-flex justify-content-between align-items-center gap-3 pt-2 mobile-sticky-actions">
+    <a href="{% url 'lecturer_topics' %}" class="btn btn-outline-secondary">
+      Hủy
+    </a>
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-check2 me-1"></i>Lưu đề tài
+    </button>
+  </div>
 </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Enhance form inputs with Bootstrap classes
+  var form = document.getElementById("topicForm");
+  if (!form) return;
+
+  var inputs = form.querySelectorAll("input[type='text'], input[type='number'], textarea");
+  inputs.forEach(function (el) {
+    if (!el.classList.contains("form-control")) {
+      el.classList.add("form-control");
+    }
+  });
+
+  var selects = form.querySelectorAll("select");
+  selects.forEach(function (el) {
+    if (!el.classList.contains("form-select")) {
+      el.classList.add("form-select");
+    }
+  });
+
+  var checkboxes = form.querySelectorAll("input[type='checkbox']");
+  checkboxes.forEach(function (el) {
+    if (!el.classList.contains("form-check-input")) {
+      el.classList.add("form-check-input");
+    }
+  });
+
+  // Dynamic Skill Formset Add Row
+  var addBtn = document.getElementById("add-skill-btn");
+  var container = document.getElementById("skill-formset-container");
+  var totalFormsInput = document.getElementById("id_skills-TOTAL_FORMS");
+
+  if (addBtn && container && totalFormsInput) {
+    addBtn.addEventListener("click", function () {
+      var rows = container.querySelectorAll("[data-formset-row]");
+      if (rows.length === 0) return;
+
+      var lastRow = rows[rows.length - 1];
+      var newRow = lastRow.cloneNode(true);
+      var currentCount = parseInt(totalFormsInput.value, 10);
+      var newIndex = currentCount;
+
+      // Update names, ids, fors in newRow
+      newRow.querySelectorAll("input, select, label").forEach(function (el) {
+        if (el.name) {
+          el.name = el.name.replace(/skills-\d+-/, "skills-" + newIndex + "-");
+        }
+        if (el.id) {
+          el.id = el.id.replace(/skills-\d+-/, "skills-" + newIndex + "-");
+        }
+        if (el.htmlFor) {
+          el.htmlFor = el.htmlFor.replace(/skills-\d+-/, "skills-" + newIndex + "-");
+        }
+
+        // Reset values
+        if (el.tagName === "SELECT") {
+          el.selectedIndex = 0;
+        } else if (el.type === "number") {
+          if (el.name && el.name.includes("required_level")) {
+            el.value = "3";
+          } else if (el.name && el.name.includes("weight")) {
+            el.value = "1.0";
+          } else {
+            el.value = "";
+          }
+        } else if (el.type === "checkbox") {
+          el.checked = false;
+        } else if (el.type === "hidden" && el.name && el.name.includes("-id")) {
+          el.value = "";
+        }
+      });
+
+      // Clear any validation error messages from clone
+      newRow.querySelectorAll(".invalid-feedback").forEach(function (msg) {
+        msg.remove();
+      });
+
+      container.appendChild(newRow);
+      totalFormsInput.value = currentCount + 1;
+    });
+  }
+});
+</script>
 {% endblock %}

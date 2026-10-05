@@ -32,6 +32,7 @@ Chỉ số đo lường:
 import argparse
 import csv
 import os
+import time
 from pathlib import Path
 
 import django
@@ -48,6 +49,7 @@ from django.core.management import call_command  # noqa: E402
 from catalog.models import Student, Topic  # noqa: E402
 from experiments.metrics import compute_hit_at_k, compute_mrr, compute_ndcg_at_k  # noqa: E402
 from recommend.engine import (  # noqa: E402
+    DEFAULT_WEIGHTS,
     Profile,
     SemanticModel,
     eligible,
@@ -56,7 +58,7 @@ from recommend.engine import (  # noqa: E402
     m3_field,
     m4_semantic,
 )
-from recommend.llm import FakeLLMProvider  # noqa: E402
+from recommend.llm import batch_score_llm  # noqa: E402
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
@@ -124,8 +126,6 @@ def compute_student_candidate_scores(
     topic_vecs = SemanticModel.topic_vectors(topics) if student_vec is not None else []
 
     candidate_records = []
-    fake_llm_res = FakeLLMProvider.call(student, topics)
-    llm_scores = {it["topic_id"]: float(it["total"]) for it in fake_llm_res.get("scores", [])}
 
     for idx, topic in enumerate(topics):
         is_ok, _ = eligible(profile, topic)
@@ -135,7 +135,7 @@ def compute_student_candidate_scores(
         s2 = m2_academic(profile, topic)
         s3 = m3_field(profile, topic)
         s4 = m4_semantic(student_vec, topic_vecs[idx]) if student_vec is not None else 0.0
-        s5 = llm_scores.get(topic.id, 50.0)
+        s5 = None  # M5 điền sau, chỉ cho Top-K giống hệ thống thật
 
         t_idx = topic_idx_map[topic.id]
         cos_sim = float(np.dot(tfidf_student_vec, tfidf_topic_vecs[t_idx]))
@@ -149,7 +149,33 @@ def compute_student_candidate_scores(
                 "embedding": s4,
             }
         )
+    _fill_llm_top_k(student, candidate_records, {t.id: t for t in topics})
     return candidate_records
+
+
+def _fill_llm_top_k(student, records, topics_by_id, k=15):
+    """M5 THẬT (LLM theo settings.LLM_PROVIDER, có cache LLMScore) cho Top-K theo M1–M4 — đúng quy trình 2 giai đoạn.
+    Đề tài ngoài Top-K hoặc LLM lỗi → M5 = None, điểm cuối tự chia lại trọng số trên M1–M4."""
+    stage1 = {k_: v for k_, v in DEFAULT_WEIGHTS.items() if k_ != "llm"}
+    top = sorted(records, key=lambda r: _weighted(r["scores"], stage1), reverse=True)[:k]
+    pace = float(os.getenv("LLM_PACE", "60"))  # Groq miễn phí: 8.000 token/phút ≈ 1 lượt chấm 15 đề tài/phút
+    for attempt in range(3):
+        t0 = time.time()
+        scored, _invalid = batch_score_llm(student, [topics_by_id[r["topic_id"]] for r in top])
+        if time.time() - t0 > 1:  # có gọi mạng (không phải lấy từ cache) → nghỉ cho đủ hạn mức
+            time.sleep(pace)
+        if scored or attempt == 2:
+            break
+    for r in top:
+        if r["topic_id"] in scored:
+            r["scores"]["llm"] = scored[r["topic_id"]].total
+
+
+def _weighted(scores, weights):
+    """Trung bình có trọng số, bỏ thành phần không có điểm (None) và chia lại trọng số."""
+    active = {k: w for k, w in weights.items() if w > 0 and scores.get(k) is not None}
+    total = sum(active.values())
+    return sum(scores[k] * w for k, w in active.items()) / total if total else 0.0
 
 
 def rank_candidates(candidates: list[dict], mode: str, weights: dict | None = None) -> list[int]:
@@ -165,14 +191,7 @@ def rank_candidates(candidates: list[dict], mode: str, weights: dict | None = No
     else:
         assert weights is not None
 
-        def calc_score(cand):
-            active_w = {k: v for k, v in weights.items() if v > 0}
-            total_w = sum(active_w.values())
-            if total_w <= 0:
-                return 0.0
-            return sum(cand["scores"][k] * active_w[k] for k in active_w) / total_w
-
-        sorted_cands = sorted(candidates, key=calc_score, reverse=True)
+        sorted_cands = sorted(candidates, key=lambda c: _weighted(c["scores"], weights), reverse=True)
 
     return [c["topic_id"] for c in sorted_cands]
 
@@ -200,6 +219,10 @@ def evaluate_ablation_system(
         eval_data.append((student, gt, cands))
 
     print(f"Tổng số sinh viên đánh giá hợp lệ (có nhãn giả & ứng viên): {len(eval_data)} / {len(students)}")
+    with_m5 = sum(1 for _, _, cands in eval_data if any(c["scores"]["llm"] is not None for c in cands))
+    coverage = f"{with_m5}/{len(eval_data)} SV có điểm M5 thật từ LLM; còn lại M5 trống (LLM lỗi/hết hạn mức)"
+    print("Độ phủ M5:", coverage)
+    (RESULTS_DIR / "rq1_m5_coverage.txt").write_text(coverage + "\n", encoding="utf-8")
     results = []
 
     # 1. Đánh giá các cấu hình trọng số M1-M5

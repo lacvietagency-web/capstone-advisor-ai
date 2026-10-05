@@ -19,12 +19,12 @@ Các chỉ số đo lường:
 So sánh nhà cung cấp (Providers):
 - Ollama (cục bộ): mô hình qwen2.5:3b (chạy nội bộ tại máy chủ).
 - Groq (đám mây): mô hình llama-3.3-70b-versatile (yêu cầu GROQ_API_KEY / LLM_API_KEY).
-- FakeLLM (đối chứng): mô hình xác định kiểm thử quy trình (MAE = 0.0, Spearman = 1.0).
 """
 
 import argparse
 import csv
 import os
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -43,7 +43,7 @@ from django.core.management import call_command  # noqa: E402
 from catalog.models import Student, Topic  # noqa: E402
 from experiments.metrics import compute_mae, compute_spearman  # noqa: E402
 from recommend.engine import Profile, eligible  # noqa: E402
-from recommend.llm import FakeLLMProvider, call_provider_with_retry  # noqa: E402
+from recommend.llm import call_provider_with_retry  # noqa: E402
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
@@ -92,7 +92,12 @@ def call_llm_direct(
     api_key: str,
 ) -> dict[int, float]:
     """Gọi LLM trực tiếp không qua bộ nhớ đệm để kiểm tra phản hồi thực tế."""
-    items = call_provider_with_retry(student, topics, provider, model, api_key)
+    for _ in range(3):
+        items = call_provider_with_retry(student, topics, provider, model, api_key)
+        if provider == "groq":  # Groq miễn phí: 8.000 token/phút → giãn lượt gọi
+            time.sleep(float(os.getenv("LLM_PACE", "30")))
+        if items:
+            break
     if not items:
         return {}
     scores = {}
@@ -102,22 +107,6 @@ def call_llm_direct(
             scores[t_id] = float(item["total"])
         except (KeyError, ValueError, TypeError):
             continue
-    return scores
-
-
-def simulate_groq_stability(student: Student, topics: list[Topic], order_idx: int) -> dict[int, float]:
-    """Mô phỏng phản hồi Groq Llama-70b (độ nhiễu vị trí rất nhỏ ~2-4 điểm) khi chưa có API key."""
-    profile = Profile(student)
-    interests = profile.interests
-    scores = {}
-    for idx, t in enumerate(topics):
-        base = 65.0 + (t.id % 20)
-        t_fields = {f.id for f in t.fields.all()}
-        field_bonus = sum(interests.get(f, 0) * 4.0 for f in t_fields)
-        # Mô hình lớn 70B ít thiên lệch vị trí hơn: độ lệch nhẹ ~2-3 điểm cho vị trí đầu/cuối
-        pos_shift = 3.0 if (idx == 0 and order_idx == 1) else (-2.0 if idx == len(topics) - 1 else 0.0)
-        total = min(98.0, max(20.0, base + field_bonus + pos_shift))
-        scores[t.id] = round(total, 1)
     return scores
 
 
@@ -132,15 +121,8 @@ def evaluate_single_student(
     order1 = list(candidate_topics)
     order2 = list(reversed(candidate_topics))
 
-    if provider == "groq_simulated":
-        res1 = simulate_groq_stability(student, order1, order_idx=1)
-        res2 = simulate_groq_stability(student, order2, order_idx=2)
-    elif provider == "fake":
-        res1 = {t.id: float(FakeLLMProvider.call(student, order1)["scores"][i]["total"]) for i, t in enumerate(order1)}
-        res2 = {t.id: float(FakeLLMProvider.call(student, order2)["scores"][i]["total"]) for i, t in enumerate(order2)}
-    else:
-        res1 = call_llm_direct(student, order1, provider, model, api_key)
-        res2 = call_llm_direct(student, order2, provider, model, api_key)
+    res1 = call_llm_direct(student, order1, provider, model, api_key)
+    res2 = call_llm_direct(student, order2, provider, model, api_key)
 
     common_ids = [t.id for t in candidate_topics if t.id in res1 and t.id in res2]
     if len(common_ids) < 2:
@@ -300,33 +282,14 @@ def main() -> None:
         providers_to_test.append(
             {
                 "provider": "groq",
-                "model": "llama-3.3-70b-versatile",
+                "model": os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
                 "api_key": groq_key,
-                "label": "Groq (Llama-3.3-70B)",
+                "label": "Groq (" + os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") + ")",
                 "notes": "Gọi trực tiếp API Groq Cloud",
             }
         )
     else:
-        providers_to_test.append(
-            {
-                "provider": "groq_simulated",
-                "model": "llama-3.3-70b-simulated",
-                "api_key": "",
-                "label": "Groq Llama-70B (Mô phỏng)",
-                "notes": "Mô phỏng mô hình lớn 70B (ít thiên lệch vị trí, cần GROQ_API_KEY để chạy API thật)",
-            }
-        )
-
-    # 3. Baseline xác định (FakeLLM)
-    providers_to_test.append(
-        {
-            "provider": "fake",
-            "model": "rule-deterministic",
-            "api_key": "",
-            "label": "Deterministic Baseline",
-            "notes": "Quy tắc xác định kiểm chứng đối chứng (không bị position bias)",
-        }
-    )
+        print("Chưa có khoá Groq (GROQ_API_KEY) → bỏ qua Groq. KHÔNG dùng số mô phỏng.")
 
     all_results = []
     for p_cfg in providers_to_test:

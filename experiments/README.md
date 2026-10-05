@@ -26,6 +26,8 @@ Do chưa có nhãn khảo sát từ sinh viên thực tế trên quy mô lớn, 
    $$M_1(s, t) \ge 70.0$$
 
 > [!IMPORTANT]
+> **Giới hạn cần nói rõ khi bảo vệ:** nhãn giả được định nghĩa từ chính M1 (kỹ năng) và M3 (lĩnh vực), nên các cấu hình có M1/M3 đương nhiên được lợi (đánh giá vòng tròn). Vì vậy kết quả RQ1 chỉ chứng minh quy trình đo chạy đúng và cho thấy độ nhạy của từng thành phần; nó KHÔNG chứng minh M4/M5 vô ích. Muốn đánh giá công bằng M4/M5 cần nhãn thật.
+>
 > **Ghi chú quan trọng:** Nhãn giả định này CHỈ dùng để kiểm thử quy trình thực nghiệm kỹ thuật và đo lường độ nhạy của thuật toán; nhãn thực tế phục vụ đánh giá chất lượng cuối cùng được thu thập từ khảo sát và đánh giá trực tiếp của giảng viên hướng dẫn (GVHD).
 
 ### 1.3. Các Chỉ Số Đo Lường
@@ -44,21 +46,17 @@ python -m experiments.rq1_ablation
 ```
 
 **Bảng kết quả thực nghiệm:**
-| Cấu hình | Hit@5 | MRR | NDCG@5 | Ghi chú |
-| :--- | :---: | :---: | :---: | :--- |
-| **Đủ M1–M5** | **0.8830** | **0.7838** | **0.6693** | Trọng số AHP chuẩn hệ thống |
-| **Bỏ M1 (Kỹ năng)** | 0.6596 | 0.5015 | 0.3796 | Giảm mạnh nhất (M1 đóng vai trò cốt lõi) |
-| **Bỏ M2 (Học lực)** | 0.8830 | 0.7874 | 0.6719 | Duy trì tốt Hit@5, bổ trợ phân loại |
-| **Bỏ M3 (Lĩnh vực)** | 0.8404 | 0.7573 | 0.6388 | Giảm nhẹ khi mất thông tin lĩnh vực |
-| **Bỏ M4 (Embedding)** | 0.8830 | 0.8200 | 0.6990 | Giữ vững xếp hạng theo tiêu chí cứng |
-| **Bỏ M5 (LLM)** | 0.8830 | 0.8382 | 0.7024 | Giữ vững xếp hạng theo tiêu chí cứng |
-| **Trọng số đều** | 0.8723 | 0.7830 | 0.6459 | $w_i = 0.20$ cho mọi thành phần |
-| **TF-IDF only** | 0.5745 | 0.3982 | 0.2559 | Chỉ dựa trên tần suất từ khóa text |
-| **Embedding only** | 0.4468 | 0.3006 | 0.1746 | Chỉ dựa trên vector MiniLM không qua lọc |
+<!-- BANG:rq1 -->
+(chạy python -m experiments.make_report)
+<!-- /BANG:rq1 -->
+
+<!-- PHU:rq1 --><!-- /PHU:rq1 -->
 
 Kết quả lưu tại: `experiments/results/rq1_ablation.csv` và `experiments/results/rq1_ablation.png`.
 
 ---
+
+> M5 trong RQ1 là điểm LLM THẬT (Groq `openai/gpt-oss-120b`, temperature 0), chỉ chấm Top-15 theo M1–M4 đúng như hệ thống; đề tài ngoài Top-15 hoặc LLM lỗi thì M5 trống và điểm cuối chia lại trọng số. Điểm được lưu cache (bảng LLMScore) nên chạy lại không tốn thêm lượt gọi.
 
 ## 2. RQ2: Độ Ổn Định của LLM (M5) trước Hiện Tượng Position Bias
 
@@ -85,11 +83,11 @@ python -m experiments.rq2_llm_stability --students 30 --topics-per-student 3
 ```
 
 **Bảng tổng hợp độ ổn định LLM:**
-| Nhà cung cấp | Mô hình | Số SV | MAE (Mean ± Std) | Spearman $\rho$ (Mean ± Std) | Ghi chú |
-| :--- | :--- | :---: | :---: | :---: | :--- |
-| **Ollama (Local)** | `qwen2.5:3b` | 30 | **18.03 ± 7.58** | **0.3488 ± 0.6151** | Chạy thực tế trên máy chủ nội bộ |
-| **Groq (Cloud)** | `llama-3.3-70b-simulated` | 30 | **2.31 ± 0.12** | **0.7854 ± 0.3649** | Mô phỏng mô hình lớn 70B (key API cấu hình qua `GROQ_API_KEY`) |
-| **Deterministic Baseline** | `rule-deterministic` | 30 | **0.00 ± 0.00** | **1.0000 ± 0.0000** | Đối chứng xác định hoàn toàn |
+<!-- BANG:rq2 -->
+(chạy python -m experiments.make_report)
+<!-- /BANG:rq2 -->
+
+> Mọi dòng trong bảng RQ2 là lượt gọi API thật. Không có số liệu mô phỏng: provider nào thiếu khoá thì bị bỏ qua, không thay bằng số giả.
 
 **Nhận xét:**
 - Mô hình cục bộ cỡ nhỏ (`qwen2.5:3b`) chịu ảnh hưởng đáng kể bởi thứ tự đề tài trong prompt (MAE $\approx 18$ điểm), làm thay đổi thứ tự ưu tiên giữa các lần chấm. Điều này khẳng định sự cần thiết của cơ chế xáo trộn ngẫu nhiên và lưu cache kết quả theo hash như hệ thống đang triển khai trong `recommend/llm.py`.
@@ -126,20 +124,9 @@ python -m experiments.rq3_allocation
 ```
 
 **Bảng so sánh hiệu năng và chất lượng:**
-| Quy mô (N) | Thuật toán / Cấu hình | Tỷ lệ xếp (%) | Đạt NV1 (%) | Top 3 (%) | Thứ hạng TB | Điểm TB | Vi phạm | Thời gian (s) |
-| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **100** | Greedy | 50.0% | 14.0% | 50.0% | 1.84 | 66.5 | 0 | 0.0002s |
-| | ILP (Bộ 1: $\alpha=0.7, \beta=0.3$) | 51.0% | 28.0% | 51.0% | 1.55 | **72.7** | 0 | 0.0206s |
-| | ILP (Bộ 2: $\alpha=0.4, \beta=0.6$) | **51.0%** | **31.0%** | 51.0% | **1.45** | 70.5 | 0 | 0.0180s |
-| | ILP (Bộ 3: $\alpha=0.2, \beta=0.8$) | **51.0%** | **31.0%** | 51.0% | **1.45** | 70.5 | 0 | 0.0171s |
-| **300** | Greedy | 43.0% | 15.0% | 43.0% | 1.81 | 64.2 | 0 | 0.0004s |
-| | ILP (Bộ 1: $\alpha=0.7, \beta=0.3$) | 43.7% | 21.0% | 43.7% | 1.63 | **68.8** | 0 | 0.0457s |
-| | ILP (Bộ 2: $\alpha=0.4, \beta=0.6$) | **43.7%** | **23.7%** | 43.7% | **1.53** | 66.0 | 0 | 0.0431s |
-| | ILP (Bộ 3: $\alpha=0.2, \beta=0.8$) | **43.7%** | **23.7%** | 43.7% | **1.53** | 65.7 | 0 | 0.0401s |
-| **1000** | Greedy | 37.6% | 14.6% | 37.6% | 1.84 | 64.7 | 0 | 0.0015s |
-| | ILP (Bộ 1: $\alpha=0.7, \beta=0.3$) | 39.3% | 19.5% | 39.3% | 1.62 | **67.1** | 0 | 0.1367s |
-| | ILP (Bộ 2: $\alpha=0.4, \beta=0.6$) | **39.3%** | 21.5% | 39.3% | **1.52** | 65.1 | 0 | 0.1344s |
-| | ILP (Bộ 3: $\alpha=0.2, \beta=0.8$) | **39.3%** | **21.6%** | 39.3% | **1.52** | 65.0 | 0 | 0.1342s |
+<!-- BANG:rq3 -->
+(chạy python -m experiments.make_report)
+<!-- /BANG:rq3 -->
 
 **Nhận xét:**
 1. **Khả năng giải tối ưu toàn cục:** Thuật toán ILP giải quyết triệt để xung đột nguyện vọng so với Greedy. Tỷ lệ đạt NV1 của ILP cao hơn Greedy từ **45% đến 120%** (ví dụ ở $N=100$, ILP đạt $31.0\%$ so với $14.0\%$ của Greedy).
@@ -159,7 +146,7 @@ Kết quả lưu tại: `experiments/results/rq3_allocation.csv`, `experiments/r
 | :--- | :---: | :--- |
 | `rq1_ablation.csv` | CSV | Bảng số liệu Hit@5, MRR, NDCG@5 cho 9 cấu hình ablation |
 | `rq1_ablation.png` | PNG | Biểu đồ cột so sánh Hit@5, MRR, NDCG@5 giữa các cấu hình |
-| `rq2_llm_stability.csv` | CSV | Bảng số liệu MAE và Spearman so sánh Ollama, Groq và Baseline |
+| `rq2_llm_stability.csv` | CSV | Bảng số liệu MAE và Spearman so sánh Ollama và Groq (gọi API thật) |
 | `rq2_llm_stability.png` | PNG | Biểu đồ thanh lỗi (error bar) phân phối MAE và Spearman correlation |
 | `rq3_allocation.csv` | CSV | Bảng số liệu chi tiết phân công Greedy vs ILP theo 3 quy mô N |
 | `rq3_allocation_time.png` | PNG | Biểu đồ thời gian chạy (Runtime vs N) giữa Greedy và ILP |

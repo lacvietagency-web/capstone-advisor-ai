@@ -1,1 +1,1 @@
-55/100 SV có điểm M5 thật (chạy 05/10/2026, Groq hết hạn mức ngày); đang chấm bổ sung
+75/94 SV có điểm M5 thật từ LLM; còn lại M5 trống (LLM lỗi/hết hạn mức)

@@ -49,18 +49,18 @@ python -m experiments.rq1_ablation
 <!-- BANG:rq1 -->
 | Cấu hình | Hit@5 | MRR | NDCG@5 |
 | --- | --- | --- | --- |
-| Đủ M1–M5 | 0.883 | 0.827 | 0.688 |
-| Bỏ M1 (Kỹ năng) | 0.702 | 0.507 | 0.405 |
-| Bỏ M2 (Học lực) | 0.883 | 0.830 | 0.689 |
-| Bỏ M3 (Lĩnh vực) | 0.830 | 0.777 | 0.658 |
-| Bỏ M4 (Embedding) | 0.872 | 0.847 | 0.715 |
+| Đủ M1–M5 | 0.883 | 0.813 | 0.679 |
+| Bỏ M1 (Kỹ năng) | 0.692 | 0.500 | 0.395 |
+| Bỏ M2 (Học lực) | 0.883 | 0.821 | 0.682 |
+| Bỏ M3 (Lĩnh vực) | 0.830 | 0.758 | 0.640 |
+| Bỏ M4 (Embedding) | 0.872 | 0.831 | 0.701 |
 | Bỏ M5 (LLM) | 0.883 | 0.838 | 0.702 |
-| Trọng số đều | 0.872 | 0.818 | 0.667 |
+| Trọng số đều | 0.872 | 0.802 | 0.656 |
 | TF-IDF only | 0.575 | 0.398 | 0.256 |
 | Embedding only | 0.447 | 0.301 | 0.175 |
 <!-- /BANG:rq1 -->
 
-<!-- PHU:rq1 -->Độ phủ M5: 55/100 SV có điểm M5 thật (chạy 05/10/2026, Groq hết hạn mức ngày); đang chấm bổ sung<!-- /PHU:rq1 -->
+<!-- PHU:rq1 -->Độ phủ M5: 75/94 SV có điểm M5 thật từ LLM; còn lại M5 trống (LLM lỗi/hết hạn mức)<!-- /PHU:rq1 -->
 
 Kết quả lưu tại: `experiments/results/rq1_ablation.csv` và `experiments/results/rq1_ablation.png`.
 

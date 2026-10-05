@@ -66,7 +66,14 @@
     <div class="mb-3">
       <label class="form-label">Lĩnh vực chuyên môn</label>
       <div class="fields-checkbox-wrapper">
-        {{ form.fields }}
+        <div id="id_fields" class="field-chips-group">
+          {% for checkbox in form.fields %}
+            <label class="field-chip-item{% if checkbox.data.selected %} is-selected{% endif %}" for="{{ checkbox.id_for_label }}">
+              {{ checkbox.tag }}
+              <span class="chip-text">{{ checkbox.choice_label }}</span>
+            </label>
+          {% endfor %}
+        </div>
       </div>
       {% if form.fields.errors %}
         <div class="invalid-feedback d-block">
@@ -159,10 +166,21 @@
       {% for f in skill_formset %}
         <div class="skill-formset-row" data-formset-row>
           {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+
+          <!-- Mobile Row Header (gọn trên điện thoại) -->
+          <div class="skill-row-mobile-header d-flex d-md-none justify-content-between align-items-center mb-2 pb-1 border-bottom">
+            <span class="badge bg-light text-secondary border small fw-semibold">
+              <i class="bi bi-tools text-primary me-1"></i>Kỹ năng <span class="row-num-display">{{ forloop.counter }}</span>
+            </span>
+            <label class="skill-delete-mobile-label text-danger small mb-0 cursor-pointer" for="{{ f.DELETE.id_for_label }}">
+              <i class="bi bi-trash3 me-1"></i><span>Xóa</span>
+            </label>
+          </div>
+
           <div class="skill-formset-grid">
             <!-- Skill select -->
-            <div>
-              <label class="form-label d-md-none small">Kỹ năng</label>
+            <div class="skill-col-main">
+              <label class="form-label d-md-none small fw-semibold mb-1" for="{{ f.skill.id_for_label }}">Kỹ năng</label>
               {{ f.skill }}
               {% if f.skill.errors %}
                 <div class="invalid-feedback d-block small">
@@ -172,8 +190,8 @@
             </div>
 
             <!-- Required level (1-5) -->
-            <div>
-              <label class="form-label d-md-none small">Mức yêu cầu (1–5)</label>
+            <div class="skill-col-level">
+              <label class="form-label d-md-none small fw-semibold mb-1" for="{{ f.required_level.id_for_label }}">Mức (1–5)</label>
               {{ f.required_level }}
               {% if f.required_level.errors %}
                 <div class="invalid-feedback d-block small">
@@ -183,8 +201,8 @@
             </div>
 
             <!-- Weight -->
-            <div>
-              <label class="form-label d-md-none small">Trọng số</label>
+            <div class="skill-col-weight">
+              <label class="form-label d-md-none small fw-semibold mb-1" for="{{ f.weight.id_for_label }}">Trọng số</label>
               {{ f.weight }}
               {% if f.weight.errors %}
                 <div class="invalid-feedback d-block small">
@@ -194,8 +212,7 @@
             </div>
 
             <!-- Mandatory checkbox -->
-            <div>
-              <label class="form-label d-md-none small">Bắt buộc</label>
+            <div class="skill-col-mandatory">
               <div class="form-check pt-md-2">
                 {{ f.is_mandatory }}
                 <label class="form-check-label small" for="{{ f.is_mandatory.id_for_label }}">
@@ -209,14 +226,10 @@
               {% endif %}
             </div>
 
-            <!-- Delete checkbox -->
-            <div class="text-start text-md-center">
-              <label class="form-label d-md-none small text-danger">Xóa</label>
-              <div class="form-check pt-md-2 d-inline-block">
+            <!-- Delete checkbox (desktop) -->
+            <div class="skill-col-delete d-none d-md-block text-center">
+              <div class="form-check pt-2 d-inline-block">
                 {{ f.DELETE }}
-                <label class="form-check-label small text-danger d-md-none ms-1" for="{{ f.DELETE.id_for_label }}">
-                  Xóa dòng này
-                </label>
               </div>
             </div>
           </div>
@@ -244,10 +257,10 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  // Enhance form inputs with Bootstrap classes
   var form = document.getElementById("topicForm");
   if (!form) return;
 
+  // Enhance form inputs with Bootstrap classes
   var inputs = form.querySelectorAll("input[type='text'], input[type='number'], textarea");
   inputs.forEach(function (el) {
     if (!el.classList.contains("form-control")) {
@@ -269,9 +282,60 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Dynamic Skill Formset Add Row
-  var addBtn = document.getElementById("add-skill-btn");
+  // 1. Multi-select Field Chips Interactive State
+  var fieldsContainer = document.getElementById("id_fields");
+  if (fieldsContainer) {
+    function updateChip(cb) {
+      var label = cb.closest("label");
+      if (label) {
+        if (cb.checked) {
+          label.classList.add("is-selected");
+        } else {
+          label.classList.remove("is-selected");
+        }
+      }
+    }
+
+    fieldsContainer.querySelectorAll("input[type='checkbox']").forEach(function (cb) {
+      updateChip(cb);
+    });
+
+    fieldsContainer.addEventListener("change", function (e) {
+      if (e.target && e.target.type === "checkbox") {
+        updateChip(e.target);
+      }
+    });
+  }
+
+  // 2. Skill Row Delete State Sync
+  function syncDeleteRow(row) {
+    var deleteCheckbox = row.querySelector("input[name$='-DELETE']");
+    var deleteLabel = row.querySelector(".skill-delete-mobile-label span");
+    if (!deleteCheckbox) return;
+
+    if (deleteCheckbox.checked) {
+      row.classList.add("is-deleted");
+      if (deleteLabel) deleteLabel.textContent = "Hoàn tác";
+    } else {
+      row.classList.remove("is-deleted");
+      if (deleteLabel) deleteLabel.textContent = "Xóa";
+    }
+  }
+
   var container = document.getElementById("skill-formset-container");
+  if (container) {
+    container.querySelectorAll("[data-formset-row]").forEach(function (row) {
+      syncDeleteRow(row);
+      row.querySelectorAll("input[name$='-DELETE']").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          syncDeleteRow(row);
+        });
+      });
+    });
+  }
+
+  // 3. Dynamic Skill Formset Add Row
+  var addBtn = document.getElementById("add-skill-btn");
   var totalFormsInput = document.getElementById("id_skills-TOTAL_FORMS");
 
   if (addBtn && container && totalFormsInput) {
@@ -314,6 +378,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
+      // Update mobile row counter display
+      var numDisplay = newRow.querySelector(".row-num-display");
+      if (numDisplay) {
+        numDisplay.textContent = newIndex + 1;
+      }
+
+      // Reset deleted state
+      newRow.classList.remove("is-deleted");
+      var deleteLabel = newRow.querySelector(".skill-delete-mobile-label span");
+      if (deleteLabel) deleteLabel.textContent = "Xóa";
+
       // Clear any validation error messages from clone
       newRow.querySelectorAll(".invalid-feedback").forEach(function (msg) {
         msg.remove();
@@ -321,6 +396,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
       container.appendChild(newRow);
       totalFormsInput.value = currentCount + 1;
+
+      // Attach delete change listener to new row
+      syncDeleteRow(newRow);
+      newRow.querySelectorAll("input[name$='-DELETE']").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          syncDeleteRow(newRow);
+        });
+      });
     });
   }
 });

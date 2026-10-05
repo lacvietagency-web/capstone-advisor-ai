@@ -1837,56 +1837,103 @@ textarea.form-control,
     margin-bottom: 20px;
 }
 
-/* Fields Checkboxes Layout */
+/* Fields Multi-select Chips (DESIGN.md Section 15 & Tokens) */
+.field-chips-group,
+.fields-checkbox-wrapper #id_fields,
+#id_fields,
 .fields-checkbox-list {
     list-style: none;
     padding-left: 0;
-    margin-bottom: 0;
+    margin-bottom: 4px;
+    margin-top: 4px;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px 10px;
 }
 
+.field-chips-group > div,
+.fields-checkbox-wrapper #id_fields > div,
+#id_fields > div,
 .fields-checkbox-list li,
 .topic-form ul#id_fields li {
     list-style: none;
-    background: var(--white);
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-sm);
-    padding: 6px 12px;
     display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.15s ease-in-out;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
 }
 
-.fields-checkbox-list li:hover,
-.topic-form ul#id_fields li:hover {
-    border-color: var(--primary-600);
-    background-color: var(--primary-50);
-}
-
+.field-chip-item,
+.fields-checkbox-wrapper #id_fields label,
+#id_fields label,
 .fields-checkbox-list li label,
 .topic-form ul#id_fields li label {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 0;
+    padding: 8px 16px;
+    background-color: var(--white, #ffffff);
+    border: 1.5px solid var(--gray-300, #D0D5DD);
+    border-radius: var(--ca-radius-pill, 999px);
     font-size: 14px;
     font-weight: 500;
+    color: var(--ca-text, #172033);
     cursor: pointer;
-    color: var(--gray-800);
+    user-select: none;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 0;
+    min-height: 40px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
 }
 
+.field-chip-item:hover,
+.fields-checkbox-wrapper #id_fields label:hover,
+#id_fields label:hover,
+.fields-checkbox-list li label:hover,
+.topic-form ul#id_fields li label:hover {
+    border-color: var(--ca-primary-500, #2563C4);
+    background-color: var(--ca-primary-050, #F4F7FE);
+    color: var(--ca-primary-700, #174EA6);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(23, 78, 166, 0.08);
+}
+
+/* Checked / Selected Chip State */
+.field-chip-item.is-selected,
+.field-chip-item:has(input[type="checkbox"]:checked),
+.fields-checkbox-wrapper #id_fields label:has(input[type="checkbox"]:checked),
+.fields-checkbox-wrapper #id_fields label.is-checked,
+#id_fields label:has(input[type="checkbox"]:checked),
+#id_fields label.is-checked,
+.fields-checkbox-list li:has(input[type="checkbox"]:checked) label,
+.topic-form ul#id_fields li:has(input[type="checkbox"]:checked) label {
+    background-color: var(--ca-primary-soft, #E8F0FE);
+    border-color: var(--ca-primary, #174EA6);
+    color: var(--ca-primary-700, #174EA6);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px var(--ca-primary, #174EA6), 0 2px 4px rgba(23, 78, 166, 0.1);
+}
+
+.field-chip-item input[type="checkbox"],
+.fields-checkbox-wrapper #id_fields input[type="checkbox"],
+#id_fields input[type="checkbox"],
 .fields-checkbox-list li input[type="checkbox"],
 .topic-form ul#id_fields li input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    accent-color: var(--primary-800);
+    accent-color: var(--ca-primary, #174EA6);
     margin: 0;
+    cursor: pointer;
+    border-radius: 4px;
+    flex-shrink: 0;
 }
 
-/* Skill Formset (DESIGN.md Section 12) */
+.field-chip-item .chip-text {
+    line-height: 1.25;
+}
+
+/* Skill Formset (DESIGN.md Section 12 & 13) */
 .skill-formset-table-wrapper {
     background: var(--white);
     border: 1px solid var(--gray-200);
@@ -1898,7 +1945,7 @@ textarea.form-control,
     background: var(--white);
     border-bottom: 1px solid var(--gray-200);
     padding: 12px 16px;
-    transition: background-color 0.15s ease;
+    transition: all 0.15s ease;
 }
 
 .skill-formset-row:last-child {
@@ -1909,17 +1956,76 @@ textarea.form-control,
     background-color: var(--gray-50);
 }
 
+.skill-formset-row.is-deleted,
+.skill-formset-row:has(input[name$="-DELETE"]:checked) {
+    background-color: #FEF3F2 !important;
+    border-color: #FECDCA !important;
+    opacity: 0.6;
+}
+
 .skill-formset-grid {
     display: grid;
-    grid-template-columns: minmax(180px, 2fr) minmax(110px, 1.2fr) minmax(90px, 0.8fr) minmax(90px, 0.8fr) auto;
+    grid-template-columns: minmax(180px, 2.5fr) minmax(110px, 1.2fr) minmax(90px, 1fr) minmax(90px, 1fr) 60px;
     gap: 12px;
     align-items: center;
 }
 
+/* Mobile compact layout for skills (DESIGN.md Section 13 & 23) */
 @media (max-width: 767.98px) {
+    .skill-formset-table-wrapper {
+        border: none;
+        background: transparent;
+    }
+
+    .skill-formset-row {
+        background: var(--white);
+        border: 1px solid var(--ca-border, #D8DEE8);
+        border-radius: var(--ca-radius-md, 12px);
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+    }
+
     .skill-formset-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 10px;
+        align-items: start;
+    }
+
+    .skill-col-main {
+        grid-column: 1 / -1;
+    }
+
+    .skill-col-level {
+        grid-column: 1 / 2;
+    }
+
+    .skill-col-weight {
+        grid-column: 2 / 3;
+    }
+
+    .skill-col-mandatory {
+        grid-column: 1 / -1;
+        padding-top: 2px;
+    }
+
+    .skill-delete-mobile-label {
+        font-weight: 500;
+        padding: 3px 8px;
+        border-radius: var(--ca-radius-sm, 6px);
+        transition: background-color 0.15s ease;
+    }
+
+    .skill-delete-mobile-label:hover {
+        background-color: #FEE4E2;
+    }
+
+    .skill-formset-row .form-control,
+    .skill-formset-row .form-select {
+        height: 40px;
+        font-size: 14px;
+        padding: 6px 10px;
     }
 }
 
@@ -2063,21 +2169,19 @@ textarea.form-control,
     text-decoration: underline;
 }
 
-/* Sticky Action Bar on Mobile (DESIGN.md Section 13) */
+/* Action Bar on Mobile (DESIGN.md Section 16 & 17: static, not sticky) */
 @media (max-width: 575.98px) {
     .mobile-sticky-actions {
-        position: sticky;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: var(--white);
-        padding: 12px 16px;
-        border-top: 1px solid var(--gray-200);
-        box-shadow: 0 -2px 10px rgba(16, 24, 40, .05);
-        z-index: 100;
-        margin-left: -16px;
-        margin-right: -16px;
-        margin-bottom: -1.25rem;
+        position: static;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--ca-border-soft);
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
+    .mobile-sticky-actions .btn {
+        width: 100%;
+        min-height: 44px;
     }
 }
 

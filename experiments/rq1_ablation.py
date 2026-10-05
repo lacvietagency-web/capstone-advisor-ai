@@ -58,7 +58,8 @@ from recommend.engine import (  # noqa: E402
     m3_field,
     m4_semantic,
 )
-from recommend.llm import batch_score_llm  # noqa: E402
+from recommend.llm import batch_score_llm, get_cache_key  # noqa: E402
+from recommend.models import LLMScore  # noqa: E402
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
@@ -159,13 +160,15 @@ def _fill_llm_top_k(student, records, topics_by_id, k=15):
     stage1 = {k_: v for k_, v in DEFAULT_WEIGHTS.items() if k_ != "llm"}
     top = sorted(records, key=lambda r: _weighted(r["scores"], stage1), reverse=True)[:k]
     pace = float(os.getenv("LLM_PACE", "60"))  # Groq miễn phí: 8.000 token/phút ≈ 1 lượt chấm 15 đề tài/phút
-    for attempt in range(3):
-        t0 = time.time()
-        scored, _invalid = batch_score_llm(student, [topics_by_id[r["topic_id"]] for r in top])
-        if time.time() - t0 > 1:  # có gọi mạng (không phải lấy từ cache) → nghỉ cho đủ hạn mức
-            time.sleep(pace)
-        if scored or attempt == 2:
-            break
+    topics = [topics_by_id[r["topic_id"]] for r in top]
+    keys = [get_cache_key(student, t) for t in topics]
+    for _attempt in range(3):
+        all_cached = LLMScore.objects.filter(cache_key__in=keys).count() == len(keys)
+        scored, _invalid = batch_score_llm(student, topics)
+        if not all_cached:
+            time.sleep(pace)  # vừa gọi mạng (thành công hay 429) → nghỉ cho đủ hạn mức/phút
+        if len(scored) + len(_invalid) >= len(top) or all_cached:
+            break  # đủ kết quả (điểm sai rubric không chấm lại)
     for r in top:
         if r["topic_id"] in scored:
             r["scores"]["llm"] = scored[r["topic_id"]].total

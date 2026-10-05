@@ -37,7 +37,6 @@ import numpy as np
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-from django.conf import settings  # noqa: E402
 from django.core.management import call_command  # noqa: E402
 
 from catalog.models import Student, Topic  # noqa: E402
@@ -94,7 +93,7 @@ def call_llm_direct(
     """Gọi LLM trực tiếp không qua bộ nhớ đệm để kiểm tra phản hồi thực tế."""
     for _ in range(3):
         items = call_provider_with_retry(student, topics, provider, model, api_key)
-        if provider == "groq":  # Groq miễn phí: 8.000 token/phút → giãn lượt gọi
+        if provider in ("groq", "gemini"):  # API miễn phí giới hạn lượt/phút → giãn lượt gọi
             time.sleep(float(os.getenv("LLM_PACE", "30")))
         if items:
             break
@@ -276,8 +275,22 @@ def main() -> None:
     else:
         print("Dịch vụ Ollama không phản hồi trên cổng 11434.")
 
-    # 2. Groq (nếu có key hoặc mô phỏng phản biện)
-    groq_key = os.getenv("GROQ_API_KEY") or getattr(settings, "LLM_API_KEY", "")
+    # 2. Gemini (model M5 chính thức của thực nghiệm)
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    if gemini_key:
+        gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+        providers_to_test.append(
+            {
+                "provider": "gemini",
+                "model": gemini_model,
+                "api_key": gemini_key,
+                "label": f"Gemini ({gemini_model})",
+                "notes": "Gọi trực tiếp API Google Gemini",
+            }
+        )
+
+    # 3. Groq (chỉ khi có khoá Groq riêng)
+    groq_key = os.getenv("GROQ_API_KEY", "")
     if groq_key:
         providers_to_test.append(
             {

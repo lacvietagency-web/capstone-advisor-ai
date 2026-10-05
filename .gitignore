@@ -7,3 +7,4 @@ staticfiles/
 .idea/
 .vscode/
 ui-review/
+graphify-out/

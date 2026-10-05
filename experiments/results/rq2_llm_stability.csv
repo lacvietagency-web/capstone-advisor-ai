@@ -1,0 +1,4 @@
+Provider_Label,Provider,Model,Num_Evaluated,Mean_MAE,Std_MAE,Mean_Spearman,Std_Spearman,Notes
+Ollama (Qwen2.5-3B),ollama,qwen2.5:3b,30,18.03,7.58,0.3488,0.6151,Chạy thực nghiệm thực tế trên máy cục bộ
+Groq Llama-70B (Mô phỏng),groq_simulated,llama-3.3-70b-simulated,30,2.31,0.12,0.7854,0.3649,"Mô phỏng mô hình lớn 70B (ít thiên lệch vị trí, cần GROQ_API_KEY để chạy API thật)"
+Deterministic Baseline,fake,rule-deterministic,30,0.00,0.00,1.0000,0.0000,Quy tắc xác định kiểm chứng đối chứng (không bị position bias)

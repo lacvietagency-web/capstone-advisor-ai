@@ -1,0 +1,631 @@
+{% extends "base.html" %}
+
+{% block title %}Thống kê báo cáo Khoa — Capstone Advisor AI{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+  <div>
+    <h1 class="h2 mb-1">Thống kê &amp; Báo cáo Khoa</h1>
+    <p class="text-muted mb-0">Theo dõi tiến độ đăng ký nguyện vọng, phân bố đề tài/lĩnh vực, tải giảng viên và so sánh thuật toán phân công.</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <a href="{% url 'allocation_dashboard' %}" class="btn btn-outline-primary">
+      <i class="bi bi-diagram-3 me-1"></i>Điều hành phân công
+    </a>
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Về tổng quan
+    </a>
+  </div>
+</div>
+
+<!-- Bộ chọn đợt đăng ký -->
+<div class="app-card mb-4 p-3 bg-white rounded shadow-sm border">
+  <div class="row g-3 align-items-center justify-content-between">
+    <div class="col-12 col-md-6 col-lg-5">
+      <form method="get" class="d-flex align-items-center gap-2 m-0">
+        <label for="periodSelect" class="form-label mb-0 fw-semibold text-nowrap">Đợt đăng ký:</label>
+        <select name="period_id" id="periodSelect" class="form-select" onchange="this.form.submit()">
+          {% for p in periods %}
+            <option value="{{ p.pk }}" {% if period and period.pk == p.pk %}selected{% endif %}>
+              {{ p.name }} ({{ p.get_status_display }})
+            </option>
+          {% empty %}
+            <option value="">Chưa có đợt đăng ký</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+
+    {% if period %}
+    <div class="col-12 col-md-6 col-lg-7 text-md-end">
+      <span class="text-muted me-3">
+        <i class="bi bi-calendar3 me-1"></i>{{ period.start_at|date:"d/m/Y" }} – {{ period.end_at|date:"d/m/Y" }}
+      </span>
+      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+        {{ period.get_status_display }}
+      </span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Top KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="app-card p-3 bg-white rounded shadow-sm border h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-medium">Sinh viên đã đăng ký</span>
+        <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle me-1"></i>NV1–NV3</span>
+      </div>
+      <div class="h3 mb-1 text-success fw-bold">{{ reg_stats.registered_students }} <span class="fs-6 text-muted fw-normal">/ {{ reg_stats.total_students }} SV</span></div>
+      <div class="small text-muted">Chiếm <strong>{{ reg_stats.registered_rate }}%</strong> tổng số sinh viên</div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="app-card p-3 bg-white rounded shadow-sm border h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-medium">Chưa đăng ký NV</span>
+        <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-exclamation-triangle me-1"></i>Cần nhắc</span>
+      </div>
+      <div class="h3 mb-1 text-warning fw-bold">{{ reg_stats.unregistered_students }} <span class="fs-6 text-muted fw-normal">SV</span></div>
+      <div class="small text-muted">Tỉ lệ chưa nộp: <strong>{{ reg_stats.unregistered_rate }}%</strong></div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="app-card p-3 bg-white rounded shadow-sm border h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-medium">Đề tài hot nhất</span>
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-fire me-1"></i>Top 1 NV1</span>
+      </div>
+      {% if topic_nv1_list %}
+        <div class="h5 mb-1 text-truncate" title="{{ topic_nv1_list.0.title }}">{{ topic_nv1_list.0.title }}</div>
+        <div class="small text-muted">{{ topic_nv1_list.0.nv1_count }} SV chọn NV1 (sức chứa {{ topic_nv1_list.0.capacity }})</div>
+      {% else %}
+        <div class="h5 mb-1 text-muted">Chưa có dữ liệu</div>
+        <div class="small text-muted">Chưa có sinh viên chọn NV1</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="app-card p-3 bg-white rounded shadow-sm border h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-medium">So sánh tối ưu (ILP vs Greedy)</span>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-cpu me-1"></i>Solver</span>
+      </div>
+      <div class="h4 mb-1 text-primary fw-bold">{{ comparison.ilp.assigned_pct }}% <span class="fs-6 text-muted fw-normal">vs {{ comparison.greedy.assigned_pct }}%</span></div>
+      <div class="small text-muted">Chưa xếp: <strong>{{ comparison.ilp.unassigned_count }}</strong> (ILP) vs <strong>{{ comparison.greedy.unassigned_count }}</strong> (Greedy)</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1: TÌNH HÌNH ĐĂNG KÝ VÀ PHÂN BỐ LĨNH VỰC (UC17) -->
+<div class="row g-4 mb-4">
+  <!-- Biểu đồ tỷ lệ đăng ký -->
+  <div class="col-12 col-lg-5">
+    <div class="app-card p-3 bg-white rounded shadow-sm border h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0"><i class="bi bi-pie-chart me-2 text-primary"></i>Tình hình đăng ký sinh viên</h2>
+      </div>
+      <div class="chart-container position-relative" style="height: 260px;">
+        <canvas id="registrationChart"></canvas>
+      </div>
+      <div class="row g-2 mt-3 pt-3 border-top text-center">
+        <div class="col-6">
+          <div class="text-muted small">Đã đăng ký</div>
+          <div class="fw-bold text-success fs-5">{{ reg_stats.registered_students }} ({{ reg_stats.registered_rate }}%)</div>
+        </div>
+        <div class="col-6">
+          <div class="text-muted small">Chưa đăng ký</div>
+          <div class="fw-bold text-danger fs-5">{{ reg_stats.unregistered_students }} ({{ reg_stats.unregistered_rate }}%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phân bố NV1 theo lĩnh vực -->
+  <div class="col-12 col-lg-7">
+    <div class="app-card p-3 bg-white rounded shadow-sm border h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0"><i class="bi bi-bar-chart-steps me-2 text-primary"></i>Phân bố Nguyện vọng 1 theo lĩnh vực</h2>
+      </div>
+      <div class="row g-3 align-items-center">
+        <div class="col-12 col-md-7">
+          <div class="chart-container position-relative" style="height: 260px;">
+            <canvas id="fieldChart"></canvas>
+          </div>
+        </div>
+        <div class="col-12 col-md-5">
+          <div class="table-responsive" style="max-height: 260px;">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Lĩnh vực</th>
+                  <th class="text-end">NV1</th>
+                  <th class="text-end">Tỉ trọng</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for f in field_list %}
+                  {% if f.count > 0 %}
+                  <tr>
+                    <td class="text-truncate" style="max-width: 140px;" title="{{ f.field_name }}">{{ f.field_name }}</td>
+                    <td class="text-end fw-semibold">{{ f.count }}</td>
+                    <td class="text-end text-muted">{{ f.percentage }}%</td>
+                  </tr>
+                  {% endif %}
+                {% empty %}
+                  <tr>
+                    <td colspan="3" class="text-center text-muted py-3">Chưa có nguyện vọng</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: TOP ĐỀ TÀI HOT (NV1) (UC17) -->
+<div class="app-card p-3 bg-white rounded shadow-sm border mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="h5 mb-1"><i class="bi bi-fire me-2 text-danger"></i>Top đề tài "hot" nhận nhiều Nguyện vọng 1 nhất</h2>
+      <p class="text-muted small mb-0">Đề tài có số lượng sinh viên đặt làm ưu tiên số 1 nhiều nhất, thể hiện nhu cầu và mức độ cạnh tranh.</p>
+    </div>
+  </div>
+
+  <div class="row g-4 align-items-center">
+    <div class="col-12 col-lg-5">
+      <div class="chart-container position-relative" style="height: 320px;">
+        <canvas id="topicChart"></canvas>
+      </div>
+    </div>
+    <div class="col-12 col-lg-7">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 40px;">#</th>
+              <th>Tên đề tài</th>
+              <th>Giảng viên</th>
+              <th class="text-center">Chỉ tiêu</th>
+              <th class="text-center">Số NV1</th>
+              <th class="text-center">Tỉ lệ cạnh tranh</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in topic_nv1_list %}
+            <tr>
+              <td><span class="badge {% if forloop.counter <= 3 %}bg-danger{% else %}bg-secondary{% endif %}">{{ forloop.counter }}</span></td>
+              <td class="fw-medium text-break" style="max-width: 250px;">{{ item.title }}</td>
+              <td class="text-muted small">{{ item.lecturer_name }}</td>
+              <td class="text-center">{{ item.capacity }}</td>
+              <td class="text-center fw-bold text-primary">{{ item.nv1_count }}</td>
+              <td class="text-center">
+                {% if item.competition_rate > 1.0 %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ item.competition_rate }}x</span>
+                {% elif item.competition_rate == 1.0 %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">1.0x</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ item.competition_rate }}x</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">Chưa có sinh viên nào đăng ký nguyện vọng trong đợt này.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: SO SÁNH THUẬT TOÁN ILP VS GREEDY (UC21) -->
+<div class="app-card p-3 bg-white rounded shadow-sm border mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+    <div>
+      <h2 class="h5 mb-1"><i class="bi bi-shuffle me-2 text-primary"></i>So sánh thuật toán phân công: Tối ưu ILP vs Tham lam (Greedy)</h2>
+      <p class="text-muted small mb-0">Chạy mô phỏng cả hai thuật toán độc lập trên cùng dữ liệu đợt (không lưu cơ sở dữ liệu), đối chiếu hiệu năng và chất lượng thỏa mãn nguyện vọng.</p>
+    </div>
+    <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+      <i class="bi bi-info-circle me-1"></i>Chạy mô phỏng tức thời
+    </span>
+  </div>
+
+  <div class="row g-4 align-items-center">
+    <div class="col-12 col-lg-7">
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-light text-center">
+            <tr>
+              <th class="text-start">Chỉ số đánh giá chất lượng</th>
+              <th style="width: 130px;" class="text-primary"><i class="bi bi-cpu me-1"></i>ILP (Toàn cục)</th>
+              <th style="width: 130px;" class="text-secondary"><i class="bi bi-lightning me-1"></i>Greedy (Tham lam)</th>
+              <th style="width: 130px;">Ưu thế ILP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="fw-medium">Tỉ lệ đạt Nguyện vọng 1 (% NV1)</td>
+              <td class="text-center fw-bold text-primary">{{ comparison.ilp.nv1_pct }}%</td>
+              <td class="text-center text-muted">{{ comparison.greedy.nv1_pct }}%</td>
+              <td class="text-center">
+                {% if comparison.delta.nv1_pct > 0 %}
+                  <span class="text-success fw-bold">+{{ comparison.delta.nv1_pct }}%</span>
+                {% elif comparison.delta.nv1_pct == 0 %}
+                  <span class="text-muted">Bằng nhau</span>
+                {% else %}
+                  <span class="text-danger">{{ comparison.delta.nv1_pct }}%</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="fw-medium">Tỉ lệ đạt Top 3 nguyện vọng (% Top3)</td>
+              <td class="text-center fw-bold text-primary">{{ comparison.ilp.top3_pct }}%</td>
+              <td class="text-center text-muted">{{ comparison.greedy.top3_pct }}%</td>
+              <td class="text-center">
+                {% if comparison.delta.top3_pct > 0 %}
+                  <span class="text-success fw-bold">+{{ comparison.delta.top3_pct }}%</span>
+                {% elif comparison.delta.top3_pct == 0 %}
+                  <span class="text-muted">Bằng nhau</span>
+                {% else %}
+                  <span class="text-danger">{{ comparison.delta.top3_pct }}%</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="fw-medium">Số sinh viên chưa được xếp</td>
+              <td class="text-center fw-bold {% if comparison.ilp.unassigned_count == 0 %}text-success{% else %}text-danger{% endif %}">
+                {{ comparison.ilp.unassigned_count }} SV
+              </td>
+              <td class="text-center text-muted">{{ comparison.greedy.unassigned_count }} SV</td>
+              <td class="text-center">
+                {% if comparison.delta.unassigned_count < 0 %}
+                  <span class="text-success fw-bold">{{ comparison.delta.unassigned_count }} SV</span>
+                {% elif comparison.delta.unassigned_count == 0 %}
+                  <span class="text-muted">Bằng nhau</span>
+                {% else %}
+                  <span class="text-danger">+{{ comparison.delta.unassigned_count }} SV</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="fw-medium">Tỉ lệ phân công thành công</td>
+              <td class="text-center fw-bold text-primary">{{ comparison.ilp.assigned_pct }}%</td>
+              <td class="text-center text-muted">{{ comparison.greedy.assigned_pct }}%</td>
+              <td class="text-center">
+                {% if comparison.delta.assigned_pct > 0 %}
+                  <span class="text-success fw-bold">+{{ comparison.delta.assigned_pct }}%</span>
+                {% elif comparison.delta.assigned_pct == 0 %}
+                  <span class="text-muted">Bằng nhau</span>
+                {% else %}
+                  <span class="text-danger">{{ comparison.delta.assigned_pct }}%</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="fw-medium">Thứ hạng NV trung bình (Càng thấp càng tốt)</td>
+              <td class="text-center">{{ comparison.ilp.mean_rank|default:"-" }}</td>
+              <td class="text-center text-muted">{{ comparison.greedy.mean_rank|default:"-" }}</td>
+              <td class="text-center small text-muted">—</td>
+            </tr>
+            <tr>
+              <td class="fw-medium">Điểm phù hợp trung bình (AI Match Score)</td>
+              <td class="text-center fw-semibold">{{ comparison.ilp.avg_match }}</td>
+              <td class="text-center text-muted">{{ comparison.greedy.avg_match }}</td>
+              <td class="text-center">
+                {% if comparison.delta.avg_match > 0 %}
+                  <span class="text-success fw-bold">+{{ comparison.delta.avg_match }}</span>
+                {% else %}
+                  <span class="text-muted">{{ comparison.delta.avg_match }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="fw-medium">Vi phạm chỉ tiêu / sức chứa</td>
+              <td class="text-center text-success fw-bold">{{ comparison.ilp.quota_violations }}</td>
+              <td class="text-center text-success fw-bold">{{ comparison.greedy.quota_violations }}</td>
+              <td class="text-center text-success"><i class="bi bi-shield-check"></i> Tuân thủ</td>
+            </tr>
+            <tr>
+              <td class="fw-medium">Thời gian tính toán</td>
+              <td class="text-center small">{{ comparison.ilp.elapsed_time }}s</td>
+              <td class="text-center small text-muted">{{ comparison.greedy.elapsed_time }}s</td>
+              <td class="text-center small text-muted">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <div class="chart-container position-relative" style="height: 320px;">
+        <canvas id="comparisonChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: TẢI HƯỚNG DẪN CỦA GIẢNG VIÊN (UC21) -->
+<div class="app-card p-3 bg-white rounded shadow-sm border mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+    <div>
+      <h2 class="h5 mb-1"><i class="bi bi-person-workspace me-2 text-primary"></i>Tải hướng dẫn của Giảng viên (Số SV được xếp / Chỉ tiêu)</h2>
+      <p class="text-muted small mb-0">Theo dõi mức độ phân bổ sinh viên trên chỉ tiêu tối đa của từng thầy cô.</p>
+    </div>
+    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+      Nguồn: {{ load_source }}
+    </span>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="chart-container position-relative" style="height: 280px;">
+        <canvas id="lecturerChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Giảng viên</th>
+          <th>Bộ môn</th>
+          <th class="text-center">Số SV được xếp</th>
+          <th class="text-center">Chỉ tiêu tối đa</th>
+          <th style="min-width: 180px;">Tỷ lệ tải</th>
+          <th class="text-center">Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in lecturer_load %}
+        <tr>
+          <td class="fw-medium">{{ l.name }}</td>
+          <td class="text-muted small">{{ l.department }}</td>
+          <td class="text-center fw-bold">{{ l.assigned_count }}</td>
+          <td class="text-center text-muted">{{ l.capacity }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="progress flex-grow-1" style="height: 8px;">
+                <div class="progress-bar {% if l.load_rate > 100 %}bg-danger{% elif l.load_rate >= 100 %}bg-success{% elif l.load_rate > 0 %}bg-info{% else %}bg-secondary{% endif %}"
+                     role="progressbar"
+                     style="width: {% if l.load_rate > 100 %}100{% else %}{{ l.load_rate }}{% endif %}%"
+                     aria-valuenow="{{ l.load_rate }}" aria-valuemin="0" aria-valuemax="100">
+                </div>
+              </div>
+              <span class="small fw-semibold text-nowrap" style="width: 45px;">{{ l.load_rate }}%</span>
+            </div>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-{{ l.badge_class }}-subtle text-{{ l.badge_class }} border border-{{ l.badge_class }}-subtle">
+              {{ l.status }}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">Chưa có dữ liệu giảng viên.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ chart_data|json_script:"stats-data" }}
+<!-- Chart.js via CDN jsdelivr -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var dataElem = document.getElementById("stats-data");
+  if (!dataElem) return;
+
+  var statsData = JSON.parse(dataElem.textContent || "{}");
+
+  // 1. Biểu đồ tròn Tỷ lệ đăng ký (Doughnut)
+  var regCanvas = document.getElementById("registrationChart");
+  if (regCanvas && statsData.registration) {
+    new Chart(regCanvas, {
+      type: "doughnut",
+      data: {
+        labels: statsData.registration.labels,
+        datasets: [{
+          data: statsData.registration.data,
+          backgroundColor: ["#157347", "#dc3545"],
+          borderWidth: 2,
+          borderColor: "#ffffff"
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) {
+                var sum = ctx.dataset.data.reduce(function (a, b) { return a + b; }, 0);
+                var val = ctx.raw || 0;
+                var pct = sum > 0 ? ((val / sum) * 100).toFixed(1) : 0;
+                return " " + ctx.label + ": " + val + " SV (" + pct + "%)";
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 2. Biểu đồ phân bố Lĩnh vực (Bar)
+  var fieldCanvas = document.getElementById("fieldChart");
+  if (fieldCanvas && statsData.fields) {
+    new Chart(fieldCanvas, {
+      type: "bar",
+      data: {
+        labels: statsData.fields.labels,
+        datasets: [{
+          label: "Số NV1",
+          data: statsData.fields.counts,
+          backgroundColor: "#174EA6",
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          },
+          x: {
+            ticks: { maxRotation: 45, minRotation: 0 }
+          }
+        }
+      }
+    });
+  }
+
+  // 3. Biểu đồ Top đề tài hot (Horizontal Bar)
+  var topicCanvas = document.getElementById("topicChart");
+  if (topicCanvas && statsData.topics) {
+    new Chart(topicCanvas, {
+      type: "bar",
+      data: {
+        labels: statsData.topics.labels,
+        datasets: [
+          {
+            label: "Số NV1 đăng ký",
+            data: statsData.topics.counts,
+            backgroundColor: "#d93025",
+            borderRadius: 4
+          },
+          {
+            label: "Chỉ tiêu (Sức chứa)",
+            data: statsData.topics.capacities,
+            backgroundColor: "#cbd5e1",
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              title: function (items) {
+                if (!items.length) return "";
+                var idx = items[0].dataIndex;
+                return statsData.topics.full_titles[idx] || items[0].label;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
+  }
+
+  // 4. Biểu đồ so sánh ILP vs Greedy (Grouped Bar)
+  var compCanvas = document.getElementById("comparisonChart");
+  if (compCanvas && statsData.comparison) {
+    new Chart(compCanvas, {
+      type: "bar",
+      data: {
+        labels: statsData.comparison.categories,
+        datasets: [
+          {
+            label: "Tối ưu ILP",
+            data: statsData.comparison.ilp,
+            backgroundColor: "#174EA6",
+            borderRadius: 4
+          },
+          {
+            label: "Tham lam Greedy",
+            data: statsData.comparison.greedy,
+            backgroundColor: "#6c757d",
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom" }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: function (val) { return val + "%"; }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 5. Biểu đồ tải giảng viên (Bar)
+  var lecCanvas = document.getElementById("lecturerChart");
+  if (lecCanvas && statsData.lecturers) {
+    new Chart(lecCanvas, {
+      type: "bar",
+      data: {
+        labels: statsData.lecturers.labels,
+        datasets: [
+          {
+            label: "Số SV được xếp",
+            data: statsData.lecturers.assigned,
+            backgroundColor: "#1D5DB8",
+            borderRadius: 4
+          },
+          {
+            label: "Chỉ tiêu tối đa",
+            data: statsData.lecturers.capacity,
+            backgroundColor: "#e2e8f0",
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom" }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

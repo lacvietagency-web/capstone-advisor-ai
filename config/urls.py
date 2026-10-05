@@ -5,6 +5,7 @@ from django.urls import path
 from accounts.views import home, root
 from allocate import views as av
 from catalog import views as cv
+from reports import views as rv
 
 urlpatterns = [
     path("", root),
@@ -47,6 +48,7 @@ urlpatterns = [
     path("de-tai/<int:pk>/sua/", cv.lecturer_topic_edit, name="lecturer_topic_edit"),
     path("de-tai/<int:pk>/dang-ky/", cv.lecturer_registrations, name="lecturer_registrations"),
     path("khoa/phan-cong/", av.allocation_dashboard, name="allocation_dashboard"),
+    path("khoa/thong-ke/", rv.faculty_statistics, name="faculty_statistics"),
     path("ho-so-giang-vien/", cv.lecturer_profile, name="lecturer_profile"),
     path("ho-so-giang-vien/<int:pk>/", cv.lecturer_profile, name="lecturer_profile_detail"),
     path("danh-sach-de-tai/", cv.topic_list, name="topic_list"),

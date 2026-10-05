@@ -48,6 +48,16 @@ class BusinessFlowTests(TestCase):
     def login(self, user):
         self.client.login(username=user, password="123456")
 
+    def test_resaving_preferences_keeps_lecturer_decision(self):
+        """SV lưu lại nguyện vọng: đề tài giữ nguyên thì giữ kết quả GV đã duyệt; đề tài mới thì 'Chờ duyệt'."""
+        self.login("sv001")
+        t1, t2, t3 = Topic.objects.all()[:3]
+        self.client.post("/nguyen-vong/", {"nv1": t1.pk, "nv2": t2.pk})
+        Preference.objects.filter(student__user__username="sv001", topic=t1).update(status=Preference.Status.ACCEPTED)
+        self.client.post("/nguyen-vong/", {"nv1": t1.pk, "nv2": t3.pk})
+        status = dict(Preference.objects.filter(student__user__username="sv001").values_list("topic_id", "status"))
+        self.assertEqual(status, {t1.pk: Preference.Status.ACCEPTED, t3.pk: Preference.Status.PENDING})
+
     def test_student_preferences_no_duplicates(self):
         self.login("sv001")
         t1, t2 = Topic.objects.all()[:2]

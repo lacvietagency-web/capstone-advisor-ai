@@ -36,7 +36,9 @@ def home(request):
         {
             "student": student,
             "preferences": Preference.objects.filter(student=student).select_related("topic").order_by("rank"),
-            "recommendations": student.recommendations.select_related("topic").order_by("rank")[:5],
+            "recommendations": student.recommendations.filter(rank__isnull=False)
+            .select_related("topic")
+            .order_by("rank")[:5],
         },
     )
 

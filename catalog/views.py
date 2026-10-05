@@ -9,7 +9,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from recommend.models import Recommendation
-from recommend.services import refresh_student
+from recommend.services import refresh_student, score_preferences
 
 from .forms import (
     LecturerProfileForm,
@@ -102,11 +102,19 @@ def student_preferences(request):
     scores = {r.topic_id: r for r in Recommendation.objects.filter(student=st)}
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
-            Preference.objects.filter(student=st, period=period).delete()
+            old = Preference.objects.filter(student=st, period=period)
+            kept_status = dict(old.values_list("topic_id", "status"))  # GV đã duyệt đề tài nào thì giữ nguyên kết quả
+            old.delete()
             for rank in (1, 2, 3):
                 topic = form.cleaned_data.get(f"nv{rank}")
                 if topic:
-                    Preference.objects.create(student=st, period=period, topic=topic, rank=rank)
+                    Preference.objects.create(
+                        student=st,
+                        period=period,
+                        topic=topic,
+                        rank=rank,
+                        status=kept_status.get(topic.pk, Preference.Status.PENDING),
+                    )
             AuditLog.objects.create(
                 user=request.user,
                 action="set_preferences",
@@ -117,9 +125,10 @@ def student_preferences(request):
                     for r in (1, 2, 3)
                 },
             )
+        score_preferences(st)
         messages.success(request, "Đã lưu nguyện vọng.")
         return redirect("student_preferences")
-    top5 = Recommendation.objects.filter(student=st).select_related("topic").order_by("rank")[:5]
+    top5 = Recommendation.objects.filter(student=st, rank__isnull=False).select_related("topic").order_by("rank")[:5]
     return render(
         request, "catalog/student_preferences.html", {"period": period, "form": form, "top5": top5, "scores": scores}
     )

@@ -41,8 +41,16 @@ class PreferenceForm(forms.Form):
     def __init__(self, *args, topics=None, student=None, **kw):
         super().__init__(*args, **kw)
         self.student = student
+        qs = topics if topics is not None else Topic.objects.filter(status=Topic.Status.OPEN)
+        if student is not None:  # chỉ hiện đề tài SV đủ điều kiện (lọc cứng) — khỏi chọn xong mới báo lỗi
+            from recommend.engine import Profile, eligible
+
+            profile = Profile(student)
+            qs = qs.filter(
+                pk__in=[t.pk for t in qs.prefetch_related("skills", "prerequisites") if eligible(profile, t)[0]]
+            )
         for f in ("nv1", "nv2", "nv3"):
-            self.fields[f].queryset = topics if topics is not None else Topic.objects.filter(status=Topic.Status.OPEN)
+            self.fields[f].queryset = qs
 
     def clean(self):
         data = super().clean()

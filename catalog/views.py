@@ -330,6 +330,7 @@ def topic_list(request):
     for topic in page_obj:
         topic.recommendation = scores_map.get(topic.id)
         topic.match_score = topic.recommendation.final_score if topic.recommendation else None
+        topic.ineligible_reason = _ineligible_reason(student, topic)
 
     get_params = request.GET.copy()
     get_params.pop("page", None)
@@ -353,6 +354,17 @@ def topic_list(request):
     return render(request, "catalog/topic_list.html", context)
 
 
+def _ineligible_reason(student, topic):
+    """Lọc cứng cho SV đang xem: '' nếu đủ điều kiện, ngược lại là lý do (GPA / môn tiên quyết / kỹ năng bắt buộc)."""
+    if student is None:
+        return ""
+    from recommend.engine import Profile, eligible
+
+    if not hasattr(student, "_profile"):
+        student._profile = Profile(student)
+    return eligible(student._profile, topic)[1]
+
+
 def topic_detail(request, pk=None, id=None):
     """Xem chi tiết một đề tài: mô tả, kỹ năng, môn tiên quyết, sức chứa, số người đăng ký NV1."""
     topic_id = pk or id
@@ -373,6 +385,7 @@ def topic_detail(request, pk=None, id=None):
     recommendation = get_student_match_score(student, topic)
 
     context = {
+        "ineligible_reason": _ineligible_reason(student, topic),
         "topic": topic,
         "nv1_count": nv1_count,
         "is_student": is_student,

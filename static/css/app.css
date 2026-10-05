@@ -2282,3 +2282,15 @@ textarea.form-control,
     }
 }
 
+
+/* Menu không được đẩy tràn ngang khi SV có 5 mục: phần thu gọn co lại theo chỗ còn trống */
+.app-navbar .navbar-collapse {
+    min-width: 0;
+}
+
+@media (min-width: 992px) {
+    .app-navbar .nav-center-menu .nav-link {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}

@@ -67,7 +67,8 @@ class BusinessFlowTests(TestCase):
         bad = self.eligible_topics("sv001", ok=False)
         self.assertTrue(bad, "dữ liệu mẫu phải có đề tài sv001 chưa đủ điều kiện")
         r = self.client.post("/nguyen-vong/", {"nv1": bad[0].pk})
-        self.assertContains(r, "Chưa đủ điều kiện đăng ký")
+        self.assertEqual(r.status_code, 200)  # form hiện lại với lỗi (đề tài không có trong danh sách được chọn)
+        self.assertNotContains(r, f'value="{bad[0].pk}"')
         self.assertFalse(Preference.objects.filter(student__user__username="sv001", topic=bad[0]).exists())
 
     def test_resaving_preferences_keeps_lecturer_decision(self):
@@ -414,11 +415,31 @@ class TopicPermissionAndDetailTests(TestCase):
         self.assertNotContains(r_detail, "Đăng ký nguyện vọng")
         self.assertNotContains(r_detail, "Mức độ phù hợp với hồ sơ của bạn")
 
+    def pick(self, ok=True):
+        """(username, đề tài) mà SV đó đủ / chưa đủ điều kiện — dữ liệu mẫu có lọc cứng."""
+        from recommend.engine import Profile, eligible
+
+        for st in Student.objects.order_by("pk"):
+            prof = Profile(st)
+            for t in Topic.objects.filter(status=Topic.Status.OPEN).order_by("pk"):
+                if eligible(prof, t)[0] == ok:
+                    return st.user.username, t
+        self.skipTest("dữ liệu mẫu không có cặp phù hợp")
+
+    def test_ineligible_topic_hides_register_and_shows_reason(self):
+        """Đề tài SV chưa đủ điều kiện: không có nút đăng ký, hiện lý do."""
+        user, topic = self.pick(ok=False)
+        self.login(user)
+        response = self.client.get(f"/danh-sach-de-tai/{topic.id}/")
+        self.assertContains(response, "Bạn chưa đủ điều kiện đăng ký đề tài này")
+        self.assertNotContains(response, f"?topic={topic.id}")
+
     def test_student_sees_score_and_register_button(self):
         """Sinh viên đăng nhập thấy điểm phù hợp (nếu có) và nút đăng ký nguyện vọng."""
-        self.login("sv001")
-        student = Student.objects.get(user__username="sv001")
-        topic = Topic.objects.filter(status=Topic.Status.OPEN).first()
+        user, topic = self.pick()
+        self.login(user)
+        student = Student.objects.get(user__username=user)
+        Recommendation.objects.filter(student=student, topic=topic).delete()
         rec = Recommendation.objects.create(
             student=student,
             topic=topic,
@@ -438,10 +459,10 @@ class TopicPermissionAndDetailTests(TestCase):
 
     def test_student_views_topic_without_recommendation(self):
         """Sinh viên xem đề tài chưa có gợi ý vẫn thấy nút đăng ký nhưng thấy thông báo chưa có điểm."""
-        self.login("sv001")
-        student = Student.objects.get(user__username="sv001")
+        user, topic = self.pick()
+        self.login(user)
+        student = Student.objects.get(user__username=user)
         Recommendation.objects.filter(student=student).delete()
-        topic = Topic.objects.filter(status=Topic.Status.OPEN).first()
 
         response = self.client.get(f"/danh-sach-de-tai/{topic.id}/")
         self.assertEqual(response.status_code, 200)

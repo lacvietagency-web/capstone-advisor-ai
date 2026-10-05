@@ -34,7 +34,7 @@
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse justify-content-between w-100" id="navbarContent">
+        <div class="collapse navbar-collapse justify-content-between flex-grow-1" id="navbarContent">
           <!-- Navigation menu -->
           <ul class="navbar-nav mx-auto mb-2 mb-lg-0 nav-center-menu">
             {% if user.is_student %}
@@ -45,22 +45,22 @@
             </li>
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match.url_name == 'student_profile' or request.path == '/ho-so/' %}active{% endif %}" href="{% url 'student_profile' %}">
-                <i class="bi bi-person-lines-fill me-1 d-lg-none"></i>Hồ sơ năng lực
+                <i class="bi bi-person-lines-fill me-1 d-lg-none"></i>Hồ sơ
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match.url_name == 'student_preferences' or request.path == '/nguyen-vong/' %}active{% endif %}" href="{% url 'student_preferences' %}">
-                <i class="bi bi-bookmark-check me-1 d-lg-none"></i>Đăng ký nguyện vọng
+                <i class="bi bi-bookmark-check me-1 d-lg-none"></i>Nguyện vọng
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link {% if '/danh-sach-de-tai/' in request.path %}active{% endif %}" href="{% url 'topic_list' %}">
-                <i class="bi bi-collection me-1 d-lg-none"></i>Danh sách đề tài
+                <i class="bi bi-collection me-1 d-lg-none"></i>Đề tài
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link {% if '/ket-qua/' in request.path %}active{% endif %}" href="{% url 'student_allocation_result' %}">
-                <i class="bi bi-award me-1 d-lg-none"></i>Kết quả phân công
+                <i class="bi bi-award me-1 d-lg-none"></i>Kết quả
               </a>
             </li>
             {% elif user.is_lecturer %}
@@ -76,7 +76,7 @@
             </li>
             <li class="nav-item">
               <a class="nav-link {% if '/ho-so-giang-vien/' in request.path %}active{% endif %}" href="{% url 'lecturer_profile' %}">
-                <i class="bi bi-person-badge me-1 d-lg-none"></i>Hồ sơ giảng viên
+                <i class="bi bi-person-badge me-1 d-lg-none"></i>Hồ sơ
               </a>
             </li>
             {% elif user.is_faculty_admin %}

@@ -796,6 +796,117 @@ main.app-main {
     color: var(--ca-muted);
 }
 
+
+/* ==========================================================================
+   Student Preferences UI Styles (NV1-NV3 & Top 5 Recommendations)
+   Based strictly on docs/ui/DESIGN.md
+   ========================================================================== */
+
+:root {
+    --primary-900: #17345C;
+    --primary-800: #1E4678;
+    --primary-700: #245A96;
+    --primary-600: #2868AD;
+    --primary-500: #3277C3;
+    --primary-100: #EAF2FB;
+    --primary-50:  #F5F9FD;
+
+    --ai-bg: #EEF5FC;
+    --ai-border: #C9DCF2;
+    --ai-text: #1E4678;
+}
+
+/* Page Layout */
+.preferences-page {
+    width: 100%;
+}
+
+.preferences-page .page-header {
+    margin-bottom: 1.5rem;
+}
+
+/* Preference Cards & Blocks */
+.preference-block {
+    background-color: #FFFFFF;
+    border: 1px solid #E4E7EC;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+    transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.preference-block:hover {
+    border-color: #D0D5DD;
+}
+
+.preference-block.is-dragging {
+    opacity: 0.55;
+    border: 2px dashed #3277C3;
+    background-color: #F5F9FD;
+}
+
+.preference-block.drag-over {
+    border-color: #245A96;
+    background-color: #F5F9FD;
+    box-shadow: 0 0 0 2px rgba(50, 119, 195, .25);
+}
+
+.preference-number {
+    background-color: #EAF2FB;
+    color: #17345C;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 9px;
+    border-radius: 6px;
+    display: inline-block;
+    letter-spacing: 0.3px;
+}
+
+.drag-handle {
+    cursor: grab;
+    color: #98A2B3;
+    transition: color 0.15s ease;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.drag-handle:hover {
+    color: #475467;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.reorder-actions .btn {
+    min-height: 32px;
+    height: 32px;
+    width: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: #475467;
+}
+
+.reorder-actions .btn:hover {
+    background-color: #F2F4F7;
+    color: #17345C;
+    border-color: #D0D5DD;
+}
+
+/* Form Select Styling */
+.preference-field select,
+.preferences-card select.form-select {
+    min-height: 46px;
+    height: 46px;
+    border: 1px solid #D0D5DD;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #202936;
+    background-color: #FFFFFF;
 /* ==========================================================================
    Student Profile Page (/ho-so/) — DESIGN.md compliance
    ========================================================================== */
@@ -929,6 +1040,244 @@ main.app-main {
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
+.preference-field select:focus,
+.preferences-card select.form-select:focus {
+    border-color: #3277C3;
+    box-shadow: 0 0 0 3px rgba(50, 119, 195, .15);
+}
+
+.preference-field select:disabled {
+    background-color: #F2F4F7;
+    color: #667085;
+    cursor: not-allowed;
+}
+
+/* Compact Score in NV block */
+.compact-score-preview {
+    transition: all 0.2s ease;
+}
+
+.topic-score-summary {
+    background-color: #F8FAFC;
+    border: 1px solid #E4E7EC;
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+/* Score Tracks and Bars (DESIGN.md Section 50) */
+.score-track {
+    width: 100%;
+    height: 7px;
+    border-radius: 999px;
+    background-color: #EAECF0;
+    overflow: hidden;
+}
+
+.score-fill {
+    height: 100%;
+    border-radius: inherit;
+    background-color: #3277C3;
+    transition: width 0.35s ease-in-out;
+}
+
+.score-value {
+    font-weight: 700;
+    color: #17345C;
+}
+
+.score-label {
+    color: #475467;
+    font-size: 13px;
+}
+
+/* Score Badges (DESIGN.md Section 20) */
+.score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    line-height: 1.25;
+}
+
+.badge-score-high {
+    background-color: #ECFDF3;
+    color: #107647;
+    border: 1px solid #DDF7E9;
+}
+
+.badge-score-med {
+    background-color: #EEF5FC;
+    color: #1E4678;
+    border: 1px solid #C9DCF2;
+}
+
+.badge-score-fair {
+    background-color: #FFFAEB;
+    color: #946200;
+    border: 1px solid #FEF0C7;
+}
+
+.badge-score-low {
+    background-color: #F2F4F7;
+    color: #475467;
+    border: 1px solid #EAECF0;
+}
+
+/* Top 5 Recommendation Cards (DESIGN.md Section 17 & 37) */
+.topic-recommendation {
+    background-color: #FFFFFF;
+    border: 1px solid #E4E7EC;
+    border-radius: 12px;
+    padding: 18px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.topic-recommendation:hover {
+    border-color: #B8D0EA;
+    box-shadow: 0 3px 10px rgba(16, 24, 40, .06);
+}
+
+.topic-recommendation .topic-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #17202A;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.topic-recommendation .topic-meta {
+    font-size: 12.5px;
+    color: #667085;
+}
+
+.quick-select-assigned {
+    background-color: #EAF2FB;
+    color: #17345C;
+    border: 1px solid #C9DCF2;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Score Detail Card (DESIGN.md Section 39 & 42) */
+.score-detail-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E4E7EC;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, .05);
+    padding: 24px;
+    scroll-margin-top: 24px;
+}
+
+.score-factor-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E4E7EC;
+    border-radius: 10px;
+    transition: border-color 0.15s ease;
+}
+
+.score-factor-card:hover {
+    border-color: #C9DCF2;
+}
+
+.recommendation-reason {
+    background-color: #F8FAFC;
+    border-left: 3px solid #245A96;
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13.5px;
+    color: #344054;
+}
+
+.ai-disclaimer {
+    color: #667085;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+/* Toast Notification (DESIGN.md Section 18) */
+.ca-toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1090;
+    pointer-events: none;
+}
+
+.ca-toast {
+    pointer-events: auto;
+    background-color: #1E293B;
+    color: #FFFFFF;
+    padding: 12px 18px;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .25);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.ca-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Mobile 390px Optimizations (DESIGN.md Section 10, 37, 52) */
+@media (max-width: 575.98px) {
+    .preference-block {
+        padding: 14px;
+    }
+
+    .topic-recommendation {
+        padding: 14px;
+    }
+
+    .topic-recommendation .btn {
+        width: 100%;
+        min-height: 44px;
+    }
+
+    .quick-select-container {
+        width: 100%;
+    }
+
+    .quick-select-container .btn,
+    .quick-select-container .quick-select-assigned {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+    }
+
+    .topic-recommendation .d-flex.flex-wrap.align-items-center.justify-content-between {
+        flex-direction: column;
+        gap: 8px !important;
+    }
+
+    .score-detail-card {
+        padding: 16px;
+    }
+
+    .ca-toast-container {
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
+    }
+
+    .ca-toast {
+        width: 100%;
+    }
 .profile-page select:focus,
 .profile-page input[type="text"]:focus,
 .profile-page input[type="number"]:focus,

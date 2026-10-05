@@ -47,10 +47,20 @@ python -m experiments.rq1_ablation
 
 **Bảng kết quả thực nghiệm:**
 <!-- BANG:rq1 -->
-(chạy python -m experiments.make_report)
+| Cấu hình | Hit@5 | MRR | NDCG@5 |
+| --- | --- | --- | --- |
+| Đủ M1–M5 | 0.883 | 0.827 | 0.688 |
+| Bỏ M1 (Kỹ năng) | 0.702 | 0.507 | 0.405 |
+| Bỏ M2 (Học lực) | 0.883 | 0.830 | 0.689 |
+| Bỏ M3 (Lĩnh vực) | 0.830 | 0.777 | 0.658 |
+| Bỏ M4 (Embedding) | 0.872 | 0.847 | 0.715 |
+| Bỏ M5 (LLM) | 0.883 | 0.838 | 0.702 |
+| Trọng số đều | 0.872 | 0.818 | 0.667 |
+| TF-IDF only | 0.575 | 0.398 | 0.256 |
+| Embedding only | 0.447 | 0.301 | 0.175 |
 <!-- /BANG:rq1 -->
 
-<!-- PHU:rq1 --><!-- /PHU:rq1 -->
+<!-- PHU:rq1 -->Độ phủ M5: 55/100 SV có điểm M5 thật (chạy 05/10/2026, Groq hết hạn mức ngày); đang chấm bổ sung<!-- /PHU:rq1 -->
 
 Kết quả lưu tại: `experiments/results/rq1_ablation.csv` và `experiments/results/rq1_ablation.png`.
 
@@ -84,7 +94,7 @@ python -m experiments.rq2_llm_stability --students 30 --topics-per-student 3
 
 **Bảng tổng hợp độ ổn định LLM:**
 <!-- BANG:rq2 -->
-(chạy python -m experiments.make_report)
+_Chưa có số liệu: đang đo lại bằng API thật (Groq + Ollama) ngày 06/10/2026 sau khi hạn mức Groq hồi._
 <!-- /BANG:rq2 -->
 
 > Mọi dòng trong bảng RQ2 là lượt gọi API thật. Không có số liệu mô phỏng: provider nào thiếu khoá thì bị bỏ qua, không thay bằng số giả.
@@ -125,7 +135,20 @@ python -m experiments.rq3_allocation
 
 **Bảng so sánh hiệu năng và chất lượng:**
 <!-- BANG:rq3 -->
-(chạy python -m experiments.make_report)
+| N | Cấu hình | Tỷ lệ xếp | Đạt NV1 | Thứ hạng NV TB | Điểm phù hợp TB | P10 điểm | Vi phạm | Thời gian (s) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 100 | Greedy | 50.0% | 14.0% | 1.96 | 66.5 | 44.5 | 0 | 0.0001 |
+| 100 | ILP (Bộ 1 (Ưu tiên điểm phù hợp)) | 51.0% | 28.0% | 1.63 | 72.7 | 52.0 | 0 | 0.0167 |
+| 100 | ILP (Bộ 2 (Cân bằng mặc định)) | 51.0% | 31.0% | 1.53 | 70.5 | 47.2 | 0 | 0.0149 |
+| 100 | ILP (Bộ 3 (Ưu tiên nguyện vọng)) | 51.0% | 31.0% | 1.53 | 70.5 | 47.2 | 0 | 0.0150 |
+| 300 | Greedy | 43.0% | 15.0% | 1.96 | 64.2 | 42.1 | 0 | 0.0003 |
+| 300 | ILP (Bộ 1 (Ưu tiên điểm phù hợp)) | 43.7% | 21.0% | 1.74 | 68.8 | 46.8 | 0 | 0.0374 |
+| 300 | ILP (Bộ 2 (Cân bằng mặc định)) | 43.7% | 23.7% | 1.63 | 66.0 | 42.1 | 0 | 0.0354 |
+| 300 | ILP (Bộ 3 (Ưu tiên nguyện vọng)) | 43.7% | 23.7% | 1.62 | 65.7 | 42.1 | 0 | 0.0408 |
+| 1000 | Greedy | 37.6% | 14.6% | 1.87 | 64.7 | 42.5 | 0 | 0.0012 |
+| 1000 | ILP (Bộ 1 (Ưu tiên điểm phù hợp)) | 39.3% | 19.5% | 1.69 | 67.1 | 46.3 | 0 | 0.1212 |
+| 1000 | ILP (Bộ 2 (Cân bằng mặc định)) | 39.3% | 21.5% | 1.61 | 65.1 | 44.7 | 0 | 0.1199 |
+| 1000 | ILP (Bộ 3 (Ưu tiên nguyện vọng)) | 39.3% | 21.6% | 1.61 | 65.0 | 44.3 | 0 | 0.1192 |
 <!-- /BANG:rq3 -->
 
 **Nhận xét:**

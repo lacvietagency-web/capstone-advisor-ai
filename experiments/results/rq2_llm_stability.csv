@@ -2,3 +2,4 @@ Provider_Label,Provider,Model,Num_Evaluated,Mean_MAE,Std_MAE,Mean_Spearman,Std_S
 Ollama (Qwen2.5-3B),ollama,qwen2.5:3b,29,16.65,8.16,-0.1796,0.2982,Chạy thực nghiệm thực tế trên máy cục bộ
 Groq (openai/gpt-oss-20b),groq,openai/gpt-oss-20b,30,10.34,4.86,0.7095,0.2261,Gọi trực tiếp API Groq Cloud
 Groq (qwen/qwen3.8-27b),groq,qwen/qwen3.8-27b,9,6.17,1.94,0.8784,0.0900,Gọi trực tiếp API Groq Cloud
+Groq (openai/gpt-oss-120b),groq,openai/gpt-oss-120b,30,7.92,3.18,0.8231,0.1098,Gọi trực tiếp API Groq Cloud

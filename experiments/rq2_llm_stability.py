@@ -1,0 +1,358 @@
+"""Thực nghiệm RQ2: Đánh giá độ ổn định của LLM (M5) trước hiện tượng thiên lệch vị trí.
+
+Mục tiêu:
+Đo lường tính nhất quán của mô hình ngôn ngữ lớn (M5) khi chấm điểm theo rubric 100 điểm
+bằng cách gửi danh sách đề tài theo 2 thứ tự khác nhau (thứ tự thuận vs thứ tự đảo ngược).
+
+Hiện tượng khảo sát: Position Bias (thiên lệch thứ tự xuất hiện trong prompt).
+Thực hiện trên 30 sinh viên. Với mỗi sinh viên, lấy K đề tài ứng viên,
+chấm điểm 2 lần với 2 hoán vị thứ tự đề tài khác nhau trong prompt.
+
+Các chỉ số đo lường:
+1. Mean Absolute Error (MAE):
+   MAE = (1 / K) * sum_{k=1}^K |y_1(k) - y_2(k)|
+   Đo độ biến thiên tuyệt đối của điểm số (thang 0–100).
+2. Hệ số tương quan thứ hạng Spearman (Spearman rho):
+   rho = 1 - (6 * sum(d_k^2)) / (K * (K^2 - 1))
+   Đo mức độ bảo toàn thứ tự ưu tiên giữa các đề tài giữa 2 lần chấm.
+
+So sánh nhà cung cấp (Providers):
+- Ollama (cục bộ): mô hình qwen2.5:3b (chạy nội bộ tại máy chủ).
+- Groq (đám mây): mô hình llama-3.3-70b-versatile (yêu cầu GROQ_API_KEY / LLM_API_KEY).
+"""
+
+import argparse
+import csv
+import os
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+import django
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Thiết lập môi trường Django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+django.setup()
+
+from django.core.management import call_command  # noqa: E402
+
+from catalog.models import Student, Topic  # noqa: E402
+from experiments.metrics import compute_mae, compute_spearman  # noqa: E402
+from recommend.engine import Profile, eligible  # noqa: E402
+from recommend.llm import call_provider_with_retry  # noqa: E402
+
+RESULTS_DIR = Path(__file__).resolve().parent / "results"
+
+
+def ensure_students_topics(num_students: int = 30) -> tuple[list[Student], list[Topic]]:
+    """Đảm bảo cơ sở dữ liệu có đủ sinh viên và đề tài để thực hiện thực nghiệm."""
+    if Student.objects.count() < num_students or Topic.objects.count() < 10:
+        print(f"Cơ sở dữ liệu chưa đủ {num_students} sinh viên, đang khởi tạo bằng seed_demo...")
+        call_command("seed_demo", students=max(100, num_students), seed=42, verbosity=0)
+
+    students = list(Student.objects.all().prefetch_related("interests", "skills")[:num_students])
+    topics = list(Topic.objects.all().prefetch_related("fields", "skills__skill", "prerequisites"))
+    return students, topics
+
+
+def is_ollama_available(url: str = "http://localhost:11434/api/tags") -> bool:
+    """Kiểm tra dịch vụ Ollama cục bộ có đang hoạt động hay không."""
+    try:
+        req = urllib.request.Request(url, method="GET")
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            return resp.status == 200
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return False
+
+
+def get_candidate_topics(student: Student, topics: list[Topic], k: int = 4) -> list[Topic]:
+    """Chọn K đề tài đủ điều kiện cứng làm ứng viên cho sinh viên."""
+    profile = Profile(student)
+    valid_topics = []
+    for t in topics:
+        is_ok, _ = eligible(profile, t)
+        if is_ok:
+            valid_topics.append(t)
+        if len(valid_topics) >= k * 2:
+            break
+    if len(valid_topics) < k:
+        valid_topics = list(topics[:k])
+    return valid_topics[:k]
+
+
+def call_llm_direct(
+    student: Student,
+    topics: list[Topic],
+    provider: str,
+    model: str,
+    api_key: str,
+) -> dict[int, float]:
+    """Gọi LLM trực tiếp không qua bộ nhớ đệm để kiểm tra phản hồi thực tế."""
+    for _ in range(3):
+        items = call_provider_with_retry(student, topics, provider, model, api_key)
+        if provider in ("groq", "gemini", "omniroute"):  # API miễn phí giới hạn lượt/phút → giãn lượt gọi
+            time.sleep(float(os.getenv("LLM_PACE", "30")))
+        if items:
+            break
+    if not items:
+        return {}
+    scores = {}
+    for item in items:
+        try:
+            t_id = int(item["topic_id"])
+            scores[t_id] = float(item["total"])
+        except (KeyError, ValueError, TypeError):
+            continue
+    return scores
+
+
+def evaluate_single_student(
+    student: Student,
+    candidate_topics: list[Topic],
+    provider: str,
+    model: str,
+    api_key: str,
+) -> tuple[float, float] | None:
+    """Chạy 2 lần chấm với 2 thứ tự khác nhau cho 1 sinh viên, tính MAE và Spearman."""
+    order1 = list(candidate_topics)
+    order2 = list(reversed(candidate_topics))
+
+    res1 = call_llm_direct(student, order1, provider, model, api_key)
+    res2 = call_llm_direct(student, order2, provider, model, api_key)
+
+    common_ids = [t.id for t in candidate_topics if t.id in res1 and t.id in res2]
+    if len(common_ids) < 2:
+        return None
+
+    y1 = [res1[tid] for tid in common_ids]
+    y2 = [res2[tid] for tid in common_ids]
+
+    mae = compute_mae(y1, y2)
+    spearman = compute_spearman(y1, y2)
+    return mae, spearman
+
+
+def run_stability_benchmark(
+    students: list[Student],
+    topics: list[Topic],
+    provider_config: dict,
+    k: int = 4,
+) -> dict:
+    """Đo lường độ ổn định cho một nhà cung cấp LLM trên toàn bộ tập sinh viên."""
+    provider = provider_config["provider"]
+    model = provider_config["model"]
+    api_key = provider_config["api_key"]
+    label = provider_config["label"]
+
+    maes, spearmans = [], []
+    print(f"-> Đang đánh giá {label} ({provider}:{model}) trên {len(students)} SV (K={k})...")
+
+    for idx, student in enumerate(students, start=1):
+        candidates = get_candidate_topics(student, topics, k=k)
+        result = evaluate_single_student(student, candidates, provider, model, api_key)
+        if result is not None:
+            mae, spearman = result
+            maes.append(mae)
+            spearmans.append(spearman)
+        if idx % 10 == 0 or idx == len(students):
+            print(f"   Tiến độ: {idx}/{len(students)} sinh viên hoàn thành.")
+
+    mean_mae = float(np.mean(maes)) if maes else 0.0
+    std_mae = float(np.std(maes)) if maes else 0.0
+    mean_sp = float(np.mean(spearmans)) if spearmans else 1.0
+    std_sp = float(np.std(spearmans)) if spearmans else 0.0
+
+    return {
+        "Provider_Label": label,
+        "Provider": provider,
+        "Model": model,
+        "Num_Evaluated": len(maes),
+        "Mean_MAE": mean_mae,
+        "Std_MAE": std_mae,
+        "Mean_Spearman": mean_sp,
+        "Std_Spearman": std_sp,
+        "Raw_MAEs": maes,
+        "Raw_Spearmans": spearmans,
+        "Notes": provider_config.get("notes", ""),
+    }
+
+
+def _load_previous(csv_path: Path) -> list[dict]:
+    """Đọc các dòng RQ2 đã có (khi RQ2_KEEP=1) để đo bổ sung model mới mà không phải đo lại model cũ."""
+    if os.getenv("RQ2_KEEP") != "1" or not csv_path.exists():
+        return []
+    rows = []
+    with open(csv_path, encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            for k in ("Mean_MAE", "Std_MAE", "Mean_Spearman", "Std_Spearman"):
+                r[k] = float(r[k])
+            r["Num_Evaluated"] = int(r["Num_Evaluated"])
+            rows.append(r)
+    return rows
+
+
+def export_rq2_results(results: list[dict], csv_path: Path, png_path: Path) -> None:
+    """Xuất bảng tổng hợp kết quả RQ2 ra CSV và vẽ biểu đồ trực quan hóa."""
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # 1. Ghi file CSV
+    with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
+        fieldnames = [
+            "Provider_Label",
+            "Provider",
+            "Model",
+            "Num_Evaluated",
+            "Mean_MAE",
+            "Std_MAE",
+            "Mean_Spearman",
+            "Std_Spearman",
+            "Notes",
+        ]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for r in results:
+            writer.writerow(
+                {
+                    "Provider_Label": r["Provider_Label"],
+                    "Provider": r["Provider"],
+                    "Model": r["Model"],
+                    "Num_Evaluated": r["Num_Evaluated"],
+                    "Mean_MAE": f"{r['Mean_MAE']:.2f}",
+                    "Std_MAE": f"{r['Std_MAE']:.2f}",
+                    "Mean_Spearman": f"{r['Mean_Spearman']:.4f}",
+                    "Std_Spearman": f"{r['Std_Spearman']:.4f}",
+                    "Notes": r["Notes"],
+                }
+            )
+    print(f"Đã lưu kết quả CSV: {csv_path}")
+
+    # 2. Vẽ biểu đồ Matplotlib so sánh MAE và Spearman
+    labels = [r["Provider_Label"] for r in results]
+    maes = [r["Mean_MAE"] for r in results]
+    mae_errs = [r["Std_MAE"] for r in results]
+    spearmans = [r["Mean_Spearman"] for r in results]
+    sp_errs = [r["Std_Spearman"] for r in results]
+
+    x = np.arange(len(labels))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
+
+    # Cột 1: MAE
+    ax1.bar(x, maes, yerr=mae_errs, capsize=5, color="#e74c3c", alpha=0.85, width=0.45)
+    ax1.set_title("Độ lệch điểm trung bình (MAE) khi đổi thứ tự đề tài", fontsize=11, fontweight="bold")
+    ax1.set_ylabel("MAE (thang điểm 0–100, càng nhỏ càng tốt)", fontsize=10)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(labels, fontsize=10)
+    ax1.grid(axis="y", linestyle="--", alpha=0.5)
+
+    # Cột 2: Spearman Correlation
+    ax2.bar(x, spearmans, yerr=sp_errs, capsize=5, color="#2ecc71", alpha=0.85, width=0.45)
+    ax2.set_title("Hệ số tương quan thứ hạng Spearman khi đổi thứ tự", fontsize=11, fontweight="bold")
+    ax2.set_ylabel("Spearman rho (-1.0 đến 1.0, càng gần 1.0 càng tốt)", fontsize=10)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(labels, fontsize=10)
+    ax2.set_ylim(-0.1, 1.1)
+    ax2.grid(axis="y", linestyle="--", alpha=0.5)
+
+    plt.suptitle("RQ2: Đánh giá độ ổn định của LLM (M5) trước hiện tượng Position Bias", fontsize=13, fontweight="bold")
+    plt.tight_layout()
+    plt.savefig(png_path, dpi=300)
+    plt.close()
+    print(f"Đã lưu biểu đồ PNG: {png_path}")
+
+
+def main() -> None:
+    """Hàm thực thi chính của kịch bản RQ2."""
+    parser = argparse.ArgumentParser(description="Chạy thực nghiệm RQ2: Độ ổn định LLM")
+    parser.add_argument("--students", type=int, default=30, help="Số lượng SV (mặc định 30)")
+    parser.add_argument("--topics-per-student", type=int, default=4, help="Số đề tài mỗi SV (mặc định 4)")
+    args = parser.parse_args()
+
+    students, topics = ensure_students_topics(num_students=args.students)
+
+    providers_to_test = []
+
+    # 1. Ollama (nếu có)
+    ollama_ok = is_ollama_available() and os.getenv("RQ2_SKIP_OLLAMA") != "1"
+    if ollama_ok:
+        providers_to_test.append(
+            {
+                "provider": "ollama",
+                "model": "qwen2.5:3b",
+                "api_key": "",
+                "label": "Ollama (Qwen2.5-3B)",
+                "notes": "Chạy thực nghiệm thực tế trên máy cục bộ",
+            }
+        )
+    else:
+        print("Dịch vụ Ollama không phản hồi trên cổng 11434.")
+
+    # 2. Gemini (model M5 chính thức của thực nghiệm)
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    if gemini_key:
+        gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+        providers_to_test.append(
+            {
+                "provider": "gemini",
+                "model": gemini_model,
+                "api_key": gemini_key,
+                "label": f"Gemini ({gemini_model})",
+                "notes": "Gọi trực tiếp API Google Gemini",
+            }
+        )
+
+    # 3. OmniRoute: mỗi model trong RQ2_MODELS (provider/model của OmniRoute) là một dòng so sánh;
+    #    mặc định gpt-oss-120b (model M5) qua combo. Mọi lượt đều là gọi API thật.
+    omni_key = os.getenv("OMNIROUTE_API_KEY", "")
+    if omni_key:
+        for omni_model in [m.strip() for m in os.getenv("RQ2_MODELS", "gptoss120").split(",") if m.strip()]:
+            providers_to_test.append(
+                {
+                    "provider": "omniroute",
+                    "model": omni_model,
+                    "api_key": omni_key,
+                    "label": omni_model,
+                    "notes": "Gọi qua cổng OmniRoute cục bộ",
+                }
+            )
+
+    # 4. Groq gọi thẳng (OmniRoute → Groq bị tường lửa Groq chặn với prompt dài, 403): mỗi model trong RQ2_GROQ_MODELS
+    groq_key = os.getenv("GROQ_API_KEY", "")
+    if groq_key:
+        for gm in [m.strip() for m in os.getenv("RQ2_GROQ_MODELS", "openai/gpt-oss-120b").split(",") if m.strip()]:
+            providers_to_test.append(
+                {
+                    "provider": "groq",
+                    "model": gm,
+                    "api_key": groq_key,
+                    "label": f"Groq ({gm})",
+                    "notes": "Gọi trực tiếp API Groq Cloud",
+                }
+            )
+
+    all_results = _load_previous(RESULTS_DIR / "rq2_llm_stability.csv")  # model đã đo ở lượt trước được giữ lại
+    for p_cfg in providers_to_test:
+        res = run_stability_benchmark(students, topics, p_cfg, k=args.topics_per_student)
+        if res["Num_Evaluated"] == 0:
+            print(f"   (bỏ qua {res['Provider_Label']}: không đo được SV nào — API lỗi/hết hạn mức)")
+            continue
+        all_results = [r for r in all_results if r["Model"] != res["Model"]] + [res]
+        # lưu ngay sau mỗi model: lượt chạy bị dừng giữa chừng không làm mất model đã đo xong
+        export_rq2_results(all_results, RESULTS_DIR / "rq2_llm_stability.csv", RESULTS_DIR / "rq2_llm_stability.png")
+
+    print("\n--- BẢNG TỔNG HỢP KẾT QUẢ RQ2 ---")
+    for r in all_results:
+        print(
+            f"{r['Provider_Label']:<25} | "
+            f"MAE: {r['Mean_MAE']:.2f} ± {r['Std_MAE']:.2f} | "
+            f"Spearman: {r['Mean_Spearman']:.4f} ± {r['Std_Spearman']:.4f} | "
+            f"SV: {r['Num_Evaluated']}"
+        )
+
+    export_rq2_results(all_results, RESULTS_DIR / "rq2_llm_stability.csv", RESULTS_DIR / "rq2_llm_stability.png")
+
+
+if __name__ == "__main__":
+    main()

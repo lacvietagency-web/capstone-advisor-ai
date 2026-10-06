@@ -97,9 +97,11 @@ python -m experiments.rq2_llm_stability --students 30 --topics-per-student 3
 | Nhà cung cấp | Mô hình | Số SV | MAE (TB ± ĐLC) | Spearman ρ (TB ± ĐLC) |
 | --- | --- | --- | --- | --- |
 | Ollama (Qwen2.5-3B) | `qwen2.5:3b` | 29 | 16.65 ± 8.16 | -0.180 ± 0.298 |
+| Groq (openai/gpt-oss-20b) | `openai/gpt-oss-20b` | 30 | 10.34 ± 4.86 | 0.710 ± 0.226 |
+| Groq (qwen/qwen3.8-27b) | `qwen/qwen3.8-27b` | 9 | 6.17 ± 1.94 | 0.878 ± 0.090 |
 <!-- /BANG:rq2 -->
 
-> Ngày 05/10 mới đo được Ollama (chạy tại máy). Groq gpt-oss-120b đo ngày 07/10 khi hạn mức hồi (bảng tự cập nhật).
+> Mọi dòng là gọi API thật; "Số SV" là số SV đo được (API miễn phí giới hạn lượt/phút nên có model đo được ít hơn). Nemotron-550B (OpenRouter) không phản hồi kịp lượt nào nên không có dòng. gpt-oss-120b (model M5) đo bổ sung khi hạn mức Groq hồi.
 
 > Mọi dòng trong bảng RQ2 là lượt gọi API thật. Không có số liệu mô phỏng: provider nào thiếu khoá thì bị bỏ qua, không thay bằng số giả.
 

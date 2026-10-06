@@ -180,6 +180,20 @@ def run_stability_benchmark(
     }
 
 
+def _load_previous(csv_path: Path) -> list[dict]:
+    """Đọc các dòng RQ2 đã có (khi RQ2_KEEP=1) để đo bổ sung model mới mà không phải đo lại model cũ."""
+    if os.getenv("RQ2_KEEP") != "1" or not csv_path.exists():
+        return []
+    rows = []
+    with open(csv_path, encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            for k in ("Mean_MAE", "Std_MAE", "Mean_Spearman", "Std_Spearman"):
+                r[k] = float(r[k])
+            r["Num_Evaluated"] = int(r["Num_Evaluated"])
+            rows.append(r)
+    return rows
+
+
 def export_rq2_results(results: list[dict], csv_path: Path, png_path: Path) -> None:
     """Xuất bảng tổng hợp kết quả RQ2 ra CSV và vẽ biểu đồ trực quan hóa."""
     csv_path.parent.mkdir(parents=True, exist_ok=True)
@@ -261,7 +275,7 @@ def main() -> None:
     providers_to_test = []
 
     # 1. Ollama (nếu có)
-    ollama_ok = is_ollama_available()
+    ollama_ok = is_ollama_available() and os.getenv("RQ2_SKIP_OLLAMA") != "1"
     if ollama_ok:
         providers_to_test.append(
             {
@@ -289,39 +303,44 @@ def main() -> None:
             }
         )
 
-    # 3. OmniRoute: cùng model gpt-oss-120b qua nhiều nhà cung cấp (Cloudflare → Tinfoil → Groq), tự chuyển khi hết lượt
+    # 3. OmniRoute: mỗi model trong RQ2_MODELS (provider/model của OmniRoute) là một dòng so sánh;
+    #    mặc định gpt-oss-120b (model M5) qua combo. Mọi lượt đều là gọi API thật.
     omni_key = os.getenv("OMNIROUTE_API_KEY", "")
     if omni_key:
-        omni_model = os.getenv("OMNIROUTE_MODEL", "gptoss120")
-        providers_to_test.append(
-            {
-                "provider": "omniroute",
-                "model": omni_model,
-                "api_key": omni_key,
-                "label": f"gpt-oss-120b qua OmniRoute ({omni_model})",
-                "notes": "Cổng OmniRoute cục bộ, combo nhiều nhà cung cấp cùng model",
-            }
-        )
+        for omni_model in [m.strip() for m in os.getenv("RQ2_MODELS", "gptoss120").split(",") if m.strip()]:
+            providers_to_test.append(
+                {
+                    "provider": "omniroute",
+                    "model": omni_model,
+                    "api_key": omni_key,
+                    "label": omni_model,
+                    "notes": "Gọi qua cổng OmniRoute cục bộ",
+                }
+            )
 
-    # 4. Groq (chỉ khi có khoá Groq riêng)
+    # 4. Groq gọi thẳng (OmniRoute → Groq bị tường lửa Groq chặn với prompt dài, 403): mỗi model trong RQ2_GROQ_MODELS
     groq_key = os.getenv("GROQ_API_KEY", "")
     if groq_key:
-        providers_to_test.append(
-            {
-                "provider": "groq",
-                "model": os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
-                "api_key": groq_key,
-                "label": "Groq (" + os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") + ")",
-                "notes": "Gọi trực tiếp API Groq Cloud",
-            }
-        )
-    else:
-        print("Chưa có khoá Groq (GROQ_API_KEY) → bỏ qua Groq. KHÔNG dùng số mô phỏng.")
+        for gm in [m.strip() for m in os.getenv("RQ2_GROQ_MODELS", "openai/gpt-oss-120b").split(",") if m.strip()]:
+            providers_to_test.append(
+                {
+                    "provider": "groq",
+                    "model": gm,
+                    "api_key": groq_key,
+                    "label": f"Groq ({gm})",
+                    "notes": "Gọi trực tiếp API Groq Cloud",
+                }
+            )
 
-    all_results = []
+    all_results = _load_previous(RESULTS_DIR / "rq2_llm_stability.csv")  # model đã đo ở lượt trước được giữ lại
     for p_cfg in providers_to_test:
         res = run_stability_benchmark(students, topics, p_cfg, k=args.topics_per_student)
-        all_results.append(res)
+        if res["Num_Evaluated"] == 0:
+            print(f"   (bỏ qua {res['Provider_Label']}: không đo được SV nào — API lỗi/hết hạn mức)")
+            continue
+        all_results = [r for r in all_results if r["Model"] != res["Model"]] + [res]
+        # lưu ngay sau mỗi model: lượt chạy bị dừng giữa chừng không làm mất model đã đo xong
+        export_rq2_results(all_results, RESULTS_DIR / "rq2_llm_stability.csv", RESULTS_DIR / "rq2_llm_stability.png")
 
     print("\n--- BẢNG TỔNG HỢP KẾT QUẢ RQ2 ---")
     for r in all_results:

@@ -66,72 +66,121 @@
   </div>
 </div>
 
-<!-- Top KPI Cards -->
-<div class="row g-3 mb-4">
-  <div class="col-12 col-sm-6 col-lg-3">
-    <div class="kpi-card">
-      <div class="kpi-card-header">
-        <span class="kpi-card-label">Sinh viên đã đăng ký</span>
+<!-- Top KPI: Fused Metric Ribbon Dock (layout|fused-metric-ribbon-dock) -->
+<section class="fused-ribbon-dock mb-4" aria-label="Các chỉ số tổng quan đợt đăng ký">
+  <div class="fused-ribbon-grid">
+    <!-- Cell 1: Sinh viên đã đăng ký -->
+    <div class="fused-ribbon-cell">
+      <div class="fused-cell-header">
+        <span class="fused-cell-label">
+          SV đã đăng ký
+          <button type="button" class="metric-info-btn" data-popover-title="Sinh viên đã đăng ký" data-popover-content="Số sinh viên đã nộp ít nhất 1 nguyện vọng trong đợt này trên tổng số sinh viên trong hệ thống." aria-label="Giải thích chỉ số SV đã đăng ký">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </span>
         <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle me-1"></i>NV1–NV3</span>
       </div>
-      <div class="kpi-card-value text-success">{{ reg_stats.registered_students }} <span class="fs-6 text-muted fw-normal">/ {{ reg_stats.total_students }} SV</span></div>
-      <div class="kpi-card-sub">Chiếm <strong>{{ reg_stats.registered_rate }}%</strong> tổng số sinh viên</div>
+      <div class="fused-cell-value text-success">
+        {{ reg_stats.registered_students }} <span class="fs-6 text-muted fw-normal">/ {{ reg_stats.total_students }} SV</span>
+      </div>
+      <div class="fused-cell-sub">
+        Chiếm <strong>{{ reg_stats.registered_rate }}%</strong> tổng số sinh viên
+      </div>
     </div>
-  </div>
 
-  <div class="col-12 col-sm-6 col-lg-3">
-    <div class="kpi-card">
-      <div class="kpi-card-header">
-        <span class="kpi-card-label">Chưa đăng ký NV</span>
+    <!-- Cell 2: Chưa đăng ký NV -->
+    <div class="fused-ribbon-cell">
+      <div class="fused-cell-header">
+        <span class="fused-cell-label">
+          Chưa đăng ký NV
+          <button type="button" class="metric-info-btn" data-popover-title="Chưa đăng ký nguyện vọng" data-popover-content="Sinh viên chưa nộp bất kỳ nguyện vọng nào trong đợt hiện tại. Giáo vụ có thể gửi email hoặc thông báo nhắc nhở trước khi đợt đóng." aria-label="Giải thích chỉ số chưa đăng ký">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </span>
         <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-exclamation-triangle me-1"></i>Cần nhắc</span>
       </div>
-      <div class="kpi-card-value text-warning">{{ reg_stats.unregistered_students }} <span class="fs-6 text-muted fw-normal">SV</span></div>
-      <div class="kpi-card-sub">Tỉ lệ chưa nộp: <strong>{{ reg_stats.unregistered_rate }}%</strong></div>
+      <div class="fused-cell-value text-warning">
+        {{ reg_stats.unregistered_students }} <span class="fs-6 text-muted fw-normal">SV</span>
+      </div>
+      <div class="fused-cell-sub">
+        Tỉ lệ chưa nộp: <strong>{{ reg_stats.unregistered_rate }}%</strong>
+      </div>
     </div>
-  </div>
 
-  <div class="col-12 col-sm-6 col-lg-3">
-    <div class="kpi-card">
-      <div class="kpi-card-header">
-        <span class="kpi-card-label">Đề tài hot nhất</span>
+    <!-- Cell 3: Đề tài hot nhất -->
+    <div class="fused-ribbon-cell">
+      <div class="fused-cell-header">
+        <span class="fused-cell-label">
+          Đề tài hot nhất
+          <button type="button" class="metric-info-btn" data-popover-title="Đề tài hot nhất" data-popover-content="Đề tài có số lượng sinh viên đặt làm Nguyện vọng 1 (NV1) nhiều nhất trong đợt đăng ký này." aria-label="Giải thích chỉ số đề tài hot">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </span>
         <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-fire me-1"></i>Top 1 NV1</span>
       </div>
       {% if topic_nv1_list %}
         <div class="h5 mb-1 text-truncate text-strong" title="{{ topic_nv1_list.0.title }}">{{ topic_nv1_list.0.title }}</div>
-        <div class="kpi-card-sub">{{ topic_nv1_list.0.nv1_count }} SV chọn NV1 (sức chứa {{ topic_nv1_list.0.capacity }})</div>
+        <div class="fused-cell-sub">{{ topic_nv1_list.0.nv1_count }} SV chọn NV1 (sức chứa {{ topic_nv1_list.0.capacity }})</div>
       {% else %}
         <div class="h5 mb-1 text-muted">Chưa có dữ liệu</div>
-        <div class="kpi-card-sub">Chưa có sinh viên chọn NV1</div>
+        <div class="fused-cell-sub">Chưa có sinh viên chọn NV1</div>
       {% endif %}
     </div>
-  </div>
 
-  <div class="col-12 col-sm-6 col-lg-3">
-    <div class="kpi-card">
-      <div class="kpi-card-header">
-        <span class="kpi-card-label">So sánh tối ưu (ILP vs Greedy)</span>
+    <!-- Cell 4: So sánh tối ưu -->
+    <div class="fused-ribbon-cell">
+      <div class="fused-cell-header">
+        <span class="fused-cell-label">
+          Tối ưu ILP vs Greedy
+          <button type="button" class="metric-info-btn" data-popover-title="So sánh thuật toán phân công" data-popover-content="Tỷ lệ sinh viên được xếp thành công khi chạy mô phỏng thuật toán Tối ưu toàn cục (ILP) so với thuật toán Tham lam (Greedy)." aria-label="Giải thích so sánh thuật toán">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </span>
         <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-cpu me-1"></i>Solver</span>
       </div>
-      <div class="kpi-card-value text-primary">{{ comparison.ilp.assigned_pct }}% <span class="fs-6 text-muted fw-normal">vs {{ comparison.greedy.assigned_pct }}%</span></div>
-      <div class="kpi-card-sub">Chưa xếp: <strong>{{ comparison.ilp.unassigned_count }}</strong> (ILP) vs <strong>{{ comparison.greedy.unassigned_count }}</strong> (Greedy)</div>
+      <div class="fused-cell-value text-primary">
+        {{ comparison.ilp.assigned_pct }}% <span class="fs-6 text-muted fw-normal">vs {{ comparison.greedy.assigned_pct }}%</span>
+      </div>
+      <div class="fused-cell-sub">
+        Chưa xếp: <strong>{{ comparison.ilp.unassigned_count }}</strong> (ILP) vs <strong>{{ comparison.greedy.unassigned_count }}</strong> (Greedy)
+      </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- SECTION 1: TÌNH HÌNH ĐĂNG KÝ VÀ PHÂN BỐ LĨNH VỰC (UC17) -->
+<!-- SECTION 1: TÌNH HÌNH ĐĂNG KÝ VÀ PHÂN BỐ LĨNH VỰC (UC17) — responsive-omnichart-dataviz-system -->
 <div class="row g-4 mb-4">
   <!-- Biểu đồ tỷ lệ đăng ký -->
   <div class="col-12 col-lg-5">
-    <div class="chart-box-card">
-      <div class="chart-box-header">
+    <div class="omnichart-card">
+      <div class="omnichart-header">
         <div>
-          <h2 class="chart-box-title"><i class="bi bi-pie-chart text-primary"></i>Tình hình đăng ký sinh viên</h2>
-          <p class="chart-box-subtitle">Tỉ lệ sinh viên đã nộp nguyện vọng so với tổng chỉ tiêu.</p>
+          <h2 class="omnichart-title">
+            <i class="bi bi-pie-chart text-primary"></i>Tình hình đăng ký sinh viên
+            <button type="button" class="metric-info-btn" data-popover-title="Tình hình đăng ký sinh viên" data-popover-content="Biểu đồ phân chia tỷ lệ giữa sinh viên đã nộp nguyện vọng và sinh viên chưa nộp nguyện vọng trong đợt mở." aria-label="Giải thích biểu đồ đăng ký">
+              <i class="bi bi-info-circle"></i>
+            </button>
+          </h2>
+          <p class="omnichart-subtitle">Tỉ lệ sinh viên đã nộp nguyện vọng so với tổng chỉ tiêu.</p>
         </div>
       </div>
-      <div class="chart-canvas-wrapper" style="height: 250px;">
-        <canvas id="registrationChart"></canvas>
+
+      <div class="omnichart-viewport" style="min-height: 250px;">
+        <canvas id="registrationChart" aria-label="Biểu đồ tròn tỷ lệ sinh viên đã đăng ký và chưa đăng ký"></canvas>
       </div>
+
+      <!-- Visually hidden accessible datatable for screen readers -->
+      <table class="visually-hidden">
+        <caption>Số liệu tình hình đăng ký sinh viên</caption>
+        <thead>
+          <tr><th>Trạng thái</th><th>Số lượng sinh viên</th><th>Tỷ lệ phần trăm</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Đã đăng ký</td><td>{{ reg_stats.registered_students }}</td><td>{{ reg_stats.registered_rate }}%</td></tr>
+          <tr><td>Chưa đăng ký</td><td>{{ reg_stats.unregistered_students }}</td><td>{{ reg_stats.unregistered_rate }}%</td></tr>
+        </tbody>
+      </table>
+
       <div class="row g-2 mt-3 pt-3 border-top text-center">
         <div class="col-6">
           <div class="text-muted small">Đã đăng ký</div>
@@ -147,17 +196,23 @@
 
   <!-- Phân bố NV1 theo lĩnh vực -->
   <div class="col-12 col-lg-7">
-    <div class="chart-box-card">
-      <div class="chart-box-header">
+    <div class="omnichart-card">
+      <div class="omnichart-header">
         <div>
-          <h2 class="chart-box-title"><i class="bi bi-bar-chart-steps text-primary"></i>Phân bố Nguyện vọng 1 theo lĩnh vực</h2>
-          <p class="chart-box-subtitle">Mức độ quan tâm của sinh viên đối với các chuyên ngành và lĩnh vực công nghệ.</p>
+          <h2 class="omnichart-title">
+            <i class="bi bi-bar-chart-steps text-primary"></i>Phân bố Nguyện vọng 1 theo lĩnh vực
+            <button type="button" class="metric-info-btn" data-popover-title="Phân bố NV1 theo lĩnh vực" data-popover-content="Đo lường mức độ quan tâm của sinh viên đối với từng hướng chuyên môn/công nghệ thông qua số lượng lựa chọn NV1." aria-label="Giải thích phân bố lĩnh vực">
+              <i class="bi bi-info-circle"></i>
+            </button>
+          </h2>
+          <p class="omnichart-subtitle">Mức độ quan tâm của sinh viên đối với các chuyên ngành và lĩnh vực công nghệ.</p>
         </div>
       </div>
+
       <div class="row g-3 align-items-center">
         <div class="col-12 col-md-7">
-          <div class="chart-canvas-wrapper" style="height: 250px;">
-            <canvas id="fieldChart"></canvas>
+          <div class="omnichart-viewport" style="min-height: 250px;">
+            <canvas id="fieldChart" aria-label="Biểu đồ cột số lượng sinh viên chọn NV1 theo từng lĩnh vực"></canvas>
           </div>
         </div>
         <div class="col-12 col-md-5">
@@ -193,19 +248,80 @@
   </div>
 </div>
 
-<!-- SECTION 2: TOP ĐỀ TÀI HOT (NV1) (UC17) -->
-<div class="app-card mb-4">
+<!-- SECTION 2: TOP ĐỀ TÀI HOT & MICRO STACKED RISK HISTOGRAM (UC17) -->
+<section class="micro-risk-histogram-card mb-4" aria-labelledby="hotTopicsHeading">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
     <div>
-      <h2 class="section-title"><i class="bi bi-fire text-danger me-2"></i>Top đề tài nhận nhiều Nguyện vọng 1 nhất</h2>
-      <p class="section-subtitle">Đề tài có số lượng sinh viên đặt làm ưu tiên số 1 nhiều nhất, thể hiện nhu cầu và mức độ cạnh tranh.</p>
+      <h2 class="section-title d-flex align-items-center gap-2 mb-1" id="hotTopicsHeading">
+        <i class="bi bi-fire text-danger"></i>Top đề tài nhận nhiều Nguyện vọng 1 nhất
+        <button type="button" class="metric-info-btn" data-popover-title="Phân bố rủi ro cạnh tranh đề tài" data-popover-content="Biểu đồ phân tầng rủi ro hiển thị tỷ lệ đăng ký NV1 so với sức chứa tối đa của đề tài. Mức rủi ro chia làm: An toàn (&lt;1.0x), Vừa đủ (1.0x), Cạnh tranh cao (1.1x–1.9x), Quá tải (&ge;2.0x)." aria-label="Giải thích biểu đồ rủi ro cạnh tranh đề tài">
+          <i class="bi bi-info-circle"></i>
+        </button>
+      </h2>
+      <p class="section-subtitle mb-0">Đề tài có số lượng sinh viên đặt làm ưu tiên số 1 nhiều nhất, thể hiện nhu cầu và mức độ cạnh tranh.</p>
     </div>
   </div>
 
+  <!-- Micro-Stacked Risk Histogram Legend Bar (component|micro-stacked-risk-histogram) -->
+  <div class="micro-risk-legend-bar">
+    <span class="fw-semibold text-strong me-1">Mức độ cạnh tranh (NV1 / Chỉ tiêu):</span>
+    <span class="micro-risk-legend-item">
+      <span class="micro-risk-legend-dot dot-safe"></span> An toàn (&lt; 1.0x)
+    </span>
+    <span class="micro-risk-legend-item">
+      <span class="micro-risk-legend-dot dot-optimal"></span> Vừa đủ (1.0x)
+    </span>
+    <span class="micro-risk-legend-item">
+      <span class="micro-risk-legend-dot dot-elevated"></span> Cạnh tranh cao (1.1x – 1.9x)
+    </span>
+    <span class="micro-risk-legend-item">
+      <span class="micro-risk-legend-dot dot-critical"></span> Quá tải (&ge; 2.0x)
+    </span>
+  </div>
+
+  <!-- Micro-Stacked Risk Histogram Visual Track -->
+  <div class="micro-risk-histogram-container mb-4">
+    <div class="micro-risk-histogram-track" id="riskHistogramTrack">
+      {% for item in topic_nv1_list %}
+      <div class="micro-risk-col"
+           tabindex="0"
+           role="figure"
+           aria-label="Đề tài: {{ item.title }} - {{ item.nv1_count }} NV1 / sức chứa {{ item.capacity }} (Tỉ lệ cạnh tranh: {{ item.competition_rate }}x)"
+           data-topic-title="{{ item.title }}"
+           data-nv1="{{ item.nv1_count }}"
+           data-capacity="{{ item.capacity }}"
+           data-rate="{{ item.competition_rate }}">
+        <div class="micro-risk-col-rate {% if item.competition_rate >= 2.0 %}text-danger{% elif item.competition_rate > 1.0 %}text-warning{% elif item.competition_rate == 1.0 %}text-primary{% else %}text-success{% endif %}">
+          {{ item.competition_rate }}x
+        </div>
+        <div class="micro-risk-col-bar">
+          <!-- Stacked Segment: Risk / Overflow tier -->
+          {% if item.competition_rate >= 2.0 %}
+            <div class="micro-risk-segment seg-critical" style="height: 0%;" data-target-height="100%"></div>
+          {% elif item.competition_rate > 1.0 %}
+            <div class="micro-risk-segment seg-elevated" style="height: 0%;" data-target-height="75%"></div>
+          {% elif item.competition_rate == 1.0 %}
+            <div class="micro-risk-segment seg-optimal" style="height: 0%;" data-target-height="50%"></div>
+          {% else %}
+            <div class="micro-risk-segment seg-safe" style="height: 0%;" data-target-height="30%"></div>
+          {% endif %}
+        </div>
+        <div class="micro-risk-col-meta">
+          <span class="micro-risk-col-name" title="{{ item.title }}">{{ item.title }}</span>
+          <span class="micro-risk-col-sub">{{ item.nv1_count }}/{{ item.capacity }} SV</span>
+        </div>
+      </div>
+      {% empty %}
+      <div class="w-100 text-center text-muted py-4">Chưa có dữ liệu phân bố nguyện vọng 1.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Omnichart Bar & Chi tiết bảng đề tài -->
   <div class="row g-4 align-items-center">
     <div class="col-12 col-lg-5">
-      <div class="chart-canvas-wrapper" style="height: 320px;">
-        <canvas id="topicChart"></canvas>
+      <div class="omnichart-viewport" style="min-height: 320px;">
+        <canvas id="topicChart" aria-label="Biểu đồ so sánh số lượng NV1 đăng ký và chỉ tiêu đề tài"></canvas>
       </div>
     </div>
     <div class="col-12 col-lg-7">
@@ -234,12 +350,14 @@
               <td class="text-center">{{ item.capacity }}</td>
               <td class="text-center fw-bold text-primary">{{ item.nv1_count }}</td>
               <td class="text-center">
-                {% if item.competition_rate > 1.0 %}
-                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ item.competition_rate }}x</span>
+                {% if item.competition_rate >= 2.0 %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ item.competition_rate }}x (Quá tải)</span>
+                {% elif item.competition_rate > 1.0 %}
+                  <span class="badge bg-warning-subtle text-warning border border-warning-subtle">{{ item.competition_rate }}x (Cạnh tranh)</span>
                 {% elif item.competition_rate == 1.0 %}
-                  <span class="badge bg-success-subtle text-success border border-success-subtle">1.0x</span>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle">1.0x (Vừa đủ)</span>
                 {% else %}
-                  <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ item.competition_rate }}x</span>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">{{ item.competition_rate }}x (An toàn)</span>
                 {% endif %}
               </td>
             </tr>
@@ -253,36 +371,69 @@
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- SECTION 3: SO SÁNH THUẬT TOÁN ILP VS GREEDY (UC21) -->
-<div class="app-card mb-4">
+<!-- SECTION 3: SO SÁNH THUẬT TOÁN ILP VS GREEDY (UC21) — inline-sentence-comparison-toggle -->
+<div class="app-card mb-4" id="algorithmComparisonSection">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
     <div>
-      <h2 class="section-title"><i class="bi bi-shuffle text-primary me-2"></i>So sánh thuật toán phân công: Tối ưu ILP vs Tham lam (Greedy)</h2>
-      <p class="section-subtitle">Chạy mô phỏng cả hai thuật toán độc lập trên cùng dữ liệu đợt (không lưu cơ sở dữ liệu), đối chiếu hiệu năng và chất lượng thỏa mãn nguyện vọng.</p>
+      <h2 class="section-title d-flex flex-wrap align-items-center gap-2 mb-1">
+        <i class="bi bi-shuffle text-primary"></i>
+        <span>So sánh hiệu năng khi chạy:</span>
+        <!-- Inline Sentence Comparison Toggle (interaction|inline-sentence-comparison-toggle) -->
+        <span class="inline-sentence-toggle-wrap">
+          <span class="toggle-state-label active-ilp" id="toggleLabelILP">Tối ưu toàn cục (ILP)</span>
+          <button type="button"
+                  class="inline-sentence-toggle-btn"
+                  id="algoCompareToggle"
+                  role="switch"
+                  aria-checked="false"
+                  aria-label="Chuyển chế độ so sánh giữa Tối ưu toàn cục ILP và Tham lam Greedy"
+                  tabindex="0">
+            <span class="toggle-thumb"></span>
+          </button>
+          <span class="toggle-state-label" id="toggleLabelGreedy">Tham lam (Greedy)</span>
+        </span>
+      </h2>
+      <p class="section-subtitle mb-0">Chạy mô phỏng cả hai thuật toán độc lập trên cùng dữ liệu đợt (không lưu cơ sở dữ liệu), đối chiếu hiệu năng và chất lượng thỏa mãn nguyện vọng.</p>
     </div>
-    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 align-self-start align-self-md-auto">
       <i class="bi bi-cpu me-1"></i>Chạy mô phỏng tức thời
     </span>
+  </div>
+
+  <!-- Live Dynamic Comparison Statement Card -->
+  <div class="comparison-statement-card" id="comparisonStatementCard" aria-live="polite">
+    <p class="comparison-statement-text" id="comparisonStatementText">
+      <strong>Chế độ Tối ưu toàn cục (ILP):</strong> Thuật toán đạt tỷ lệ thỏa mãn NV1 <strong>{{ comparison.ilp.nv1_pct }}%</strong> (vượt trội +{{ comparison.delta.nv1_pct }}% so với Greedy), phân công thành công <strong>{{ comparison.ilp.assigned_pct }}%</strong> sinh viên với 0 vi phạm chỉ tiêu và mức điểm phù hợp AI trung bình <strong>{{ comparison.ilp.avg_match }}</strong>.
+    </p>
   </div>
 
   <div class="row g-4 align-items-center">
     <div class="col-12 col-lg-7">
       <div class="table-responsive">
-        <table class="table table-bordered table-comparison align-middle mb-0">
+        <table class="table table-bordered table-comparison align-middle mb-0" id="comparisonTable">
           <thead class="text-center">
             <tr>
               <th class="text-start">Chỉ số đánh giá chất lượng</th>
-              <th style="width: 130px;" class="text-primary"><i class="bi bi-cpu me-1"></i>ILP (Toàn cục)</th>
-              <th style="width: 130px;" class="text-secondary"><i class="bi bi-lightning me-1"></i>Greedy (Tham lam)</th>
-              <th style="width: 130px;">Ưu thế ILP</th>
+              <th style="width: 135px;" class="text-primary col-solver-active" id="th-solver-ilp">
+                <i class="bi bi-cpu me-1"></i>ILP (Toàn cục)
+              </th>
+              <th style="width: 135px;" class="text-secondary" id="th-solver-greedy">
+                <i class="bi bi-lightning me-1"></i>Greedy (Tham lam)
+              </th>
+              <th style="width: 120px;">Ưu thế ILP</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class="fw-medium">Tỉ lệ đạt Nguyện vọng 1 (% NV1)</td>
-              <td class="text-center fw-bold text-primary">{{ comparison.ilp.nv1_pct }}%</td>
+              <td class="fw-medium">
+                Tỉ lệ đạt Nguyện vọng 1 (% NV1)
+                <button type="button" class="metric-info-btn" data-popover-title="Tỉ lệ đạt Nguyện vọng 1" data-popover-content="Phần trăm sinh viên được xếp đúng vào đề tài đặt ở vị trí nguyện vọng 1. Thuật toán tối ưu ILP thường có tỷ lệ này cao hơn hẳn Greedy." aria-label="Giải thích % NV1">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </td>
+              <td class="text-center fw-bold text-primary col-solver-active">{{ comparison.ilp.nv1_pct }}%</td>
               <td class="text-center text-muted">{{ comparison.greedy.nv1_pct }}%</td>
               <td class="text-center">
                 {% if comparison.delta.nv1_pct > 0 %}
@@ -295,8 +446,13 @@
               </td>
             </tr>
             <tr>
-              <td class="fw-medium">Tỉ lệ đạt Top 3 nguyện vọng (% Top3)</td>
-              <td class="text-center fw-bold text-primary">{{ comparison.ilp.top3_pct }}%</td>
+              <td class="fw-medium">
+                Tỉ lệ đạt Top 3 nguyện vọng (% Top3)
+                <button type="button" class="metric-info-btn" data-popover-title="Tỉ lệ đạt Top 3 nguyện vọng" data-popover-content="Phần trăm sinh viên được xếp vào một trong ba nguyện vọng ưu tiên cao nhất (NV1, NV2 hoặc NV3)." aria-label="Giải thích % Top 3">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </td>
+              <td class="text-center fw-bold text-primary col-solver-active">{{ comparison.ilp.top3_pct }}%</td>
               <td class="text-center text-muted">{{ comparison.greedy.top3_pct }}%</td>
               <td class="text-center">
                 {% if comparison.delta.top3_pct > 0 %}
@@ -309,8 +465,13 @@
               </td>
             </tr>
             <tr>
-              <td class="fw-medium">Số sinh viên chưa được xếp</td>
-              <td class="text-center fw-bold {% if comparison.ilp.unassigned_count == 0 %}text-success{% else %}text-danger{% endif %}">
+              <td class="fw-medium">
+                Số sinh viên chưa được xếp
+                <button type="button" class="metric-info-btn" data-popover-title="Sinh viên chưa được xếp" data-popover-content="Số sinh viên không thể phân công vào bất kỳ đề tài nào do hết chỉ tiêu hoặc xung đột điều kiện tiên quyết." aria-label="Giải thích SV chưa xếp">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </td>
+              <td class="text-center fw-bold {% if comparison.ilp.unassigned_count == 0 %}text-success{% else %}text-danger{% endif %} col-solver-active">
                 {{ comparison.ilp.unassigned_count }} SV
               </td>
               <td class="text-center text-muted">{{ comparison.greedy.unassigned_count }} SV</td>
@@ -325,8 +486,13 @@
               </td>
             </tr>
             <tr>
-              <td class="fw-medium">Tỉ lệ phân công thành công</td>
-              <td class="text-center fw-bold text-primary">{{ comparison.ilp.assigned_pct }}%</td>
+              <td class="fw-medium">
+                Tỉ lệ phân công thành công
+                <button type="button" class="metric-info-btn" data-popover-title="Tỉ lệ phân công thành công" data-popover-content="Tỷ lệ phần trăm tổng số sinh viên có đề tài sau khi giải bài toán phân công." aria-label="Giải thích tỷ lệ phân công">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </td>
+              <td class="text-center fw-bold text-primary col-solver-active">{{ comparison.ilp.assigned_pct }}%</td>
               <td class="text-center text-muted">{{ comparison.greedy.assigned_pct }}%</td>
               <td class="text-center">
                 {% if comparison.delta.assigned_pct > 0 %}
@@ -339,14 +505,24 @@
               </td>
             </tr>
             <tr>
-              <td class="fw-medium">Thứ hạng NV trung bình (Càng thấp càng tốt)</td>
-              <td class="text-center fw-semibold">{{ comparison.ilp.mean_rank|default:"-" }}</td>
+              <td class="fw-medium">
+                Thứ hạng NV trung bình (Càng thấp càng tốt)
+                <button type="button" class="metric-info-btn" data-popover-title="Thứ hạng nguyện vọng trung bình" data-popover-content="Giá trị trung bình thứ hạng nguyện vọng mà sinh viên nhận được (1 = NV1, 2 = NV2...). Điểm càng gần 1 thể hiện nguyện vọng sinh viên được đáp ứng càng cao." aria-label="Giải thích thứ hạng NV trung bình">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </td>
+              <td class="text-center fw-semibold col-solver-active">{{ comparison.ilp.mean_rank|default:"-" }}</td>
               <td class="text-center text-muted">{{ comparison.greedy.mean_rank|default:"-" }}</td>
               <td class="text-center small text-muted">—</td>
             </tr>
             <tr>
-              <td class="fw-medium">Điểm phù hợp trung bình (AI Match Score)</td>
-              <td class="text-center fw-semibold">{{ comparison.ilp.avg_match }}</td>
+              <td class="fw-medium">
+                Điểm phù hợp trung bình (AI Match Score)
+                <button type="button" class="metric-info-btn" data-popover-title="Điểm phù hợp trung bình" data-popover-content="Điểm tương thích trung bình do hệ thống AI đánh giá dựa trên kỹ năng, học lực GPA và lĩnh vực quan tâm giữa sinh viên với đề tài (thang 100)." aria-label="Giải thích điểm phù hợp trung bình">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </td>
+              <td class="text-center fw-semibold col-solver-active">{{ comparison.ilp.avg_match }}</td>
               <td class="text-center text-muted">{{ comparison.greedy.avg_match }}</td>
               <td class="text-center">
                 {% if comparison.delta.avg_match > 0 %}
@@ -357,14 +533,24 @@
               </td>
             </tr>
             <tr>
-              <td class="fw-medium">Vi phạm chỉ tiêu / sức chứa</td>
-              <td class="text-center text-success fw-bold">{{ comparison.ilp.quota_violations }}</td>
+              <td class="fw-medium">
+                Vi phạm chỉ tiêu / sức chứa
+                <button type="button" class="metric-info-btn" data-popover-title="Vi phạm chỉ tiêu / sức chứa" data-popover-content="Số lượng đề tài hoặc giảng viên bị xếp vượt quá sức chứa tối đa. Cả 2 thuật toán đều phải tuân thủ điều kiện biên cứng này (bằng 0)." aria-label="Giải thích vi phạm chỉ tiêu">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </td>
+              <td class="text-center text-success fw-bold col-solver-active">{{ comparison.ilp.quota_violations }}</td>
               <td class="text-center text-success fw-bold">{{ comparison.greedy.quota_violations }}</td>
               <td class="text-center text-success"><i class="bi bi-shield-check me-1"></i>Tuân thủ</td>
             </tr>
             <tr>
-              <td class="fw-medium">Thời gian tính toán</td>
-              <td class="text-center small">{{ comparison.ilp.elapsed_time }}s</td>
+              <td class="fw-medium">
+                Thời gian tính toán
+                <button type="button" class="metric-info-btn" data-popover-title="Thời gian tính toán" data-popover-content="Thời gian CPU thực thi bộ giải thuật toán. Greedy thường nhanh hơn vài phần mười giây, nhưng ILP giải quyết tối ưu toàn cục chỉ trong thời gian rất ngắn." aria-label="Giải thích thời gian tính toán">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </td>
+              <td class="text-center small col-solver-active">{{ comparison.ilp.elapsed_time }}s</td>
               <td class="text-center small text-muted">{{ comparison.greedy.elapsed_time }}s</td>
               <td class="text-center small text-muted">—</td>
             </tr>
@@ -374,19 +560,24 @@
     </div>
 
     <div class="col-12 col-lg-5">
-      <div class="chart-canvas-wrapper" style="height: 320px;">
-        <canvas id="comparisonChart"></canvas>
+      <div class="omnichart-viewport" style="min-height: 320px;">
+        <canvas id="comparisonChart" aria-label="Biểu đồ so sánh tỷ lệ đạt NV1, Top 3 và phân công giữa ILP và Greedy"></canvas>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SECTION 4: TẢI HƯỚNG DẪN CỦA GIẢNG VIÊN (UC21) -->
+<!-- SECTION 4: TẢI HƯỚNG DẪN CỦA GIẢNG VIÊN (UC21) — responsive-omnichart-dataviz-system -->
 <div class="app-card mb-4">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
     <div>
-      <h2 class="section-title"><i class="bi bi-person-workspace text-primary me-2"></i>Tải hướng dẫn của Giảng viên (Số SV được xếp / Chỉ tiêu)</h2>
-      <p class="section-subtitle">Theo dõi mức độ phân bổ sinh viên trên chỉ tiêu tối đa của từng thầy cô.</p>
+      <h2 class="section-title d-flex align-items-center gap-2 mb-1">
+        <i class="bi bi-person-workspace text-primary"></i>Tải hướng dẫn của Giảng viên (Số SV được xếp / Chỉ tiêu)
+        <button type="button" class="metric-info-btn" data-popover-title="Tải hướng dẫn của Giảng viên" data-popover-content="Tỷ lệ tải = (Số sinh viên được xếp / Chỉ tiêu hướng dẫn tối đa) × 100%. Trạng thái: Chưa có SV (0%), Đang nhận (1–99%), Đầy chỉ tiêu (100%), Quá tải (&gt;100%)." aria-label="Giải thích tải giảng viên">
+          <i class="bi bi-info-circle"></i>
+        </button>
+      </h2>
+      <p class="section-subtitle mb-0">Theo dõi mức độ phân bổ sinh viên trên chỉ tiêu tối đa của từng thầy cô.</p>
     </div>
     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
       Nguồn: {{ load_source }}
@@ -395,8 +586,8 @@
 
   <div class="row g-4 mb-4">
     <div class="col-12">
-      <div class="chart-canvas-wrapper" style="height: 280px;">
-        <canvas id="lecturerChart"></canvas>
+      <div class="omnichart-viewport" style="min-height: 280px;">
+        <canvas id="lecturerChart" aria-label="Biểu đồ cột tải hướng dẫn giảng viên"></canvas>
       </div>
     </div>
   </div>
@@ -409,7 +600,12 @@
           <th>Bộ môn</th>
           <th class="text-center">Số SV được xếp</th>
           <th class="text-center">Chỉ tiêu tối đa</th>
-          <th style="min-width: 180px;">Tỷ lệ tải</th>
+          <th style="min-width: 180px;">
+            Tỷ lệ tải
+            <button type="button" class="metric-info-btn" data-popover-title="Tỷ lệ tải" data-popover-content="Công thức tính: Số SV được xếp / Chỉ tiêu tối đa × 100%." aria-label="Giải thích tỷ lệ tải">
+              <i class="bi bi-info-circle"></i>
+            </button>
+          </th>
           <th class="text-center">Trạng thái</th>
         </tr>
       </thead>
@@ -447,6 +643,20 @@
     </table>
   </div>
 </div>
+
+<!-- Floating Anchor Popover Backdrop & Dialog Component (layout|floating-anchor-popover & interaction|focus-trap-motion-pause) -->
+<div class="floating-popover-backdrop" id="popoverBackdrop" aria-hidden="true"></div>
+<div class="floating-anchor-popover" id="floatingPopover" role="dialog" aria-modal="true" aria-labelledby="popoverTitle" aria-describedby="popoverBody" aria-hidden="true" tabindex="-1">
+  <span class="bottomsheet-handle d-md-none" aria-hidden="true"></span>
+  <div class="popover-arrow" id="popoverArrow"></div>
+  <div class="popover-header-row">
+    <h3 class="popover-title-text" id="popoverTitle">Giải thích chỉ số</h3>
+    <button type="button" class="popover-close-btn" id="popoverCloseBtn" aria-label="Đóng bảng giải thích">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+  <p class="popover-body-text" id="popoverBody"></p>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -460,17 +670,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var statsData = JSON.parse(dataElem.textContent || "{}");
 
-  // Thiết lập chung cho Chart.js chuẩn font Be Vietnam Pro & Design tokens
+  // =========================================================================
+  // 1. PREFERS REDUCED MOTION (interaction|prefers-reduced-motion)
+  // =========================================================================
+  var motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var isReducedMotion = motionQuery.matches;
+
+  // Cấu hình Chart.js theo Design tokens chuẩn
   Chart.defaults.font.family = '"Be Vietnam Pro", system-ui, -apple-system, sans-serif';
   Chart.defaults.font.size = 12.5;
-  Chart.defaults.color = '#5A6578';
-  Chart.defaults.plugins.tooltip.backgroundColor = '#172033';
-  Chart.defaults.plugins.tooltip.titleFont = { family: '"Be Vietnam Pro", sans-serif', weight: '600' };
-  Chart.defaults.plugins.tooltip.bodyFont = { family: '"Be Vietnam Pro", sans-serif' };
-  Chart.defaults.plugins.tooltip.padding = 10;
-  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  Chart.defaults.color = "#5A6578";
+  Chart.defaults.animation = isReducedMotion ? false : { duration: 550, easing: "easeOutQuart" };
 
-  // 1. Biểu đồ tròn Tỷ lệ đăng ký (Doughnut)
+  // Unified Omnichart Tooltip System (component|responsive-omnichart-dataviz-system)
+  Chart.defaults.plugins.tooltip.backgroundColor = "#172033";
+  Chart.defaults.plugins.tooltip.titleColor = "#FFFFFF";
+  Chart.defaults.plugins.tooltip.bodyColor = "#F1F5F9";
+  Chart.defaults.plugins.tooltip.titleFont = { family: '"Be Vietnam Pro", sans-serif', weight: "600", size: 13 };
+  Chart.defaults.plugins.tooltip.bodyFont = { family: '"Be Vietnam Pro", sans-serif', size: 12.5 };
+  Chart.defaults.plugins.tooltip.padding = 12;
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  Chart.defaults.plugins.tooltip.boxPadding = 6;
+  Chart.defaults.plugins.tooltip.usePointStyle = true;
+
+  motionQuery.addEventListener("change", function (e) {
+    isReducedMotion = e.matches;
+    Chart.defaults.animation = isReducedMotion ? false : { duration: 550 };
+  });
+
+  // =========================================================================
+  // 2. OMNICHART: 1. Biểu đồ tròn Tỷ lệ đăng ký (Doughnut)
+  // =========================================================================
   var regCanvas = document.getElementById("registrationChart");
   if (regCanvas && statsData.registration) {
     new Chart(regCanvas, {
@@ -480,9 +710,9 @@ document.addEventListener("DOMContentLoaded", function () {
         datasets: [{
           data: statsData.registration.data,
           backgroundColor: ["#157347", "#B42318"],
-          hoverBackgroundColor: ["#125e3a", "#961d14"],
+          hoverBackgroundColor: ["#115c38", "#981e14"],
           borderWidth: 2,
-          borderColor: "#ffffff"
+          borderColor: "#FFFFFF"
         }]
       },
       options: {
@@ -490,7 +720,10 @@ document.addEventListener("DOMContentLoaded", function () {
         maintainAspectRatio: false,
         cutout: "68%",
         plugins: {
-          legend: { position: "bottom", labels: { boxWidth: 12, padding: 14 } },
+          legend: {
+            position: "bottom",
+            labels: { boxWidth: 12, padding: 16, font: { weight: "500" } }
+          },
           tooltip: {
             callbacks: {
               label: function (ctx) {
@@ -506,7 +739,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 2. Biểu đồ phân bố Lĩnh vực (Bar)
+  // =========================================================================
+  // 3. OMNICHART: 2. Biểu đồ phân bố Lĩnh vực (Bar)
+  // =========================================================================
   var fieldCanvas = document.getElementById("fieldChart");
   if (fieldCanvas && statsData.fields) {
     new Chart(fieldCanvas, {
@@ -525,7 +760,14 @@ document.addEventListener("DOMContentLoaded", function () {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false }
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) {
+                return " Số NV1: " + ctx.raw + " sinh viên";
+              }
+            }
+          }
         },
         scales: {
           y: {
@@ -542,7 +784,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 3. Biểu đồ Top đề tài hot (Horizontal Bar)
+  // =========================================================================
+  // 4. OMNICHART: 3. Biểu đồ Top đề tài hot (Horizontal Bar)
+  // =========================================================================
   var topicCanvas = document.getElementById("topicChart");
   if (topicCanvas && statsData.topics) {
     new Chart(topicCanvas, {
@@ -578,6 +822,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!items.length) return "";
                 var idx = items[0].dataIndex;
                 return statsData.topics.full_titles[idx] || items[0].label;
+              },
+              label: function (ctx) {
+                return " " + ctx.dataset.label + ": " + ctx.raw + " SV";
               }
             }
           }
@@ -596,10 +843,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 4. Biểu đồ so sánh ILP vs Greedy (Grouped Bar)
+  // =========================================================================
+  // 5. OMNICHART: 4. Biểu đồ so sánh ILP vs Greedy (Grouped Bar)
+  // =========================================================================
   var compCanvas = document.getElementById("comparisonChart");
+  var compChart = null;
   if (compCanvas && statsData.comparison) {
-    new Chart(compCanvas, {
+    compChart = new Chart(compCanvas, {
       type: "bar",
       data: {
         labels: statsData.comparison.categories,
@@ -643,7 +893,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 5. Biểu đồ tải giảng viên (Bar)
+  // =========================================================================
+  // 6. OMNICHART: 5. Biểu đồ tải giảng viên (Bar)
+  // =========================================================================
   var lecCanvas = document.getElementById("lecturerChart");
   if (lecCanvas && statsData.lecturers) {
     new Chart(lecCanvas, {
@@ -687,7 +939,278 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+
+  // =========================================================================
+  // 7. MICRO STACKED RISK HISTOGRAM (component|micro-stacked-risk-histogram)
+  // =========================================================================
+  var riskSegments = document.querySelectorAll(".micro-risk-segment");
+  if (riskSegments.length > 0) {
+    if (isReducedMotion) {
+      riskSegments.forEach(function (seg) {
+        seg.style.height = seg.getAttribute("data-target-height") || "50%";
+      });
+    } else {
+      var histogramObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            riskSegments.forEach(function (seg) {
+              var target = seg.getAttribute("data-target-height") || "50%";
+              seg.style.height = target;
+            });
+            histogramObserver.disconnect();
+          }
+        });
+      }, { threshold: 0.2 });
+
+      var trackElem = document.getElementById("riskHistogramTrack");
+      if (trackElem) {
+        histogramObserver.observe(trackElem);
+      }
+    }
+  }
+
+  // =========================================================================
+  // 8. INLINE SENTENCE COMPARISON TOGGLE (interaction|inline-sentence-comparison-toggle)
+  // =========================================================================
+  var algoToggleBtn = document.getElementById("algoCompareToggle");
+  var labelILP = document.getElementById("toggleLabelILP");
+  var labelGreedy = document.getElementById("toggleLabelGreedy");
+  var statementCard = document.getElementById("comparisonStatementCard");
+  var statementText = document.getElementById("comparisonStatementText");
+  var thILP = document.getElementById("th-solver-ilp");
+  var thGreedy = document.getElementById("th-solver-greedy");
+  var comparisonTable = document.getElementById("comparisonTable");
+
+  var isGreedyActive = false;
+
+  function updateAlgorithmMode(greedyActive) {
+    isGreedyActive = greedyActive;
+    if (algoToggleBtn) {
+      algoToggleBtn.setAttribute("aria-checked", isGreedyActive ? "true" : "false");
+    }
+
+    if (isGreedyActive) {
+      if (labelILP) labelILP.className = "toggle-state-label";
+      if (labelGreedy) labelGreedy.className = "toggle-state-label active-greedy";
+
+      if (statementCard) statementCard.classList.add("greedy-mode");
+      if (statementText) {
+        statementText.innerHTML = '<strong>Chế độ Tham lam (Greedy):</strong> Thuật toán có ưu điểm giải quyết nhanh với thời gian CPU <strong>{{ comparison.greedy.elapsed_time }}s</strong>, đạt tỷ lệ NV1 <strong>{{ comparison.greedy.nv1_pct }}%</strong>. Tuy nhiên vẫn còn <strong>{{ comparison.greedy.unassigned_count }} SV chưa được xếp</strong> và tỷ lệ thành công tổng thể chỉ đạt <strong>{{ comparison.greedy.assigned_pct }}%</strong>.';
+      }
+
+      if (thILP) thILP.classList.remove("col-solver-active", "greedy-active");
+      if (thGreedy) thGreedy.classList.add("col-solver-active", "greedy-active");
+
+      if (comparisonTable) {
+        comparisonTable.querySelectorAll("tbody tr").forEach(function (row) {
+          var cells = row.children;
+          if (cells.length >= 3) {
+            cells[1].classList.remove("col-solver-active", "greedy-active");
+            cells[2].classList.add("col-solver-active", "greedy-active");
+          }
+        });
+      }
+
+      if (compChart) {
+        compChart.data.datasets[0].backgroundColor = "#94A3B8";
+        compChart.data.datasets[1].backgroundColor = "#1E293B";
+        compChart.update();
+      }
+    } else {
+      if (labelILP) labelILP.className = "toggle-state-label active-ilp";
+      if (labelGreedy) labelGreedy.className = "toggle-state-label";
+
+      if (statementCard) statementCard.classList.remove("greedy-mode");
+      if (statementText) {
+        statementText.innerHTML = '<strong>Chế độ Tối ưu toàn cục (ILP):</strong> Thuật toán đạt tỷ lệ thỏa mãn NV1 <strong>{{ comparison.ilp.nv1_pct }}%</strong> (vượt trội +{{ comparison.delta.nv1_pct }}% so với Greedy), phân công thành công <strong>{{ comparison.ilp.assigned_pct }}%</strong> sinh viên với 0 vi phạm chỉ tiêu và mức điểm phù hợp AI trung bình <strong>{{ comparison.ilp.avg_match }}</strong>.';
+      }
+
+      if (thILP) thILP.classList.add("col-solver-active");
+      if (thGreedy) thGreedy.classList.remove("col-solver-active", "greedy-active");
+
+      if (comparisonTable) {
+        comparisonTable.querySelectorAll("tbody tr").forEach(function (row) {
+          var cells = row.children;
+          if (cells.length >= 3) {
+            cells[1].classList.add("col-solver-active");
+            cells[2].classList.remove("col-solver-active", "greedy-active");
+          }
+        });
+      }
+
+      if (compChart) {
+        compChart.data.datasets[0].backgroundColor = "#174EA6";
+        compChart.data.datasets[1].backgroundColor = "#5A6578";
+        compChart.update();
+      }
+    }
+  }
+
+  if (algoToggleBtn) {
+    algoToggleBtn.addEventListener("click", function () {
+      updateAlgorithmMode(!isGreedyActive);
+    });
+
+    algoToggleBtn.addEventListener("keydown", function (e) {
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        updateAlgorithmMode(!isGreedyActive);
+      }
+    });
+  }
+
+  if (labelILP) {
+    labelILP.addEventListener("click", function () { updateAlgorithmMode(false); });
+  }
+  if (labelGreedy) {
+    labelGreedy.addEventListener("click", function () { updateAlgorithmMode(true); });
+  }
+
+  // =========================================================================
+  // 9. FLOATING ANCHOR POPOVER & MOBILE BOTTOMSHEET (layout|floating-anchor-popover)
+  //    + FOCUS TRAP & MOTION PAUSE (interaction|focus-trap-motion-pause)
+  // =========================================================================
+  var popoverBackdrop = document.getElementById("popoverBackdrop");
+  var floatingPopover = document.getElementById("floatingPopover");
+  var popoverTitle = document.getElementById("popoverTitle");
+  var popoverBody = document.getElementById("popoverBody");
+  var popoverCloseBtn = document.getElementById("popoverCloseBtn");
+  var popoverArrow = document.getElementById("popoverArrow");
+
+  var activeAnchor = null;
+
+  function closePopover() {
+    if (!floatingPopover) return;
+    floatingPopover.classList.remove("is-active");
+    if (popoverBackdrop) popoverBackdrop.classList.remove("is-active");
+    floatingPopover.setAttribute("aria-hidden", "true");
+
+    if (activeAnchor) {
+      activeAnchor.focus();
+      activeAnchor = null;
+    }
+  }
+
+  function openPopover(anchorBtn) {
+    if (!floatingPopover || !anchorBtn) return;
+    activeAnchor = anchorBtn;
+
+    var title = anchorBtn.getAttribute("data-popover-title") || "Giải thích chỉ số";
+    var content = anchorBtn.getAttribute("data-popover-content") || "";
+
+    if (popoverTitle) popoverTitle.textContent = title;
+    if (popoverBody) popoverBody.textContent = content;
+
+    var isMobile = window.innerWidth < 576;
+
+    if (!isMobile) {
+      // Desktop positioning with bounding box & arrow
+      var rect = anchorBtn.getBoundingClientRect();
+      var popoverWidth = 320;
+      var spaceBelow = window.innerHeight - rect.bottom;
+      var spaceAbove = rect.top;
+
+      floatingPopover.style.top = "";
+      floatingPopover.style.bottom = "";
+      floatingPopover.style.left = "";
+      floatingPopover.style.right = "";
+
+      var leftPos = rect.left + rect.width / 2 - popoverWidth / 2;
+      leftPos = Math.max(16, Math.min(window.innerWidth - popoverWidth - 16, leftPos));
+      floatingPopover.style.left = leftPos + "px";
+
+      if (spaceBelow >= 160 || spaceBelow >= spaceAbove) {
+        // Place below anchor
+        floatingPopover.style.top = (rect.bottom + 10) + "px";
+        floatingPopover.classList.remove("arrow-bottom");
+        floatingPopover.classList.add("arrow-top");
+        if (popoverArrow) {
+          var arrowLeft = rect.left + rect.width / 2 - leftPos - 5;
+          popoverArrow.style.left = Math.max(12, Math.min(popoverWidth - 22, arrowLeft)) + "px";
+        }
+      } else {
+        // Place above anchor
+        floatingPopover.style.bottom = (window.innerHeight - rect.top + 10) + "px";
+        floatingPopover.classList.remove("arrow-top");
+        floatingPopover.classList.add("arrow-bottom");
+        if (popoverArrow) {
+          var arrowLeft = rect.left + rect.width / 2 - leftPos - 5;
+          popoverArrow.style.left = Math.max(12, Math.min(popoverWidth - 22, arrowLeft)) + "px";
+        }
+      }
+    }
+
+    if (popoverBackdrop) popoverBackdrop.classList.add("is-active");
+    floatingPopover.classList.add("is-active");
+    floatingPopover.setAttribute("aria-hidden", "false");
+
+    // Focus trap into close button or dialog
+    if (popoverCloseBtn) {
+      popoverCloseBtn.focus();
+    }
+  }
+
+  // Bind info buttons
+  document.querySelectorAll(".metric-info-btn").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      openPopover(btn);
+    });
+  });
+
+  if (popoverCloseBtn) {
+    popoverCloseBtn.addEventListener("click", closePopover);
+  }
+  if (popoverBackdrop) {
+    popoverBackdrop.addEventListener("click", closePopover);
+  }
+
+  // Focus trap inside Popover / Dialog
+  document.addEventListener("keydown", function (e) {
+    if (floatingPopover && floatingPopover.classList.contains("is-active")) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closePopover();
+      } else if (e.key === "Tab") {
+        // Focus trap
+        var focusable = floatingPopover.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusable.length === 0) return;
+        var firstEl = focusable[0];
+        var lastEl = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    }
+  });
+
+  // Touch Drag-to-close on Mobile Bottomsheet
+  var startY = 0;
+  if (floatingPopover) {
+    floatingPopover.addEventListener("touchstart", function (e) {
+      if (window.innerWidth < 576 && e.touches.length > 0) {
+        startY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    floatingPopover.addEventListener("touchmove", function (e) {
+      if (window.innerWidth < 576 && e.touches.length > 0) {
+        var deltaY = e.touches[0].clientY - startY;
+        if (deltaY > 60) {
+          closePopover();
+        }
+      }
+    }, { passive: true });
+  }
 });
 </script>
 {% endblock %}
-

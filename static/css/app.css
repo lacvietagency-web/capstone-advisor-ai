@@ -2599,3 +2599,593 @@ textarea.form-control,
         width: 100% !important;
     }
 }
+
+
+/* ==========================================================================
+   Hermes Recipe: component|sticky-typewriter-filter-bar
+   ÁP DỤNG VÀO: Thanh lọc dính đầu trang danh sách đề tài (/danh-sach-de-tai/)
+   ========================================================================== */
+.sticky-filter-bar {
+    position: sticky;
+    top: 12px;
+    z-index: 1010;
+    background: #FFFFFF;
+    border: 1px solid var(--ca-border);
+    border-radius: var(--ca-radius-card);
+    padding: 18px 20px;
+    box-shadow: 0 4px 18px rgba(16, 24, 40, 0.06);
+    margin-bottom: 24px;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.sticky-filter-bar:hover {
+    box-shadow: 0 6px 24px rgba(16, 24, 40, 0.1);
+}
+
+.sticky-filter-form .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ca-text);
+    margin-bottom: 6px;
+}
+
+.sticky-filter-form .form-control,
+.sticky-filter-form .form-select {
+    min-height: 44px;
+    border: 1px solid #C9D1DC;
+    border-radius: var(--ca-radius-md);
+    font-size: 14.5px;
+    color: var(--ca-text);
+    background-color: var(--ca-surface);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sticky-filter-form .form-control:focus,
+.sticky-filter-form .form-select:focus {
+    border-color: var(--ca-primary-500);
+    box-shadow: 0 0 0 3px rgba(37, 99, 196, 0.16);
+    outline: none;
+}
+
+.sticky-filter-form .input-group-text {
+    border-color: #C9D1DC;
+    border-radius: var(--ca-radius-md) 0 0 var(--ca-radius-md);
+    color: var(--ca-muted);
+}
+
+/* Active filter chips */
+.active-filters-container {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--ca-border-soft);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.active-filters-heading {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ca-text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-right: 4px;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--ca-primary-050);
+    color: var(--ca-primary-700);
+    border: 1px solid rgba(23, 78, 166, 0.18);
+    border-radius: var(--ca-radius-pill);
+    padding: 4px 10px 4px 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.filter-chip-label {
+    color: var(--ca-text-secondary);
+    font-weight: 500;
+}
+
+.filter-chip-val {
+    font-weight: 600;
+    color: var(--ca-primary-700);
+}
+
+.filter-chip-remove {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    color: var(--ca-primary-600);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-chip-remove:hover {
+    background-color: rgba(23, 78, 166, 0.15);
+    color: var(--ca-primary-700);
+}
+
+.filter-chip-clear-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ca-danger);
+    background: none;
+    border: 1px dashed var(--ca-danger-border);
+    border-radius: var(--ca-radius-pill);
+    padding: 4px 10px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    min-height: 30px;
+}
+
+.filter-chip-clear-all:hover {
+    background-color: var(--ca-danger-bg);
+    color: var(--ca-danger);
+    border-style: solid;
+}
+
+@media (max-width: 575.98px) {
+    .sticky-filter-bar {
+        position: static;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+    }
+    .active-filters-container {
+        gap: 6px;
+    }
+    .filter-chip {
+        font-size: 12px;
+        padding: 3px 8px 3px 10px;
+    }
+}
+
+/* ==========================================================================
+   Hermes Recipe: component|badge-pill-scale-pop
+   ÁP DỤNG VÀO: Nhãn trạng thái (OPEN, CLOSED, DRAFT, Chưa đủ điều kiện)
+   ========================================================================== */
+.badge-pill-scale-pop {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: var(--ca-radius-pill, 999px);
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    position: relative;
+    transform-origin: center;
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    animation: badgeScalePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    text-decoration: none;
+    cursor: default;
+    border: 1px solid transparent;
+}
+
+.badge-pill-scale-pop:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
+}
+
+.badge-pill-scale-pop .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+/* Status variants with DESIGN.md color tokens */
+.badge-pill-scale-pop.status-open {
+    background-color: var(--ca-success-bg, #EAF7F0);
+    color: var(--ca-success, #157347);
+    border-color: var(--ca-success-border, #B7E2C8);
+}
+.badge-pill-scale-pop.status-open .dot {
+    background-color: var(--ca-success, #157347);
+}
+
+.badge-pill-scale-pop.status-closed {
+    background-color: #F2F4F7;
+    color: #475467;
+    border-color: #D0D5DD;
+}
+.badge-pill-scale-pop.status-closed .dot {
+    background-color: #667085;
+}
+
+.badge-pill-scale-pop.status-pending,
+.badge-pill-scale-pop.status-draft {
+    background-color: var(--ca-warning-bg, #FFF6DD);
+    color: var(--ca-warning, #946200);
+    border-color: #FCE6A2;
+}
+.badge-pill-scale-pop.status-pending .dot,
+.badge-pill-scale-pop.status-draft .dot {
+    background-color: var(--ca-warning, #946200);
+}
+
+.badge-pill-scale-pop.status-danger,
+.badge-pill-scale-pop.status-ineligible {
+    background-color: var(--ca-danger-bg, #FDECEC);
+    color: var(--ca-danger, #B42318);
+    border-color: var(--ca-danger-border, #FECDCA);
+}
+.badge-pill-scale-pop.status-danger .dot,
+.badge-pill-scale-pop.status-ineligible .dot {
+    background-color: var(--ca-danger, #B42318);
+}
+
+@keyframes badgeScalePop {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+    60% {
+        transform: scale(1.08);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .badge-pill-scale-pop {
+        animation: none;
+        transition: none;
+        transform: none !important;
+    }
+}
+
+/* ==========================================================================
+   Hermes Recipe: component|circular-metric-process-cluster
+   ÁP DỤNG VÀO: Chi tiết điểm M1–M5 ở trang chi tiết đề tài (/danh-sach-de-tai/<id>/)
+   ========================================================================== */
+.feature-number-wrap,
+.metric-process-cluster {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 8px;
+    margin: 16px 0;
+}
+
+.metric-cluster-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    width: 100%;
+}
+
+.metric-cluster-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    min-width: 120px;
+}
+
+.circle-div,
+.metric-circle-node {
+    width: 114px;
+    height: 114px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 2px solid var(--ca-border-soft);
+    box-shadow: 0 4px 16px rgba(23, 78, 166, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.circle-div:hover,
+.metric-circle-node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(23, 78, 166, 0.14);
+    border-color: var(--ca-primary-500);
+}
+
+.circle-div .metric-ring-svg {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    transform: rotate(-90deg);
+    pointer-events: none;
+}
+
+.circle-div .ring-bg {
+    stroke: var(--ca-primary-050);
+}
+
+.circle-div .ring-bar {
+    stroke: var(--ca-primary-700);
+    transition: stroke-dashoffset 0.6s ease;
+}
+
+.circle-div .metric-badge-code {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ca-primary-600);
+    background: var(--ca-primary-050);
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.circle-div .metric-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ca-heading);
+    line-height: 1;
+    margin: 0;
+}
+
+.circle-div .metric-unit {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ca-muted);
+    margin-top: 2px;
+    line-height: 1;
+}
+
+.metric-step-label {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.metric-step-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ca-heading);
+    line-height: 1.3;
+}
+
+.metric-step-desc {
+    font-size: 11.5px;
+    color: var(--ca-muted);
+}
+
+/* Arrow divider between cluster nodes */
+.arrow-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ca-border);
+    font-size: 18px;
+    padding: 0 4px;
+}
+
+@media (max-width: 991.98px) {
+    .metric-cluster-list {
+        gap: 12px;
+    }
+    .metric-cluster-step {
+        min-width: 100px;
+    }
+    .circle-div,
+    .metric-circle-node {
+        width: 100px;
+        height: 100px;
+    }
+    .circle-div .metric-value {
+        font-size: 22px;
+    }
+    .arrow-wrap {
+        display: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .metric-cluster-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    .metric-cluster-step {
+        width: 100%;
+        min-width: 0;
+    }
+    .circle-div,
+    .metric-circle-node {
+        width: 92px;
+        height: 92px;
+    }
+    .circle-div .metric-value {
+        font-size: 20px;
+    }
+    .circle-div .metric-badge-code {
+        font-size: 10px;
+    }
+    .metric-step-title {
+        font-size: 12px;
+    }
+}
+
+/* ==========================================================================
+   Hermes Recipe: layout|floating-anchor-popover
+   ÁP DỤNG VÀO: Popover giải thích điểm M1–M5 và 'Vì sao chưa đủ điều kiện'
+   ========================================================================== */
+.floating-anchor-popover {
+    position: fixed;
+    z-index: 1060;
+    background: #FFFFFF;
+    border: 1px solid var(--ca-border);
+    border-radius: var(--ca-radius-card);
+    box-shadow: 0 10px 30px rgba(16, 24, 40, 0.16);
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
+}
+
+.floating-anchor-popover.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.floating-popover-arrow {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #FFFFFF;
+    border: 1px solid var(--ca-border);
+    transform: rotate(45deg);
+    z-index: -1;
+}
+
+.floating-anchor-popover[data-placement="top"] .floating-popover-arrow {
+    bottom: -6px;
+    border-top: none;
+    border-left: none;
+}
+
+.floating-anchor-popover[data-placement="bottom"] .floating-popover-arrow {
+    top: -6px;
+    border-bottom: none;
+    border-right: none;
+}
+
+.floating-popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--ca-border-soft);
+    background-color: var(--ca-surface-muted);
+    border-radius: var(--ca-radius-card) var(--ca-radius-card) 0 0;
+}
+
+.floating-popover-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ca-heading);
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.floating-popover-close {
+    background: none;
+    border: none;
+    padding: 4px;
+    color: var(--ca-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    line-height: 1;
+    font-size: 16px;
+}
+
+.floating-popover-close:hover {
+    color: var(--ca-text);
+    background-color: rgba(0,0,0,0.05);
+}
+
+.floating-popover-body {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--ca-text);
+    line-height: 1.55;
+}
+
+.floating-popover-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--ca-border-soft);
+    background-color: #FAFBFC;
+    border-radius: 0 0 var(--ca-radius-card) var(--ca-radius-card);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Backdrop for popovers */
+.floating-popover-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(16, 24, 40, 0.45);
+    z-index: 1050;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.floating-popover-backdrop.is-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mobile bottomsheet styling for floating anchor popover */
+@media (max-width: 575.98px) {
+    .floating-anchor-popover {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 16px 16px 0 0 !important;
+        transform: translateY(100%);
+        border-bottom: none;
+    }
+    .floating-anchor-popover.is-active {
+        transform: translateY(0);
+    }
+    .floating-popover-arrow {
+        display: none !important;
+    }
+    .floating-popover-drag-bar {
+        width: 40px;
+        height: 4px;
+        background-color: #D0D5DD;
+        border-radius: 2px;
+        margin: 8px auto 0;
+    }
+}

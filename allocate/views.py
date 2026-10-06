@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 
-from catalog.models import RegistrationPeriod, Student, Topic
+from catalog.models import AuditLog, RegistrationPeriod, Student, Topic
 
 from .models import Allocation
 from .services import (
@@ -129,6 +129,13 @@ def allocation_dashboard(request):
         metrics_data = request.session.pop("allocation_metrics", None)
         if not metrics_data:
             metrics_data = calculate_period_metrics(period)
+            last_run = (
+                AuditLog.objects.filter(action="run_allocation", entity="RegistrationPeriod", entity_id=str(period.pk))
+                .order_by("-at")
+                .first()
+            )  # thời gian giải lấy từ lần chạy gần nhất (đo lại khi xem trang thì không có ý nghĩa)
+            last_metrics = (last_run.detail.get("metrics") or {}) if last_run else {}
+            metrics_data["elapsed_time"] = last_metrics.get("elapsed_time")
 
     return render(
         request,

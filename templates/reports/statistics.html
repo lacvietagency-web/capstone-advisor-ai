@@ -297,13 +297,13 @@
         <div class="micro-risk-col-bar">
           <!-- Stacked Segment: Risk / Overflow tier -->
           {% if item.competition_rate >= 2.0 %}
-            <div class="micro-risk-segment seg-critical" style="height: 0%;" data-target-height="100%"></div>
+            <div class="micro-risk-segment seg-critical" style="height: max(4%, {% widthratio item.nv1_count topic_nv1_list.0.nv1_count 100 %}%);" data-target-height="max(4%, {% widthratio item.nv1_count topic_nv1_list.0.nv1_count 100 %}%)"></div>
           {% elif item.competition_rate > 1.0 %}
-            <div class="micro-risk-segment seg-elevated" style="height: 0%;" data-target-height="75%"></div>
+            <div class="micro-risk-segment seg-elevated" style="height: max(4%, {% widthratio item.nv1_count topic_nv1_list.0.nv1_count 100 %}%);" data-target-height="max(4%, {% widthratio item.nv1_count topic_nv1_list.0.nv1_count 100 %}%)"></div>
           {% elif item.competition_rate == 1.0 %}
-            <div class="micro-risk-segment seg-optimal" style="height: 0%;" data-target-height="50%"></div>
+            <div class="micro-risk-segment seg-optimal" style="height: max(4%, {% widthratio item.nv1_count topic_nv1_list.0.nv1_count 100 %}%);" data-target-height="max(4%, {% widthratio item.nv1_count topic_nv1_list.0.nv1_count 100 %}%)"></div>
           {% else %}
-            <div class="micro-risk-segment seg-safe" style="height: 0%;" data-target-height="30%"></div>
+            <div class="micro-risk-segment seg-safe" style="height: max(4%, {% widthratio item.nv1_count topic_nv1_list.0.nv1_count 100 %}%);" data-target-height="max(4%, {% widthratio item.nv1_count topic_nv1_list.0.nv1_count 100 %}%)"></div>
           {% endif %}
         </div>
         <div class="micro-risk-col-meta">

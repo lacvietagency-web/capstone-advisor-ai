@@ -2625,7 +2625,7 @@ textarea.form-control,
 
 .fused-ribbon-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .fused-ribbon-cell {
@@ -2684,7 +2684,7 @@ textarea.form-control,
 
 @media (max-width: 991.98px) {
     .fused-ribbon-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .fused-ribbon-cell:nth-child(2) {
         border-right: none;
@@ -3257,4 +3257,25 @@ textarea.form-control,
     .progress-bar {
         transition: none !important;
     }
+}
+
+
+/* Bảng trong khung cuộn: giữ độ rộng tối thiểu để chữ không vỡ từng ký tự trên điện thoại (cuộn ngang trong khung) */
+.table-responsive > .app-table:not(.table-sm) {
+    min-width: 560px;
+}
+
+.table-responsive > .app-table:not(.table-sm) td {
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.app-table th {
+    white-space: nowrap;
+}
+
+/* Bảng dữ liệu ẩn cho trình đọc màn hình: neo về bên trái để không tạo thanh cuộn ngang */
+table.visually-hidden {
+    left: 0;
+    top: 0;
 }

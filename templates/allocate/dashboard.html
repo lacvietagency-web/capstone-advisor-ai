@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load l10n %}
 
 {% block title %}Phân công đề tài — Capstone Advisor AI{% endblock %}
 
@@ -150,7 +151,7 @@
 
     <div class="fused-metric-item" aria-label="Thời gian bộ giải chạy: {{ metrics.elapsed_time|default:'0.0'|floatformat:3 }} giây">
       <div class="fused-metric-label">Thời gian chạy</div>
-      <div class="fused-metric-value text-muted">{{ metrics.elapsed_time|default:"0.0"|floatformat:3 }}s</div>
+      <div class="fused-metric-value text-muted">{% if metrics.elapsed_time is not None %}{{ metrics.elapsed_time|floatformat:3 }}s{% else %}—{% endif %}</div>
       <div class="fused-metric-sub">thời gian bộ giải</div>
     </div>
   </div>
@@ -170,7 +171,7 @@
         Phân bố điểm phù hợp sau phân công
       </h3>
       <p class="small text-muted mb-0 mt-1">
-        Phân khúc tầng từ chân lên đỉnh theo mức độ đáp ứng nguyện vọng (NV1, NV2–3, Ngoài NV, Chưa xếp) trên từng dải điểm.
+        Phân khúc tầng từ chân lên đỉnh theo mức độ đáp ứng nguyện vọng (NV1, NV2–3, Ngoài NV; SV chưa xếp không có điểm nên không tính) trên từng dải điểm.
       </p>
     </div>
 
@@ -187,10 +188,6 @@
       <div class="legend-item" role="listitem">
         <span class="legend-dot dot-nv-other" aria-hidden="true"></span>
         <span>Ngoài NV (Hổ phách)</span>
-      </div>
-      <div class="legend-item" role="listitem">
-        <span class="legend-dot dot-unassigned" aria-hidden="true"></span>
-        <span>Chưa xếp (Đỏ)</span>
       </div>
     </div>
   </div>
@@ -709,7 +706,7 @@
 [
   {% for a in allocations %}
   {
-    "score": {% if a.match_score is not None %}{{ a.match_score }}{% else %}null{% endif %},
+    "score": {% if a.match_score is not None %}{{ a.match_score|unlocalize }}{% else %}null{% endif %},
     "rank": {% if a.preference_rank %}{{ a.preference_rank }}{% else %}null{% endif %},
     "has_topic": {% if a.topic %}true{% else %}false{% endif %}
   }{% if not forloop.last %},{% endif %}
@@ -804,10 +801,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     allocationsData.forEach(function (item) {
       if (!item.has_topic || item.score === null) {
-        // Sinh viên chưa xếp hoặc chưa có điểm: xếp vào bin 0 phân khúc unassigned
-        bins[0].unassigned++;
-        bins[0].total++;
-        return;
+        return;  // SV chưa xếp không có điểm phù hợp → không đưa vào biểu đồ điểm (đếm riêng ở chỉ số "Tỉ lệ phân công")
       }
 
       var score = Number(item.score);

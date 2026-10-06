@@ -1,169 +1,417 @@
-# Giải thích Phương pháp & Kết quả Thực nghiệm Khoa học (RQ1–RQ3)
+# 05-thuc-nghiem.md — Giải thích thực nghiệm RQ1–RQ3
 
-> **Dành cho:** Anh Trịnh Hoàng Thành (vibe code thực chiến, chuẩn bị bảo vệ đồ án tốt nghiệp)  
-> **Mục tiêu:** Hiểu rõ phương pháp luận nghiên cứu thực nghiệm, nắm chắc 3 câu hỏi nghiên cứu (RQ1, RQ2, RQ3), thuộc các công thức đo lường chuẩn quốc tế (Hit@K, MRR, NDCG, Spearman, Phân vị 10) để trả lời đanh thép trước hội đồng.
+## 1. RQ1 — Mỗi thành phần M1–M5 đóng góp thế nào?
 
----
+### (a) Câu hỏi nghiên cứu bằng lời thường
 
-## 1. Ví dụ đời thường: Thử nghiệm va chạm xe hơi (Crash Test) & Thử nghiệm Vắc-xin
+Hệ thống gợi ý sử dụng nhiều nguồn thông tin cùng lúc:
 
-Hãy tưởng tượng một hãng xe hơi vừa chế tạo ra một hệ thống túi khí và khung xe thông minh mới:
-- Hãng xe không thể chỉ bước ra sân khấu và tuyên bố: *"Xe của tôi an toàn lắm, tin tôi đi!"*.
-- Để được cấp phép lưu hành, chiếc xe phải được đưa vào phòng thử nghiệm tiêu chuẩn:
-  1. **Thử nghiệm từng bộ phận (Ablation Test):** Tháo thử túi khí rèm ra xem độ an toàn giảm bao nhiêu %? Tháo thử thanh gia cường cửa xe ra xem mức độ biến dạng thế nào? $\to$ Chứng minh từng bộ phận đều đóng góp giá trị thiết thực.
-  2. **Thử nghiệm độ lặp lại ổn định (Stability Test):** Đâm xe 10 lần ở cùng tốc độ 60 km/h xem túi khí có bung đều đặn cả 10 lần hay lần nổ lần xịt?
-  3. **Thử nghiệm đối đầu trực tiếp (Benchmarking):** Cho xe chạy đua và đâm thử cùng một chướng ngại vật với dòng xe đời cũ để chứng minh xe đời mới vượt trội hơn về mọi chỉ số sinh tồn.
+- **M1 — Kỹ năng:** sinh viên có đáp ứng kỹ năng đề tài yêu cầu không.
+- **M2 — Học lực:** GPA và các môn học liên quan có phù hợp không.
+- **M3 — Lĩnh vực:** đề tài có thuộc lĩnh vực sinh viên quan tâm không.
+- **M4 — Embedding:** nội dung hồ sơ sinh viên và đề tài có gần nhau về mặt ngữ nghĩa không.
+- **M5 — LLM:** LLM đọc tổng thể hồ sơ và chấm theo rubric định trước.
 
-```
-                      [ QUY TRÌNH THỰC NGHIỆM ĐỒ ÁN ]
-                                     │
-      ┌──────────────────────────────┼──────────────────────────────┐
-      ▼                              ▼                              ▼
-  [ RQ1: ABLATION ]          [ RQ2: ĐỘ ỔN ĐỊNH LLM ]       [ RQ3: ILP vs GREEDY ]
-Tháo bớt từng mô hình         Thử đảo thứ tự đề tài         So tài thuật toán tối ưu
-  M1, M2, M3, M4, M5           chống thiên lệch vị trí       trên 100, 300, 1.000 SV
-xem độ chính xác giảm sao?   đo độ nhất quán Spearman       đo độ hài lòng & vi phạm
-```
+RQ1 muốn trả lời câu hỏi:
 
-Đồ án **Capstone Advisor AI** cũng được thiết kế theo đúng quy chuẩn khoa học thực nghiệm nghiêm ngặt như vậy!
+> Nếu bỏ từng thành phần khỏi hệ thống thì chất lượng danh sách Top 5 thay đổi như thế nào? Hệ thống kết hợp có khác gì so với chỉ dùng TF-IDF hoặc Embedding?
 
----
+### (b) Làm thế nào — ví dụ đời thường
 
-## 2. Dữ liệu Mô phỏng: Luật Lũy thừa (Power-Law / Pareto 80/20)
+Có thể hình dung như đánh giá một chiếc điện thoại bằng nhiều tiêu chí: màn hình, pin, camera, hiệu năng và phần mềm.
 
-Trong thực tế, sinh viên đăng ký đồ án không bao giờ chia đều cho tất cả các đề tài. Luôn có một số đề tài của các thầy cô "hot", đề tài xu hướng công nghệ mới (AI, GenAI, Cloud) nhận được lượng sinh viên đăng ký áp đảo:
+Muốn biết camera có đóng góp hay không, ta giữ nguyên mọi thứ nhưng bỏ điểm camera rồi xem kết quả xếp hạng thay đổi thế nào. Sau đó làm tương tự với pin, màn hình và các thành phần khác.
 
-- Lệnh tạo dữ liệu: `python manage.py seed_demo --students 100 --seed 42` tại [catalog/management/commands/seed_demo.py](../../catalog/management/commands/seed_demo.py).
-- **Quy luật Pareto 80/20 được cài đặt có chủ đích:** Khoảng **20% đề tài "hot" thu hút tới 80% nguyện vọng 1**.
-- **Ý nghĩa khoa học:** Việc tạo ra sự cạnh tranh và xung đột tài nguyên gay gắt như thế này là điều kiện tiên quyết để kiểm tra xem thuật toán phân công ILP có thực sự vượt trội hơn thuật toán tham lam Greedy hay không. Nếu mọi đề tài đều ế hoặc SV chọn đều nhau, bài toán phân công trở nên tầm thường và vô nghĩa!
-- **Tính tái lập (Reproducibility):** Khi cố định `--seed`, dữ liệu sinh ra luôn giống hệt nhau, giúp bất kỳ ai trong hội đồng cũng có thể chạy lại để thẩm định kết quả.
+Trong đồ án, cách làm tương tự:
 
----
+1. Chạy hệ thống đầy đủ M1–M5.
+2. Lần lượt bỏ M1, M2, M3, M4 hoặc M5.
+3. Thử cấu hình trọng số đều.
+4. So với hai baseline đơn giản là TF-IDF only và Embedding only.
+5. Đánh giá bằng Hit@5, MRR và NDCG@5.
 
-## 3. Câu hỏi Nghiên cứu 1 (RQ1): Nghiên cứu Cắt bỏ Thành phần (Ablation Study)
+Nhãn phù hợp trong thực nghiệm này là **pseudo ground truth**:
 
-> **Câu hỏi đặt ra:** *"Mô hình gợi ý kết hợp M1–M5 có thực sự vượt trội hơn các mô hình đơn lẻ không? Mỗi thành phần (kỹ năng, học lực, lĩnh vực, ngữ nghĩa, LLM) đóng góp bao nhiêu phần trăm vào chất lượng gợi ý?"*
+- đề tài phải thuộc một trong các lĩnh vực sinh viên quan tâm cao nhất;
+- đồng thời M1 phải đạt ít nhất 70.
 
-### 3.1. Các biến thể thử nghiệm đối chiếu
-Hệ thống tiến hành so sánh đối đầu giữa các cấu hình:
-1. **Full Ensemble (Đầy đủ $M_1–M_5$):** Cấu hình hoàn chỉnh của đồ án.
-2. **Loại bỏ lần lượt từng mô hình:** Bỏ $M_1$ (không xét kỹ năng), Bỏ $M_2$ (không xét học lực), Bỏ $M_3$ (không xét lĩnh vực), Bỏ $M_4$ (không xét ngữ nghĩa embedding), Bỏ $M_5$ (không có LLM).
-3. **Mô hình cổ điển (Baselines):** Chỉ dùng TF-IDF so khớp từ khóa văn bản; Chỉ dùng Vector Embedding $M_4$; Trọng số đều ($w_i = 0.2$ cho cả 5 mô hình).
+### (c) Bảng kết quả
 
-### 3.2. Bộ thước đo chuẩn quốc tế trong Hệ thống Gợi ý (Ranking Metrics)
+| Cấu hình | Hit@5 | MRR | NDCG@5 |
+| --- | --- | --- | --- |
+| Đủ M1–M5 | 0.883 | 0.813 | 0.679 |
+| Bỏ M1 (Kỹ năng) | 0.692 | 0.500 | 0.395 |
+| Bỏ M2 (Học lực) | 0.883 | 0.821 | 0.682 |
+| Bỏ M3 (Lĩnh vực) | 0.830 | 0.758 | 0.640 |
+| Bỏ M4 (Embedding) | 0.872 | 0.831 | 0.701 |
+| Bỏ M5 (LLM) | 0.883 | 0.838 | 0.702 |
+| Trọng số đều | 0.872 | 0.802 | 0.656 |
+| TF-IDF only | 0.575 | 0.398 | 0.256 |
+| Embedding only | 0.447 | 0.301 | 0.175 |
 
-#### 1. Hit@K (Tỷ lệ có đề tài trúng đích trong Top-K)
-Tỷ lệ sinh viên có ít nhất 1 đề tài thực sự phù hợp xuất hiện trong danh sách Top-K gợi ý (thường đo ở $K=5$):
-$$\mathbf{\text{Hit}@K = \frac{1}{|S|} \sum_{s \in S} \mathbb{I}\left( \text{Top}_K(s) \cap \text{Relevant}(s) \neq \emptyset \right)}$$
-- $\mathbb{I}(\cdot)$: Hàm chỉ thị (bằng $1$ nếu đúng, bằng $0$ nếu sai).
+**Độ phủ M5:** 75/94 sinh viên có điểm M5 thật từ LLM; các trường hợp còn lại M5 trống do LLM lỗi hoặc hết hạn mức.
 
-#### 2. MRR (Mean Reciprocal Rank - Thứ hạng Nghịch đảo Trung bình)
-Đo xem đề tài phù hợp đầu tiên xuất hiện ở vị trí thứ mấy trong danh sách gợi ý. Đề tài chuẩn nằm ở Top 1 thì được $1.0$, nằm ở Top 2 được $1/2 = 0.5$, Top 3 được $1/3 = 0.33$:
-$$\mathbf{\text{MRR} = \frac{1}{|S|} \sum_{s \in S} \frac{1}{\text{rank}_s}}$$
+### (d) Đọc kết quả thế nào?
 
-#### 3. NDCG@K (Normalized Discounted Cumulative Gain)
-Thước đo xếp hạng toàn diện và khắt khe nhất hiện nay, đánh giá cả độ liên quan của đề tài và vị trí xuất hiện (đề tài càng phù hợp mà bị đẩy xuống đáy danh sách sẽ bị phạt nặng theo hàm $\log$):
-$$\text{DCG}@K = \sum_{i=1}^K \frac{2^{\text{rel}_i} - 1}{\log_2(i + 1)}, \quad \mathbf{\text{NDCG}@K = \frac{\text{DCG}@K}{\text{IDCG}@K}}$$
-- $\text{IDCG}@K$: Điểm DCG lý tưởng nhất khi các đề tài tốt nhất được xếp ngay ngắn ở các vị trí đầu tiên. $\text{NDCG} \in [0.0, 1.0]$.
+Điểm dễ thấy nhất là khi **bỏ M1**, cả ba chỉ số giảm mạnh:
 
-> **Lưu ý phương pháp luận bảo vệ:** Trong thử nghiệm mô phỏng, nhãn chuẩn (pseudo-ground-truth) được quy ước kỹ thuật là các đề tài cùng lĩnh vực sinh viên quan tâm nhất VÀ đáp ứng $\ge 70\%$ kỹ năng để kiểm thử tự động quy trình. Khi triển khai thực tế tại trường, nhãn thật được thu thập từ khảo sát đánh giá độ hài lòng của Giảng viên hướng dẫn và Sinh viên sau bảo vệ.
+- Hit@5: từ 0.883 xuống 0.692.
+- MRR: từ 0.813 xuống 0.500.
+- NDCG@5: từ 0.679 xuống 0.395.
 
----
+Bỏ M3 cũng làm kết quả giảm:
 
-## 4. Câu hỏi Nghiên cứu 2 (RQ2): Độ ổn định & Tính Khách quan của LLM (M5)
+- Hit@5 còn 0.830.
+- MRR còn 0.758.
+- NDCG@5 còn 0.640.
 
-> **Câu hỏi đặt ra:** *"LLM có bị thiên vị đề tài đứng trước không (Position Bias)? Kết quả chấm điểm qua các lần chạy có ổn định không hay lúc chấm cao lúc chấm thấp?"*
+Hai baseline đơn lẻ thấp hơn rõ rệt:
 
-### 4.1. Thiết kế thử nghiệm
-- Chọn ngẫu nhiên **30 sinh viên** với hồ sơ đa dạng.
-- Chạy đánh giá $M_5$ qua 2 lần thử nghiệm độc lập:
-  - Lần 1: Thứ tự đề tài gửi vào prompt được xáo trộn theo quy luật $A$.
-  - Lần 2: Thứ tự đề tài gửi vào prompt được xáo trộn đảo ngược hoàn toàn theo quy luật $B$.
-- So sánh sự tương đồng của điểm số giữa 2 lần chạy để kiểm tra độ tin cậy.
+- TF-IDF only: Hit@5 = 0.575, MRR = 0.398, NDCG@5 = 0.256.
+- Embedding only: Hit@5 = 0.447, MRR = 0.301, NDCG@5 = 0.175.
 
-### 4.2. Thước đo độ ổn định
-1. **Sai số Tuyệt đối Trung bình (MAE - Mean Absolute Error):**
-   $$\mathbf{\text{MAE} = \frac{1}{N} \sum_{i=1}^N \left| M_5^{(1)}(i) - M_5^{(2)}(i) \right|}$$
-   *(MAE càng gần 0 chứng minh điểm số qua các lần chạy càng bất biến).*
+Tuy nhiên, **không được kết luận rằng M4 hoặc M5 vô ích chỉ vì khi bỏ chúng, một vài chỉ số không giảm**. Bỏ M4 cho NDCG@5 = 0.701 và bỏ M5 cho NDCG@5 = 0.702, thậm chí cao hơn cấu hình đầy đủ 0.679. Nguyên nhân quan trọng là cách tạo nhãn giả đang ưu tiên trực tiếp cho M1 và M3.
 
-2. **Hệ số Tương quan Hạng Spearman ($\rho$):**
-   Đo mức độ bảo toàn thứ tự xếp hạng giữa hai lần chạy:
-   $$\mathbf{\rho = 1 - \frac{6 \sum d_i^2}{n(n^2 - 1)}}$$
-   - $d_i$: Độ chênh lệch thứ hạng của đề tài $i$ giữa lần 1 và lần 2.
-   - $\rho \to 1.0$: Thứ tự các đề tài được giữ nguyên vẹn tuyệt đối, chứng minh cơ chế `random.shuffle` và `temperature=0` đã triệt tiêu hoàn toàn thiên lệch vị trí!
+Kết quả RQ1 vì vậy chủ yếu cho thấy:
 
----
+- pipeline ablation hoạt động;
+- hệ thống có thể đo độ nhạy khi bỏ từng thành phần;
+- M1 và M3 có ảnh hưởng rất rõ dưới bộ nhãn hiện tại;
+- chưa đủ bằng chứng để đánh giá công bằng giá trị thực tế của M4 và M5.
 
-## 5. Câu hỏi Nghiên cứu 3 (RQ3): So sánh Đối đầu ILP vs Greedy
+M5 trong RQ1 là điểm LLM thật từ Groq `openai/gpt-oss-120b`, temperature 0. M5 chỉ được chấm cho Top 15 ứng viên sau M1–M4. Đề tài ngoài Top 15 hoặc trường hợp LLM lỗi không có M5 và hệ thống chia lại trọng số. Điểm đã chấm được lưu cache.
 
-> **Câu hỏi đặt ra:** *"Giải thuật tối ưu toàn cục ILP vượt trội hơn thuật toán tham lam Greedy ở những chỉ số nào? Chi phí thời gian tính toán của ILP khi quy mô sinh viên tăng lên (100, 300, 1.000 SV) có khả thi trong thực tế không?"*
+### (e) Giới hạn phải nói thật
 
-### 5.1. Bảy chỉ số Đo lường Hiệu năng Phân công trong Codebase
-Triển khai chi tiết tại hàm `metrics(...)` trong [allocate/solver.py](../../allocate/solver.py):
+**Giới hạn lớn nhất của RQ1 là nhãn giả có tính vòng tròn.**
 
-| Chỉ số trong Code | Công thức tính toán | Ý nghĩa thực tiễn |
-|---|---|---|
-| **1. `assigned_rate`** | $\frac{N_{\text{assigned}}}{N_{\text{total}}}$ | **Tỷ lệ sinh viên có đề tài:** Thước đo quan trọng nhất của Khoa. Càng cao càng tốt. |
-| **2. `nv1_rate`** | $\frac{N_{\text{NV1}}}{N_{\text{total}}}$ | **Tỷ lệ trúng tuyển Nguyện vọng 1:** Thể hiện mức độ thỏa mãn tối đa của sinh viên. |
-| **3. `top3_rate`** | $\frac{N_{\text{Top3}}}{N_{\text{total}}}$ | **Tỷ lệ trúng tuyển Top 3 nguyện vọng:** Đo mức độ sinh viên được làm đúng đề tài mình muốn. |
-| **4. `mean_rank`** | $\frac{1}{N_{\text{assigned}}} \sum \text{rank}(s)$ | **Thứ hạng trung bình:** (1.0 là hoàn hảo, càng gần 1 càng tốt). |
-| **5. `avg_match`** | $\frac{1}{N} \sum \text{score}(s, t)$ | **Điểm phù hợp trung bình:** Đo độ "xứng lứa vừa đôi" giữa năng lực SV và đề tài. |
-| **6. `p10_match`** | Phân vị thứ 10 của điểm phù hợp | **Độ công bằng xã hội:** Điểm số của nhóm $10\%$ sinh viên yếu thế nhất. Đảm bảo không ai bị gán vào đề tài quá cọc cạch. |
-| **7. `quota_violations`** | Số đề tài vượt sức chứa + số GV vượt chỉ tiêu | **Số vi phạm ràng buộc:** Bắt buộc phải bằng **0** tuyệt đối. |
+Nhãn được tạo từ chính:
+
+- M1 — kỹ năng;
+- M3 — lĩnh vực.
+
+Vì vậy các cấu hình sử dụng M1 và M3 có lợi thế ngay từ cách định nghĩa đáp án đúng. Do đó không thể dùng bảng này để khẳng định M1 hoặc M3 chắc chắn quan trọng hơn M4 hay M5 trong thực tế.
+
+Ngoài ra, M5 chưa phủ toàn bộ dữ liệu: chỉ **75/94 sinh viên** có điểm M5 thật. Các trường hợp còn lại bị thiếu do lỗi LLM hoặc giới hạn lượt gọi.
+
+Muốn đánh giá công bằng hơn cần nhãn thật từ sinh viên và giảng viên thay vì chỉ dùng pseudo ground truth.
+
+### (f) Một câu để nói khi bảo vệ
+
+> “RQ1 cho thấy pipeline ablation hoạt động và M1, M3 ảnh hưởng mạnh dưới bộ nhãn hiện tại, nhưng em không khẳng định M4 hay M5 kém hơn vì pseudo ground truth được tạo trực tiếp từ M1 và M3 nên tồn tại thiên lệch vòng tròn.”
 
 ---
 
-### 5.2. Bảng Kết quả Thực nghiệm Điển hình (Quy mô 100 Sinh viên, 15 GV, 50 Đề tài)
+## 2. RQ2 — LLM có bị ảnh hưởng bởi thứ tự đề tài không?
 
-Kết quả thu được khi chạy lệnh kiểm thử nghiệm thu:
+### (a) Câu hỏi nghiên cứu bằng lời thường
 
-| Thước đo đánh giá | Thuật toán Tham lam (Greedy Baseline) | Thuật toán Quy hoạch nguyên (ILP PuLP) | Mức độ cải thiện của ILP |
-|---|:---:|:---:|:---:|
-| **Tỷ lệ được xếp (`assigned_rate`)** | $78.0\%$ | $\mathbf{94.0\%}$ | 🟢 **Tăng $+16.0\%$** (Cứu sống 16 sinh viên) |
-| **Đạt Nguyện vọng 1 (`nv1_rate`)** | $42.0\%$ | $\mathbf{58.0\%}$ | 🟢 **Tăng $+16.0\%$** |
-| **Đạt Top 3 (`top3_rate`)** | $78.0\%$ | $\mathbf{94.0\%}$ | 🟢 **Tăng $+16.0\%$** |
-| **Thứ hạng trung bình (`mean_rank`)** | $1.72$ | $\mathbf{1.45}$ | 🟢 **Tốt hơn rõ rệt (gần NV1 hơn)** |
-| **Điểm phù hợp TB (`avg_match`)** | $68.4$ | $\mathbf{74.8}$ | 🟢 **Tăng $+6.4$ điểm** |
-| **Phân vị 10 (`p10_match`)** | $32.0$ | $\mathbf{48.5}$ | 🟢 **Công bằng hơn cho nhóm yếu thế** |
-| **Vi phạm chỉ tiêu (`quota_violations`)** | $0$ | $\mathbf{0}$ | ✅ Đảm bảo tuyệt đối $100\%$ |
-| **Thời gian thực thi (Runtime)** | $0.005$ giây | $\mathbf{0.082}$ giây | ⚡ Siêu nhanh (dưới 0.1 giây) |
+RQ2 kiểm tra:
 
-> 💡 **Nhận xét then chốt:** Khi mở rộng quy mô lên **1.000 sinh viên**, thuật toán ILP (PuLP CBC) giải xong bài toán toàn cục trong **dưới 1.2 giây**. Điều này chứng minh giải pháp hoàn toàn sẵn sàng triển khai thực tế cho toàn bộ các trường đại học quy mô lớn.
+> Nếu vẫn là cùng một sinh viên và cùng các đề tài, nhưng đổi thứ tự đề tài trong prompt, LLM có chấm giống nhau hay không?
+
+Đây là kiểm tra **position bias**, tức LLM có thể vô tình ưu tiên hoặc thay đổi đánh giá chỉ vì một đề tài được đặt trước hay đặt sau.
+
+### (b) Làm thế nào — ví dụ đời thường
+
+Giả sử đưa cho một giám khảo ba bài A, B, C.
+
+Lần đầu đưa theo thứ tự:
+
+> A → B → C
+
+Lần sau đưa đúng ba bài đó nhưng đảo thành:
+
+> C → B → A
+
+Nếu người chấm thực sự ổn định, điểm và thứ tự đánh giá không nên thay đổi nhiều.
+
+Trong RQ2:
+
+- mỗi sinh viên được chấm hai lần;
+- lần A dùng thứ tự thuận;
+- lần B dùng thứ tự đảo ngược;
+- không dùng cache CSDL;
+- so bằng MAE và Spearman ρ.
+
+**MAE càng thấp càng tốt.**
+
+**Spearman ρ càng gần 1 càng tốt.**
+
+### (c) Bảng kết quả
+
+| Nhà cung cấp | Mô hình | Số SV | MAE (TB ± ĐLC) | Spearman ρ (TB ± ĐLC) |
+| --- | --- | --- | --- | --- |
+| Ollama (Qwen2.5-3B) | `qwen2.5:3b` | 29 | 16.65 ± 8.16 | -0.180 ± 0.298 |
+| Groq (openai/gpt-oss-20b) | `openai/gpt-oss-20b` | 30 | 10.34 ± 4.86 | 0.710 ± 0.226 |
+| Groq (qwen/qwen3.8-27b) | `qwen/qwen3.8-27b` | 9 | 6.17 ± 1.94 | 0.878 ± 0.090 |
+
+### (d) Đọc kết quả thế nào?
+
+`qwen2.5:3b` chạy local có:
+
+- MAE = 16.65 ± 8.16;
+- Spearman = -0.180 ± 0.298.
+
+Điều này cho thấy thứ tự đánh giá thay đổi khá mạnh khi đảo vị trí đề tài.
+
+`openai/gpt-oss-20b` trên Groq ổn định hơn:
+
+- MAE = 10.34 ± 4.86;
+- Spearman = 0.710 ± 0.226.
+
+`qwen/qwen3.8-27b` có kết quả tốt nhất trong bảng đã đo:
+
+- MAE = 6.17 ± 1.94;
+- Spearman = 0.878 ± 0.090.
+
+Tuy nhiên model này mới đo được **9 sinh viên**, nên không nên khẳng định chắc chắn nó tốt nhất cho toàn bộ tập dữ liệu.
+
+Kết luận hợp lý của RQ2 là: **LLM không hoàn toàn bất biến với thứ tự prompt**, và mức độ ổn định khác nhau giữa các model.
+
+### (e) Giới hạn phải nói thật
+
+Mặc dù thiết kế ban đầu chọn 30 sinh viên, số mẫu thực tế khác nhau:
+
+- Qwen2.5-3B: 29 sinh viên;
+- gpt-oss-20b: 30 sinh viên;
+- qwen3.8-27b: 9 sinh viên.
+
+Nguyên nhân là API miễn phí có giới hạn lượt gọi và giới hạn theo thời gian.
+
+Nemotron-550B trên OpenRouter không phản hồi kịp nên không có dòng kết quả.
+
+Vì vậy không nên xem các model trong bảng như một benchmark hoàn toàn cân bằng về số mẫu.
+
+### (f) Một câu để nói khi bảo vệ
+
+> “RQ2 cho thấy thứ tự đề tài thực sự có thể ảnh hưởng điểm M5; gpt-oss-20b đạt MAE 10.34 và Spearman 0.710, còn qwen3.8-27b đạt 6.17 và 0.878 nhưng mới đo được 9 sinh viên nên em không kết luận quá mức.”
 
 ---
 
-## 6. Sơ đồ Khung Thực nghiệm Khoa học (Mermaid)
+## 3. RQ2b — Cùng một model nhưng đổi nơi chạy có ra cùng kết quả không?
 
-```mermaid
-flowchart TD
-    Start(["Khởi tạo Thực nghiệm Khoa học"]) --> DataGen["Sinh dữ liệu mô phỏng chuẩn tắc:\npython manage.py seed_demo --students 100/300/1000 --seed 42\n(Luật lũy thừa Pareto 80/20: 20% đề tài hot)"]
+### (a) Câu hỏi nghiên cứu bằng lời thường
 
-    DataGen --> SplitRQ{"Phân nhánh 3 Câu hỏi Nghiên cứu"}
+RQ2b kiểm tra:
 
-    subgraph RQ1_Flow["RQ1: THỬ NGHIỆM CẮT BỎ THÀNH PHẦN (ABLATION STUDY)"]
-        SplitRQ --> M_Full["Full Ensemble (M1–M5)"]
-        SplitRQ --> M_Drop1["Loại bỏ lần lượt từng Mi:\nDrop M1 / M2 / M3 / M4 / M5"]
-        SplitRQ --> M_Base["Mô hình đối chiếu cơ sở:\nChỉ TF-IDF / Chỉ Embedding M4 / Trọng số đều"]
-        
-        M_Full & M_Drop1 & M_Base --> EvalRank["Đo lường Top-5 Gợi ý:\n- Hit@5\n- MRR\n- NDCG@5"]
-        EvalRank --> OutRQ1["Kết luận RQ1: Mô hình kết hợp M1–M5 đạt điểm cao nhất,\ntừng thành phần đều có đóng góp độc lập không thể thay thế"]
-    end
+> Nếu cùng dùng `gpt-oss-120b`, cùng temperature 0 và cùng prompt, nhưng chạy qua hai hạ tầng khác nhau thì điểm M5 có giống hệt nhau không?
 
-    subgraph RQ2_Flow["RQ2: ĐỘ ỔN ĐỊNH & KHÁCH QUAN CỦA LLM"]
-        SplitRQ --> Test30["Chọn mẫu 30 Sinh viên"]
-        Test30 --> RunL1["Lần 1: Xáo trộn ngẫu nhiên danh sách đề tài (Order A)"]
-        Test30 --> RunL2["Lần 2: Đảo ngược thứ tự danh sách đề tài (Order B)"]
-        RunL1 & RunL2 --> CompLLM["So sánh điểm số M5:\n- Sai số tuyệt đối MAE\n- Tương quan thứ hạng Spearman rho"]
-        CompLLM --> OutRQ2["Kết luận RQ2: MAE < 2.5 và Spearman > 0.92,\nkhẳng định LLM không bị thiên lệch vị trí"]
-    end
+Hai nơi chạy được so sánh là:
 
-    subgraph RQ3_Flow["RQ3: SO SÁNH ĐỐI ĐẦU ILP vs GREEDY"]
-        SplitRQ --> ScaleRun["Chạy trên 3 cấp độ quy mô: 100 SV, 300 SV, 1000 SV\nvới 3 bộ tham số (alpha, beta)"]
-        ScaleRun --> RunGreedy["Chạy Thuật toán Tham lam (Greedy Baseline)"]
-        ScaleRun --> RunILP["Chạy Thuật toán Quy hoạch nguyên (PuLP CBC Solver)"]
-        RunGreedy & RunILP --> EvalMetrics["Tính 7 chỉ số chất lượng phân công (metrics()):\nassigned_rate, nv1_rate, top3_rate, mean_rank, avg_match, p10, violations"]
-        EvalMetrics --> OutRQ3["Kết luận RQ3: ILP vượt trội Greedy từ 12-18% tỷ lệ có chỗ,\ntriệt tiêu vi phạm chỉ tiêu và thời gian chạy < 1.5s"]
-    end
+- Groq;
+- OmniRoute/Tinfoil.
 
-    OutRQ1 & OutRQ2 & OutRQ3 --> Summary(["Tổng hợp Báo cáo Thực nghiệm & Vẽ biểu đồ trực quan"])
-```
+### (b) Làm thế nào — ví dụ đời thường
+
+Có thể hình dung cùng một chương trình được chạy trên hai máy khác nhau.
+
+Về lý thuyết ta mong kết quả rất giống nhau. Nhưng trong hệ thống AI, nhà cung cấp có thể dùng phần cứng, cách lượng tử hóa hoặc phiên bản triển khai khác nhau.
+
+RQ2b lấy các cặp **(sinh viên, đề tài)** mà cả hai nơi đều đã chấm rồi so sánh trực tiếp. Dữ liệu lấy từ cache nên thử nghiệm này không cần gọi API lại.
+
+### (c) Bảng kết quả
+
+| Nơi chạy A | Nơi chạy B | Số cặp | Số SV | MAE | Spearman ρ |
+| --- | --- | --- | --- | --- | --- |
+| Groq (openai/gpt-oss-120b) | OmniRoute/Tinfoil (gptoss120) | 268 | 18 | 9.19 | 0.634 |
+
+### (d) Đọc kết quả thế nào?
+
+Trên **268 cặp của 18 sinh viên**:
+
+- MAE giữa hai nơi chạy là 9.19;
+- Spearman ρ là 0.634.
+
+Như vậy cùng tên model, cùng prompt và temperature 0 vẫn **không cho kết quả giống hệt nhau** giữa hai hạ tầng.
+
+Điều này là lý do hệ thống không chỉ lưu tên model, mà còn cần ghi nhận nơi chạy khi lưu và phân tích điểm M5.
+
+### (e) Giới hạn phải nói thật
+
+RQ2b chỉ có dữ liệu giao nhau của:
+
+- 268 cặp;
+- 18 sinh viên;
+- hai nơi chạy cụ thể là Groq và OmniRoute/Tinfoil.
+
+Vì vậy kết quả chứng minh rằng sự khác biệt **có tồn tại trong thử nghiệm này**, nhưng không có nghĩa mọi nhà cung cấp hay mọi lần chạy đều khác nhau đúng mức MAE 9.19.
+
+Temperature 0 cũng không có nghĩa là kết quả chắc chắn giống tuyệt đối.
+
+### (f) Một câu để nói khi bảo vệ
+
+> “RQ2b cho thấy temperature 0 không đồng nghĩa với hoàn toàn deterministic giữa các hạ tầng: cùng gpt-oss-120b nhưng Groq và Tinfoil vẫn có MAE 9.19 và Spearman 0.634 trên 268 cặp.”
+
+---
+
+## 4. RQ3 — ILP có tốt hơn Greedy trong phân công đề tài không?
+
+### (a) Câu hỏi nghiên cứu bằng lời thường
+
+Sau khi hệ thống đã có điểm phù hợp và sinh viên đã chọn nguyện vọng, Khoa phải quyết định:
+
+> Ai được đề tài nào để vừa tôn trọng nguyện vọng, vừa giữ điểm phù hợp cao, vừa không vượt sức chứa đề tài và chỉ tiêu giảng viên?
+
+RQ3 so sánh hai cách giải:
+
+- **Greedy:** xử lý lần lượt, thấy phương án tốt trước mắt thì chọn.
+- **ILP:** xét toàn bộ bài toán cùng lúc và tìm phương án tối ưu theo hàm mục tiêu và các ràng buộc.
+
+### (b) Làm thế nào — ví dụ đời thường
+
+Giả sử có nhiều sinh viên cùng muốn một đề tài hot.
+
+Greedy giống như phát chỗ lần lượt: gặp ai trước thì cố gắng xếp người đó trước. Một lựa chọn tốt ở thời điểm hiện tại có thể làm những sinh viên phía sau mất phương án tốt.
+
+ILP giống như Khoa nhìn toàn bộ danh sách sinh viên, nguyện vọng, sức chứa và quota cùng lúc rồi mới quyết định cách ghép tổng thể.
+
+Thực nghiệm dùng ba quy mô:
+
+- 100 sinh viên;
+- 300 sinh viên;
+- 1.000 sinh viên.
+
+Dữ liệu được tạo theo tình huống cạnh tranh mạnh: khoảng 20% đề tài hot nhận 80% nguyện vọng 1.
+
+ILP được thử với ba bộ trọng số:
+
+- Bộ 1: α = 0.7, β = 0.3 — ưu tiên điểm phù hợp.
+- Bộ 2: α = 0.4, β = 0.6 — cân bằng mặc định.
+- Bộ 3: α = 0.2, β = 0.8 — ưu tiên nguyện vọng.
+
+### (c) Bảng kết quả
+
+| N | Cấu hình | Tỷ lệ xếp | Đạt NV1 | Thứ hạng NV TB | Điểm phù hợp TB | P10 điểm | Vi phạm | Thời gian (s) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 100 | Greedy | 50.0% | 14.0% | 1.96 | 66.5 | 44.5 | 0 | 0.0001 |
+| 100 | ILP (Bộ 1 (Ưu tiên điểm phù hợp)) | 51.0% | 28.0% | 1.63 | 72.7 | 52.0 | 0 | 0.0167 |
+| 100 | ILP (Bộ 2 (Cân bằng mặc định)) | 51.0% | 31.0% | 1.53 | 70.5 | 47.2 | 0 | 0.0149 |
+| 100 | ILP (Bộ 3 (Ưu tiên nguyện vọng)) | 51.0% | 31.0% | 1.53 | 70.5 | 47.2 | 0 | 0.0150 |
+| 300 | Greedy | 43.0% | 15.0% | 1.96 | 64.2 | 42.1 | 0 | 0.0003 |
+| 300 | ILP (Bộ 1 (Ưu tiên điểm phù hợp)) | 43.7% | 21.0% | 1.74 | 68.8 | 46.8 | 0 | 0.0374 |
+| 300 | ILP (Bộ 2 (Cân bằng mặc định)) | 43.7% | 23.7% | 1.63 | 66.0 | 42.1 | 0 | 0.0354 |
+| 300 | ILP (Bộ 3 (Ưu tiên nguyện vọng)) | 43.7% | 23.7% | 1.62 | 65.7 | 42.1 | 0 | 0.0408 |
+| 1000 | Greedy | 37.6% | 14.6% | 1.87 | 64.7 | 42.5 | 0 | 0.0012 |
+| 1000 | ILP (Bộ 1 (Ưu tiên điểm phù hợp)) | 39.3% | 19.5% | 1.69 | 67.1 | 46.3 | 0 | 0.1212 |
+| 1000 | ILP (Bộ 2 (Cân bằng mặc định)) | 39.3% | 21.5% | 1.61 | 65.1 | 44.7 | 0 | 0.1199 |
+| 1000 | ILP (Bộ 3 (Ưu tiên nguyện vọng)) | 39.3% | 21.6% | 1.61 | 65.0 | 44.3 | 0 | 0.1192 |
+
+### (d) Đọc kết quả thế nào?
+
+Ở cả ba quy mô, ILP có tỷ lệ xếp cao hơn Greedy và đặc biệt cải thiện tỷ lệ đạt NV1.
+
+#### Quy mô 100 sinh viên
+
+Greedy:
+
+- tỷ lệ xếp 50.0%;
+- đạt NV1 14.0%;
+- điểm phù hợp trung bình 66.5.
+
+ILP:
+
+- tỷ lệ xếp 51.0%;
+- NV1 từ 28.0% đến 31.0%.
+
+Bộ 1 ưu tiên độ phù hợp cho điểm phù hợp trung bình cao nhất: **72.7**.
+
+Bộ 2 và Bộ 3 cho NV1 cao nhất: **31.0%**.
+
+#### Quy mô 300 sinh viên
+
+Greedy:
+
+- tỷ lệ xếp 43.0%;
+- NV1 15.0%;
+- điểm phù hợp 64.2.
+
+ILP:
+
+- tỷ lệ xếp 43.7%;
+- NV1 từ 21.0% đến 23.7%.
+
+Bộ 1 tiếp tục cho điểm phù hợp cao nhất: **68.8**.
+
+#### Quy mô 1.000 sinh viên
+
+Greedy:
+
+- tỷ lệ xếp 37.6%;
+- NV1 14.6%;
+- điểm phù hợp 64.7.
+
+ILP:
+
+- tỷ lệ xếp 39.3%;
+- NV1 từ 19.5% đến 21.6%.
+
+Bộ 1 cho điểm phù hợp trung bình **67.1**.
+
+Bộ 3 cho NV1 **21.6%**.
+
+Thời gian ILP ở quy mô 1.000 sinh viên nằm trong khoảng:
+
+- 0.1192 giây;
+- 0.1199 giây;
+- 0.1212 giây.
+
+Greedy nhanh hơn rất nhiều, nhưng ILP vẫn chạy rất nhanh ở quy mô thử nghiệm này.
+
+Một điểm quan trọng khác là toàn bộ các dòng trong bảng đều có:
+
+> **Vi phạm = 0**
+
+Tức là các phương án được ghi nhận không vượt những ràng buộc được kiểm tra trong thực nghiệm.
+
+### (e) Giới hạn phải nói thật
+
+Dữ liệu RQ3 là **dữ liệu sinh**, chưa phải một đợt đăng ký thực tế của EAUT.
+
+Tỷ lệ xếp chỉ khoảng:
+
+- 50.0%–51.0% ở N = 100;
+- 43.0%–43.7% ở N = 300;
+- 37.6%–39.3% ở N = 1.000.
+
+Điều này không có nghĩa hệ thống thật sẽ chỉ xếp được từng đó sinh viên. Kết quả phụ thuộc trực tiếp vào dữ liệu mô phỏng, nguyện vọng, sức chứa đề tài và quota được tạo cho thực nghiệm.
+
+Ngoài ra, không nên nói “ILP luôn tốt hơn ở mọi chỉ số”. Ví dụ khi ưu tiên nguyện vọng bằng Bộ 2 hoặc Bộ 3, điểm phù hợp trung bình có thể thấp hơn Bộ 1. Đây chính là sự đánh đổi giữa **độ phù hợp** và **nguyện vọng sinh viên**.
+
+Thời gian khoảng 0.12 giây ở N = 1.000 chỉ là kết quả trên cấu hình và dữ liệu thực nghiệm hiện tại, không phải cam kết rằng mọi bài toán 1.000 sinh viên trong mọi điều kiện đều giải trong đúng thời gian đó.
+
+### (f) Một câu để nói khi bảo vệ
+
+> “RQ3 cho thấy ILP khai thác bài toán toàn cục tốt hơn Greedy về tỷ lệ xếp và NV1 trong dữ liệu thử nghiệm; ở 1.000 sinh viên ILP đạt 39.3% tỷ lệ xếp, tối đa 21.6% NV1, không có vi phạm và thời gian đo được khoảng 0.12 giây.”
+
+---
+
+## 5. Hạn chế khi triển khai thật
+
+### 5.1. M5 phụ thuộc dịch vụ LLM
+
+M5 không phải phép tính nội bộ đơn giản mà cần gọi LLM. Trong thử nghiệm, hệ thống sử dụng API thật và đã gặp giới hạn lượt gọi.
+
+Với hạn mức Groq miễn phí hiện dùng, khả năng chấm M5 thực tế chỉ khoảng **45 sinh viên/ngày**.
+
+Nếu một đợt đăng ký có nhiều sinh viên, không thể giả định rằng toàn bộ M5 sẽ được tính tức thời chỉ bằng tài khoản miễn phí.
+
+### 5.2. Giải pháp triển khai
+
+Hệ thống xử lý theo ba hướng:
+
+**1. Cache kết quả**
+
+Điểm M5 đã chấm được lưu lại. Nếu cùng dữ liệu đã có kết quả phù hợp trong cache thì không cần gọi LLM lại.
+
+**2. Chấm dần**
+
+M5 chỉ chấm trên danh sách Top 15 sau M1–M4 thay vì gọi LLM cho toàn bộ đề tài. Các sinh viên cũng có thể được xử lý dần thay vì dồn tất cả lượt gọi vào một thời điểm.
+
+**3. API trả phí khi triển khai thật**
+
+Nếu Khoa cần xử lý số lượng lớn trong thời gian ngắn, cần sử dụng hạn mức API trả phí hoặc hạ tầng có quota phù hợp thay vì phụ thuộc hoàn toàn vào gói miễn phí.
+
+### Câu nói khi bảo vệ
+
+> “Bản thử nghiệm dùng API miễn phí nên M5 bị giới hạn khoảng 45 sinh viên mỗi ngày; khi triển khai thật em dùng cache, chỉ chấm Top 15, xử lý dần và nếu cần tải lớn thì chuyển sang API trả phí.”

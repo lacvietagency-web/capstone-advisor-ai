@@ -312,3 +312,108 @@
 
 #### Câu 65: Em tâm đắc nhất điều gì trong suốt quá trình thực hiện đồ án này?
 - **Trả lời ngắn:** "Dạ, điều em tâm đắc nhất là đã học hỏi và áp dụng được tư duy kiến trúc phân tầng chuẩn mực của kỹ sư Enterprise từ Thầy hướng dẫn: viết code sạch, kiểm soát độ phức tạp, giải quyết trọn vẹn một bài toán nhức nhối có thật của Nhà trường bằng sự kết hợp hài hòa giữa **Trí tuệ nhân tạo hiện đại (AI/LLM)** và **Tối ưu hóa toán học kinh điển (Operations Research / ILP)**."
+
+
+---
+
+## PHẦN BỔ SUNG (06/10/2026): THỰC NGHIỆM, AHP, M5 — THEO SỐ LIỆU THẬT
+
+#### Câu 66: Vì sao phải làm RQ1 ablation, trong khi đã có hệ thống đầy đủ M1–M5?
+
+**Trả lời ngắn:**  
+Ablation giúp kiểm tra hệ thống thay đổi thế nào khi bỏ từng thành phần. Ví dụ khi bỏ M1, Hit@5 giảm từ 0.883 xuống 0.692 và MRR giảm từ 0.813 xuống 0.500. Tuy nhiên em chỉ xem đây là phân tích độ nhạy vì nhãn RQ1 hiện là nhãn giả.
+
+#### Câu 67: Kết quả RQ1 có chứng minh M1 là thành phần quan trọng nhất không?
+
+**Trả lời ngắn:**  
+Chưa thể khẳng định như vậy. Nhãn giả được định nghĩa bằng chính M1 và M3 nên hai thành phần này có lợi thế vòng tròn. Kết quả chỉ cho thấy dưới bộ nhãn hiện tại, bỏ M1 làm các chỉ số giảm rất mạnh.
+
+#### Câu 68: Tại sao bỏ M5 mà NDCG@5 lại tăng từ 0.679 lên 0.702? Có phải LLM làm hệ thống tệ đi không?
+
+**Trả lời ngắn:**  
+Không thể kết luận như vậy. Pseudo ground truth được tạo từ M1 và M3 chứ không đo trực tiếp những yếu tố định tính mà M5 đánh giá. Vì vậy RQ1 chưa phải phép thử công bằng để kết luận M5 hữu ích hay vô ích.
+
+#### Câu 69: Tại sao bỏ M4 thì NDCG@5 = 0.701, cao hơn cấu hình đầy đủ 0.679?
+
+**Trả lời ngắn:**  
+Lý do tương tự M5: nhãn đánh giá không được tạo từ thông tin ngữ nghĩa của M4. Nhãn giả hiện thiên về kỹ năng và lĩnh vực nên embedding không được đánh giá công bằng. Muốn kết luận về M4 cần nhãn thật từ người dùng hoặc giảng viên.
+
+#### Câu 70: Vậy RQ1 còn giá trị khoa học gì nếu nhãn bị vòng tròn?
+
+**Trả lời ngắn:**  
+RQ1 vẫn có giá trị để kiểm tra pipeline thực nghiệm, so sánh các cấu hình và quan sát độ nhạy khi bỏ từng thành phần. Em công khai hạn chế này thay vì dùng kết quả để tuyên bố quá mức. Đánh giá chất lượng cuối cùng cần bổ sung nhãn thật.
+
+#### Câu 71: M5 trong RQ1 có phải số liệu mô phỏng không?
+
+**Trả lời ngắn:**  
+Không. M5 là điểm LLM thật từ Groq `openai/gpt-oss-120b`, temperature 0. Tuy nhiên chỉ có 75/94 sinh viên có điểm M5 thật; các trường hợp còn lại bị thiếu do lỗi hoặc hết hạn mức.
+
+#### Câu 72: Tại sao M5 chỉ chấm Top 15 mà không chấm tất cả đề tài?
+
+**Trả lời ngắn:**  
+Hệ thống dùng kiến trúc hai giai đoạn. M1–M4 chịu trách nhiệm lấy Top 15 ứng viên, sau đó LLM chỉ re-rank tập nhỏ này. Cách đó giảm rất nhiều số lượt gọi LLM và phù hợp với giới hạn API.
+
+#### Câu 73: Khi M5 bị thiếu thì hệ thống xử lý thế nào?
+
+**Trả lời ngắn:**  
+Nếu đề tài ngoài Top 15 hoặc LLM lỗi thì M5 trống. Hệ thống không tự bịa điểm M5 mà chia lại trọng số trên các thành phần còn có dữ liệu. Điểm M5 đã có cũng được cache để tránh gọi lại không cần thiết.
+
+#### Câu 74: AHP dùng để làm gì trong hệ thống?
+
+**Trả lời ngắn:**  
+AHP dùng để hỗ trợ xác định mức quan trọng tương đối của các thành phần M1–M5 thay vì tự đặt trọng số hoàn toàn cảm tính. Nó thuộc tầng tính điểm gợi ý. Sau đó thực nghiệm ablation và đánh giá của giảng viên được dùng để xem bộ trọng số có hợp lý hay không.
+
+#### Câu 75: AHP có phải chính là α và β trong bài toán ILP không?
+
+**Trả lời ngắn:**  
+Không. Trọng số AHP dùng cho việc kết hợp M1–M5 để tạo điểm gợi ý. Còn α và β trong RQ3 điều chỉnh sự đánh đổi giữa điểm phù hợp và nguyện vọng khi phân công; RQ3 thử ba bộ 0.7/0.3, 0.4/0.6 và 0.2/0.8.
+
+#### Câu 76: Tại sao không để LLM tự quyết định toàn bộ việc gợi ý?
+
+**Trả lời ngắn:**  
+Vì LLM có chi phí, giới hạn API và kết quả không hoàn toàn ổn định. RQ2 cho thấy cùng dữ liệu nhưng đổi thứ tự prompt thì điểm có thể thay đổi đáng kể. Vì vậy LLM chỉ là một thành phần M5 có trọng số, không phải bộ quyết định duy nhất.
+
+#### Câu 77: RQ2 thực sự đo cái gì?
+
+**Trả lời ngắn:**  
+RQ2 đo mức độ M5 thay đổi khi đảo thứ tự các đề tài trong prompt. Em dùng MAE để đo độ chênh điểm và Spearman để đo khả năng giữ nguyên thứ tự xếp hạng. MAE càng thấp và Spearman càng gần 1 thì model càng ổn định.
+
+#### Câu 78: Model nào ổn định nhất trong RQ2?
+
+**Trả lời ngắn:**  
+Trong số dữ liệu đã đo, `qwen/qwen3.8-27b` có MAE 6.17 ± 1.94 và Spearman 0.878 ± 0.090. Nhưng model này chỉ đo được 9 sinh viên, nên em không khẳng định nó chắc chắn tốt nhất trên toàn bộ tập. `gpt-oss-20b` đo đủ 30 sinh viên với MAE 10.34 và Spearman 0.710.
+
+#### Câu 79: Tại sao Qwen2.5-3B có Spearman âm?
+
+**Trả lời ngắn:**  
+Model local `qwen2.5:3b` cho Spearman trung bình -0.180 ± 0.298 và MAE 16.65 ± 8.16. Điều đó cho thấy thứ tự xếp hạng giữa hai lần chấm thay đổi mạnh trong thử nghiệm này. Vì vậy model nhỏ này chưa đủ ổn định để em tin tưởng làm M5 chính.
+
+#### Câu 80: Tại sao số sinh viên ở RQ2 không giống nhau giữa các model?
+
+**Trả lời ngắn:**  
+Vì đây là lượt gọi thật và API miễn phí bị giới hạn lượt hoặc thời gian. Qwen2.5-3B đo được 29 sinh viên, gpt-oss-20b là 30 và qwen3.8-27b chỉ 9. Em giữ nguyên số đo thực tế chứ không điền số mô phỏng để làm bảng đẹp hơn.
+
+#### Câu 81: Temperature bằng 0 thì tại sao kết quả LLM vẫn khác nhau?
+
+**Trả lời ngắn:**  
+Temperature 0 chỉ làm quá trình sinh ít ngẫu nhiên hơn, không bảo đảm mọi hạ tầng cho kết quả giống hệt. RQ2b cho thấy cùng `gpt-oss-120b`, Groq và OmniRoute/Tinfoil vẫn có MAE 9.19 và Spearman 0.634 trên 268 cặp của 18 sinh viên.
+
+#### Câu 82: RQ2b chứng minh điều gì cho thiết kế hệ thống?
+
+**Trả lời ngắn:**  
+Nó cho thấy khi báo cáo hoặc cache M5 không nên chỉ lưu tên model. Nơi chạy cũng có thể ảnh hưởng kết quả. Vì vậy hệ thống cần gắn kết quả với model và provider/hạ tầng tương ứng.
+
+#### Câu 83: Trong RQ3, tại sao ILP tốt hơn Greedy?
+
+**Trả lời ngắn:**  
+Greedy đưa ra quyết định lần lượt nên một lựa chọn tốt trước mắt có thể gây bất lợi cho các sinh viên sau. ILP xét toàn bộ sinh viên, nguyện vọng, capacity và quota cùng lúc. Ở N = 100, Greedy đạt NV1 14.0% trong khi ILP đạt từ 28.0% đến 31.0%.
+
+#### Câu 84: ILP có quá chậm để triển khai thực tế không?
+
+**Trả lời ngắn:**  
+Trong dữ liệu thực nghiệm hiện tại thì chưa. Ở quy mô 1.000 sinh viên, ba cấu hình ILP lần lượt chạy trong 0.1212, 0.1199 và 0.1192 giây, đồng thời đều có 0 vi phạm. Tuy nhiên em chỉ khẳng định đây là thời gian trên cấu hình và dữ liệu thử nghiệm, không nói mọi bài toán 1.000 sinh viên đều chắc chắn chạy đúng thời gian đó.
+
+#### Câu 85: Nếu triển khai thật mà Groq miễn phí không đủ lượt M5 thì làm thế nào?
+
+**Trả lời ngắn:**  
+Hạn mức miễn phí hiện tại chỉ đủ khoảng 45 sinh viên/ngày cho M5 nên không thể phụ thuộc hoàn toàn vào gọi tức thời. Hệ thống dùng cache, chỉ chấm Top 15 và có thể chấm dần theo thời gian. Nếu Khoa cần xử lý số lượng lớn trong thời gian ngắn thì phải dùng API trả phí hoặc hạ tầng có quota phù hợp.

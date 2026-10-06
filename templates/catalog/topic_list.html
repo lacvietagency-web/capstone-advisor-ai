@@ -3,16 +3,19 @@
 {% block title %}Danh sách đề tài — Capstone Advisor AI{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header mb-3">
   <h1>Danh sách đề tài tốt nghiệp</h1>
   <p class="page-subtitle">Tra cứu, tìm kiếm và lọc đề tài theo lĩnh vực, giảng viên hướng dẫn và độ khó.</p>
 </div>
 
-<!-- Bộ lọc tìm kiếm đề tài -->
-<div class="app-card mb-4">
-  <form method="get" action="{% url 'topic_list' %}">
-    <div class="row g-3">
-      <!-- Tìm kiếm theo tên -->
+<!-- =========================================================================
+     Hermes Recipe: component|sticky-typewriter-filter-bar
+     (Thanh lọc dính + chip lọc đang chọn)
+     ========================================================================= -->
+<div class="sticky-filter-bar" id="topic-filter-bar">
+  <form method="get" action="{% url 'topic_list' %}" id="topic-filter-form" class="sticky-filter-form">
+    <div class="row g-3 align-items-end">
+      <!-- Tìm kiếm theo tên đề tài -->
       <div class="col-12 col-md-6 col-lg-3">
         <label for="filter-query" class="form-label">Tìm kiếm tên đề tài</label>
         <div class="input-group">
@@ -24,6 +27,7 @@
             class="form-control"
             placeholder="Nhập tên đề tài..."
             value="{{ search_query }}"
+            autocomplete="off"
           >
         </div>
       </div>
@@ -68,7 +72,8 @@
       </div>
     </div>
 
-    <div class="d-flex align-items-center gap-2 mt-3 pt-2 border-top">
+    <!-- Hàng nút lọc & thống kê -->
+    <div class="d-flex align-items-center flex-wrap gap-2 mt-3 pt-2 border-top">
       <button type="submit" class="btn btn-primary">
         <i class="bi bi-funnel me-1"></i>Lọc đề tài
       </button>
@@ -79,16 +84,98 @@
         Tìm thấy <strong>{{ page_obj.paginator.count }}</strong> đề tài
       </div>
     </div>
+
+    <!-- Chip lọc đang chọn (Active filter chips) -->
+    {% if search_query or selected_field or selected_lecturer or selected_difficulty %}
+    <div class="active-filters-container" aria-label="Các bộ lọc đang được áp dụng">
+      <span class="active-filters-heading">
+        <i class="bi bi-funnel-fill text-primary"></i>Đang lọc theo:
+      </span>
+
+      {% if search_query %}
+      <span class="filter-chip">
+        <span class="filter-chip-label">Từ khóa:</span>
+        <strong class="filter-chip-val">"{{ search_query }}"</strong>
+        <button type="button" class="filter-chip-remove" data-clear-param="q" title="Bỏ lọc theo từ khóa" aria-label="Bỏ lọc theo từ khóa">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </span>
+      {% endif %}
+
+      {% if selected_field %}
+        {% for f in fields %}
+          {% if selected_field == f.id|stringformat:"s" %}
+          <span class="filter-chip">
+            <span class="filter-chip-label">Lĩnh vực:</span>
+            <strong class="filter-chip-val">{{ f.name }}</strong>
+            <button type="button" class="filter-chip-remove" data-clear-param="field" title="Bỏ lọc lĩnh vực {{ f.name }}" aria-label="Bỏ lọc lĩnh vực {{ f.name }}">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </span>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      {% if selected_lecturer %}
+        {% for l in lecturers %}
+          {% if selected_lecturer == l.id|stringformat:"s" %}
+          <span class="filter-chip">
+            <span class="filter-chip-label">GVHD:</span>
+            <strong class="filter-chip-val">{{ l.user.get_full_name|default:l.user.username }}</strong>
+            <button type="button" class="filter-chip-remove" data-clear-param="lecturer" title="Bỏ lọc giảng viên {{ l.user.get_full_name|default:l.user.username }}" aria-label="Bỏ lọc giảng viên">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </span>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      {% if selected_difficulty %}
+        {% for val, label in difficulties %}
+          {% if selected_difficulty == val|stringformat:"s" %}
+          <span class="filter-chip">
+            <span class="filter-chip-label">Độ khó:</span>
+            <strong class="filter-chip-val">{{ label }}</strong>
+            <button type="button" class="filter-chip-remove" data-clear-param="difficulty" title="Bỏ lọc độ khó {{ label }}" aria-label="Bỏ lọc độ khó {{ label }}">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </span>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      <a href="{% url 'topic_list' %}" class="filter-chip-clear-all" aria-label="Xóa tất cả bộ lọc">
+        <i class="bi bi-x-circle me-1"></i>Xóa tất cả
+      </a>
+    </div>
+    {% endif %}
   </form>
 </div>
 
-<!-- Danh sách đề tài -->
+<!-- =========================================================================
+     Danh sách đề tài
+     ========================================================================= -->
 <div class="topic-list-container">
   {% for t in topics %}
     <div class="app-card mb-3">
       <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3">
         <!-- Thông tin tiêu đề & giảng viên -->
         <div class="flex-grow-1">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <!-- Nhãn trạng thái với hiệu ứng badge-pill-scale-pop -->
+            <span class="badge-pill-scale-pop {% if t.status == 'OPEN' %}status-open{% elif t.status == 'CLOSED' %}status-closed{% else %}status-pending{% endif %}" title="Trạng thái đề tài">
+              <span class="dot"></span>{{ t.get_status_display }}
+            </span>
+
+            <span class="badge-difficulty">
+              <i class="bi bi-speedometer2 me-1"></i>{{ t.get_difficulty_display }}
+            </span>
+
+            {% for f in t.fields.all %}
+              <span class="badge bg-light text-secondary border">{{ f.name }}</span>
+            {% endfor %}
+          </div>
+
           <h2 class="card-heading mb-1">
             <a href="{% url 'topic_detail' t.id %}" class="text-decoration-none text-strong">
               {{ t.title }}
@@ -99,15 +186,6 @@
             <i class="bi bi-person me-1"></i>GVHD:
             <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>
             {% if t.lecturer.department %} · {{ t.lecturer.department }}{% endif %}
-          </div>
-
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-            {% for f in t.fields.all %}
-              <span class="badge bg-light text-secondary border">{{ f.name }}</span>
-            {% endfor %}
-            <span class="badge-difficulty">
-              <i class="bi bi-speedometer2 me-1"></i>{{ t.get_difficulty_display }}
-            </span>
           </div>
 
           <p class="text-muted mb-3 small" style="line-height: 1.5;">
@@ -129,7 +207,7 @@
           </div>
         </div>
 
-        <!-- Điểm phù hợp nếu sinh viên đăng nhập -->
+        <!-- Điểm phù hợp & hành động -->
         <div class="d-flex flex-column align-items-sm-end gap-2 flex-shrink-0">
           {% if is_student and t.recommendation %}
             <div class="ai-score" title="Mức độ phù hợp tổng hợp theo mô hình AI">
@@ -141,12 +219,45 @@
             </div>
           {% endif %}
 
-          <div class="d-flex gap-2 mt-2">
+          <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
             <a href="{% url 'topic_detail' t.id %}" class="btn btn-sm btn-outline-primary">
               <i class="bi bi-info-circle me-1"></i>Chi tiết
             </a>
+
             {% if is_student and t.ineligible_reason %}
-              <span class="badge text-bg-light border text-wrap text-start" title="{{ t.ineligible_reason }}"><i class="bi bi-lock me-1"></i>Chưa đủ điều kiện</span>
+              <!-- Popover trigger lý do chưa đủ điều kiện (floating-anchor-popover) -->
+              <button
+                type="button"
+                class="badge-pill-scale-pop status-danger floating-popover-trigger"
+                data-popover-id="popover-ineligible-{{ t.id }}"
+                aria-haspopup="dialog"
+                aria-expanded="false"
+                title="Bấm để xem chi tiết điều kiện"
+              >
+                <span class="dot"></span><i class="bi bi-lock me-1"></i>Chưa đủ điều kiện
+              </button>
+
+              <!-- Floating Popover container for this topic -->
+              <div id="popover-ineligible-{{ t.id }}" class="floating-anchor-popover" role="dialog" aria-modal="true" aria-labelledby="popover-title-{{ t.id }}">
+                <div class="floating-popover-drag-bar d-sm-none"></div>
+                <div class="floating-popover-arrow"></div>
+                <div class="floating-popover-header">
+                  <h3 id="popover-title-{{ t.id }}" class="floating-popover-title text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-1"></i>Chưa đủ điều kiện
+                  </h3>
+                  <button type="button" class="floating-popover-close" data-dismiss="popover" aria-label="Đóng">&times;</button>
+                </div>
+                <div class="floating-popover-body">
+                  <div class="mb-2"><strong>Lý do:</strong> {{ t.ineligible_reason }}</div>
+                  <div class="small text-muted">
+                    Bạn chưa đáp ứng tiêu chí lọc cứng của đề tài này (GPA, môn tiên quyết hoặc kỹ năng). Hãy cập nhật hồ sơ hoặc chọn đề tài khác phù hợp hơn.
+                  </div>
+                </div>
+                <div class="floating-popover-footer">
+                  <a href="{% url 'student_profile' %}" class="btn btn-sm btn-primary">Cập nhật hồ sơ</a>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="popover">Đóng</button>
+                </div>
+              </div>
             {% elif is_student %}
               <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="btn btn-sm btn-primary">
                 <i class="bi bi-bookmark-plus me-1"></i>Đăng ký NV
@@ -212,4 +323,175 @@
     </ul>
   </nav>
 {% endif %}
+
+<!-- Backdrop cho Floating Popover -->
+<div class="floating-popover-backdrop" id="floating-popover-backdrop" aria-hidden="true"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Xử lý nút xóa từng chip lọc
+  var clearButtons = document.querySelectorAll("[data-clear-param]");
+  clearButtons.forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      var param = this.getAttribute("data-clear-param");
+      var form = document.getElementById("topic-filter-form");
+      if (!form) return;
+
+      if (param === "q") {
+        var input = document.getElementById("filter-query");
+        if (input) input.value = "";
+      } else if (param === "field") {
+        var selField = document.getElementById("filter-field");
+        if (selField) selField.value = "";
+      } else if (param === "lecturer") {
+        var selLec = document.getElementById("filter-lecturer");
+        if (selLec) selLec.value = "";
+      } else if (param === "difficulty") {
+        var selDiff = document.getElementById("filter-difficulty");
+        if (selDiff) selDiff.value = "";
+      }
+      form.submit();
+    });
+  });
+
+  // =========================================================================
+  // Hermes Recipe: layout|floating-anchor-popover controller
+  // =========================================================================
+  var activePopover = null;
+  var activeAnchor = null;
+  var backdrop = document.getElementById("floating-popover-backdrop");
+
+  function positionPopover(anchor, popover) {
+    if (window.innerWidth <= 576) {
+      // Mobile bottomsheet mode
+      popover.style.top = "";
+      popover.style.left = "";
+      popover.setAttribute("data-placement", "bottomsheet");
+      return;
+    }
+
+    var rect = anchor.getBoundingClientRect();
+    var popWidth = popover.offsetWidth || 320;
+    var popHeight = popover.offsetHeight || 180;
+    var arrow = popover.querySelector(".floating-popover-arrow");
+
+    // Default to placing below anchor
+    var placement = "bottom";
+    var top = rect.bottom + 8;
+    var left = rect.left + (rect.width / 2) - (popWidth / 2);
+
+    // If bottom overflow, flip to top
+    if (top + popHeight > window.innerHeight && rect.top - popHeight - 8 > 0) {
+      placement = "top";
+      top = rect.top - popHeight - 8;
+    }
+
+    // Keep within horizontal boundaries
+    var minLeft = 12;
+    var maxLeft = window.innerWidth - popWidth - 12;
+    if (left < minLeft) left = minLeft;
+    if (left > maxLeft) left = maxLeft;
+
+    popover.style.top = top + "px";
+    popover.style.left = left + "px";
+    popover.setAttribute("data-placement", placement);
+
+    // Position arrow pointing to trigger center
+    if (arrow) {
+      var arrowLeft = rect.left + (rect.width / 2) - left - 6;
+      if (arrowLeft < 14) arrowLeft = 14;
+      if (arrowLeft > popWidth - 20) arrowLeft = popWidth - 20;
+      arrow.style.left = arrowLeft + "px";
+    }
+  }
+
+  function openPopover(anchor, popoverId) {
+    var popover = document.getElementById(popoverId);
+    if (!popover) return;
+
+    if (activePopover && activePopover !== popover) {
+      closeActivePopover();
+    }
+
+    activePopover = popover;
+    activeAnchor = anchor;
+    anchor.setAttribute("aria-expanded", "true");
+
+    popover.classList.add("is-active");
+    if (backdrop) backdrop.classList.add("is-active");
+
+    positionPopover(anchor, popover);
+
+    // Trap focus to close button
+    var closeBtn = popover.querySelector(".floating-popover-close") || popover.querySelector("[data-dismiss='popover']");
+    if (closeBtn) setTimeout(function () { closeBtn.focus(); }, 50);
+  }
+
+  function closeActivePopover() {
+    if (!activePopover) return;
+    activePopover.classList.remove("is-active");
+    if (backdrop) backdrop.classList.remove("is-active");
+    if (activeAnchor) {
+      activeAnchor.setAttribute("aria-expanded", "false");
+      activeAnchor.focus();
+    }
+    activePopover = null;
+    activeAnchor = null;
+  }
+
+  // Bind popover triggers
+  var triggers = document.querySelectorAll(".floating-popover-trigger");
+  triggers.forEach(function (trigger) {
+    trigger.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var popoverId = this.getAttribute("data-popover-id");
+      if (activePopover && activePopover.id === popoverId) {
+        closeActivePopover();
+      } else {
+        openPopover(this, popoverId);
+      }
+    });
+  });
+
+  // Close on dismiss buttons
+  document.querySelectorAll("[data-dismiss='popover']").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      closeActivePopover();
+    });
+  });
+
+  // Close on backdrop click
+  if (backdrop) {
+    backdrop.addEventListener("click", function () {
+      closeActivePopover();
+    });
+  }
+
+  // Close on Esc key
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && activePopover) {
+      closeActivePopover();
+    }
+  });
+
+  // Close on click outside (desktop)
+  document.addEventListener("click", function (e) {
+    if (activePopover && !activePopover.contains(e.target) && (!activeAnchor || !activeAnchor.contains(e.target))) {
+      closeActivePopover();
+    }
+  });
+
+  // Reposition on window resize / scroll
+  window.addEventListener("resize", function () {
+    if (activePopover && activeAnchor) {
+      positionPopover(activeAnchor, activePopover);
+    }
+  });
+});
+</script>
 {% endblock %}

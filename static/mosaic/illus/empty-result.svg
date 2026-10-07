@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Chưa có kết quả phân công</title>
+  <style>
+    .p{stroke:var(--mz-teal-500,#0A9396);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:var(--mz-amber-500,#EE9B00);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:var(--border-strong,#B9C0BC);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  </style>
+  <rect x="57" y="34" width="126" height="88" rx="12" class="p"/>
+  <path d="M80 56h80M80 74h62M80 92h48" class="n"/>
+  <circle cx="167" cy="101" r="25" class="a"/>
+  <path d="M167 88v15l10 7" class="a"/>
+  <path d="M151 25h32M41 116h28" class="n"/>
+</svg>

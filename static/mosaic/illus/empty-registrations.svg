@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Chưa có sinh viên đăng ký</title>
+  <style>
+    .p{stroke:var(--mz-teal-500,#0A9396);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:var(--mz-amber-500,#EE9B00);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:var(--border-strong,#B9C0BC);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  </style>
+  <rect x="55" y="27" width="118" height="106" rx="12" class="p"/>
+  <circle cx="84" cy="55" r="10" class="p"/>
+  <path d="M68 78c5-12 27-12 32 0M110 51h42M110 63h32" class="n"/>
+  <circle cx="84" cy="99" r="10" class="n"/>
+  <path d="M68 122c5-12 27-12 32 0M110 95h42M110 107h32" class="n"/>
+  <circle cx="176" cy="103" r="22" class="a"/>
+  <path d="M176 92v22M165 103h22" class="a"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Hồ sơ chưa hoàn thiện</title>
+  <style>
+    .p{stroke:var(--mz-teal-500,#0A9396);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:var(--mz-amber-500,#EE9B00);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:var(--border-strong,#B9C0BC);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  </style>
+  <rect x="48" y="30" width="126" height="98" rx="12" class="p"/>
+  <circle cx="83" cy="61" r="14" class="p"/>
+  <path d="M62 94c6-16 36-16 42 0" class="p"/>
+  <path d="M117 55h38M117 68h28M64 111h74" class="n"/>
+  <circle cx="174" cy="104" r="22" class="a"/>
+  <path d="M164 104l7 7 14-16" class="a"/>
+</svg>

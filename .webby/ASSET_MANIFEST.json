@@ -1,0 +1,719 @@
+{
+ "project": "capstone-advisor / Mosaic AI",
+ "protocol": "webbyLucifer 3.3",
+ "frozenAt": "2026-10-07",
+ "assets": [
+  {
+   "id": "favicon",
+   "role": "LOGO",
+   "classification": "BRAND",
+   "source": "ChatGPT (Design Authority) tạo SVG",
+   "destinationPath": "static/mosaic/brand/favicon.svg",
+   "sha256": "a767805cc253da6c"
+  },
+  {
+   "id": "mosaic-symbol-dark",
+   "role": "LOGO",
+   "classification": "BRAND",
+   "source": "ChatGPT (Design Authority) tạo SVG",
+   "destinationPath": "static/mosaic/brand/mosaic-symbol-dark.svg",
+   "sha256": "3e913e5528697bd6"
+  },
+  {
+   "id": "mosaic-symbol-light",
+   "role": "LOGO",
+   "classification": "BRAND",
+   "source": "ChatGPT (Design Authority) tạo SVG",
+   "destinationPath": "static/mosaic/brand/mosaic-symbol-light.svg",
+   "sha256": "4775688c35915931"
+  },
+  {
+   "id": "mosaic-wordmark-dark",
+   "role": "LOGO",
+   "classification": "BRAND",
+   "source": "ChatGPT (Design Authority) tạo SVG",
+   "destinationPath": "static/mosaic/brand/mosaic-wordmark-dark.svg",
+   "sha256": "c976eed12ac11834"
+  },
+  {
+   "id": "mosaic-wordmark-light",
+   "role": "LOGO",
+   "classification": "BRAND",
+   "source": "ChatGPT (Design Authority) tạo SVG",
+   "destinationPath": "static/mosaic/brand/mosaic-wordmark-light.svg",
+   "sha256": "13b8a6c64a84c773"
+  },
+  {
+   "id": "mosaic-wordmark-mono-dark",
+   "role": "LOGO",
+   "classification": "BRAND",
+   "source": "ChatGPT (Design Authority) tạo SVG",
+   "destinationPath": "static/mosaic/brand/mosaic-wordmark-mono-dark.svg",
+   "sha256": "78c1ccf27d513e9b"
+  },
+  {
+   "id": "mosaic-wordmark-mono-light",
+   "role": "LOGO",
+   "classification": "BRAND",
+   "source": "ChatGPT (Design Authority) tạo SVG",
+   "destinationPath": "static/mosaic/brand/mosaic-wordmark-mono-light.svg",
+   "sha256": "2668c2684d246b67"
+  },
+  {
+   "id": "empty-excel",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/empty-excel.svg",
+   "sha256": "e8678748299f5821"
+  },
+  {
+   "id": "empty-preferences",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/empty-preferences.svg",
+   "sha256": "8bc46703c2798553"
+  },
+  {
+   "id": "empty-recommendation",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/empty-recommendation.svg",
+   "sha256": "edf61454be84d235"
+  },
+  {
+   "id": "empty-registrations",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/empty-registrations.svg",
+   "sha256": "e1ae63def13c844d"
+  },
+  {
+   "id": "empty-result",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/empty-result.svg",
+   "sha256": "f871616543032091"
+  },
+  {
+   "id": "empty-search",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/empty-search.svg",
+   "sha256": "c632167d9afe51d4"
+  },
+  {
+   "id": "empty-topics",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/empty-topics.svg",
+   "sha256": "372edbfa77d5a717"
+  },
+  {
+   "id": "error-403",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/error-403.svg",
+   "sha256": "aaadb05059ec178c"
+  },
+  {
+   "id": "error-404",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/error-404.svg",
+   "sha256": "c79d1b372372fabc"
+  },
+  {
+   "id": "error-500",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/error-500.svg",
+   "sha256": "6309fc7e57b32ebc"
+  },
+  {
+   "id": "excel-error",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/excel-error.svg",
+   "sha256": "0264f9ee9441669a"
+  },
+  {
+   "id": "profile-incomplete",
+   "role": "PLACEHOLDER",
+   "classification": "DECORATIVE",
+   "source": "ChatGPT tạo SVG line-art",
+   "destinationPath": "static/mosaic/illus/profile-incomplete.svg",
+   "sha256": "3336bbfa47c8e80b"
+  },
+  {
+   "id": "archive",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/archive.svg",
+   "sha256": "0444f12d97ff4d04"
+  },
+  {
+   "id": "arrow-down",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/arrow-down.svg",
+   "sha256": "bd9109628c6cf933"
+  },
+  {
+   "id": "arrow-left",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/arrow-left.svg",
+   "sha256": "297c312e67bc3e7a"
+  },
+  {
+   "id": "arrow-up",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/arrow-up.svg",
+   "sha256": "92ee5b476593e0f5"
+  },
+  {
+   "id": "badge-check",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/badge-check.svg",
+   "sha256": "2c9fd0fac3ce95eb"
+  },
+  {
+   "id": "bell",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/bell.svg",
+   "sha256": "c9f2bc20414d033d"
+  },
+  {
+   "id": "book-check",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/book-check.svg",
+   "sha256": "27e2a8408ae7fd50"
+  },
+  {
+   "id": "book-open",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/book-open.svg",
+   "sha256": "03e295ee8097b7c1"
+  },
+  {
+   "id": "bookmark",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/bookmark.svg",
+   "sha256": "095d2824004f6deb"
+  },
+  {
+   "id": "brain",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/brain.svg",
+   "sha256": "c10551763493b2b7"
+  },
+  {
+   "id": "briefcase-business",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/briefcase-business.svg",
+   "sha256": "275c4fa71684cabb"
+  },
+  {
+   "id": "chart-line",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/chart-line.svg",
+   "sha256": "94a0e456f0d9428e"
+  },
+  {
+   "id": "chart-no-axes-column",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/chart-no-axes-column.svg",
+   "sha256": "9fb2bc5a81fecbcb"
+  },
+  {
+   "id": "chart-pie",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/chart-pie.svg",
+   "sha256": "ac4448d89f6fd9e1"
+  },
+  {
+   "id": "check",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/check.svg",
+   "sha256": "97a72209deb061b1"
+  },
+  {
+   "id": "chevron-down",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/chevron-down.svg",
+   "sha256": "d111e8509fb4d818"
+  },
+  {
+   "id": "chevron-right",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/chevron-right.svg",
+   "sha256": "f24285f7456e2738"
+  },
+  {
+   "id": "circle-check-big",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/circle-check-big.svg",
+   "sha256": "c84f6743f01e120e"
+  },
+  {
+   "id": "circle-dot",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/circle-dot.svg",
+   "sha256": "82de950a03d40bbf"
+  },
+  {
+   "id": "circle-help",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/circle-help.svg",
+   "sha256": "d721a915ace8204e"
+  },
+  {
+   "id": "circle-plus",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/circle-plus.svg",
+   "sha256": "9734b0d57ddc1966"
+  },
+  {
+   "id": "clipboard-list",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/clipboard-list.svg",
+   "sha256": "b727d71edfad3e17"
+  },
+  {
+   "id": "database",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/database.svg",
+   "sha256": "4b6feaa043bc515b"
+  },
+  {
+   "id": "download",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/download.svg",
+   "sha256": "9b894df88adefffc"
+  },
+  {
+   "id": "eye-off",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/eye-off.svg",
+   "sha256": "6f6010467c9dec39"
+  },
+  {
+   "id": "eye",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/eye.svg",
+   "sha256": "72cc5e0ec37630a3"
+  },
+  {
+   "id": "file-check-2",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/file-check-2.svg",
+   "sha256": "37e6b3e3660bfc02"
+  },
+  {
+   "id": "file-spreadsheet",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/file-spreadsheet.svg",
+   "sha256": "42f7ec0ab9c01c0f"
+  },
+  {
+   "id": "file-text",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/file-text.svg",
+   "sha256": "f29818c0194be22f"
+  },
+  {
+   "id": "file-x-2",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/file-x-2.svg",
+   "sha256": "0a6f3409fc557784"
+  },
+  {
+   "id": "filter",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/filter.svg",
+   "sha256": "fb3d179137e0500f"
+  },
+  {
+   "id": "gauge",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/gauge.svg",
+   "sha256": "81d78f9fa5286f2b"
+  },
+  {
+   "id": "git-compare",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/git-compare.svg",
+   "sha256": "103aa4f4561015bb"
+  },
+  {
+   "id": "graduation-cap",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/graduation-cap.svg",
+   "sha256": "1c1f70c39e3ffd08"
+  },
+  {
+   "id": "house",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/house.svg",
+   "sha256": "73039fb7e034d5e3"
+  },
+  {
+   "id": "info",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/info.svg",
+   "sha256": "e789d31dd65c6c6b"
+  },
+  {
+   "id": "layers-3",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/layers-3.svg",
+   "sha256": "4c47473816e47b56"
+  },
+  {
+   "id": "layout-dashboard",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/layout-dashboard.svg",
+   "sha256": "3890332480066546"
+  },
+  {
+   "id": "list-ordered",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/list-ordered.svg",
+   "sha256": "66c42206486206ac"
+  },
+  {
+   "id": "lock-keyhole",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/lock-keyhole.svg",
+   "sha256": "7d86f35fabecb789"
+  },
+  {
+   "id": "lock",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/lock.svg",
+   "sha256": "bdbff889c8f6c6be"
+  },
+  {
+   "id": "log-out",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/log-out.svg",
+   "sha256": "afe1e665e350d799"
+  },
+  {
+   "id": "monitor",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/monitor.svg",
+   "sha256": "71c5ceece2169e34"
+  },
+  {
+   "id": "moon",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/moon.svg",
+   "sha256": "64a2721dc15cae81"
+  },
+  {
+   "id": "play",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/play.svg",
+   "sha256": "c286dcea1ff97936"
+  },
+  {
+   "id": "plus",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/plus.svg",
+   "sha256": "336c701fdc14ec51"
+  },
+  {
+   "id": "refresh-cw",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/refresh-cw.svg",
+   "sha256": "60f02adce4aae684"
+  },
+  {
+   "id": "route",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/route.svg",
+   "sha256": "bfbb2a2f914e6bcf"
+  },
+  {
+   "id": "save",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/save.svg",
+   "sha256": "2ceb77a555222bf5"
+  },
+  {
+   "id": "search",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/search.svg",
+   "sha256": "2ff2c77f3f36bcde"
+  },
+  {
+   "id": "send",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/send.svg",
+   "sha256": "8726b87dcf096f0f"
+  },
+  {
+   "id": "settings-2",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/settings-2.svg",
+   "sha256": "b1dfbc5bdc8c72d9"
+  },
+  {
+   "id": "sliders-horizontal",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/sliders-horizontal.svg",
+   "sha256": "c63c822dbb9eb119"
+  },
+  {
+   "id": "sparkles",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/sparkles.svg",
+   "sha256": "1bde7fe5f91452e8"
+  },
+  {
+   "id": "square-pen",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/square-pen.svg",
+   "sha256": "b8672ed0cb74587b"
+  },
+  {
+   "id": "square-stop",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/square-stop.svg",
+   "sha256": "344227891bd3b1d8"
+  },
+  {
+   "id": "sun",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/sun.svg",
+   "sha256": "3cb039a7f9317ca9"
+  },
+  {
+   "id": "table-2",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/table-2.svg",
+   "sha256": "5b842bebe4bdd157"
+  },
+  {
+   "id": "target",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/target.svg",
+   "sha256": "dd6a62a0be4c34f9"
+  },
+  {
+   "id": "trash-2",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/trash-2.svg",
+   "sha256": "3abc4a167698ff4c"
+  },
+  {
+   "id": "triangle-alert",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/triangle-alert.svg",
+   "sha256": "862a3389768d53f7"
+  },
+  {
+   "id": "upload",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/upload.svg",
+   "sha256": "790fcaaa00c46189"
+  },
+  {
+   "id": "user-check",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/user-check.svg",
+   "sha256": "a9989c179eea1569"
+  },
+  {
+   "id": "user-round",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/user-round.svg",
+   "sha256": "207009f924b3f414"
+  },
+  {
+   "id": "user-x",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/user-x.svg",
+   "sha256": "3d20bf00c1c130c6"
+  },
+  {
+   "id": "user",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/user.svg",
+   "sha256": "edf5fc9f3195c63c"
+  },
+  {
+   "id": "users-round",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/users-round.svg",
+   "sha256": "9feb3d86dc5b837f"
+  },
+  {
+   "id": "users",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/users.svg",
+   "sha256": "f712315a4d6ecf21"
+  },
+  {
+   "id": "wand-sparkles",
+   "role": "ICON",
+   "classification": "DECORATIVE",
+   "source": "Lucide 1.52.0 (ISC)",
+   "destinationPath": "static/mosaic/icons/wand-sparkles.svg",
+   "sha256": "5711de5da87a49e7"
+  }
+ ],
+ "counts": {
+  "LOGO": 7,
+  "ILLUSTRATION": 12,
+  "ICON": 69
+ },
+ "knownIssues": [
+  "illus/error-404.svg có nét chữ 'A' thừa — chờ Design Authority sửa (không chặn)"
+ ]
+}

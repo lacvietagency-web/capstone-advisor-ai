@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Không tìm thấy kết quả phù hợp</title>
+  <style>
+    .p{stroke:var(--mz-teal-500,#0A9396);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:var(--mz-amber-500,#EE9B00);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:var(--border-strong,#B9C0BC);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  </style>
+  <rect x="42" y="39" width="112" height="74" rx="10" class="n"/>
+  <path d="M58 58h60M58 75h45M58 92h54" class="n"/>
+  <circle cx="155" cy="88" r="28" class="p"/>
+  <path d="M175 108l20 20" class="p"/>
+  <path d="M169 61l9-9M181 68l12-4" class="a"/>
+</svg>

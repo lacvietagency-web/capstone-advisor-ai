@@ -1902,3 +1902,213 @@ a:hover {
 }
 
 
+
+
+/* ==========================================================================
+   /* P2 */ — Giai đoạn P2: Các trang GIẢNG VIÊN theo Mosaic AI
+   Spec: .webby/DESIGN-SPEC-mosaic.md & .webby/NGUYEN-LIEU-AP-DUNG.md
+   Bao gồm:
+   - motion|cubic-drawer-slide-transition: Inspector SV bên phải của GV (360-420px, 220ms cubic-bezier(.2,.8,.2,1))
+   - component|tactile-bicolor-toggle-switch: Công tắc "Bắt buộc - Điều kiện loại"
+   - Chip Lĩnh vực chuyên môn tương tác (.mz-chip-group, .mz-chip-item)
+   - Tỉ lệ % trọng số từng kỹ năng (.skill-weight-percent)
+   - Clickable table rows (.mz-clickable-row)
+   - Fix 390px mobile cho trang Giảng viên
+   ========================================================================== */
+
+/* 1. Chip Lĩnh Vực Chuyên Môn Tương Tác */
+.mz-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mz-chip-item {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-soft);
+  color: var(--text-default);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: all 160ms var(--ease-standard);
+}
+
+.mz-chip-item input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.mz-chip-item:hover {
+  background-color: var(--bg-surface-raised);
+  border-color: var(--border-default);
+  color: var(--text-strong);
+}
+
+.mz-chip-item.active {
+  background-color: color-mix(in srgb, var(--accent) 15%, var(--bg-surface));
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+[data-bs-theme="dark"] .mz-chip-item.active {
+  background-color: color-mix(in srgb, var(--accent) 25%, var(--bg-surface));
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.mz-chip-item:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 2. Inspector SV Bên Phải của Giảng Viên (motion|cubic-drawer-slide-transition) */
+.mz-inspector-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 1045;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms var(--ease-standard);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.mz-inspector-backdrop.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mz-inspector-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  max-width: 100vw;
+  background-color: var(--bg-surface);
+  border-left: 1px solid var(--border-soft);
+  z-index: 1050;
+  box-shadow: var(--shadow-lg);
+  transform: translateX(100%);
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mz-inspector-drawer.show {
+  transform: translateX(0);
+}
+
+.mz-inspector-header {
+  height: 64px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.mz-inspector-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.mz-inspector-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+  overscroll-behavior: contain;
+}
+
+.mz-inspector-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--bg-surface-raised);
+  flex-shrink: 0;
+}
+
+/* 3. Clickable Rows Trong Bảng Duyệt SV */
+.mz-clickable-row {
+  cursor: pointer;
+  transition: background-color 140ms var(--ease-standard);
+}
+
+.mz-clickable-row:hover {
+  background-color: var(--bg-surface-subtle) !important;
+}
+
+/* 4. Tỉ Lệ % Trọng Số Kỹ Năng (.skill-weight-percent) */
+.skill-weight-percent {
+  font-variant-numeric: tabular-nums;
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-soft);
+  color: var(--accent);
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+}
+
+/* 5. Switch Toggle Cho "Bắt Buộc / Điều Kiện Loại" */
+.form-check.form-switch .form-check-input {
+  width: 36px;
+  height: 20px;
+  background-color: var(--border-strong);
+  border-color: var(--border-strong);
+  cursor: pointer;
+  transition: background-color 140ms var(--ease-standard), border-color 140ms var(--ease-standard);
+}
+
+.form-check.form-switch .form-check-input:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.form-check.form-switch .form-check-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* 6. Fix Responsive Cho 390px Mobile Trên Các Trang GV */
+@media (max-width: 576px) {
+  .mz-inspector-drawer {
+    width: 92vw;
+  }
+  .mz-inspector-body {
+    padding: 14px;
+  }
+  .mz-inspector-header,
+  .mz-inspector-footer {
+    padding: 12px 14px;
+  }
+}
+
+@media (max-width: 390px) {
+  .mz-chip-item {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  .skill-weight-percent {
+    font-size: 11px;
+    padding: 2px 5px;
+  }
+}

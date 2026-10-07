@@ -182,15 +182,17 @@
           <!-- Breadcrumb / Context header -->
           <nav aria-label="Breadcrumb" class="d-none d-md-block">
             <div class="mz-breadcrumb">
-              {% if user.is_authenticated %}
-                <span>
-                  {% if user.is_student %}Sinh viên{% elif user.is_lecturer %}Giảng viên{% elif user.is_faculty_admin %}Khoa CNTT{% else %}Hệ thống{% endif %}
-                </span>
-                <span>/</span>
-                <span class="mz-breadcrumb-active">{% block page_title %}Trang chủ{% endblock %}</span>
-              {% else %}
-                <span class="mz-breadcrumb-active">Hệ thống tư vấn và phân công đề tài tốt nghiệp</span>
-              {% endif %}
+              {% block breadcrumb %}
+                {% if user.is_authenticated %}
+                  <span>
+                    {% if user.is_student %}Sinh viên{% elif user.is_lecturer %}Giảng viên{% elif user.is_faculty_admin %}Khoa CNTT{% else %}Hệ thống{% endif %}
+                  </span>
+                  <span>/</span>
+                  <span class="mz-breadcrumb-active">{% block page_title %}Trang chủ{% endblock %}</span>
+                {% else %}
+                  <span class="mz-breadcrumb-active">Hệ thống tư vấn và phân công đề tài tốt nghiệp</span>
+                {% endif %}
+              {% endblock breadcrumb %}
             </div>
           </nav>
         </div>
@@ -297,7 +299,7 @@
       <!-- FOOTER HỆ THỐNG -->
       <footer class="mz-footer">
         <div>Mosaic AI · Hệ thống tư vấn và phân công đề tài tốt nghiệp</div>
-        <div class="mz-caption">Khoa CNTT – EAUT</div>
+        <div class="mz-caption">Mosaic AI</div>
       </footer>
     </div>
   </div>

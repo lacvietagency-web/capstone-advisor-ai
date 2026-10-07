@@ -2,6 +2,14 @@
 
 {% block title %}{{ topic.title }} — Mosaic AI{% endblock %}
 
+{% block breadcrumb %}
+  <span>Sinh viên</span>
+  <span>/</span>
+  <a href="{% url 'topic_list' %}" class="text-decoration-none text-muted">Danh sách đề tài</a>
+  <span>/</span>
+  <span class="mz-breadcrumb-active text-truncate" style="max-width: 360px;" title="{{ topic.title }}">{{ topic.title }}</span>
+{% endblock %}
+
 {% block content %}
 <!-- Điều hướng quay lại -->
 <div class="mb-3" data-mz-reveal>
@@ -103,7 +111,7 @@
       <div class="mz-alert mz-alert-info mb-3">
         {% include "components/icon.html" with name="info" size=18 class="text-info flex-shrink-0" %}
         <div>
-          Chưa có điểm đánh giá phù hợp cho đề tài này (đề tài nằm ngoài Top gợi ý hoặc hồ sơ chưa được cập nhật). Dưới đây là các tiêu chuẩn đánh giá M1–M5 của hệ thống. Bạn vẫn có thể đăng ký bình thường nếu cảm thấy đề tài phù hợp.
+          Chưa có điểm đánh giá phù hợp cho đề tài này (đề tài nằm ngoài Top gợi ý hoặc hồ sơ chưa được cập nhật).
         </div>
       </div>
 

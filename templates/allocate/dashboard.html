@@ -1,707 +1,685 @@
 {% extends "base.html" %}
 {% load l10n %}
 
-{% block title %}Phân công đề tài — Capstone Advisor AI{% endblock %}
+{% block title %}Phân công đề tài — Mosaic AI{% endblock %}
+
+{% block breadcrumb %}
+  <span>Khoa CNTT</span>
+  <span>/</span>
+  <span class="mz-breadcrumb-active">Phân công đề tài</span>
+{% endblock %}
+
+{% block page_title %}Phân công đề tài{% endblock %}
 
 {% block content %}
-<!-- Breadcrumb điều hướng -->
-<nav aria-label="breadcrumb" class="mb-2">
-  <ol class="breadcrumb mb-0 small">
-    <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none">Tổng quan</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Phân công đề tài</li>
-  </ol>
-</nav>
+<div class="mz-alloc-dashboard-container">
+  <!-- Header Khoa & Chọn đợt -->
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+        <h1 class="mz-page-title mb-0">Phân công đề tài tốt nghiệp</h1>
+        {% if period %}
+          {% if period.status == 'PUBLISHED' %}
+            <span class="mz-badge mz-badge-teal">
+              <span class="mz-badge-dot"></span>Đã công bố
+            </span>
+          {% else %}
+            <span class="mz-badge mz-badge-warning">
+              <span class="mz-badge-dot"></span>Chưa công bố
+            </span>
+          {% endif %}
+        {% endif %}
+      </div>
+      <p class="mz-page-subtitle mb-0">Tối ưu hóa phân công sinh viên - đề tài - giảng viên bằng nhiều mô hình AI và ILP.</p>
+    </div>
 
-<!-- Header Khoa -->
-<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-  <div>
-    <h1>Phân công đề tài tốt nghiệp</h1>
-    <p class="page-subtitle">Tối ưu phân công nguyện vọng, điều chỉnh thủ công Pha 2 và công bố kết quả chính thức.</p>
-  </div>
-  <div class="d-flex flex-wrap align-items-center gap-2">
-    <a href="{% url 'faculty_statistics' %}" class="btn btn-outline-primary">
-      <i class="bi bi-bar-chart-line me-1"></i>Báo cáo thống kê
-    </a>
-    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>Về trang chủ
-    </a>
-  </div>
-</div>
-
-<!-- =========================================================================
-     1. NGUYÊN LIỆU: layout|fused-metric-ribbon-dock
-     Khối điều hành đợt và hàng chỉ số phân công gắn liền trực tiếp không có đệm
-     ========================================================================= -->
-<div class="fused-metric-dock mb-4">
-  <!-- Top Control Block: Chọn đợt & Hành động điều hành -->
-  <div class="fused-dock-header">
-    <div class="row g-3 align-items-center justify-content-between">
-      <!-- Bộ chọn đợt đăng ký -->
-      <div class="col-12 col-md-5">
-        <form method="get" class="d-flex align-items-center gap-2 m-0" id="periodSelectForm">
-          <label for="periodSelect" class="form-label mb-0 fw-semibold text-nowrap">Đợt đăng ký:</label>
-          <select name="period_id" id="periodSelect" class="form-select" onchange="this.form.submit()">
+    <!-- Thanh thao tác chính & Chọn đợt -->
+    <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-lg-auto justify-content-between justify-content-lg-end">
+      <!-- Form chọn đợt -->
+      <form method="get" class="d-flex align-items-center gap-2 m-0 flex-grow-1 flex-lg-grow-0" id="periodSelectForm">
+        <label for="periodSelect" class="visually-hidden">Đợt đăng ký</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-surface border-default">
+            {% include "components/icon.html" with name="calendar3" size=14 class="text-muted" %}
+          </span>
+          <select name="period_id" id="periodSelect" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 180px;">
             {% for p in periods %}
               <option value="{{ p.pk }}" {% if period and period.pk == p.pk %}selected{% endif %}>
                 {{ p.name }} ({{ p.get_status_display }})
               </option>
             {% endfor %}
           </select>
-          {% if unassigned_only %}
-            <input type="hidden" name="unassigned_only" value="1">
-          {% endif %}
-        </form>
-      </div>
+        </div>
+        {% if unassigned_only %}
+          <input type="hidden" name="unassigned_only" value="1">
+        {% endif %}
+      </form>
 
       {% if period %}
-      <!-- Nút hành động tối ưu ILP, Greedy, Chốt & Công bố -->
-      <div class="col-12 col-md-7 d-flex flex-wrap justify-content-md-end gap-2">
-        <!-- Chạy ILP -->
-        <form method="post" class="m-0">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="run_ilp">
-          <button type="submit" class="btn btn-primary" title="Tối ưu toàn cục theo hàm mục tiêu ILP">
-            <i class="bi bi-cpu me-1"></i>Chạy tối ưu ILP
-          </button>
-        </form>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <!-- MỘT NÚT CHÍNH: Chạy tối ưu (ILP) -->
+          <form method="post" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="run_ilp">
+            <button type="submit" class="mz-btn mz-btn-primary mz-btn-sm" title="Tối ưu toàn cục theo mô hình hàm mục tiêu ILP">
+              {% include "components/icon.html" with name="wand-sparkles" size=15 %}
+              <span>Chạy tối ưu (ILP)</span>
+            </button>
+          </form>
 
-        <!-- Chạy Greedy -->
-        <form method="post" class="m-0">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="run_greedy">
-          <button type="submit" class="btn btn-outline-secondary" title="Thuật toán tham lam theo từng vòng nguyện vọng">
-            <i class="bi bi-lightning me-1"></i>Chạy Greedy
-          </button>
-        </form>
+          <!-- GREEDY: Lựa chọn phụ để so sánh -->
+          <form method="post" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="run_greedy">
+            <button type="submit" class="mz-btn mz-btn-secondary mz-btn-sm" title="Thuật toán tham lam chạy nhanh để so sánh với ILP">
+              {% include "components/icon.html" with name="git-compare" size=15 %}
+              <span>Chạy Greedy (so sánh)</span>
+            </button>
+          </form>
 
-        <!-- Nút mở modal Chốt & Công bố (kích hoạt focus-trap-motion-pause) -->
-        <button type="button" 
-                class="btn btn-success" 
-                id="btnOpenPublishModal"
-                data-bs-toggle="modal" 
-                data-bs-target="#publishConfirmModal"
-                {% if not allocations or period.status == 'PUBLISHED' %}disabled{% endif %}>
-          <i class="bi bi-check2-circle me-1"></i>Chốt &amp; Công bố
-        </button>
-      </div>
+          <!-- NÚT CÔNG BỐ (Dùng Confirm Modal 2 Bước) -->
+          <button type="button"
+                  class="mz-btn {% if period.status == 'PUBLISHED' %}mz-btn-secondary{% else %}mz-btn-success{% endif %} mz-btn-sm"
+                  id="btnOpenPublishModal"
+                  data-bs-toggle="modal"
+                  data-bs-target="#publishTwoStepModal"
+                  {% if not allocations or period.status == 'PUBLISHED' %}disabled{% endif %}
+                  title="{% if period.status == 'PUBLISHED' %}Đợt này đã được công bố chính thức{% else %}Chốt phân công và công bố cho SV/GV tra cứu{% endif %}">
+            {% include "components/icon.html" with name="circle-check-big" size=15 %}
+            <span>{% if period.status == 'PUBLISHED' %}Đã công bố{% else %}Công bố kết quả{% endif %}</span>
+          </button>
+        </div>
       {% endif %}
     </div>
-
-    {% if period %}
-    <!-- Dòng thông tin metadata đợt -->
-    <div class="fused-dock-meta">
-      <span><i class="bi bi-calendar3 me-1 text-primary"></i>Thời gian: <strong>{{ period.start_at|date:"d/m/Y" }} – {{ period.end_at|date:"d/m/Y" }}</strong></span>
-      <span class="d-inline-flex align-items-center gap-1">
-        Trạng thái đợt:
-        {% if period.status == 'OPEN' %}
-          <span class="badge-pill-pop status-badge status-open"><span class="dot"></span>{{ period.get_status_display }}</span>
-        {% elif period.status == 'CLOSED' %}
-          <span class="badge-pill-pop status-badge status-closed"><span class="dot"></span>{{ period.get_status_display }}</span>
-        {% elif period.status == 'OPTIMIZED' %}
-          <span class="badge-pill-pop status-badge status-pending"><span class="dot"></span>{{ period.get_status_display }}</span>
-        {% elif period.status == 'PUBLISHED' %}
-          <span class="badge-pill-pop status-badge status-info"><span class="dot"></span>{{ period.get_status_display }}</span>
-        {% endif %}
-      </span>
-      <span><i class="bi bi-people me-1 text-primary"></i>Tổng số phân công: <strong>{{ allocations|length }}</strong> sinh viên</span>
-    </div>
-    {% endif %}
   </div>
 
-  {% if metrics %}
-  <!-- Fused Ribbon Dock: Dải số liệu gắn trực tiếp cạnh đáy của khối điều hành -->
-  <div class="fused-ribbon-bar" role="region" aria-label="Dải chỉ số đánh giá phân công">
-    <div class="fused-metric-item" aria-label="Tỉ lệ phân công: {% widthratio metrics.assigned_rate 1 100 %}% sinh viên được xếp">
-      <div class="fused-metric-label">Tỉ lệ phân công</div>
-      <div class="fused-metric-value text-primary">{% widthratio metrics.assigned_rate 1 100 %}%</div>
-      <div class="fused-metric-sub">sinh viên được xếp</div>
-    </div>
-
-    <div class="fused-metric-item" aria-label="Đạt nguyện vọng 1: {% widthratio metrics.nv1_rate 1 100 %}%">
-      <div class="fused-metric-label">Đạt NV1</div>
-      <div class="fused-metric-value text-success">{% widthratio metrics.nv1_rate 1 100 %}%</div>
-      <div class="fused-metric-sub">nguyện vọng 1</div>
-    </div>
-
-    <div class="fused-metric-item" aria-label="Đạt Top 3 nguyện vọng: {% widthratio metrics.top3_rate 1 100 %}%">
-      <div class="fused-metric-label">Đạt Top 3</div>
-      <div class="fused-metric-value text-primary">{% widthratio metrics.top3_rate 1 100 %}%</div>
-      <div class="fused-metric-sub">nguyện vọng 1–3</div>
-    </div>
-
-    <div class="fused-metric-item" aria-label="Thứ hạng trung bình: {{ metrics.mean_rank|floatformat:2 }}">
-      <div class="fused-metric-label">Thứ hạng TB</div>
-      <div class="fused-metric-value">{{ metrics.mean_rank|floatformat:2 }}</div>
-      <div class="fused-metric-sub">nguyện vọng TB</div>
-    </div>
-
-    <div class="fused-metric-item" aria-label="Điểm trung bình và phân vị 10: {{ metrics.avg_match|floatformat:1 }} trên {{ metrics.p10_match|floatformat:1 }}">
-      <div class="fused-metric-label">Điểm TB / P10</div>
-      <div class="fused-metric-value">{{ metrics.avg_match|floatformat:1 }} <span class="fs-6 text-muted fw-normal">/</span> {{ metrics.p10_match|floatformat:1 }}</div>
-      <div class="fused-metric-sub">phù hợp TB / P10</div>
-    </div>
-
-    <div class="fused-metric-item" aria-label="Vi phạm chỉ tiêu: {{ metrics.quota_violations }} trường hợp">
-      <div class="fused-metric-label">Vi phạm chỉ tiêu</div>
-      <div class="fused-metric-value {% if metrics.quota_violations > 0 %}text-danger{% else %}text-success{% endif %}">
-        {{ metrics.quota_violations }}
+  <!-- THÔNG BÁO TRẠNG THÁI CÔNG BỐ -->
+  {% if period and period.status != 'PUBLISHED' and allocations %}
+    <div class="mz-alert mz-alert-warning mb-4">
+      {% include "components/icon.html" with name="triangle-alert" size=18 class="text-warning flex-shrink-0 mt-1" %}
+      <div class="flex-grow-1">
+        <div class="fw-semibold text-strong">Bản phân công đang ở trạng thái Nháp (Chưa công bố)</div>
+        <div class="small">
+          Toàn bộ kết quả bên dưới chỉ có Ban chủ nhiệm Khoa nhìn thấy. Sinh viên và Giảng viên chỉ xem được sau khi Khoa bấm <strong>Công bố kết quả</strong>.
+        </div>
       </div>
-      <div class="fused-metric-sub">vượt chỉ tiêu GV</div>
     </div>
-
-    <div class="fused-metric-item" aria-label="Thời gian bộ giải chạy: {{ metrics.elapsed_time|default:'0.0'|floatformat:3 }} giây">
-      <div class="fused-metric-label">Thời gian chạy</div>
-      <div class="fused-metric-value text-muted">{% if metrics.elapsed_time is not None %}{{ metrics.elapsed_time|floatformat:3 }}s{% else %}—{% endif %}</div>
-      <div class="fused-metric-sub">thời gian bộ giải</div>
-    </div>
-  </div>
   {% endif %}
-</div>
 
-<!-- =========================================================================
-     2. NGUYÊN LIỆU: component|micro-stacked-risk-histogram
-     Phân bố điểm phù hợp sau phân công xếp tầng từ chân lên đỉnh (flex-direction: column-reverse)
-     ========================================================================= -->
-{% if metrics and allocations %}
-<div class="micro-histogram-card" id="scoreHistogramCard">
-  <div class="micro-histogram-header">
-    <div>
-      <h3 class="micro-histogram-title">
-        <i class="bi bi-bar-chart-steps text-primary"></i>
-        Phân bố điểm phù hợp sau phân công
-      </h3>
-      <p class="small text-muted mb-0 mt-1">
-        Phân khúc tầng từ chân lên đỉnh theo mức độ đáp ứng nguyện vọng (NV1, NV2–3, Ngoài NV; SV chưa xếp không có điểm nên không tính) trên từng dải điểm.
-      </p>
-    </div>
-
-    <!-- Chú thích phân khúc tầng -->
-    <div class="micro-histogram-legend" role="list" aria-label="Chú thích màu phân khúc">
-      <div class="legend-item" role="listitem">
-        <span class="legend-dot dot-nv1" aria-hidden="true"></span>
-        <span>NV1 (Xanh lá)</span>
-      </div>
-      <div class="legend-item" role="listitem">
-        <span class="legend-dot dot-nv-top" aria-hidden="true"></span>
-        <span>NV2–3 (Xanh EAUT)</span>
-      </div>
-      <div class="legend-item" role="listitem">
-        <span class="legend-dot dot-nv-other" aria-hidden="true"></span>
-        <span>Ngoài NV (Hổ phách)</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Vùng cuộn ngang an toàn trên điện thoại để không bao giờ tràn trang -->
-  <div class="micro-histogram-scroll" tabindex="0" role="region" aria-label="Biểu đồ phân bố điểm số">
-    <div class="micro-histogram-grid" id="histogramBarsContainer">
-      <!-- Cột 1: < 50 điểm (Rủi ro / Điểm thấp) -->
-      <div class="histogram-bar-group" data-bin="0">
-        <span class="histogram-bar-count text-muted" id="hist-count-0">0</span>
-        <div class="histogram-bar-track" tabindex="0" id="hist-track-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Dải < 50 điểm: 0 SV">
-          <div class="histogram-segment seg-nv1" id="seg-0-nv1"></div>
-          <div class="histogram-segment seg-nv-top" id="seg-0-top"></div>
-          <div class="histogram-segment seg-nv-other" id="seg-0-other"></div>
-          <div class="histogram-segment seg-unassigned" id="seg-0-unassigned"></div>
+  <!-- =========================================================================
+       DẢI SỐ LIỆU PHÂN CÔNG (layout|fused-metric-ribbon-dock)
+       Một surface duy nhất, phân tách bằng đường kẻ dọc, không card con, không icon tròn
+       ========================================================================= -->
+  {% if metrics %}
+    <div class="mz-metric-ribbon-surface mb-4" role="region" aria-label="Dải chỉ số đánh giá phân công">
+      <div class="mz-metric-ribbon-grid">
+        <div class="mz-metric-cell">
+          <div class="mz-metric-label">Tổng sinh viên</div>
+          <div class="mz-metric-value text-accent">{{ allocations|length }} SV</div>
+          <div class="mz-metric-sub">trong đợt này</div>
         </div>
-        <span class="histogram-bar-label">&lt; 50</span>
-      </div>
 
-      <!-- Cột 2: 50 – 64 điểm -->
-      <div class="histogram-bar-group" data-bin="1">
-        <span class="histogram-bar-count text-muted" id="hist-count-1">0</span>
-        <div class="histogram-bar-track" tabindex="0" id="hist-track-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Dải 50–64 điểm: 0 SV">
-          <div class="histogram-segment seg-nv1" id="seg-1-nv1"></div>
-          <div class="histogram-segment seg-nv-top" id="seg-1-top"></div>
-          <div class="histogram-segment seg-nv-other" id="seg-1-other"></div>
-          <div class="histogram-segment seg-unassigned" id="seg-1-unassigned"></div>
+        <div class="mz-metric-cell">
+          <div class="mz-metric-label">Tỉ lệ phân công</div>
+          <div class="mz-metric-value text-success">{% widthratio metrics.assigned_rate 1 100 %}%</div>
+          <div class="mz-metric-sub">sinh viên có đề tài</div>
         </div>
-        <span class="histogram-bar-label">50–64</span>
-      </div>
 
-      <!-- Cột 3: 65 – 74 điểm -->
-      <div class="histogram-bar-group" data-bin="2">
-        <span class="histogram-bar-count text-muted" id="hist-count-2">0</span>
-        <div class="histogram-bar-track" tabindex="0" id="hist-track-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Dải 65–74 điểm: 0 SV">
-          <div class="histogram-segment seg-nv1" id="seg-2-nv1"></div>
-          <div class="histogram-segment seg-nv-top" id="seg-2-top"></div>
-          <div class="histogram-segment seg-nv-other" id="seg-2-other"></div>
-          <div class="histogram-segment seg-unassigned" id="seg-2-unassigned"></div>
+        <div class="mz-metric-cell">
+          <div class="mz-metric-label">Đạt NV1</div>
+          <div class="mz-metric-value text-strong">{% widthratio metrics.nv1_rate 1 100 %}%</div>
+          <div class="mz-metric-sub">nguyện vọng 1</div>
         </div>
-        <span class="histogram-bar-label">65–74</span>
-      </div>
 
-      <!-- Cột 4: 75 – 84 điểm -->
-      <div class="histogram-bar-group" data-bin="3">
-        <span class="histogram-bar-count text-muted" id="hist-count-3">0</span>
-        <div class="histogram-bar-track" tabindex="0" id="hist-track-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Dải 75–84 điểm: 0 SV">
-          <div class="histogram-segment seg-nv1" id="seg-3-nv1"></div>
-          <div class="histogram-segment seg-nv-top" id="seg-3-top"></div>
-          <div class="histogram-segment seg-nv-other" id="seg-3-other"></div>
-          <div class="histogram-segment seg-unassigned" id="seg-3-unassigned"></div>
+        <div class="mz-metric-cell">
+          <div class="mz-metric-label">Đạt Top 3</div>
+          <div class="mz-metric-value text-strong">{% widthratio metrics.top3_rate 1 100 %}%</div>
+          <div class="mz-metric-sub">NV1 đến NV3</div>
         </div>
-        <span class="histogram-bar-label">75–84</span>
-      </div>
 
-      <!-- Cột 5: 85 – 94 điểm -->
-      <div class="histogram-bar-group" data-bin="4">
-        <span class="histogram-bar-count text-muted" id="hist-count-4">0</span>
-        <div class="histogram-bar-track" tabindex="0" id="hist-track-4" data-bs-toggle="tooltip" data-bs-placement="top" title="Dải 85–94 điểm: 0 SV">
-          <div class="histogram-segment seg-nv1" id="seg-4-nv1"></div>
-          <div class="histogram-segment seg-nv-top" id="seg-4-top"></div>
-          <div class="histogram-segment seg-nv-other" id="seg-4-other"></div>
-          <div class="histogram-segment seg-unassigned" id="seg-4-unassigned"></div>
+        <div class="mz-metric-cell">
+          <div class="mz-metric-label">Điểm phù hợp TB</div>
+          <div class="mz-metric-value text-strong">{{ metrics.avg_match|floatformat:1 }}</div>
+          <div class="mz-metric-sub">thang điểm 100</div>
         </div>
-        <span class="histogram-bar-label">85–94</span>
-      </div>
 
-      <!-- Cột 6: 95 – 100 điểm -->
-      <div class="histogram-bar-group" data-bin="5">
-        <span class="histogram-bar-count text-muted" id="hist-count-5">0</span>
-        <div class="histogram-bar-track" tabindex="0" id="hist-track-5" data-bs-toggle="tooltip" data-bs-placement="top" title="Dải 95–100 điểm: 0 SV">
-          <div class="histogram-segment seg-nv1" id="seg-5-nv1"></div>
-          <div class="histogram-segment seg-nv-top" id="seg-5-top"></div>
-          <div class="histogram-segment seg-nv-other" id="seg-5-other"></div>
-          <div class="histogram-segment seg-unassigned" id="seg-5-unassigned"></div>
+        <div class="mz-metric-cell">
+          <div class="mz-metric-label">Chưa xếp</div>
+          <div class="mz-metric-value {% if metrics.unassigned_count > 0 %}text-danger{% else %}text-success{% endif %}">
+            {{ metrics.unassigned_count }} SV
+          </div>
+          <div class="mz-metric-sub">cần xếp Pha 2</div>
         </div>
-        <span class="histogram-bar-label">95–100</span>
+
+        <div class="mz-metric-cell">
+          <div class="mz-metric-label">Thời gian giải</div>
+          <div class="mz-metric-value text-muted">
+            {% if metrics.elapsed_time is not None %}{{ metrics.elapsed_time|floatformat:2 }}s{% else %}—{% endif %}
+          </div>
+          <div class="mz-metric-sub">bộ giải tối ưu</div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-{% endif %}
+  {% endif %}
 
-<!-- Giao diện Pha 2: Gợi ý đề tài cho sinh viên chưa xếp -->
-{% if suggest_student %}
-<div class="app-card border-primary mb-4" id="phase2Section">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <span class="badge-pill-pop bg-primary text-white mb-1">Pha 2: Gợi ý chỉnh tay</span>
-      <h3 class="card-heading fs-5 mb-0">
-        Gợi ý đề tài cho sinh viên: <strong>{{ suggest_student.student_code }} — {{ suggest_student.user.get_full_name|default:suggest_student.user.username }}</strong>
-      </h3>
-      <div class="small text-muted mt-1">
-        GPA: <strong>{{ suggest_student.gpa }}</strong> · Chuyên ngành: <strong>{{ suggest_student.major.name }}</strong>
+  <!-- =========================================================================
+       PHÂN BỐ ĐIỂM SỐ PHÙ HỢP (HISTOGRAM)
+       ========================================================================= -->
+  {% if metrics and allocations %}
+    <div class="mz-bento-card p-3 p-md-4 mb-4" id="scoreHistogramCard">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+        <div>
+          <h2 class="h6 fw-bold text-strong mb-1">
+            Phân bố điểm phù hợp của sinh viên sau phân công
+          </h2>
+          <p class="text-muted small mb-0">
+            Tỉ lệ điểm đạt được theo từng dải điểm và phân khúc nguyện vọng (NV1, NV2–3, Ngoài NV).
+          </p>
+        </div>
+
+        <!-- Chú thích phân khúc màu -->
+        <div class="d-flex align-items-center gap-3 text-muted small">
+          <span class="d-inline-flex align-items-center gap-1">
+            <span class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: var(--success);"></span>
+            <span>NV1</span>
+          </span>
+          <span class="d-inline-flex align-items-center gap-1">
+            <span class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: var(--accent);"></span>
+            <span>NV2–3</span>
+          </span>
+          <span class="d-inline-flex align-items-center gap-1">
+            <span class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: var(--warning);"></span>
+            <span>Ngoài NV</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Histogram Graphic -->
+      <div class="mz-histogram-container" tabindex="0" role="region" aria-label="Biểu đồ phân bố điểm số">
+        <div class="mz-histogram-grid" id="histogramBarsContainer">
+          {% for idx in "012345" %}
+            <div class="mz-histogram-col" data-bin="{{ idx }}">
+              <span class="mz-histogram-count text-muted" id="hist-count-{{ idx }}">0</span>
+              <div class="mz-histogram-track" tabindex="0" id="hist-track-{{ idx }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Đang tính...">
+                <div class="mz-histogram-seg seg-nv1" id="seg-{{ idx }}-nv1"></div>
+                <div class="mz-histogram-seg seg-top" id="seg-{{ idx }}-top"></div>
+                <div class="mz-histogram-seg seg-other" id="seg-{{ idx }}-other"></div>
+              </div>
+              <span class="mz-histogram-label" id="hist-label-{{ idx }}">
+                {% if idx == "0" %}&lt;50{% elif idx == "1" %}50–64{% elif idx == "2" %}65–74{% elif idx == "3" %}75–84{% elif idx == "4" %}85–94{% else %}95–100{% endif %}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
       </div>
     </div>
-    <a href="?period_id={{ period.pk }}{% if unassigned_only %}&unassigned_only=1{% endif %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-x-lg me-1"></i>Đóng gợi ý
-    </a>
-  </div>
+  {% endif %}
 
-  {% if suggestions %}
-    <!-- Bảng gợi ý Pha 2 có cuộn ngang an toàn -->
-    <div class="app-table-wrapper mb-0">
-      <div class="app-table-responsive" tabindex="0" role="region" aria-label="Bảng đề tài gợi ý Pha 2">
-        <table class="table app-table align-middle">
+  <!-- =========================================================================
+       PHA 2: GỢI Ý XẾP TAY CHO SINH VIÊN CHƯA XẾP
+       ========================================================================= -->
+  {% if suggest_student %}
+    <div class="mz-bento-card p-3 p-md-4 mb-4 border-accent" id="phase2Section">
+      <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <span class="mz-badge mz-badge-accent mb-2">Xếp tay Pha 2</span>
+          <h2 class="h5 fw-bold text-strong mb-1">
+            Gợi ý đề tài khả dụng cho sinh viên: {{ suggest_student.student_code }} — {{ suggest_student.user.get_full_name|default:suggest_student.user.username }}
+          </h2>
+          <div class="text-muted small">
+            GPA: <strong>{{ suggest_student.gpa }}</strong> · Chuyên ngành: <strong>{{ suggest_student.major.name }}</strong>
+          </div>
+        </div>
+        <a href="?period_id={{ period.pk }}{% if unassigned_only %}&unassigned_only=1{% endif %}" class="mz-btn mz-btn-ghost mz-btn-sm">
+          {% include "components/icon.html" with name="x" size=16 %}
+          <span>Đóng Pha 2</span>
+        </a>
+      </div>
+
+      {% if suggestions %}
+        <div class="table-responsive">
+          <table class="table mz-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th style="min-width: 240px;">Tên đề tài</th>
+                <th style="min-width: 160px;">Giảng viên</th>
+                <th class="text-center" style="width: 110px;">Điểm phù hợp</th>
+                <th class="text-center" style="width: 120px;">Chỗ còn lại</th>
+                <th class="text-center" style="width: 120px;">Chỉ tiêu GV</th>
+                <th class="text-end" style="min-width: 140px;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sug in suggestions %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold text-strong">{{ sug.topic.title }}</div>
+                    <div class="text-muted small">Độ khó: {{ sug.topic.get_difficulty_display }} · GPA sàn: {{ sug.topic.min_gpa }}</div>
+                  </td>
+                  <td>{{ sug.topic.lecturer.user.get_full_name|default:sug.topic.lecturer.user.username }}</td>
+                  <td class="text-center">
+                    <span class="fw-bold text-accent">{{ sug.score }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="mz-badge mz-badge-neutral">còn {{ sug.remaining_cap }} chỗ</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="mz-badge mz-badge-neutral">còn {{ sug.remaining_quota }} chỉ tiêu</span>
+                  </td>
+                  <td class="text-end">
+                    <form method="post" class="d-inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="manual_assign">
+                      <input type="hidden" name="student_id" value="{{ suggest_student.pk }}">
+                      <input type="hidden" name="topic_id" value="{{ sug.topic.pk }}">
+                      <button type="submit" class="mz-btn mz-btn-primary mz-btn-sm">
+                        {% include "components/icon.html" with name="check" size=14 %}
+                        <span>Gán đề tài</span>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="mz-alert mz-alert-warning mb-0">
+          {% include "components/icon.html" with name="triangle-alert" size=18 class="text-warning flex-shrink-0 mt-1" %}
+          <div>
+            Hiện không có đề tài nào còn chỗ mà sinh viên này đáp ứng đủ điều kiện (GPA sàn, môn tiên quyết hoặc kỹ năng bắt buộc). Vui lòng kiểm tra lại điều kiện hoặc phân công thủ công bên dưới.
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- =========================================================================
+       BẢNG PHÂN CÔNG SINH VIÊN
+       Desktop: Table sạch, chỉ hiện Điểm tổng, dropdown chỉnh tay
+       Mobile: Card view riêng biệt, không tràn ngang ở 390px
+       ========================================================================= -->
+  <div class="mz-bento-card p-0 overflow-hidden mb-4">
+    <!-- Filter bar (component|shared-layout-tab-indicator) -->
+    <div class="p-3 border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <h2 class="h5 fw-bold text-strong mb-0">Bảng phân công sinh viên</h2>
+        <span class="mz-caption text-muted">({{ allocations|length }} sinh viên)</span>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <!-- Tab Tất cả / Chưa xếp -->
+        <div class="mz-tab-pill-group" role="tablist">
+          <a href="?period_id={{ period.pk }}" class="mz-tab-pill {% if not unassigned_only %}active{% endif %}">
+            <span>Tất cả</span>
+            <span class="mz-pill-badge">{{ allocations|length }}</span>
+          </a>
+          <a href="?period_id={{ period.pk }}&unassigned_only=1" class="mz-tab-pill {% if unassigned_only %}active{% endif %}">
+            <span>Chưa xếp</span>
+            {% if metrics %}
+              <span class="mz-pill-badge {% if metrics.unassigned_count > 0 %}badge-danger{% endif %}">{{ metrics.unassigned_count }}</span>
+            {% endif %}
+          </a>
+        </div>
+
+        <!-- Chuyển chế độ xem trên mobile -->
+        <div class="btn-group btn-group-sm d-md-none" role="group" aria-label="Kiểu hiển thị">
+          <button type="button" class="btn btn-outline-secondary active" id="btnModeCards" onclick="setAllocView('cards')">
+            {% include "components/icon.html" with name="list-ordered" size=14 %}
+          </button>
+          <button type="button" class="btn btn-outline-secondary" id="btnModeTable" onclick="setAllocView('table')">
+            {% include "components/icon.html" with name="table-2" size=14 %}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {% if allocations %}
+      <!-- 1. DESKTOP TABLE (ẩn trên mobile mặc định) -->
+      <div class="table-responsive d-none d-md-block" id="allocDesktopTableWrapper">
+        <table class="table mz-table mb-0 align-middle">
           <thead>
             <tr>
-              <th style="min-width: 250px;">Tên đề tài</th>
-              <th style="min-width: 160px;">Giảng viên</th>
-              <th class="text-center" style="width: 110px;">Điểm phù hợp</th>
-              <th class="text-center" style="width: 120px;">Chỗ đề tài</th>
-              <th class="text-center" style="width: 130px;">Chỉ tiêu GV</th>
-              <th class="text-end" style="min-width: 150px;">Hành động</th>
+              <th scope="col" style="min-width: 110px;">Mã SV</th>
+              <th scope="col" style="min-width: 160px;">Họ và tên</th>
+              <th scope="col" style="width: 70px;" class="text-center">GPA</th>
+              <th scope="col" style="min-width: 220px;">Đề tài phân công</th>
+              <th scope="col" style="min-width: 150px;">Giảng viên</th>
+              <th scope="col" style="width: 90px;" class="text-center">NV đạt</th>
+              <!-- Chỉ hiện điểm tổng theo yêu cầu -->
+              <th scope="col" style="width: 90px;" class="text-center">Điểm tổng</th>
+              <th scope="col" style="width: 95px;" class="text-center">Nguồn</th>
+              <th scope="col" style="width: 105px;" class="text-center">Trạng thái</th>
+              <th scope="col" style="width: 130px;" class="text-end">Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {% for sug in suggestions %}
-            <tr>
-              <td>
-                <div class="fw-semibold text-strong">{{ sug.topic.title }}</div>
-                <div class="small text-muted">Độ khó: {{ sug.topic.get_difficulty_display }} · GPA sàn: {{ sug.topic.min_gpa }}</div>
-              </td>
-              <td>{{ sug.topic.lecturer.user.get_full_name|default:sug.topic.lecturer.user.username }}</td>
-              <td class="text-center">
-                <span class="badge-pill-pop bg-success-subtle text-success fw-bold">{{ sug.score }}</span>
-              </td>
-              <td class="text-center">
-                <span class="badge-pill-pop bg-light text-dark border">còn {{ sug.remaining_cap }} chỗ</span>
-              </td>
-              <td class="text-center">
-                <span class="badge-pill-pop bg-light text-dark border">còn {{ sug.remaining_quota }} chỉ tiêu</span>
-              </td>
-              <td class="text-end">
-                <form method="post" class="d-inline">
-                  {% csrf_token %}
-                  <input type="hidden" name="action" value="manual_assign">
-                  <input type="hidden" name="student_id" value="{{ suggest_student.pk }}">
-                  <input type="hidden" name="topic_id" value="{{ sug.topic.pk }}">
-                  <button type="submit" class="btn btn-sm btn-primary">
-                    <i class="bi bi-person-check me-1"></i>Xếp đề tài này
-                  </button>
-                </form>
-              </td>
-            </tr>
+            {% for a in allocations %}
+              <tr class="{% if not a.topic %}mz-row-unassigned{% endif %}">
+                <td>
+                  <span class="fw-semibold text-strong">{{ a.student.student_code }}</span>
+                </td>
+                <td>
+                  <span class="text-strong">{{ a.student.user.get_full_name|default:a.student.user.username }}</span>
+                </td>
+                <td class="text-center fw-medium">{{ a.student.gpa }}</td>
+                <td>
+                  {% if a.topic %}
+                    <div class="text-strong fw-medium">{{ a.topic.title }}</div>
+                  {% else %}
+                    <span class="mz-badge mz-badge-danger">
+                      <span class="mz-badge-dot"></span>Chưa xếp
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if a.topic and a.topic.lecturer %}
+                    <span class="text-muted small">{{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if a.preference_rank %}
+                    <span class="mz-badge mz-badge-accent">NV{{ a.preference_rank }}</span>
+                  {% elif a.topic %}
+                    <span class="mz-badge mz-badge-neutral">Ngoài NV</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <!-- Chỉ hiện điểm tổng -->
+                <td class="text-center">
+                  {% if a.match_score is not None %}
+                    <span class="fw-bold text-accent">{{ a.match_score|floatformat:1 }}</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if a.source == 'ILP' %}
+                    <span class="mz-badge mz-badge-teal">ILP</span>
+                  {% elif a.source == 'GREEDY' %}
+                    <span class="mz-badge mz-badge-amber">Greedy</span>
+                  {% elif a.source == 'MANUAL' %}
+                    <span class="mz-badge mz-badge-accent">Khoa xếp</span>
+                  {% else %}
+                    <span class="mz-badge mz-badge-neutral">{{ a.get_source_display }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if a.status == 'OFFICIAL' %}
+                    <span class="mz-badge mz-badge-teal">Chính thức</span>
+                  {% else %}
+                    <span class="mz-badge mz-badge-neutral">Nháp</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <div class="d-flex align-items-center justify-content-end gap-1">
+                    {% if not a.topic %}
+                      <a href="?period_id={{ period.pk }}&suggest_student_id={{ a.student.pk }}{% if unassigned_only %}&unassigned_only=1{% endif %}#phase2Section"
+                         class="mz-btn mz-btn-secondary mz-btn-sm py-1 px-2"
+                         title="Gợi ý xếp tay Pha 2">
+                        {% include "components/icon.html" with name="wand-sparkles" size=13 %}
+                        <span>Pha 2</span>
+                      </a>
+                    {% endif %}
+
+                    <!-- Dropdown Chỉnh tay -->
+                    <div class="dropdown d-inline">
+                      <button class="mz-btn mz-btn-ghost mz-btn-sm p-1"
+                              type="button"
+                              data-bs-toggle="dropdown"
+                              data-bs-boundary="viewport"
+                              aria-expanded="false"
+                              title="Chỉnh tay gán đề tài">
+                        {% include "components/icon.html" with name="settings-2" size=15 %}
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm border" style="min-width: 300px; z-index: 1060;">
+                        <form method="post" class="m-0">
+                          {% csrf_token %}
+                          <input type="hidden" name="action" value="manual_assign">
+                          <input type="hidden" name="student_id" value="{{ a.student.pk }}">
+                          <label class="form-label small fw-semibold text-strong mb-1">
+                            Gán đề tài cho {{ a.student.student_code }}:
+                          </label>
+                          <select name="topic_id" class="form-select form-select-sm mb-2">
+                            <option value="none">-- Để trống (chưa xếp) --</option>
+                            {% for t in open_topics %}
+                              <option value="{{ t.pk }}" {% if a.topic and a.topic.pk == t.pk %}selected{% endif %}>
+                                {{ t.title }} ({{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }})
+                              </option>
+                            {% endfor %}
+                          </select>
+                          <button type="submit" class="mz-btn mz-btn-primary mz-btn-sm w-100">
+                            {% include "components/icon.html" with name="save" size=14 %}
+                            <span>Lưu gán thủ công</span>
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-    </div>
-  {% else %}
-    <div class="alert alert-warning mb-0">
-      <i class="bi bi-exclamation-triangle me-1"></i>Hiện không có đề tài nào còn chỗ mà sinh viên này đáp ứng đủ điều kiện (GPA, môn tiên quyết, kỹ năng bắt buộc).
-    </div>
-  {% endif %}
-</div>
-{% endif %}
 
-<!-- =========================================================================
-     3. NGUYÊN LIỆU: component|shared-layout-tab-indicator
-     Thanh tab chuyển đổi 'Tất cả' / 'Chưa xếp' với indicator trượt GPU-accelerated
-     ========================================================================= -->
-<div class="section-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-  <div>
-    <h2 class="section-title">Bảng phân công sinh viên</h2>
-    <p class="section-subtitle">Xem kết quả phân công, lọc sinh viên chưa xếp và điều chỉnh thủ công Pha 2.</p>
-  </div>
-
-  <div class="d-flex flex-wrap align-items-center gap-2">
-    <!-- Tab chuyển đổi Tất cả / Chưa xếp -->
-    <div class="shared-tab-container" role="tablist" aria-label="Lọc trạng thái xếp sinh viên" id="allocFilterTabs">
-      <div class="shared-tab-track">
-        <a href="?period_id={{ period.pk }}" 
-           role="tab"
-           id="tab-all-allocations"
-           class="shared-tab-btn {% if not unassigned_only %}is-active{% endif %}" 
-           aria-selected="{% if not unassigned_only %}true{% else %}false{% endif %}">
-          <span>Tất cả</span>
-          <span class="tab-counter">{{ allocations|length }}</span>
-        </a>
-        <a href="?period_id={{ period.pk }}&unassigned_only=1" 
-           role="tab"
-           id="tab-unassigned-allocations"
-           class="shared-tab-btn {% if unassigned_only %}is-active{% endif %}" 
-           aria-selected="{% if unassigned_only %}true{% else %}false{% endif %}">
-          <i class="bi bi-filter"></i>
-          <span>Chưa xếp</span>
-        </a>
-        <!-- Shared Layout Indicator Element -->
-        <span class="shared-tab-indicator" id="tab-indicator-main" aria-hidden="true"></span>
-      </div>
-    </div>
-
-    <!-- Nút chuyển đổi chế độ xem Bảng / Thẻ trên thiết bị di động -->
-    <div class="btn-group view-switch-btn-group d-lg-none" role="group" aria-label="Chế độ hiển thị">
-      <button type="button" class="btn btn-sm btn-outline-primary active" id="btnViewTable" onclick="switchAllocView('table')">
-        <i class="bi bi-table me-1"></i>Bảng
-      </button>
-      <button type="button" class="btn btn-sm btn-outline-primary" id="btnViewCards" onclick="switchAllocView('cards')">
-        <i class="bi bi-card-list me-1"></i>Thẻ
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- =========================================================================
-     6. BẢNG CUỘN NGANG GỌN TRÊN ĐIỆN THOẠI, KHÔNG TRÀN TRANG
-     Bọc trong .app-table-wrapper và .app-table-responsive
-     ========================================================================= -->
-<div class="app-table-wrapper mb-4" id="allocTableViewWrapper">
-  {% if allocations %}
-    <!-- Thanh chỉ dẫn cuộn ngang trên điện thoại di động -->
-    <div class="d-lg-none table-scroll-hint">
-      <span><i class="bi bi-arrow-left-right me-1"></i>Vuốt ngang để xem đủ 10 cột dữ liệu phân công</span>
-      <span class="badge bg-white text-primary border">10 cột</span>
-    </div>
-
-    <div class="app-table-responsive" tabindex="0" role="region" aria-label="Danh sách sinh viên phân công">
-      <table class="table app-table align-middle">
-        <thead>
-          <tr>
-            <th style="min-width: 120px;">Mã SV</th>
-            <th style="min-width: 180px;">Họ tên</th>
-            <th class="text-center" style="width: 75px;">GPA</th>
-            <th style="min-width: 250px;">Đề tài phân công</th>
-            <th style="min-width: 160px;">Giảng viên</th>
-            <th class="text-center" style="width: 95px;">NV đạt</th>
-            <th class="text-center" style="width: 90px;">Điểm</th>
-            <th class="text-center" style="width: 105px;">Nguồn</th>
-            <th class="text-center" style="width: 110px;">Trạng thái</th>
-            <th class="text-end" style="min-width: 170px;">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for a in allocations %}
-            <tr class="{% if not a.topic %}table-warning{% endif %}">
-              <!-- 1. Mã SV -->
-              <td>
-                <span class="fw-semibold text-strong">{{ a.student.student_code }}</span>
-              </td>
-              <!-- 2. Họ tên -->
-              <td>
-                <div class="fw-medium text-strong">{{ a.student.user.get_full_name|default:a.student.user.username }}</div>
-              </td>
-              <!-- 3. GPA -->
-              <td class="text-center fw-semibold">{{ a.student.gpa }}</td>
-              <!-- 4. Đề tài phân công -->
-              <td>
-                {% if a.topic %}
-                  <div class="fw-medium text-strong">{{ a.topic.title }}</div>
-                {% else %}
-                  <span class="badge-pill-pop bg-danger-subtle text-danger fs-6 fw-normal">
-                    <i class="bi bi-exclamation-circle me-1"></i>Chưa xếp
-                  </span>
-                {% endif %}
-              </td>
-              <!-- 5. Giảng viên -->
-              <td>
-                {% if a.topic and a.topic.lecturer %}
-                  {{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}
-                {% else %}
-                  <span class="text-muted">—</span>
-                {% endif %}
-              </td>
-              <!-- 6. NV đạt (Áp dụng badge-pill-scale-pop) -->
-              <td class="text-center">
-                {% if a.preference_rank %}
-                  <span class="badge-pill-pop bg-primary text-white">NV{{ a.preference_rank }}</span>
-                {% elif a.topic %}
-                  <span class="badge-pill-pop bg-secondary text-white">Ngoài NV</span>
-                {% else %}
-                  <span class="text-muted">—</span>
-                {% endif %}
-              </td>
-              <!-- 7. Điểm phù hợp -->
-              <td class="text-center">
-                {% if a.match_score is not None %}
-                  <span class="fw-bold text-primary">{{ a.match_score|floatformat:1 }}</span>
-                {% else %}
-                  <span class="text-muted">—</span>
-                {% endif %}
-              </td>
-              <!-- 8. Nguồn phân công (Áp dụng badge-pill-scale-pop) -->
-              <td class="text-center">
-                {% if a.source == 'ILP' %}
-                  <span class="badge-pill-pop badge-source-ilp">ILP</span>
-                {% elif a.source == 'GREEDY' %}
-                  <span class="badge-pill-pop badge-source-greedy">Greedy</span>
-                {% elif a.source == 'MANUAL' %}
-                  <span class="badge-pill-pop badge-source-manual">Khoa xếp</span>
-                {% else %}
-                  <span class="badge-pill-pop bg-light text-dark border">{{ a.get_source_display }}</span>
-                {% endif %}
-              </td>
-              <!-- 9. Trạng thái (Áp dụng badge-pill-scale-pop) -->
-              <td class="text-center">
+      <!-- 2. MOBILE CARD VIEW (Mặc định hiển thị trên mobile, an toàn 390px, không tràn ngang) -->
+      <div class="d-md-none divide-y" id="allocMobileCardsContainer">
+        {% for a in allocations %}
+          <div class="mz-mobile-alloc-card p-3 border-bottom {% if not a.topic %}bg-surface-subtle{% endif %}">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <div>
+                <div class="fw-bold text-strong fs-6">{{ a.student.user.get_full_name|default:a.student.user.username }}</div>
+                <div class="text-muted small">
+                  <span>{{ a.student.student_code }}</span>
+                  <span class="mx-1">·</span>
+                  <span>GPA: <strong>{{ a.student.gpa }}</strong></span>
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-1">
                 {% if a.status == 'OFFICIAL' %}
-                  <span class="badge-pill-pop status-badge status-open"><span class="dot"></span>Chính thức</span>
+                  <span class="mz-badge mz-badge-teal">Chính thức</span>
                 {% else %}
-                  <span class="badge-pill-pop status-badge status-pending"><span class="dot"></span>Nháp</span>
+                  <span class="mz-badge mz-badge-neutral">Nháp</span>
                 {% endif %}
-              </td>
-              <!-- 10. Thao tác -->
-              <td class="text-end">
-                <div class="d-flex justify-content-end align-items-center gap-1">
-                  {% if not a.topic %}
-                    <a href="?period_id={{ period.pk }}&suggest_student_id={{ a.student.pk }}{% if unassigned_only %}&unassigned_only=1{% endif %}#phase2Section" 
-                       class="btn btn-sm btn-outline-primary" 
-                       title="Gợi ý đề tài còn chỗ theo điều kiện và điểm">
-                      <i class="bi bi-lightbulb me-1"></i>Pha 2
-                    </a>
+              </div>
+            </div>
+
+            <!-- Khối đề tài hoặc trạng thái chưa xếp -->
+            <div class="p-2 rounded bg-surface border mb-2">
+              {% if a.topic %}
+                <div class="fw-semibold text-strong small mb-1">{{ a.topic.title }}</div>
+                <div class="text-muted small mb-2">
+                  GVHD: <strong>{{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}</strong>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  {% if a.preference_rank %}
+                    <span class="mz-badge mz-badge-accent">NV{{ a.preference_rank }}</span>
+                  {% else %}
+                    <span class="mz-badge mz-badge-neutral">Ngoài NV</span>
                   {% endif %}
 
-                  <!-- Dropdown chỉnh tay -->
-                  <div class="dropdown d-inline">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
-                            type="button" 
-                            data-bs-toggle="dropdown" 
-                            data-bs-boundary="viewport"
-                            aria-expanded="false">
-                      Chỉnh tay
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg" style="min-width: 320px; z-index: 1050;">
-                      <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="manual_assign">
-                        <input type="hidden" name="student_id" value="{{ a.student.pk }}">
-                        <label class="form-label small fw-semibold">Chọn đề tài cho {{ a.student.student_code }}:</label>
-                        <select name="topic_id" class="form-select form-select-sm mb-2">
-                          <option value="none">-- Để trống (chưa xếp) --</option>
-                          {% for t in open_topics %}
-                            <option value="{{ t.pk }}" {% if a.topic and a.topic.pk == t.pk %}selected{% endif %}>
-                              {{ t.title }} ({{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }})
-                            </option>
-                          {% endfor %}
-                        </select>
-                        <button type="submit" class="btn btn-sm btn-primary w-100">
-                          <i class="bi bi-save me-1"></i>Lưu chỉnh tay
-                        </button>
-                      </form>
-                    </div>
-                  </div>
+                  {% if a.match_score is not None %}
+                    <span class="mz-badge mz-badge-neutral">Điểm: {{ a.match_score|floatformat:1 }}</span>
+                  {% endif %}
+
+                  {% if a.source == 'ILP' %}
+                    <span class="mz-badge mz-badge-teal">ILP</span>
+                  {% elif a.source == 'GREEDY' %}
+                    <span class="mz-badge mz-badge-amber">Greedy</span>
+                  {% elif a.source == 'MANUAL' %}
+                    <span class="mz-badge mz-badge-accent">Khoa xếp</span>
+                  {% endif %}
                 </div>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    <div class="empty-state py-5">
-      <div class="empty-state-icon"><i class="bi bi-clipboard-x"></i></div>
-      <h3 class="empty-state-title">Chưa có dữ liệu phân công</h3>
-      <p class="empty-state-desc">
-        {% if unassigned_only %}
-          Không có sinh viên nào chưa được xếp đề tài trong đợt này.
-        {% else %}
-          Đợt này chưa chạy thuật toán phân công. Hãy bấm nút <strong>Chạy tối ưu ILP</strong> hoặc <strong>Chạy Greedy</strong> ở trên.
-        {% endif %}
-      </p>
-    </div>
-  {% endif %}
-</div>
+              {% else %}
+                <div class="text-danger small fw-semibold d-flex align-items-center gap-1">
+                  {% include "components/icon.html" with name="triangle-alert" size=14 class="text-danger" %}
+                  <span>Chưa được xếp đề tài</span>
+                </div>
+              {% endif %}
+            </div>
 
-<!-- Chế độ xem Mobile Cards bổ trợ (ẩn mặc định trên desktop, hiển thị khi chọn tab thẻ trên mobile) -->
-<div class="d-none d-flex flex-column gap-3 mb-4" id="allocMobileCardsContainer">
-  {% for a in allocations %}
-    <div class="alloc-card-mobile {% if not a.topic %}is-unassigned{% endif %}">
-      <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-        <div>
-          <div class="fw-bold text-strong">{{ a.student.user.get_full_name|default:a.student.user.username }}</div>
-          <div class="small text-muted">
-            <span>{{ a.student.student_code }}</span>
-            <span class="mx-1">·</span>
-            <span>GPA: <strong>{{ a.student.gpa }}</strong></span>
+            <!-- Thao tác trên mobile -->
+            <div class="d-flex align-items-center gap-2 pt-1">
+              {% if not a.topic %}
+                <a href="?period_id={{ period.pk }}&suggest_student_id={{ a.student.pk }}{% if unassigned_only %}&unassigned_only=1{% endif %}#phase2Section"
+                   class="mz-btn mz-btn-secondary mz-btn-sm flex-grow-1">
+                  {% include "components/icon.html" with name="wand-sparkles" size=14 %}
+                  <span>Gợi ý Pha 2</span>
+                </a>
+              {% endif %}
+
+              <button class="mz-btn mz-btn-ghost mz-btn-sm flex-grow-1"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#mobileManualAssign_{{ a.student.pk }}"
+                      aria-expanded="false"
+                      aria-controls="mobileManualAssign_{{ a.student.pk }}">
+                {% include "components/icon.html" with name="settings-2" size=14 %}
+                <span>Chỉnh tay</span>
+              </button>
+            </div>
+
+            <!-- Collapse form chỉnh tay trên mobile -->
+            <div class="collapse mt-2" id="mobileManualAssign_{{ a.student.pk }}">
+              <div class="p-3 bg-surface border rounded">
+                <form method="post" class="m-0">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="manual_assign">
+                  <input type="hidden" name="student_id" value="{{ a.student.pk }}">
+                  <label class="form-label small fw-semibold text-strong mb-1">
+                    Gán đề tài cho {{ a.student.student_code }}:
+                  </label>
+                  <select name="topic_id" class="form-select form-select-sm mb-2">
+                    <option value="none">-- Để trống (chưa xếp) --</option>
+                    {% for t in open_topics %}
+                      <option value="{{ t.pk }}" {% if a.topic and a.topic.pk == t.pk %}selected{% endif %}>
+                        {{ t.title }} ({{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }})
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="mz-btn mz-btn-primary mz-btn-sm w-100">
+                    {% include "components/icon.html" with name="save" size=14 %}
+                    <span>Lưu gán</span>
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
-        </div>
-        <div>
-          {% if a.status == 'OFFICIAL' %}
-            <span class="badge-pill-pop status-badge status-open"><span class="dot"></span>Chính thức</span>
-          {% else %}
-            <span class="badge-pill-pop status-badge status-pending"><span class="dot"></span>Nháp</span>
-          {% endif %}
-        </div>
+        {% endfor %}
       </div>
-
-      <div class="p-2 rounded bg-light mb-2">
-        {% if a.topic %}
-          <div class="alloc-topic-title mb-1">{{ a.topic.title }}</div>
-          <div class="alloc-lecturer small mb-2">
-            <i class="bi bi-person-badge me-1"></i>GVHD: <strong>{{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}</strong>
-          </div>
-          <div class="d-flex flex-wrap align-items-center gap-2">
-            {% if a.preference_rank %}
-              <span class="badge-pill-pop bg-primary text-white">NV{{ a.preference_rank }}</span>
-            {% else %}
-              <span class="badge-pill-pop bg-secondary text-white">Ngoài NV</span>
-            {% endif %}
-
-            {% if a.match_score is not None %}
-              <span class="badge-pill-pop bg-light text-dark border">Điểm: {{ a.match_score|floatformat:1 }}</span>
-            {% endif %}
-
-            {% if a.source == 'ILP' %}
-              <span class="badge-pill-pop badge-source-ilp">ILP</span>
-            {% elif a.source == 'GREEDY' %}
-              <span class="badge-pill-pop badge-source-greedy">Greedy</span>
-            {% elif a.source == 'MANUAL' %}
-              <span class="badge-pill-pop badge-source-manual">Khoa xếp</span>
-            {% endif %}
-          </div>
-        {% else %}
-          <div class="text-danger small fw-semibold">
-            <i class="bi bi-exclamation-circle me-1"></i>Chưa được xếp đề tài
-          </div>
-        {% endif %}
+    {% else %}
+      <div class="p-4 text-center">
+        {% include "components/empty_state.html" with illustration="empty-result" title="Chưa có dữ liệu phân công" description="Đợt này chưa chạy thuật toán phân công. Hãy bấm nút 'Chạy tối ưu (ILP)' ở trên." %}
       </div>
-
-      <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-        {% if not a.topic %}
-          <a href="?period_id={{ period.pk }}&suggest_student_id={{ a.student.pk }}{% if unassigned_only %}&unassigned_only=1{% endif %}#phase2Section" class="btn btn-sm btn-outline-primary flex-grow-1">
-            <i class="bi bi-lightbulb me-1"></i>Gợi ý Pha 2
-          </a>
-        {% endif %}
-        <button class="btn btn-sm btn-outline-secondary flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#mobile-manual-{{ a.student.pk }}" aria-expanded="false" aria-controls="mobile-manual-{{ a.student.pk }}">
-          <i class="bi bi-pencil-square me-1"></i>Chỉnh tay
-        </button>
-      </div>
-
-      <div class="collapse mt-3" id="mobile-manual-{{ a.student.pk }}">
-        <div class="p-3 bg-white border rounded">
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="manual_assign">
-            <input type="hidden" name="student_id" value="{{ a.student.pk }}">
-            <label class="form-label small fw-semibold mb-1">Gán đề tài cho {{ a.student.student_code }}:</label>
-            <select name="topic_id" class="form-select form-select-sm mb-2">
-              <option value="none">-- Để trống (chưa xếp) --</option>
-              {% for t in open_topics %}
-                <option value="{{ t.pk }}" {% if a.topic and a.topic.pk == t.pk %}selected{% endif %}>
-                  {{ t.title }} ({{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }})
-                </option>
-              {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-sm btn-primary w-100">
-              <i class="bi bi-save me-1"></i>Lưu chỉnh tay
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  {% endfor %}
+    {% endif %}
+  </div>
 </div>
 
 <!-- =========================================================================
-     5. NGUYÊN LIỆU: interaction|focus-trap-motion-pause
-     Modal Chốt & Công bố: Focus Trap an toàn + Tạm dừng chuyển động trên trang
+     MODAL CÔNG BỐ 2 BƯỚC (CONFIRM MODAL 2 STEP)
+     Bước 1: Rà soát chỉ số và bản nháp
+     Bước 2: Xác nhận công bố chính thức (POST action="publish")
      ========================================================================= -->
-<div class="modal fade" 
-     id="publishConfirmModal" 
-     tabindex="-1" 
-     role="dialog" 
-     aria-labelledby="publishModalTitle" 
-     aria-describedby="publishModalDesc" 
-     aria-modal="true">
+<div class="modal fade" id="publishTwoStepModal" tabindex="-1" aria-labelledby="publishModalTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header bg-light border-bottom py-3 px-4">
-        <h5 class="modal-title fw-bold text-strong d-flex align-items-center gap-2" id="publishModalTitle">
-          <i class="bi bi-shield-check text-success fs-4"></i>
-          Xác nhận Chốt danh sách &amp; Công bố
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng hộp thoại"></button>
-      </div>
-      <div class="modal-body p-4" id="publishModalDesc">
-        <p class="text-secondary mb-3">
-          Bạn đang thực hiện chốt kết quả phân công cho đợt <strong>{{ period.name }}</strong>. Hành động này sẽ thực hiện các bước sau:
-        </p>
-        <ul class="list-unstyled d-flex flex-column gap-2 mb-3 small">
-          <li class="d-flex align-items-start gap-2">
-            <i class="bi bi-check-circle-fill text-success mt-1"></i>
-            <span>Chuyển toàn bộ <strong>{{ allocations|length }}</strong> kết quả phân công từ trạng thái <strong>Nháp</strong> sang <strong>Chính thức</strong>.</span>
-          </li>
-          <li class="d-flex align-items-start gap-2">
-            <i class="bi bi-check-circle-fill text-success mt-1"></i>
-            <span>Chuyển trạng thái đợt sang <strong>Đã công bố (PUBLISHED)</strong>.</span>
-          </li>
-          <li class="d-flex align-items-start gap-2">
-            <i class="bi bi-broadcast text-primary mt-1"></i>
-            <span>Mở quyền tra cứu để toàn thể sinh viên và giảng viên có thể xem trực tiếp kết quả chính thức.</span>
-          </li>
-        </ul>
-        <div class="alert alert-warning d-flex align-items-center gap-2 py-2 px-3 mb-0 small">
-          <i class="bi bi-exclamation-triangle-fill fs-5 text-warning flex-shrink-0"></i>
-          <span>Sau khi công bố, mọi chỉnh sửa phân công tiếp theo sẽ yêu cầu quyền quản trị viên cấp Khoa.</span>
+    <div class="modal-content mz-modal-dialog">
+      <!-- BƯỚC 1: RÀ SOÁT -->
+      <div id="publishStep1">
+        <div class="modal-header mz-modal-header">
+          <h5 class="modal-title mz-modal-title" id="publishModalTitle">
+            Bước 1/2: Rà soát bản phân công
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body mz-modal-body">
+          <p class="text-muted small mb-3">
+            Vui lòng kiểm tra kỹ các chỉ số phân công của đợt <strong>{{ period.name }}</strong> trước khi chuyển sang bước công bố chính thức.
+          </p>
+
+          <div class="p-3 rounded bg-surface-subtle border mb-3">
+            <div class="row g-2 text-center">
+              <div class="col-4">
+                <div class="text-muted small">Tổng SV</div>
+                <div class="fw-bold text-strong fs-6">{{ allocations|length }}</div>
+              </div>
+              <div class="col-4">
+                <div class="text-muted small">Đã xếp</div>
+                <div class="fw-bold text-success fs-6">
+                  {% if metrics %}{% widthratio metrics.assigned_rate 1 100 %}%{% else %}—{% endif %}
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="text-muted small">Chưa xếp</div>
+                <div class="fw-bold text-danger fs-6">
+                  {% if metrics %}{{ metrics.unassigned_count }}{% else %}—{% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mz-alert mz-alert-warning py-2 mb-0">
+            {% include "components/icon.html" with name="triangle-alert" size=16 class="text-warning flex-shrink-0 mt-1" %}
+            <div class="small">
+              Sau khi công bố, kết quả sẽ chuyển thành <strong>Chính thức</strong> và mở cho sinh viên, giảng viên tra cứu trên hệ thống.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer mz-modal-footer">
+          <button type="button" class="mz-btn mz-btn-secondary" data-bs-dismiss="modal">Để sau</button>
+          <button type="button" class="mz-btn mz-btn-primary" onclick="goToPublishStep2()">
+            <span>Tiến hành công bố</span>
+            {% include "components/icon.html" with name="chevron-right" size=16 %}
+          </button>
         </div>
       </div>
-      <div class="modal-footer bg-light border-top py-3 px-4 d-flex justify-content-end gap-2">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="btnCancelPublish">
-          <i class="bi bi-x me-1"></i>Hủy bỏ
-        </button>
-        <form method="post" class="m-0" id="publishForm">
+
+      <!-- BƯỚC 2: XÁC NHẬN CÔNG BỐ CHÍNH THỨC -->
+      <div id="publishStep2" class="d-none">
+        <form method="post" action="" class="m-0">
           {% csrf_token %}
           <input type="hidden" name="action" value="publish">
-          <button type="submit" class="btn btn-success fw-semibold" id="btnConfirmPublish">
-            <i class="bi bi-check2-circle me-1"></i>Đồng ý Chốt &amp; Công bố
-          </button>
+          <div class="modal-header mz-modal-header">
+            <h5 class="modal-title mz-modal-title text-success">
+              {% include "components/icon.html" with name="circle-check-big" size=20 class="text-success me-1" %}
+              Bước 2/2: Xác nhận công bố chính thức
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+          </div>
+          <div class="modal-body mz-modal-body">
+            <p class="text-strong mb-2">
+              Bạn có chắc chắn muốn công bố đợt <strong>{{ period.name }}</strong> không?
+            </p>
+            <ul class="text-muted small ps-3 mb-3">
+              <li>Toàn bộ <strong>{{ allocations|length }}</strong> kết quả phân công sẽ chuyển sang trạng thái <strong>Chính thức</strong>.</li>
+              <li>Trạng thái đợt chuyển sang <strong>PUBLISHED</strong>.</li>
+              <li>Sinh viên và Giảng viên được phép tra cứu kết quả ngay lập tức.</li>
+            </ul>
+
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="checkConfirmPublish" required onchange="togglePublishSubmitBtn(this)">
+              <label class="form-check-label small text-strong" for="checkConfirmPublish">
+                Tôi xác nhận đã rà soát và đồng ý công bố kết quả đợt này.
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer mz-modal-footer">
+            <button type="button" class="mz-btn mz-btn-secondary" onclick="goToPublishStep1()">Quay lại bước 1</button>
+            <button type="submit" class="mz-btn mz-btn-success" id="btnSubmitPublish" disabled>
+              {% include "components/icon.html" with name="circle-check-big" size=16 %}
+              <span>Xác nhận &amp; Công bố</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Dữ liệu thô JSON cho micro-stacked-risk-histogram -->
+<!-- DỮ LIỆU JSON CHO HISTOGRAM -->
 <script id="allocationHistogramData" type="application/json">
 [
   {% for a in allocations %}
@@ -718,65 +696,62 @@
 {% block extra_js %}
 <script>
 /**
- * Capstone Advisor AI — Script điều hành Phân công Khoa
- * Triển khai các nguyên liệu:
- * 1. shared-layout-tab-indicator
- * 2. micro-stacked-risk-histogram (column-reverse, height animation, tooltips)
- * 3. focus-trap-motion-pause (modal publish)
+ * Mosaic AI — Script điều hành Phân công Khoa
+ * - Modal Công bố 2 bước
+ * - Histogram phân bố điểm số (tối ưu responsive & tokens)
+ * - Chuyển đổi Bảng / Thẻ trên mobile
  */
+function goToPublishStep2() {
+  document.getElementById('publishStep1').classList.add('d-none');
+  document.getElementById('publishStep2').classList.remove('d-none');
+}
+
+function goToPublishStep1() {
+  document.getElementById('publishStep2').classList.add('d-none');
+  document.getElementById('publishStep1').classList.remove('d-none');
+}
+
+function togglePublishSubmitBtn(checkbox) {
+  var submitBtn = document.getElementById('btnSubmitPublish');
+  if (submitBtn) {
+    submitBtn.disabled = !checkbox.checked;
+  }
+}
+
+// Reset modal khi đóng
+var publishModalEl = document.getElementById('publishTwoStepModal');
+if (publishModalEl) {
+  publishModalEl.addEventListener('hidden.bs.modal', function () {
+    goToPublishStep1();
+    var chk = document.getElementById('checkConfirmPublish');
+    if (chk) chk.checked = false;
+    var submitBtn = document.getElementById('btnSubmitPublish');
+    if (submitBtn) submitBtn.disabled = true;
+  });
+}
+
+function setAllocView(mode) {
+  var tableEl = document.getElementById('allocDesktopTableWrapper');
+  var cardsEl = document.getElementById('allocMobileCardsContainer');
+  var btnCards = document.getElementById('btnModeCards');
+  var btnTable = document.getElementById('btnModeTable');
+
+  if (mode === 'table') {
+    if (tableEl) tableEl.classList.remove('d-none');
+    if (cardsEl) cardsEl.classList.add('d-none');
+    if (btnTable) btnTable.classList.add('active');
+    if (btnCards) btnCards.classList.remove('active');
+  } else {
+    if (tableEl) tableEl.classList.add('d-none');
+    if (cardsEl) cardsEl.classList.remove('d-none');
+    if (btnCards) btnCards.classList.add('active');
+    if (btnTable) btnTable.classList.remove('active');
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
-
-  /* =========================================================================
-     1. SHARED-LAYOUT-TAB-INDICATOR (Tất cả / Chưa xếp)
-     ========================================================================= */
-  (function initSharedTabIndicator() {
-    var tabTrack = document.querySelector(".shared-tab-track");
-    var indicator = document.getElementById("tab-indicator-main");
-    if (!tabTrack || !indicator) return;
-
-    function updateIndicator(activeTab) {
-      if (!activeTab) activeTab = tabTrack.querySelector(".shared-tab-btn.is-active") || tabTrack.querySelector(".shared-tab-btn");
-      if (!activeTab) return;
-
-      var trackRect = tabTrack.getBoundingClientRect();
-      var tabRect = activeTab.getBoundingClientRect();
-
-      var leftOffset = tabRect.left - trackRect.left;
-      var width = tabRect.width;
-
-      indicator.style.transform = "translateX(" + leftOffset + "px)";
-      indicator.style.width = width + "px";
-      indicator.style.opacity = "1";
-    }
-
-    // Cập nhật khi tải trang
-    updateIndicator();
-
-    // Lắng nghe sự kiện hover & focus
-    var tabButtons = tabTrack.querySelectorAll(".shared-tab-btn");
-    tabButtons.forEach(function (btn) {
-      btn.addEventListener("mouseenter", function () {
-        updateIndicator(btn);
-      });
-      btn.addEventListener("focus", function () {
-        updateIndicator(btn);
-      });
-    });
-
-    tabTrack.addEventListener("mouseleave", function () {
-      updateIndicator();
-    });
-
-    window.addEventListener("resize", function () {
-      updateIndicator();
-    });
-  })();
-
-  /* =========================================================================
-     2. MICRO-STACKED-RISK-HISTOGRAM
-     Xử lý phân bố điểm phù hợp (column-reverse, stacked segments)
-     ========================================================================= */
-  (function initMicroHistogram() {
+  // Khởi tạo Histogram
+  (function initHistogram() {
     var rawDataEl = document.getElementById("allocationHistogramData");
     if (!rawDataEl) return;
 
@@ -789,20 +764,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!allocationsData.length) return;
 
-    // 6 bins: 0: <50, 1: 50-64, 2: 65-74, 3: 75-84, 4: 85-94, 5: 95-100
     var bins = [
-      { label: "< 50", min: 0, max: 49.99, nv1: 0, top: 0, other: 0, unassigned: 0, total: 0 },
-      { label: "50–64", min: 50, max: 64.99, nv1: 0, top: 0, other: 0, unassigned: 0, total: 0 },
-      { label: "65–74", min: 65, max: 74.99, nv1: 0, top: 0, other: 0, unassigned: 0, total: 0 },
-      { label: "75–84", min: 75, max: 84.99, nv1: 0, top: 0, other: 0, unassigned: 0, total: 0 },
-      { label: "85–94", min: 85, max: 94.99, nv1: 0, top: 0, other: 0, unassigned: 0, total: 0 },
-      { label: "95–100", min: 95, max: 100, nv1: 0, top: 0, other: 0, unassigned: 0, total: 0 }
+      { label: "<50", min: 0, max: 49.99, nv1: 0, top: 0, other: 0, total: 0 },
+      { label: "50–64", min: 50, max: 64.99, nv1: 0, top: 0, other: 0, total: 0 },
+      { label: "65–74", min: 65, max: 74.99, nv1: 0, top: 0, other: 0, total: 0 },
+      { label: "75–84", min: 75, max: 84.99, nv1: 0, top: 0, other: 0, total: 0 },
+      { label: "85–94", min: 85, max: 94.99, nv1: 0, top: 0, other: 0, total: 0 },
+      { label: "95–100", min: 95, max: 100, nv1: 0, top: 0, other: 0, total: 0 }
     ];
 
     allocationsData.forEach(function (item) {
-      if (!item.has_topic || item.score === null) {
-        return;  // SV chưa xếp không có điểm phù hợp → không đưa vào biểu đồ điểm (đếm riêng ở chỉ số "Tỉ lệ phân công")
-      }
+      if (!item.has_topic || item.score === null) return;
 
       var score = Number(item.score);
       var binIndex = 0;
@@ -814,20 +786,14 @@ document.addEventListener("DOMContentLoaded", function () {
       else binIndex = 0;
 
       bins[binIndex].total++;
-
-      if (item.rank === 1) {
-        bins[binIndex].nv1++;
-      } else if (item.rank === 2 || item.rank === 3) {
-        bins[binIndex].top++;
-      } else {
-        bins[binIndex].other++;
-      }
+      if (item.rank === 1) bins[binIndex].nv1++;
+      else if (item.rank === 2 || item.rank === 3) bins[binIndex].top++;
+      else bins[binIndex].other++;
     });
 
     var maxBinTotal = Math.max.apply(Math, bins.map(function (b) { return b.total; }));
     if (maxBinTotal <= 0) maxBinTotal = 1;
 
-    // Cập nhật text số lượng và tooltip cho từng cột
     bins.forEach(function (bin, idx) {
       var countEl = document.getElementById("hist-count-" + idx);
       if (countEl) countEl.textContent = bin.total;
@@ -836,144 +802,24 @@ document.addEventListener("DOMContentLoaded", function () {
       if (trackEl) {
         var tooltipText = "Dải " + bin.label + " điểm: " + bin.total + " SV";
         if (bin.total > 0) {
-          tooltipText += " (NV1: " + bin.nv1 + ", NV2-3: " + bin.top + ", Ngoài NV: " + bin.other;
-          if (bin.unassigned > 0) tooltipText += ", Chưa xếp: " + bin.unassigned;
-          tooltipText += ")";
+          tooltipText += " (NV1: " + bin.nv1 + ", NV2-3: " + bin.top + ", Ngoài NV: " + bin.other + ")";
         }
         trackEl.setAttribute("data-bs-original-title", tooltipText);
         trackEl.setAttribute("title", tooltipText);
-        trackEl.setAttribute("aria-label", tooltipText);
       }
-    });
 
-    // Kích hoạt hiệu ứng dâng chiều cao (height: 0% -> % thực tế)
-    function animateSegments() {
-      bins.forEach(function (bin, idx) {
-        if (bin.total === 0) return;
+      var barTotalRatio = (bin.total / maxBinTotal);
+      var segNV1 = document.getElementById("seg-" + idx + "-nv1");
+      var segTop = document.getElementById("seg-" + idx + "-top");
+      var segOther = document.getElementById("seg-" + idx + "-other");
 
-        // Chiều cao tổng của cột theo tỷ lệ với maxBinTotal
-        var barTotalRatio = (bin.total / maxBinTotal);
-
-        var segNV1 = document.getElementById("seg-" + idx + "-nv1");
-        var segTop = document.getElementById("seg-" + idx + "-top");
-        var segOther = document.getElementById("seg-" + idx + "-other");
-        var segUnassigned = document.getElementById("seg-" + idx + "-unassigned");
-
-        // Chiều cao tương đối bên trong cột
+      if (bin.total > 0) {
         if (segNV1) segNV1.style.height = (barTotalRatio * (bin.nv1 / bin.total) * 100) + "%";
         if (segTop) segTop.style.height = (barTotalRatio * (bin.top / bin.total) * 100) + "%";
         if (segOther) segOther.style.height = (barTotalRatio * (bin.other / bin.total) * 100) + "%";
-        if (segUnassigned) segUnassigned.style.height = (barTotalRatio * (bin.unassigned / bin.total) * 100) + "%";
-      });
-    }
-
-    var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-      animateSegments();
-    } else {
-      var histCard = document.getElementById("scoreHistogramCard");
-      if ("IntersectionObserver" in window && histCard) {
-        var observer = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              animateSegments();
-              observer.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.2 });
-        observer.observe(histCard);
-      } else {
-        animateSegments();
       }
-    }
+    });
   })();
-
-  /* =========================================================================
-     3. FOCUS-TRAP-MOTION-PAUSE (Modal Chốt & Công bố)
-     ========================================================================= */
-  (function initFocusTrapMotionPause() {
-    var modalEl = document.getElementById("publishConfirmModal");
-    var triggerBtn = document.getElementById("btnOpenPublishModal");
-    if (!modalEl) return;
-
-    var pauseTimer = null;
-
-    modalEl.addEventListener("show.bs.modal", function () {
-      // 1. Tạm dừng chuyển động trên trang
-      if (pauseTimer) clearTimeout(pauseTimer);
-      document.body.classList.add("is-motion-paused");
-    });
-
-    modalEl.addEventListener("shown.bs.modal", function () {
-      // 2. Focus vào nút đầu tiên hoặc nút Hủy
-      var cancelBtn = document.getElementById("btnCancelPublish");
-      if (cancelBtn) cancelBtn.focus();
-
-      // 3. Focus Trap tuần hoàn trong modal
-      modalEl.addEventListener("keydown", handleFocusTrap);
-    });
-
-    modalEl.addEventListener("hide.bs.modal", function () {
-      modalEl.removeEventListener("keydown", handleFocusTrap);
-    });
-
-    modalEl.addEventListener("hidden.bs.modal", function () {
-      // Khôi phục animation sau 300ms
-      pauseTimer = setTimeout(function () {
-        document.body.classList.remove("is-motion-paused");
-      }, 300);
-
-      // Trả focus về nút kích hoạt ban đầu
-      if (triggerBtn) triggerBtn.focus();
-    });
-
-    function handleFocusTrap(e) {
-      if (e.key !== "Tab") return;
-
-      var focusableElements = modalEl.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      if (!focusableElements.length) return;
-
-      var firstEl = focusableElements[0];
-      var lastEl = focusableElements[focusableElements.length - 1];
-
-      if (e.shiftKey) {
-        if (document.activeElement === firstEl) {
-          e.preventDefault();
-          lastEl.focus();
-        }
-      } else {
-        if (document.activeElement === lastEl) {
-          e.preventDefault();
-          firstEl.focus();
-        }
-      }
-    }
-  })();
-
 });
-
-/* Chuyển đổi xem Bảng cuộn ngang / Thẻ trên mobile */
-function switchAllocView(viewMode) {
-  var tableWrapper = document.getElementById("allocTableViewWrapper");
-  var cardsContainer = document.getElementById("allocMobileCardsContainer");
-  var btnTable = document.getElementById("btnViewTable");
-  var btnCards = document.getElementById("btnViewCards");
-
-  if (!tableWrapper || !cardsContainer) return;
-
-  if (viewMode === "table") {
-    tableWrapper.classList.remove("d-none");
-    cardsContainer.classList.add("d-none");
-    btnTable.classList.add("active");
-    btnCards.classList.remove("active");
-  } else {
-    tableWrapper.classList.add("d-none");
-    cardsContainer.classList.remove("d-none");
-    btnTable.classList.remove("active");
-    btnCards.classList.add("active");
-  }
-}
 </script>
 {% endblock %}

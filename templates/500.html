@@ -1,5 +1,210 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>500 — Hệ thống gặp sự cố</title></head><body class="error-page-500">
-<main style="max-width:560px;margin:80px auto;padding:0 16px;font-family:system-ui,sans-serif">
-<p style="font-size:48px;font-weight:800;margin:0">500</p><h1>Hệ thống gặp sự cố</h1>
-<p>Đã có lỗi khi xử lý yêu cầu. Vui lòng thử lại sau ít phút.</p><a href="/">Về trang chủ</a></main></body></html>
+<!doctype html>
+<html lang="vi" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>500 — Hệ thống gặp sự cố — Mosaic AI</title>
+  <link rel="icon" type="image/svg+xml" href="/static/mosaic/brand/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #FAFAF8;
+      --bg-surface: #FFFFFF;
+      --bg-surface-subtle: #F6F7F4;
+      --text-strong: #181C1E;
+      --text-default: #303638;
+      --text-muted: #687174;
+      --border-soft: #E4E7E3;
+      --border-default: #D5DAD6;
+      --accent: #005F73;
+      --accent-hover: #004C5C;
+      --font-display: "Sora", sans-serif;
+      --font-ui: "Noto Sans", system-ui, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-page: #111315;
+        --bg-surface: #171A1C;
+        --bg-surface-subtle: #1D2123;
+        --text-strong: #F4F4F0;
+        --text-default: #DEE2DE;
+        --text-muted: #9BA4A2;
+        --border-soft: #23292A;
+        --border-default: #303739;
+        --accent: #0A9396;
+        --accent-hover: #22AAAC;
+      }
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-default);
+      font-family: var(--font-ui);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      height: 64px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--border-soft);
+      background-color: var(--bg-surface);
+    }
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-strong);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .brand-link span span {
+      color: var(--accent);
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+      text-align: center;
+    }
+    .illus-container {
+      max-width: 240px;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+    .illus-container svg {
+      width: 100%;
+      height: auto;
+    }
+    .error-code {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+    h1 {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-strong);
+      margin-bottom: 12px;
+    }
+    p {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 140ms ease;
+    }
+    .btn-primary {
+      background-color: var(--accent);
+      color: #FFFFFF;
+    }
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+    .btn-secondary {
+      background-color: var(--bg-surface);
+      color: var(--text-strong);
+      border-color: var(--border-default);
+    }
+    .btn-secondary:hover {
+      background-color: var(--bg-surface-subtle);
+    }
+    footer {
+      padding: 20px 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-soft);
+      background-color: var(--bg-surface);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/trang-chu/" class="brand-link">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="4" y="4" width="18" height="18" rx="4" fill="#005F73"/>
+        <rect x="26" y="4" width="18" height="12" rx="4" fill="#EE9B00"/>
+        <rect x="26" y="20" width="18" height="24" rx="4" fill="#0A9396"/>
+        <rect x="4" y="26" width="10" height="18" rx="4" fill="#7A7D2D"/>
+        <rect x="18" y="26" width="4" height="18" rx="2" fill="#9B2226"/>
+      </svg>
+      <span>Mosaic<span>AI</span></span>
+    </a>
+  </header>
+
+  <main>
+    <div class="illus-container">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="err500Title">
+        <title id="err500Title">500 Hệ thống gặp sự cố</title>
+        <style>
+          .p{stroke:#0A9396;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+          .a{stroke:#EE9B00;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+          .n{stroke:#B9C0BC;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+        </style>
+        <rect x="53" y="36" width="118" height="26" rx="7" class="p"/>
+        <rect x="53" y="68" width="118" height="26" rx="7" class="p"/>
+        <rect x="53" y="100" width="118" height="26" rx="7" class="p"/>
+        <circle cx="68" cy="49" r="3" fill="#0A9396"/>
+        <circle cx="68" cy="81" r="3" fill="#0A9396"/>
+        <circle cx="68" cy="113" r="3" fill="#0A9396"/>
+        <path d="M85 49h62M85 81h62M85 113h39" class="n"/>
+        <path d="M185 77l24 42h-48l24-42Z" class="a"/>
+        <path d="M185 91v13M185 111h.1" class="a"/>
+      </svg>
+    </div>
+
+    <div class="error-code">500</div>
+    <h1>Hệ thống đang gặp sự cố</h1>
+    <p>
+      Đã xảy ra lỗi trong quá trình xử lý yêu cầu trên máy chủ. Chúng tôi đang kiểm tra và khắc phục. Vui lòng thử lại sau ít phút hoặc quay về trang chủ.
+    </p>
+
+    <div class="btn-group">
+      <a href="/trang-chu/" class="btn btn-primary">Về trang chủ</a>
+      <button type="button" class="btn btn-secondary" onclick="window.location.reload()">Thử tải lại</button>
+    </div>
+  </main>
+
+  <footer>
+    Mosaic AI · Hệ thống tư vấn và phân công đề tài tốt nghiệp
+  </footer>
+</body>
+</html>

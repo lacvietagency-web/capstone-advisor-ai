@@ -1,0 +1,114 @@
+{# Mosaic Confirm Modal Component #}
+{# Hỗ trợ: modal 2 bước và biến thể Từ chối có ô lý do bắt buộc (field name="reason", required, minlength=5) #}
+{# Tham số: modal_id, variant ('reject', 'two_step', 'default'), title, message, action_url, student_name, topic_title #}
+<div class="modal fade" id="{{ modal_id|default:'confirmModal' }}" tabindex="-1" aria-labelledby="{{ modal_id|default:'confirmModal' }}Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content mz-modal-dialog">
+      {% if variant == 'reject' %}
+        {# Biến thể: GV từ chối SV đăng ký đề tài (Bắt buộc nhập lý do >= 5 ký tự) #}
+        <form method="post" action="{{ action_url }}" class="m-0">
+          {% csrf_token %}
+          <div class="modal-header mz-modal-header">
+            <h5 class="modal-title mz-modal-title" id="{{ modal_id|default:'confirmModal' }}Label">
+              {{ title|default:'Xác nhận từ chối sinh viên' }}
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+          </div>
+          <div class="modal-body mz-modal-body">
+            {% if student_name or topic_title %}
+              <div class="p-3 mb-3 rounded bg-light border">
+                {% if student_name %}
+                  <div class="small text-muted">Sinh viên: <strong class="text-strong">{{ student_name }}</strong></div>
+                {% endif %}
+                {% if topic_title %}
+                  <div class="small text-muted mt-1">Đề tài: <strong class="text-strong">{{ topic_title }}</strong></div>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="{{ modal_id }}_reason" class="mz-form-label">
+                Lý do từ chối <span class="text-danger">*</span>
+              </label>
+              <textarea
+                name="reason"
+                id="{{ modal_id }}_reason"
+                class="mz-form-control"
+                rows="3"
+                required
+                minlength="5"
+                placeholder="Nhập lý do từ chối (tối thiểu 5 ký tự)..."
+                data-mz-reject-reason
+              ></textarea>
+              <div class="mz-form-text">Lý do này sẽ được thông báo đến sinh viên và lưu vào lịch sử xét duyệt.</div>
+              <div class="mz-form-error">Lý do từ chối phải có tối thiểu 5 ký tự.</div>
+            </div>
+          </div>
+          <div class="modal-footer mz-modal-footer">
+            <button type="button" class="mz-btn mz-btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            <button type="submit" class="mz-btn mz-btn-danger" disabled>
+              {% include "components/icon.html" with name="user-x" size=16 %}
+              <span>Xác nhận từ chối</span>
+            </button>
+          </div>
+        </form>
+
+      {% elif variant == 'two_step' %}
+        {# Biến thể: Modal 2 bước (Chốt kết quả -> Công bố) #}
+        <div class="modal-header mz-modal-header">
+          <h5 class="modal-title mz-modal-title" id="{{ modal_id|default:'confirmModal' }}Label">
+            {{ title|default:'Xác nhận hoàn tất phân công' }}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body mz-modal-body">
+          <div class="mb-3">
+            <div class="fw-semibold text-strong mb-1">Bước 1: Kiểm tra bản phân công</div>
+            <p class="text-muted small mb-3">
+              Vui lòng rà soát danh sách sinh viên đã phân công và chưa phân công trước khi chốt kết quả đợt này.
+            </p>
+            {% if summary_info %}
+              <div class="p-3 rounded bg-light border mb-3">
+                {{ summary_info|safe }}
+              </div>
+            {% endif %}
+            <div class="alert alert-warning py-2 small mb-0">
+              {% include "components/icon.html" with name="triangle-alert" size=16 class="me-1" %}
+              Lưu ý: Sau khi bấm "Tiến hành công bố", kết quả sẽ sẵn sàng để gửi đến toàn thể sinh viên và giảng viên.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer mz-modal-footer">
+          <button type="button" class="mz-btn mz-btn-secondary" data-bs-dismiss="modal">Để sau</button>
+          <a href="{{ step2_url|default:'#' }}" class="mz-btn mz-btn-primary">
+            <span>Tiến hành công bố</span>
+            {% include "components/icon.html" with name="chevron-right" size=16 %}
+          </a>
+        </div>
+
+      {% else %}
+        {# Biến thể mặc định #}
+        <div class="modal-header mz-modal-header">
+          <h5 class="modal-title mz-modal-title" id="{{ modal_id|default:'confirmModal' }}Label">
+            {{ title|default:'Xác nhận thao tác' }}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body mz-modal-body">
+          <p class="mb-0">{{ message|default:'Bạn có chắc chắn muốn thực hiện hành động này?' }}</p>
+        </div>
+        <div class="modal-footer mz-modal-footer">
+          <button type="button" class="mz-btn mz-btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          {% if action_url %}
+            <form method="post" action="{{ action_url }}" class="m-0">
+              {% csrf_token %}
+              <button type="submit" class="mz-btn mz-btn-primary">{{ confirm_label|default:'Xác nhận' }}</button>
+            </form>
+          {% else %}
+            <button type="button" class="mz-btn mz-btn-primary" id="{{ modal_id }}_btnConfirm">{{ confirm_label|default:'Xác nhận' }}</button>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,38 @@
+{# Mosaic Reason Block Component #}
+{# Khối lý do gợi ý AI: tối đa 4 dòng, check icon 16px, câu cụ thể #}
+{# Tham số: title, reasons (danh sách chuỗi), reason_1, reason_2, reason_3 #}
+<div class="mz-reason-block {{ extra_classes|default:'' }}">
+  <div class="mz-reason-title">
+    {% include "components/icon.html" with name="sparkles" size=14 class="text-primary" %}
+    <span>{{ title|default:'Vì sao đề tài này phù hợp?' }}</span>
+  </div>
+  <ul class="mz-reason-list">
+    {% if reasons %}
+      {% for r in reasons|slice:":4" %}
+        <li class="mz-reason-item">
+          {% include "components/icon.html" with name="check" size=16 class="text-success" %}
+          <span>{{ r }}</span>
+        </li>
+      {% endfor %}
+    {% else %}
+      {% if reason_1 %}
+        <li class="mz-reason-item">
+          {% include "components/icon.html" with name="check" size=16 class="text-success" %}
+          <span>{{ reason_1 }}</span>
+        </li>
+      {% endif %}
+      {% if reason_2 %}
+        <li class="mz-reason-item">
+          {% include "components/icon.html" with name="check" size=16 class="text-success" %}
+          <span>{{ reason_2 }}</span>
+        </li>
+      {% endif %}
+      {% if reason_3 %}
+        <li class="mz-reason-item">
+          {% include "components/icon.html" with name="check" size=16 class="text-success" %}
+          <span>{{ reason_3 }}</span>
+        </li>
+      {% endif %}
+    {% endif %}
+  </ul>
+</div>

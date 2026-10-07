@@ -1,0 +1,26 @@
+{# Mosaic Inline Alert Component #}
+{# Tham số: type (info, success, warning, danger), message, title, dismissible (true/false) #}
+{% with t=type|default:'info' %}
+<div class="mz-alert mz-alert-{{ t }} {{ extra_classes|default:'' }}" role="alert">
+  {% if t == 'success' %}
+    {% include "components/icon.html" with name="circle-check-big" size=18 class="text-success" %}
+  {% elif t == 'warning' %}
+    {% include "components/icon.html" with name="triangle-alert" size=18 class="text-warning" %}
+  {% elif t == 'danger' or t == 'error' %}
+    {% include "components/icon.html" with name="triangle-alert" size=18 class="text-danger" %}
+  {% else %}
+    {% include "components/icon.html" with name="info" size=18 class="text-info" %}
+  {% endif %}
+
+  <div class="flex-grow-1">
+    {% if title %}
+      <div class="fw-semibold text-strong mb-1">{{ title }}</div>
+    {% endif %}
+    <div>{{ message|default:'' }}</div>
+  </div>
+
+  {% if dismissible %}
+    <button type="button" class="btn-close ms-2" data-bs-dismiss="alert" aria-label="Đóng"></button>
+  {% endif %}
+</div>
+{% endwith %}

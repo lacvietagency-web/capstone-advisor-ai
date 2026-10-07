@@ -1,0 +1,23 @@
+{# Mosaic Button Component #}
+{# Đầu vào: label, variant (primary, secondary, ghost, danger), size (sm, md, lg), icon_name, icon_position (left/right), href, type, disabled, extra_classes #}
+{% if href %}
+  <a href="{{ href }}" class="mz-btn mz-btn-{{ variant|default:'primary' }} {% if size %}mz-btn-{{ size }}{% endif %} {{ extra_classes|default:'' }} {% if disabled %}disabled{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+    {% if icon_name and icon_position != 'right' %}
+      {% include "components/icon.html" with name=icon_name size=16 %}
+    {% endif %}
+    {% if label %}<span>{{ label }}</span>{% endif %}
+    {% if icon_name and icon_position == 'right' %}
+      {% include "components/icon.html" with name=icon_name size=16 %}
+    {% endif %}
+  </a>
+{% else %}
+  <button type="{{ type|default:'button' }}" class="mz-btn mz-btn-{{ variant|default:'primary' }} {% if size %}mz-btn-{{ size }}{% endif %} {{ extra_classes|default:'' }}" {% if id %}id="{{ id }}"{% endif %} {% if disabled %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+    {% if icon_name and icon_position != 'right' %}
+      {% include "components/icon.html" with name=icon_name size=16 %}
+    {% endif %}
+    {% if label %}<span>{{ label }}</span>{% endif %}
+    {% if icon_name and icon_position == 'right' %}
+      {% include "components/icon.html" with name=icon_name size=16 %}
+    {% endif %}
+  </button>
+{% endif %}

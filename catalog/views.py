@@ -426,7 +426,9 @@ def faculty_import(request):
             messages.error(request, "Tệp lớn hơn 5 MB.")
         else:
             ok, errors, stats = import_excel_data(f)
-            result = {"ok": ok, "errors": errors, "stats": stats, "filename": f.name}
+            labels = {"students": "Sinh viên", "lecturers": "Giảng viên", "topics": "Đề tài", "skills": "Kỹ năng"}
+            rows = [(labels.get(k, k), v) for k, v in stats.items()]
+            result = {"ok": ok, "errors": errors, "stats": stats, "rows": rows, "filename": f.name}
             AuditLog.objects.create(
                 user=request.user,
                 action="import_excel",
@@ -434,7 +436,8 @@ def faculty_import(request):
                 detail={"file": f.name, "ok": ok, "stats": stats, "n_errors": len(errors)},
             )
             if ok:
-                messages.success(request, "Đã nhập xong: " + ", ".join(f"{v} {k}" for k, v in stats.items()) + ".")
+                done = ", ".join(f"{v} {k.lower()}" for k, v in rows)
+                messages.success(request, f"Đã nhập xong: {done}.")
             else:
                 messages.error(request, f"Không nhập gì vì có {len(errors)} lỗi — sửa tệp rồi tải lên lại.")
     return render(

@@ -123,6 +123,10 @@
               {% include "components/icon.html" with name="chart-pie" size=18 %}
               <span>Thống kê & Báo cáo</span>
             </a>
+            <a class="mz-nav-item {% if '/khoa/nhap-excel/' in request.path %}active{% endif %}" href="{% url 'faculty_import' %}">
+              {% include "components/icon.html" with name="file-spreadsheet" size=18 %}
+              <span>Nhập Excel</span>
+            </a>
             <a class="mz-nav-item {% if '/quan-tri/' in request.path %}active{% endif %}" href="/quan-tri/">
               {% include "components/icon.html" with name="settings-2" size=18 %}
               <span>Quản trị hệ thống</span>

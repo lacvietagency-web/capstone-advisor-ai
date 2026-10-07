@@ -1,10 +1,68 @@
 {% extends "base.html" %}
-{% block title %}403 — Bạn không có quyền xem trang này{% endblock %}
+{% load static %}
+
+{% block title %}403 — Không có quyền truy cập — Mosaic AI{% endblock %}
+
+{% block breadcrumb %}
+  <span>Hệ thống</span>
+  <span>/</span>
+  <span class="mz-breadcrumb-active">Lỗi 403</span>
+{% endblock %}
+
+{% block page_title %}Lỗi 403{% endblock %}
+
 {% block content %}
-<section class="error-page" aria-labelledby="err-title">
-  <p class="error-code">403</p>
-  <h1 id="err-title">Bạn không có quyền xem trang này</h1>
-  <p>Trang này dành cho vai trò khác. Hãy quay về trang chủ của bạn.</p>
-  <a class="btn btn-primary" href="{% url 'home' %}">Về trang chủ</a>
-</section>
+<div class="mz-error-page-container text-center py-4 py-md-5">
+  <!-- Minh họa SVG 403 -->
+  <div class="mz-error-illustration-box mb-4">
+    <img src="{% static 'mosaic/illus/error-403.svg' %}" alt="403 Không có quyền truy cập" class="mz-error-illus" style="max-width: 240px; height: auto;">
+  </div>
+
+  <div class="mz-error-code text-muted fw-bold mb-2">403</div>
+  <h1 class="mz-error-title fw-bold text-strong mb-2">Bạn không có quyền xem trang này</h1>
+  <p class="mz-error-desc text-muted mx-auto mb-4" style="max-width: 480px;">
+    Tài khoản của bạn không có quyền truy cập vào đường dẫn này. Trang này có thể dành riêng cho vai trò khác (Sinh viên, Giảng viên hoặc Quản trị Khoa).
+  </p>
+
+  <!-- Nút hành động -->
+  <div class="d-flex align-items-center justify-content-center gap-3 mb-5 flex-wrap">
+    <a href="{% url 'home' %}" class="mz-btn mz-btn-primary">
+      {% include "components/icon.html" with name="house" size=16 %}
+      <span>Về trang chủ</span>
+    </a>
+    <button type="button" class="mz-btn mz-btn-secondary" onclick="window.history.back()">
+      {% include "components/icon.html" with name="arrow-left" size=16 %}
+      <span>Quay lại trang trước</span>
+    </button>
+  </div>
+
+  <!-- Một số lỗi thường gặp khác -->
+  <div class="mz-error-suggestions text-start mx-auto pt-4 border-top" style="max-width: 800px;">
+    <div class="mz-caption text-muted mb-3">Một số trường hợp thường gặp khác</div>
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <div class="p-3 rounded bg-surface border h-100 d-flex align-items-start gap-3">
+          <div class="flex-shrink-0 text-accent">
+            {% include "components/icon.html" with name="circle-help" size=24 %}
+          </div>
+          <div>
+            <div class="fw-semibold text-strong small">404 — Không tìm thấy trang</div>
+            <div class="text-muted small">Liên kết bạn truy cập có thể đã đổi hoặc đề tài đã bị gỡ bỏ khỏi hệ thống.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="p-3 rounded bg-surface border h-100 d-flex align-items-start gap-3">
+          <div class="flex-shrink-0 text-warning">
+            {% include "components/icon.html" with name="triangle-alert" size=24 %}
+          </div>
+          <div>
+            <div class="fw-semibold text-strong small">500 — Hệ thống đang gặp sự cố</div>
+            <div class="text-muted small">Đã xảy ra sự cố kỹ thuật trong quá trình xử lý yêu cầu. Vui lòng thử lại sau ít phút.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

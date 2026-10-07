@@ -1,168 +1,320 @@
 {% extends "base.html" %}
 
-{% block title %}Bảng điều khiển Khoa — Capstone Advisor AI{% endblock %}
+{% block title %}Trang chủ Khoa — Mosaic AI{% endblock %}
+
+{% block breadcrumb %}
+  <span>Khoa CNTT</span>
+  <span>/</span>
+  <span class="mz-breadcrumb-active">Trang chủ</span>
+{% endblock %}
+
+{% block page_title %}Bảng điều khiển Khoa{% endblock %}
 
 {% block content %}
-<!-- Header Khoa -->
-<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-  <div>
-    <h1>Bảng điều khiển Khoa</h1>
-    <p class="page-subtitle">Theo dõi dữ liệu và các đợt đăng ký đồ án tốt nghiệp.</p>
-  </div>
-  <a href="/quan-tri/" class="btn btn-primary flex-shrink-0">
-    <i class="bi bi-gear-fill me-1"></i>Vào trang quản trị
-  </a>
-</div>
-
-<!-- 3 Thẻ số liệu Khoa -->
-<div class="row g-3 mb-4">
-  <!-- Card 1: Đề tài -->
-  <div class="col-12 col-md-4">
-    <div class="kpi-card">
-      <div class="kpi-card-label">Đề tài</div>
-      <div class="kpi-card-value">{{ n_topics }}</div>
-      <div class="kpi-card-sub">trong hệ thống</div>
-    </div>
-  </div>
-
-  <!-- Card 2: Sinh viên -->
-  <div class="col-12 col-md-4">
-    <div class="kpi-card">
-      <div class="kpi-card-label">Sinh viên</div>
-      <div class="kpi-card-value">{{ n_students|default:"—" }}</div>
-      <div class="kpi-card-sub">đủ điều kiện</div>
-    </div>
-  </div>
-
-  <!-- Card 3: Đợt đăng ký -->
-  <div class="col-12 col-md-4">
-    <div class="kpi-card">
-      <div class="kpi-card-label">Đợt đăng ký</div>
-      <div class="kpi-card-value">{% if n_periods %}{{ n_periods }}{% else %}{{ periods|length }}{% endif %}</div>
-      <div class="kpi-card-sub">trong năm học</div>
-    </div>
-  </div>
-</div>
-
-<!-- Danh sách đợt đăng ký -->
-<div class="section-header">
-  <div class="d-flex align-items-center justify-content-between">
+<div class="mz-home-admin-container">
+  <!-- Header Khoa -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
     <div>
-      <h2 class="section-title">Danh sách đợt đăng ký</h2>
-      <p class="section-subtitle">Các đợt mở đăng ký và tiếp nhận nguyện vọng của sinh viên.</p>
+      <h1 class="mz-page-title mb-1">Bảng điều khiển Khoa</h1>
+      <p class="mz-page-subtitle mb-0">Tổng quan hệ thống phân công đề tài tốt nghiệp cho sinh viên.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="/quan-tri/" class="mz-btn mz-btn-secondary mz-btn-sm">
+        {% include "components/icon.html" with name="settings-2" size=16 %}
+        <span>Trang quản trị</span>
+      </a>
+      <a href="{% url 'allocation_dashboard' %}" class="mz-btn mz-btn-primary mz-btn-sm">
+        {% include "components/icon.html" with name="route" size=16 %}
+        <span>Phân công đề tài</span>
+      </a>
     </div>
   </div>
-</div>
 
-<div class="app-card p-0 overflow-hidden mb-4">
   {% if periods %}
-    <!-- Desktop Table -->
-    <div class="table-responsive d-none d-md-block">
-      <table class="table app-table">
-        <thead>
-          <tr>
-            <th scope="col" style="min-width: 240px;">Đợt</th>
-            <th scope="col" style="width: 220px;">Thời gian</th>
-            <th scope="col" style="width: 140px;" class="text-center">Sinh viên</th>
-            <th scope="col" style="width: 180px;">Trạng thái</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in periods %}
-            <tr>
-              <td>
-                <div class="fw-semibold text-strong">{{ p.name }}</div>
-              </td>
-              <td>
-                <span class="text-nowrap">{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}</span>
-              </td>
-              <td class="text-center">
-                <span class="fw-semibold">{% if p.student_count %}{{ p.student_count }}{% else %}{{ p.preference_set.count|default:"—" }}{% endif %}</span>
-              </td>
-              <td>
-                {% if p.status == 'OPEN' %}
-                  <span class="status-badge status-open">
-                    <span class="dot"></span>{{ p.get_status_display }}
-                  </span>
-                {% elif p.status == 'CLOSED' %}
-                  <span class="status-badge status-closed">
-                    <span class="dot"></span>{{ p.get_status_display }}
-                  </span>
-                {% elif p.status == 'OPTIMIZED' %}
-                  <span class="status-badge status-pending">
-                    <span class="dot"></span>{{ p.get_status_display }}
-                  </span>
-                {% elif p.status == 'PUBLISHED' %}
-                  <span class="status-badge status-info">
-                    <span class="dot"></span>{{ p.get_status_display }}
-                  </span>
-                {% else %}
-                  <span class="status-badge status-closed">
-                    <span class="dot"></span>{{ p.get_status_display }}
-                  </span>
-                {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+    {% with current_period=periods.0 %}
+    <!-- Block đợt đăng ký hiện tại & quy trình -->
+    <div class="mz-bento-card p-3 p-md-4 mb-4">
+      <div class="row g-4 align-items-center">
+        <!-- Thông tin đợt -->
+        <div class="col-12 col-lg-6">
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="mz-badge mz-badge-accent">Đợt đăng ký hiện tại</span>
+            {% if current_period.status == 'OPEN' %}
+              {% include "components/status_badge.html" with status="open" label=current_period.get_status_display %}
+            {% elif current_period.status == 'OPTIMIZED' %}
+              {% include "components/status_badge.html" with status="pending" label=current_period.get_status_display %}
+            {% elif current_period.status == 'PUBLISHED' %}
+              {% include "components/status_badge.html" with status="published" label=current_period.get_status_display %}
+            {% else %}
+              {% include "components/status_badge.html" with status="draft" label=current_period.get_status_display %}
+            {% endif %}
+          </div>
+          <h2 class="h4 fw-bold text-strong mb-2">{{ current_period.name }}</h2>
+          <div class="d-flex flex-wrap align-items-center gap-3 text-muted small">
+            <span class="d-inline-flex align-items-center gap-1">
+              {% include "components/icon.html" with name="circle-help" size=14 class="text-muted" %}
+              <span>{{ current_period.start_at|date:"d/m/Y" }} – {{ current_period.end_at|date:"d/m/Y" }}</span>
+            </span>
+            <span class="d-inline-flex align-items-center gap-1">
+              {% include "components/icon.html" with name="users" size=14 class="text-muted" %}
+              <span>Đăng ký: <strong>{{ current_period.student_count|default:"0" }} sinh viên</strong></span>
+            </span>
+          </div>
+        </div>
 
-    <!-- Mobile Card List -->
-    <div class="d-md-none">
-      <div class="list-group list-group-flush">
-        {% for p in periods %}
-          <div class="list-group-item p-3">
-            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-              <h3 class="card-heading fs-6 mb-0">{{ p.name }}</h3>
-              {% if p.status == 'OPEN' %}
-                <span class="status-badge status-open flex-shrink-0">
-                  <span class="dot"></span>{{ p.get_status_display }}
-                </span>
-              {% elif p.status == 'CLOSED' %}
-                <span class="status-badge status-closed flex-shrink-0">
-                  <span class="dot"></span>{{ p.get_status_display }}
-                </span>
-              {% elif p.status == 'OPTIMIZED' %}
-                <span class="status-badge status-pending flex-shrink-0">
-                  <span class="dot"></span>{{ p.get_status_display }}
-                </span>
-              {% elif p.status == 'PUBLISHED' %}
-                <span class="status-badge status-info flex-shrink-0">
-                  <span class="dot"></span>{{ p.get_status_display }}
-                </span>
-              {% else %}
-                <span class="status-badge status-closed flex-shrink-0">
-                  <span class="dot"></span>{{ p.get_status_display }}
-                </span>
-              {% endif %}
+        <!-- Quy trình 4 bước -->
+        <div class="col-12 col-lg-6">
+          <div class="mz-process-timeline" role="region" aria-label="Tiến độ quy trình phân công">
+            <div class="mz-process-step {% if current_period.status == 'OPEN' or current_period.status == 'OPTIMIZED' or current_period.status == 'PUBLISHED' %}is-done{% else %}is-active{% endif %}">
+              <div class="mz-step-num">
+                {% if current_period.status == 'OPTIMIZED' or current_period.status == 'PUBLISHED' %}
+                  {% include "components/icon.html" with name="check" size=12 %}
+                {% else %}1{% endif %}
+              </div>
+              <div class="mz-step-info">
+                <div class="mz-step-name">Mở đăng ký</div>
+                <div class="mz-step-sub">Thu nhận NV</div>
+              </div>
             </div>
-
-            <div class="text-muted small mb-2">
-              <i class="bi bi-calendar3 me-1"></i>{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}
+            <div class="mz-process-step-line"></div>
+            <div class="mz-process-step {% if current_period.status == 'OPTIMIZED' or current_period.status == 'PUBLISHED' %}is-done{% elif current_period.status == 'CLOSED' %}is-active{% endif %}">
+              <div class="mz-step-num">
+                {% if current_period.status == 'PUBLISHED' %}
+                  {% include "components/icon.html" with name="check" size=12 %}
+                {% else %}2{% endif %}
+              </div>
+              <div class="mz-step-info">
+                <div class="mz-step-name">Duyệt &amp; Khóa</div>
+                <div class="mz-step-sub">Chốt hồ sơ</div>
+              </div>
             </div>
-
-            <div class="d-flex align-items-center gap-2 small text-muted">
-              <span>Đăng ký:</span>
-              <span class="fw-semibold text-strong">{% if p.student_count %}{{ p.student_count }}{% else %}{{ p.preference_set.count|default:"—" }}{% endif %} sinh viên</span>
+            <div class="mz-process-step-line"></div>
+            <div class="mz-process-step {% if current_period.status == 'PUBLISHED' %}is-done{% elif current_period.status == 'OPTIMIZED' %}is-active{% endif %}">
+              <div class="mz-step-num">
+                {% if current_period.status == 'PUBLISHED' %}
+                  {% include "components/icon.html" with name="check" size=12 %}
+                {% else %}3{% endif %}
+              </div>
+              <div class="mz-step-info">
+                <div class="mz-step-name">Phân công</div>
+                <div class="mz-step-sub">Chạy ILP</div>
+              </div>
+            </div>
+            <div class="mz-process-step-line"></div>
+            <div class="mz-process-step {% if current_period.status == 'PUBLISHED' %}is-active is-done{% endif %}">
+              <div class="mz-step-num">4</div>
+              <div class="mz-step-info">
+                <div class="mz-step-name">Công bố</div>
+                <div class="mz-step-sub">Kết quả chính thức</div>
+              </div>
             </div>
           </div>
-        {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+  {% endif %}
+
+  <!-- DẢI SỐ LIỆU KHOA (layout|fused-metric-ribbon-dock) -->
+  <div class="mz-metric-ribbon-surface mb-4" role="region" aria-label="Dải số liệu tổng quan">
+    <div class="mz-metric-ribbon-grid">
+      <div class="mz-metric-cell">
+        <div class="mz-metric-label">Tổng sinh viên</div>
+        <div class="mz-metric-value text-accent">{{ n_students|default:"—" }}</div>
+        <div class="mz-metric-sub">trong hệ thống</div>
+      </div>
+
+      <div class="mz-metric-cell">
+        <div class="mz-metric-label">Tổng đề tài</div>
+        <div class="mz-metric-value text-strong">{{ n_topics|default:"—" }}</div>
+        <div class="mz-metric-sub">đề tài khả dụng</div>
+      </div>
+
+      <div class="mz-metric-cell">
+        <div class="mz-metric-label">Đợt đăng ký</div>
+        <div class="mz-metric-value text-strong">{% if n_periods %}{{ n_periods }}{% else %}{{ periods|length }}{% endif %}</div>
+        <div class="mz-metric-sub">trong năm học</div>
+      </div>
+
+      <div class="mz-metric-cell">
+        <div class="mz-metric-label">Sinh viên có NV</div>
+        <div class="mz-metric-value text-success">
+          {% if periods and periods.0.student_count %}
+            {{ periods.0.student_count }}
+          {% else %}
+            —
+          {% endif %}
+        </div>
+        <div class="mz-metric-sub">đợt mới nhất</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKSPACE GRID: DANH SÁCH ĐỢT + LỐI TẮT THAO TÁC -->
+  <div class="row g-4 mb-4">
+    <!-- Cột trái: Danh sách đợt đăng ký -->
+    <div class="col-12 col-lg-8">
+      <div class="mz-bento-card p-0 overflow-hidden h-100">
+        <div class="p-3 p-md-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <h2 class="h5 fw-bold text-strong mb-1">Danh sách đợt đăng ký</h2>
+            <p class="text-muted small mb-0">Các đợt mở đăng ký và tiếp nhận nguyện vọng của sinh viên.</p>
+          </div>
+          {% if periods %}
+            <span class="mz-caption text-muted">{{ periods|length }} đợt gần nhất</span>
+          {% endif %}
+        </div>
+
+        {% if periods %}
+          <!-- Desktop Table -->
+          <div class="table-responsive d-none d-md-block">
+            <table class="table mz-table mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th scope="col" style="min-width: 220px;">Đợt đăng ký</th>
+                  <th scope="col" style="min-width: 180px;">Thời gian</th>
+                  <th scope="col" style="width: 120px;" class="text-center">Sinh viên</th>
+                  <th scope="col" style="width: 160px;">Trạng thái</th>
+                  <th scope="col" style="width: 110px;" class="text-end">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in periods %}
+                  <tr>
+                    <td>
+                      <div class="fw-semibold text-strong">{{ p.name }}</div>
+                    </td>
+                    <td>
+                      <span class="text-muted small">{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="fw-semibold text-accent">{% if p.student_count %}{{ p.student_count }}{% else %}{{ p.preference_set.count|default:"—" }}{% endif %}</span>
+                    </td>
+                    <td>
+                      {% if p.status == 'OPEN' %}
+                        {% include "components/status_badge.html" with status="open" label=p.get_status_display %}
+                      {% elif p.status == 'CLOSED' %}
+                        {% include "components/status_badge.html" with status="draft" label=p.get_status_display %}
+                      {% elif p.status == 'OPTIMIZED' %}
+                        {% include "components/status_badge.html" with status="pending" label=p.get_status_display %}
+                      {% elif p.status == 'PUBLISHED' %}
+                        {% include "components/status_badge.html" with status="published" label=p.get_status_display %}
+                      {% else %}
+                        {% include "components/status_badge.html" with status="draft" label=p.get_status_display %}
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="mz-btn mz-btn-ghost mz-btn-sm p-1" title="Xem phân công đợt này">
+                        {% include "components/icon.html" with name="route" size=16 %}
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Stacked Card List (<768px, an toàn 390px) -->
+          <div class="d-md-none divide-y">
+            {% for p in periods %}
+              <div class="p-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                  <div class="fw-semibold text-strong fs-6">{{ p.name }}</div>
+                  <div>
+                    {% if p.status == 'OPEN' %}
+                      {% include "components/status_badge.html" with status="open" label=p.get_status_display %}
+                    {% elif p.status == 'OPTIMIZED' %}
+                      {% include "components/status_badge.html" with status="pending" label=p.get_status_display %}
+                    {% elif p.status == 'PUBLISHED' %}
+                      {% include "components/status_badge.html" with status="published" label=p.get_status_display %}
+                    {% else %}
+                      {% include "components/status_badge.html" with status="draft" label=p.get_status_display %}
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="text-muted small mb-2 d-flex align-items-center gap-1">
+                  {% include "components/icon.html" with name="circle-help" size=14 class="text-muted" %}
+                  <span>{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-2">
+                  <div class="small text-muted">
+                    Đăng ký: <strong class="text-accent">{% if p.student_count %}{{ p.student_count }}{% else %}{{ p.preference_set.count|default:"—" }}{% endif %} SV</strong>
+                  </div>
+                  <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="mz-btn mz-btn-secondary mz-btn-sm py-1 px-2">
+                    <span>Phân công</span>
+                    {% include "components/icon.html" with name="chevron-right" size=14 %}
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="p-4 text-center">
+            {% include "components/empty_state.html" with illustration="empty-topics" title="Chưa có đợt đăng ký" description="Khoa chưa mở đợt đăng ký đồ án nào trong năm học này." %}
+          </div>
+        {% endif %}
       </div>
     </div>
 
-  {% else %}
-    <div class="empty-state py-5">
-      <div class="empty-state-icon"><i class="bi bi-calendar-x"></i></div>
-      <h3 class="empty-state-title">Chưa có đợt đăng ký</h3>
-      <p class="empty-state-desc">Khoa chưa mở đợt đăng ký đồ án nào trong năm học này.</p>
-    </div>
-  {% endif %}
-</div>
+    <!-- Cột phải: Lối tắt thao tác (Quick actions) -->
+    <div class="col-12 col-lg-4">
+      <div class="mz-bento-card p-3 p-md-4 h-100">
+        <h2 class="h5 fw-bold text-strong mb-1">Lối tắt thao tác</h2>
+        <p class="text-muted small mb-3">Các chức năng quản trị và điều hành thường dùng.</p>
 
-<div class="d-flex justify-content-end">
-  <a href="/quan-tri/" class="btn btn-outline-primary">
-    <i class="bi bi-box-arrow-up-right me-1"></i>Vào trang quản trị dữ liệu
-  </a>
+        <div class="d-flex flex-column gap-2">
+          <!-- Lối tắt 1: Phân công đề tài -->
+          <a href="{% url 'allocation_dashboard' %}" class="mz-quick-action-link">
+            <div class="mz-quick-action-icon text-accent">
+              {% include "components/icon.html" with name="route" size=20 %}
+            </div>
+            <div class="mz-quick-action-content">
+              <div class="mz-quick-action-title">Phân công đề tài</div>
+              <div class="mz-quick-action-desc">Chạy tối ưu ILP, so sánh Greedy &amp; chỉnh tay Pha 2</div>
+            </div>
+            {% include "components/icon.html" with name="chevron-right" size=16 class="text-muted" %}
+          </a>
+
+          <!-- Lối tắt 2: Thống kê & Báo cáo -->
+          <a href="{% url 'faculty_statistics' %}" class="mz-quick-action-link">
+            <div class="mz-quick-action-icon text-accent">
+              {% include "components/icon.html" with name="chart-pie" size=20 %}
+            </div>
+            <div class="mz-quick-action-content">
+              <div class="mz-quick-action-title">Thống kê &amp; Báo cáo</div>
+              <div class="mz-quick-action-desc">Biểu đồ tiến độ, lĩnh vực, tải GV &amp; thuật toán</div>
+            </div>
+            {% include "components/icon.html" with name="chevron-right" size=16 class="text-muted" %}
+          </a>
+
+          <!-- Lối tắt 3: Nhập dữ liệu Excel -->
+          <a href="{% url 'faculty_import' %}" class="mz-quick-action-link">
+            <div class="mz-quick-action-icon text-accent">
+              {% include "components/icon.html" with name="file-spreadsheet" size=20 %}
+            </div>
+            <div class="mz-quick-action-content">
+              <div class="mz-quick-action-title">Nhập dữ liệu Excel</div>
+              <div class="mz-quick-action-desc">Nhập danh sách SV, GV, đề tài &amp; kỹ năng (.xlsx)</div>
+            </div>
+            {% include "components/icon.html" with name="chevron-right" size=16 class="text-muted" %}
+          </a>
+
+          <!-- Lối tắt 4: Quản trị hệ thống -->
+          <a href="/quan-tri/" class="mz-quick-action-link">
+            <div class="mz-quick-action-icon text-accent">
+              {% include "components/icon.html" with name="settings-2" size=20 %}
+            </div>
+            <div class="mz-quick-action-content">
+              <div class="mz-quick-action-title">Quản trị hệ thống</div>
+              <div class="mz-quick-action-desc">Trang Django admin quản lý toàn diện cơ sở dữ liệu</div>
+            </div>
+            {% include "components/icon.html" with name="chevron-right" size=16 class="text-muted" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

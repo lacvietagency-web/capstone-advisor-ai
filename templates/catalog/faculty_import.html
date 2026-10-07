@@ -1,20 +1,287 @@
 {% extends "base.html" %}
-{# Bản chức năng tối thiểu (lõi) — giao diện Mosaic làm ở P3 theo render 18. Giữ: form multipart, name="file", csrf, url faculty_import_sample. #}
+
 {% block title %}Nhập dữ liệu Excel — Mosaic AI{% endblock %}
+
+{% block breadcrumb %}
+  <span>Khoa CNTT</span>
+  <span>/</span>
+  <span class="mz-breadcrumb-active">Nhập Excel</span>
+{% endblock %}
+
+{% block page_title %}Nhập dữ liệu Excel{% endblock %}
+
 {% block content %}
-<h1 class="h3">Nhập dữ liệu Excel</h1>
-<p>Tệp .xlsx tối đa {{ max_mb }} MB, 4 sheet: SinhVien, GiangVien, DeTai, KyNang. Có lỗi ở bất kỳ dòng nào thì <strong>không nhập gì</strong>.</p>
-<p><a href="{% url 'faculty_import_sample' %}">Tải tệp mẫu</a></p>
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  <input type="file" name="file" accept=".xlsx" required>
-  <button type="submit" class="btn btn-primary">Kiểm tra &amp; nhập</button>
-</form>
-{% if result %}
-  {% if result.ok %}
-    <ul>{% for k, v in result.stats.items %}<li>{{ k }}: {{ v }}</li>{% endfor %}</ul>
-  {% else %}
-    <ul>{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul>
-  {% endif %}
-{% endif %}
+<div class="mz-import-container">
+  <!-- Header Khoa -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+      <h1 class="mz-page-title mb-1">Nhập danh sách từ Excel</h1>
+      <p class="mz-page-subtitle mb-0">Tải lên tệp .xlsx chứa thông tin sinh viên, giảng viên, đề tài và kỹ năng.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'faculty_import_sample' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
+        {% include "components/icon.html" with name="file-spreadsheet" size=15 %}
+        <span>Tải tệp mẫu (.xlsx)</span>
+      </a>
+      <a href="{% url 'home' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
+        {% include "components/icon.html" with name="arrow-left" size=15 %}
+        <span>Về trang chủ</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- BƯỚC 1: TẢI FILE MẪU & THÔNG TIN -->
+  <div class="mz-bento-card p-3 p-md-4 mb-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-12 col-md-7">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="mz-step-badge">1</span>
+          <h2 class="h5 fw-bold text-strong mb-0">Tải file mẫu</h2>
+        </div>
+        <p class="text-muted small mb-3">
+          Sử dụng file mẫu để đảm bảo dữ liệu đúng định dạng và thứ tự cột. File mẫu bao gồm 4 sheet: <strong>SinhVien</strong>, <strong>GiangVien</strong>, <strong>DeTai</strong> và <strong>KyNang</strong>.
+        </p>
+        <a href="{% url 'faculty_import_sample' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
+          {% include "components/icon.html" with name="file-spreadsheet" size=16 class="text-success me-1" %}
+          <span>Tải file mẫu sinh viên &amp; đề tài (.xlsx)</span>
+        </a>
+      </div>
+
+      <div class="col-12 col-md-5">
+        <div class="p-3 rounded bg-surface-subtle border">
+          <div class="d-flex align-items-center gap-2 mb-2 text-accent fw-semibold small">
+            {% include "components/icon.html" with name="info" size=16 %}
+            <span>Quy định tệp dữ liệu</span>
+          </div>
+          <ul class="text-muted small ps-3 mb-0 d-flex flex-column gap-1">
+            <li>Định dạng: Microsoft Excel (<strong>.xlsx</strong>)</li>
+            <li>4 sheet bắt buộc: SinhVien, GiangVien, DeTai, KyNang</li>
+            <li>Dung lượng tối đa: <strong>{{ max_mb }} MB</strong></li>
+            <li>Chính sách: <strong>Lỗi 1 dòng = Không nhập gì (All-or-nothing)</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BƯỚC 2: TẢI LÊN FILE EXCEL (DROPZONE) -->
+  <div class="mz-bento-card p-3 p-md-4 mb-4">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <span class="mz-step-badge">2</span>
+      <h2 class="h5 fw-bold text-strong mb-0">Tải lên file Excel</h2>
+    </div>
+    <p class="text-muted small mb-3">
+      Kéo thả file vào vùng bên dưới hoặc chọn file từ máy tính của bạn.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" id="excelUploadForm" class="m-0">
+      {% csrf_token %}
+      <input type="file" name="file" id="excelFileInput" accept=".xlsx" required class="d-none" onchange="handleFileSelected(this)">
+
+      <!-- Dropzone container -->
+      <div class="mz-dropzone-box text-center p-4 p-md-5 border rounded"
+           id="excelDropzone"
+           onclick="document.getElementById('excelFileInput').click()"
+           tabindex="0"
+           role="button"
+           aria-label="Chọn hoặc kéo thả tệp Excel">
+        <div class="mb-3">
+          {% include "components/icon.html" with name="upload" size=36 class="text-accent" %}
+        </div>
+        <div class="fw-bold text-strong fs-6 mb-1">Kéo thả file Excel vào đây</div>
+        <div class="text-muted small mb-3">Chỉ chấp nhận file .xlsx, dung lượng tối đa {{ max_mb }}MB</div>
+        <button type="button" class="mz-btn mz-btn-primary mz-btn-sm" onclick="event.stopPropagation(); document.getElementById('excelFileInput').click()">
+          {% include "components/icon.html" with name="file-spreadsheet" size=15 %}
+          <span>Chọn file từ máy tính</span>
+        </button>
+      </div>
+
+      <!-- File preview container (ẩn cho đến khi có file) -->
+      <div class="mz-file-preview-card p-3 border rounded bg-surface mt-3 d-none" id="filePreviewCard">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="mz-file-icon-badge text-success">
+              {% include "components/icon.html" with name="file-spreadsheet" size=24 %}
+            </div>
+            <div>
+              <div class="fw-semibold text-strong" id="previewFileName">ten_file.xlsx</div>
+              <div class="text-muted small" id="previewFileSize">0 KB</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm text-danger" onclick="removeSelectedFile()">
+              {% include "components/icon.html" with name="trash-2" size=15 %}
+              <span>Gỡ bỏ</span>
+            </button>
+            <button type="submit" class="mz-btn mz-btn-primary mz-btn-sm" id="btnSubmitImport">
+              {% include "components/icon.html" with name="check" size=15 %}
+              <span>Kiểm tra &amp; Nhập dữ liệu</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- BƯỚC 3: KẾT QUẢ KIỂM TRA DỮ LIỆU & CHÍNH SÁCH -->
+  <div class="mz-bento-card p-3 p-md-4 mb-4">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <span class="mz-step-badge">3</span>
+      <h2 class="h5 fw-bold text-strong mb-0">Kết quả kiểm tra dữ liệu</h2>
+    </div>
+
+    <!-- Alert chính sách nhập dữ liệu (BẮT BUỘC THEO QUY ĐỊNH) -->
+    <div class="mz-alert mz-alert-warning mb-4">
+      {% include "components/icon.html" with name="triangle-alert" size=18 class="text-warning flex-shrink-0 mt-1" %}
+      <div>
+        <div class="fw-semibold text-strong">Chính sách nhập dữ liệu (All-or-nothing):</div>
+        <div class="small">
+          Nếu có <strong>bất kỳ dòng nào bị lỗi</strong>, hệ thống sẽ <strong>không nhập gì cả</strong> vào cơ sở dữ liệu. Vui lòng rà soát danh sách lỗi chi tiết, sửa lại file Excel và tải lên lại.
+        </div>
+      </div>
+    </div>
+
+    {% if result %}
+      {% if result.ok %}
+        <!-- KẾT QUẢ THÀNH CÔNG -->
+        <div class="mz-alert mz-alert-success mb-3">
+          {% include "components/icon.html" with name="circle-check-big" size=20 class="text-success flex-shrink-0 mt-1" %}
+          <div>
+            <div class="fw-bold text-success fs-6">Nhập dữ liệu thành công!</div>
+            <div class="small">
+              File <strong>{{ result.filename }}</strong> đã được kiểm tra tính hợp lệ và nhập vào cơ sở dữ liệu.
+            </div>
+          </div>
+        </div>
+
+        <!-- BẢNG RESULT.STATS -->
+        <div class="table-responsive">
+          <table class="table mz-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th style="min-width: 200px;">Đối tượng dữ liệu</th>
+                <th class="text-center" style="width: 140px;">Số lượng nhập</th>
+                <th class="text-end" style="width: 140px;">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for k, v in result.rows %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold text-strong">{{ k }}</div>
+                  </td>
+                  <td class="text-center">
+                    <span class="fw-bold text-accent fs-6">{{ v }}</span>
+                  </td>
+                  <td class="text-end">
+                    <span class="mz-badge mz-badge-teal">
+                      <span class="mz-badge-dot"></span>Hợp lệ
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      {% else %}
+        <!-- KẾT QUẢ CÓ LỖI (DANH SÁCH RESULT.ERRORS) -->
+        <div class="mz-alert mz-alert-danger mb-3">
+          {% include "components/icon.html" with name="triangle-alert" size=20 class="text-danger flex-shrink-0 mt-1" %}
+          <div>
+            <div class="fw-bold text-danger fs-6">
+              Không thể nhập dữ liệu vì phát hiện {{ result.errors|length }} lỗi
+            </div>
+            <div class="small">
+              Dữ liệu chưa được lưu. Vui lòng kiểm tra các dòng bị lỗi dưới đây trong file <strong>{{ result.filename }}</strong>:
+            </div>
+          </div>
+        </div>
+
+        <div class="mz-error-list-container border rounded overflow-hidden">
+          <div class="p-3 bg-surface-subtle border-bottom d-flex justify-content-between align-items-center">
+            <span class="fw-semibold text-strong small">Danh sách chi tiết lỗi theo dòng ({{ result.errors|length }} lỗi)</span>
+            <span class="mz-badge mz-badge-danger">{{ result.errors|length }} lỗi</span>
+          </div>
+          <div class="divide-y" style="max-height: 400px; overflow-y: auto;">
+            {% for e in result.errors %}
+              <div class="p-3 border-bottom d-flex align-items-start gap-2">
+                <span class="mz-badge mz-badge-danger flex-shrink-0 mt-1">Lỗi</span>
+                <span class="text-default font-monospace small">{{ e }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+    {% else %}
+      <!-- CHƯA CÓ FILE / EMPTY STATE -->
+      <div class="py-4 text-center">
+        {% include "components/empty_state.html" with illustration="empty-excel" title="Chưa có dữ liệu kiểm tra" description="Vui lòng chọn hoặc kéo thả tệp .xlsx vào ô tải lên ở bước 2 để bắt đầu kiểm tra và nhập dữ liệu." %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/**
+ * Mosaic AI — Script điều khiển Nhập Excel Khoa
+ * - Kéo thả file Excel (Drag & Drop)
+ * - Preview file được chọn
+ */
+function handleFileSelected(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+
+  var previewCard = document.getElementById('filePreviewCard');
+  var nameEl = document.getElementById('previewFileName');
+  var sizeEl = document.getElementById('previewFileSize');
+
+  if (nameEl) nameEl.textContent = file.name;
+  if (sizeEl) sizeEl.textContent = (file.size / 1024).toFixed(1) + ' KB';
+
+  if (previewCard) previewCard.classList.remove('d-none');
+}
+
+function removeSelectedFile() {
+  var input = document.getElementById('excelFileInput');
+  if (input) input.value = '';
+  var previewCard = document.getElementById('filePreviewCard');
+  if (previewCard) previewCard.classList.add('d-none');
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  var dropzone = document.getElementById('excelDropzone');
+  var fileInput = document.getElementById('excelFileInput');
+
+  if (!dropzone || !fileInput) return;
+
+  ['dragenter', 'dragover'].forEach(function (eventName) {
+    dropzone.addEventListener(eventName, function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.add('mz-dropzone-dragover');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(function (eventName) {
+    dropzone.addEventListener(eventName, function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove('mz-dropzone-dragover');
+    }, false);
+  });
+
+  dropzone.addEventListener('drop', function (e) {
+    var dt = e.dataTransfer;
+    var files = dt.files;
+    if (files && files.length) {
+      fileInput.files = files;
+      handleFileSelected(fileInput);
+    }
+  }, false);
+});
+</script>
 {% endblock %}

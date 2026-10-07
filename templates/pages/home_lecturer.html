@@ -1,197 +1,193 @@
 {% extends "base.html" %}
 
-{% block title %}Trang chủ Giảng viên — Capstone Advisor AI{% endblock %}
+{% block title %}Trang chủ Giảng viên — Mosaic AI{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>Xin chào, {{ user.get_full_name|default:user.username }}</h1>
-  <p class="page-subtitle">Theo dõi các đề tài và tình trạng đăng ký của sinh viên.</p>
-</div>
-
-<!-- Thẻ số liệu Giảng viên -->
-<div class="row g-3 mb-4">
-  <!-- Thẻ 1: Số đề tài -->
-  <div class="col-6 col-lg-3">
-    <div class="kpi-card">
-      <div class="kpi-card-label">Số đề tài</div>
-      <div class="kpi-card-value">{% if n_topics is not None %}{{ n_topics }}{% else %}{{ topics|length }}{% endif %}</div>
-      <div class="kpi-card-sub">đề tài phụ trách</div>
-    </div>
-  </div>
-
-  <!-- Thẻ 2: Tổng SV đăng ký -->
-  <div class="col-6 col-lg-3">
-    <div class="kpi-card">
-      <div class="kpi-card-label">Tổng SV đăng ký</div>
-      <div class="kpi-card-value">{{ n_students|default:0 }}</div>
-      <div class="kpi-card-sub">sinh viên đăng ký</div>
-    </div>
-  </div>
-
-  <!-- Thẻ 3: Số NV đang chờ duyệt -->
-  <div class="col-6 col-lg-3">
-    <div class="kpi-card">
-      <div class="kpi-card-label">Số NV đang chờ duyệt</div>
-      <div class="kpi-card-value">{{ n_pending|default:0 }}</div>
-      <div class="kpi-card-sub">nguyện vọng Chờ duyệt</div>
-    </div>
-  </div>
-
-  <!-- Thẻ 4: Số đã đồng ý -->
-  <div class="col-6 col-lg-3">
-    <div class="kpi-card">
-      <div class="kpi-card-label">Số đã đồng ý</div>
-      <div class="kpi-card-value">{{ n_accepted|default:0 }}</div>
-      <div class="kpi-card-sub">nguyện vọng Đã đồng ý</div>
-    </div>
-  </div>
-</div>
-
-<!-- Section: Đề tài của tôi -->
-<div class="section-header">
-  <div class="d-flex align-items-center justify-content-between">
+<div class="mz-lecturer-home" data-mz-reveal>
+  <!-- Lời chào giảng viên -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
     <div>
-      <h2 class="section-title">Đề tài của tôi</h2>
-      <p class="section-subtitle">Danh sách đề tài hướng dẫn tốt nghiệp do bạn phụ trách.</p>
+      <h1 class="mz-h2 mb-1">Xin chào, {{ user.get_full_name|default:user.username }}</h1>
+      <p class="mz-caption text-muted mb-0">Theo dõi đề tài, hồ sơ sinh viên đăng ký và các yêu cầu chờ duyệt.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'lecturer_topic_new' %}" class="mz-btn mz-btn-primary mz-btn-sm">
+        {% include "components/icon.html" with name="plus" size=16 %}
+        <span>Thêm đề tài</span>
+      </a>
+      <a href="{% url 'lecturer_profile' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
+        {% include "components/icon.html" with name="user-round" size=16 %}
+        <span>Hồ sơ của tôi</span>
+      </a>
     </div>
   </div>
-</div>
 
-<div class="app-card p-0 overflow-hidden">
-  {% if topics %}
-    <!-- Desktop Table (d-none d-md-block) -->
-    <div class="table-responsive d-none d-md-block">
-      <table class="table app-table">
-        <thead>
-          <tr>
-            <th scope="col" style="min-width: 260px;">Đề tài</th>
-            <th scope="col" style="width: 130px;">Độ khó</th>
-            <th scope="col" style="width: 100px;" class="text-center">Chỉ tiêu</th>
-            <th scope="col" style="width: 140px;">Trạng thái</th>
-            <th scope="col" style="width: 180px;" class="text-center">Chờ duyệt</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t in topics %}
-            <tr>
-              <td>
-                <div class="fw-semibold text-strong">{{ t.title }}</div>
-                {% if t.fields.all %}
-                  <div class="d-flex flex-wrap gap-1 mt-1">
-                    {% for f in t.fields.all %}
-                      <span class="badge bg-light text-muted border" style="font-size: 11px;">{{ f.name }}</span>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-              </td>
-              <td>
-                <span class="badge-difficulty">{{ t.get_difficulty_display }}</span>
-              </td>
-              <td class="text-center">
-                <span class="fw-semibold">{{ t.capacity }}</span>
-              </td>
-              <td>
-                {% if t.status == 'OPEN' %}
-                  <span class="status-badge status-open">
-                    <span class="dot"></span>{{ t.get_status_display }}
-                  </span>
-                {% elif t.status == 'CLOSED' %}
-                  <span class="status-badge status-closed">
-                    <span class="dot"></span>{{ t.get_status_display }}
-                  </span>
-                {% elif t.status == 'DRAFT' %}
-                  <span class="status-badge status-pending">
-                    <span class="dot"></span>Chờ duyệt
-                  </span>
-                {% else %}
-                  <span class="status-badge status-closed">
-                    <span class="dot"></span>{{ t.get_status_display }}
-                  </span>
-                {% endif %}
-              </td>
-              <td class="text-center">
-                <div class="d-inline-flex align-items-center gap-2">
-                  <span class="badge {% if t.pending_count %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-light text-muted border{% endif %}">
-                    {{ t.pending_count|default:0 }}
-                  </span>
-                  <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-sm btn-outline-primary text-nowrap">
-                    Duyệt ngay
-                  </a>
-                </div>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <!-- Dải số liệu Giảng viên (layout|fused-metric-ribbon-dock) -->
+  <div class="mz-metric-ribbon mb-4" data-mz-reveal>
+    <!-- Số đề tài -->
+    <div class="mz-metric-item">
+      <div class="mz-metric-value">
+        {% if n_topics is not None %}{{ n_topics }}{% else %}{{ topics|length }}{% endif %}
+      </div>
+      <div class="mz-metric-label">Số đề tài</div>
+      <div class="mz-metric-secondary text-truncate">đề tài phụ trách</div>
     </div>
 
-    <!-- Mobile Card List (d-md-none) -->
-    <div class="d-md-none">
-      <div class="list-group list-group-flush">
-        {% for t in topics %}
-          <div class="list-group-item p-3">
-            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-              <h3 class="card-heading fs-6 mb-0">{{ t.title }}</h3>
-              {% if t.status == 'OPEN' %}
-                <span class="status-badge status-open flex-shrink-0">
-                  <span class="dot"></span>{{ t.get_status_display }}
-                </span>
-              {% elif t.status == 'CLOSED' %}
-                <span class="status-badge status-closed flex-shrink-0">
-                  <span class="dot"></span>{{ t.get_status_display }}
-                </span>
-              {% elif t.status == 'DRAFT' %}
-                <span class="status-badge status-pending flex-shrink-0">
-                  <span class="dot"></span>Chờ duyệt
-                </span>
-              {% else %}
-                <span class="status-badge status-closed flex-shrink-0">
-                  <span class="dot"></span>{{ t.get_status_display }}
-                </span>
-              {% endif %}
-            </div>
+    <!-- Tổng SV đăng ký -->
+    <div class="mz-metric-item">
+      <div class="mz-metric-value">{{ n_students|default:0 }}</div>
+      <div class="mz-metric-label">Tổng SV đăng ký</div>
+      <div class="mz-metric-secondary text-truncate">sinh viên đăng ký</div>
+    </div>
 
-            <div class="d-flex align-items-center gap-3 text-muted small mt-2">
-              <div>
-                <span>Độ khó:</span>
-                <span class="badge-difficulty ms-1">{{ t.get_difficulty_display }}</span>
-              </div>
-              <div>
-                <span>Chỉ tiêu:</span>
-                <span class="text-strong ms-1">{{ t.capacity }} SV</span>
-              </div>
+    <!-- Số NV đang chờ duyệt -->
+    <div class="mz-metric-item">
+      <div class="mz-metric-value text-warning">
+        {{ n_pending|default:0 }}
+      </div>
+      <div class="mz-metric-label">Số NV đang chờ duyệt</div>
+      <div class="mz-metric-secondary text-truncate">Chờ duyệt</div>
+    </div>
+
+    <!-- Số đã đồng ý -->
+    <div class="mz-metric-item">
+      <div class="mz-metric-value text-success">
+        {{ n_accepted|default:0 }}
+      </div>
+      <div class="mz-metric-label">Số đã đồng ý</div>
+      <div class="mz-metric-secondary text-truncate">Đã đồng ý</div>
+    </div>
+  </div>
+
+  <!-- Danh sách Đề tài của tôi -->
+  <div class="mz-card mb-4" data-mz-reveal>
+    <div class="mz-card-header">
+      <div>
+        <h2 class="mz-card-title">Đề tài của tôi</h2>
+        <div class="mz-caption text-muted">Danh sách đề tài, số lượng sinh viên đăng ký và trạng thái xét duyệt.</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'lecturer_topics' %}" class="mz-btn mz-btn-ghost mz-btn-sm">
+          <span>Xem tất cả</span>
+          {% include "components/icon.html" with name="chevron-right" size=14 %}
+        </a>
+      </div>
+    </div>
+
+    {% if topics %}
+      <!-- Desktop Table (d-none d-md-block) -->
+      <div class="table-responsive d-none d-md-block">
+        <table class="table mz-table mb-0 align-middle">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 48px;" class="text-center">#</th>
+              <th scope="col" style="min-width: 280px;">Tên đề tài</th>
+              <th scope="col" style="width: 180px;">Lĩnh vực</th>
+              <th scope="col" style="width: 100px;" class="text-center">Chỉ tiêu</th>
+              <th scope="col" style="width: 140px;" class="text-center">Chờ duyệt</th>
+              <th scope="col" style="width: 140px;">Trạng thái</th>
+              <th scope="col" style="width: 140px;" class="text-end">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in topics %}
+              <tr>
+                <td class="text-center text-muted fw-semibold">{{ forloop.counter }}</td>
+                <td>
+                  <a href="{% url 'lecturer_topic_edit' t.pk %}" class="fw-semibold text-strong text-decoration-none hover-accent">
+                    {{ t.title }}
+                  </a>
+                  {% if t.description %}
+                    <div class="mz-caption text-muted text-truncate mt-1" style="max-width: 420px;">
+                      {{ t.description }}
+                    </div>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if t.fields.all %}
+                    <div class="d-flex flex-wrap gap-1">
+                      {% for f in t.fields.all %}
+                        <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <span class="mz-caption text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <span class="fw-semibold text-strong">{{ t.capacity }}</span>
+                </td>
+                <td class="text-center">
+                  <div class="d-inline-flex align-items-center gap-1">
+                    <span class="mz-badge {% if t.pending_count %}mz-badge-warning fw-semibold{% else %}mz-badge-neutral text-muted{% endif %}">
+                      {{ t.pending_count|default:0 }}
+                    </span>
+                    <span class="mz-caption text-muted d-none d-lg-inline">Chờ duyệt</span>
+                  </div>
+                </td>
+                <td>
+                  {% include "components/status_badge.html" with status=t.status|lower label=t.get_status_display %}
+                </td>
+                <td class="text-end">
+                  <a href="{% url 'lecturer_registrations' t.pk %}" class="mz-btn {% if t.pending_count %}mz-btn-primary{% else %}mz-btn-secondary{% endif %} mz-btn-sm text-nowrap">
+                    {% include "components/icon.html" with name="user-check" size=14 %}
+                    <span>Duyệt ngay</span>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card List (d-md-none) -->
+      <div class="d-md-none d-flex flex-column gap-2 p-2">
+        {% for t in topics %}
+          <div class="p-3 rounded-2 border bg-surface-subtle">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <a href="{% url 'lecturer_topic_edit' t.pk %}" class="fw-semibold text-strong text-decoration-none text-break-word">
+                {{ t.title }}
+              </a>
+              {% include "components/status_badge.html" with status=t.status|lower label=t.get_status_display %}
             </div>
 
             {% if t.fields.all %}
-              <div class="d-flex flex-wrap gap-1 mt-2">
+              <div class="d-flex flex-wrap gap-1 mb-2">
                 {% for f in t.fields.all %}
-                  <span class="badge bg-light text-muted border" style="font-size: 11px;">{{ f.name }}</span>
+                  <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
                 {% endfor %}
               </div>
             {% endif %}
 
-            <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top">
-              <div class="small">
-                <span class="text-muted">Chờ duyệt:</span>
-                <span class="badge {% if t.pending_count %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-light text-muted border{% endif %} ms-1">
+            <div class="d-flex align-items-center justify-content-between mz-caption text-muted pt-2 border-top">
+              <div>
+                <span>Chỉ tiêu: <strong class="text-strong">{{ t.capacity }}</strong></span>
+              </div>
+              <div>
+                <span>Chờ duyệt:</span>
+                <span class="mz-badge {% if t.pending_count %}mz-badge-warning{% else %}mz-badge-neutral{% endif %} ms-1">
                   {{ t.pending_count|default:0 }}
                 </span>
               </div>
-              <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-sm btn-outline-primary text-nowrap">
-                Duyệt ngay
+            </div>
+
+            <div class="mt-3 pt-2 border-top d-flex justify-content-end gap-2">
+              <a href="{% url 'lecturer_topic_edit' t.pk %}" class="mz-btn mz-btn-secondary mz-btn-sm">
+                {% include "components/icon.html" with name="square-pen" size=14 %}
+                <span>Sửa</span>
+              </a>
+              <a href="{% url 'lecturer_registrations' t.pk %}" class="mz-btn mz-btn-primary mz-btn-sm">
+                {% include "components/icon.html" with name="user-check" size=14 %}
+                <span>Duyệt ngay</span>
               </a>
             </div>
           </div>
         {% endfor %}
       </div>
-    </div>
 
-  {% else %}
-    <div class="empty-state py-5">
-      <div class="empty-state-icon"><i class="bi bi-folder2-open"></i></div>
-      <h3 class="empty-state-title">Chưa có đề tài</h3>
-      <p class="empty-state-desc">Các đề tài do bạn phụ trách sẽ xuất hiện tại đây sau khi được tạo hoặc phân công.</p>
-    </div>
-  {% endif %}
+    {% else %}
+      {% include "components/empty_state.html" with illustration="empty-topics" title="Chưa có đề tài" description="Bạn chưa đăng ký đề tài hướng dẫn tốt nghiệp nào. Tạo đề tài đầu tiên để sinh viên có thể đăng ký." primary_url="/de-tai/them/" primary_label="Tạo đề tài mới" %}
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

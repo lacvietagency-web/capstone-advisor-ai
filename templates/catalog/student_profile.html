@@ -104,8 +104,13 @@
         {{ skill_formset.management_form }}
 
         {% if skill_formset.non_form_errors %}
-          <div class="mz-alert mz-alert-danger mb-3 py-2">
-            {{ skill_formset.non_form_errors }}
+          <div class="mz-alert mz-alert-danger mb-3 py-2" role="alert">
+            {% for error in skill_formset.non_form_errors %}
+              <div class="d-flex align-items-center gap-2">
+                {% include "components/icon.html" with name="triangle-alert" size=14 class="text-danger flex-shrink-0" %}
+                <span>{{ error }}</span>
+              </div>
+            {% endfor %}
           </div>
         {% endif %}
 
@@ -121,7 +126,7 @@
         <!-- Skills Rows Container -->
         <div class="mz-formset-container" id="skill-forms-container">
           {% for f in skill_formset %}
-            <div class="mz-formset-row skill-row" data-form-index="{{ forloop.counter0 }}">
+            <div class="mz-formset-row skill-row {% if f.errors %}border-danger{% endif %}" data-form-index="{{ forloop.counter0 }}">
               {% for hidden in f.hidden_fields %}
                 {{ hidden }}
               {% endfor %}
@@ -132,7 +137,12 @@
                 {{ f.skill }}
                 {% if f.skill.errors %}
                   <div class="mz-form-error text-danger small mt-1">
-                    <span>{{ f.skill.errors.0 }}</span>
+                    {% for err in f.skill.errors %}
+                      <div class="d-flex align-items-center gap-1">
+                        {% include "components/icon.html" with name="triangle-alert" size=12 class="text-danger flex-shrink-0" %}
+                        <span>{{ err }}</span>
+                      </div>
+                    {% endfor %}
                   </div>
                 {% endif %}
               </div>
@@ -146,7 +156,12 @@
                 </div>
                 {% if f.level.errors %}
                   <div class="mz-form-error text-danger small mt-1">
-                    <span>{{ f.level.errors.0 }}</span>
+                    {% for err in f.level.errors %}
+                      <div class="d-flex align-items-center gap-1">
+                        {% include "components/icon.html" with name="triangle-alert" size=12 class="text-danger flex-shrink-0" %}
+                        <span>{{ err }}</span>
+                      </div>
+                    {% endfor %}
                   </div>
                 {% endif %}
               </div>
@@ -163,7 +178,14 @@
               </div>
 
               {% if f.non_field_errors %}
-                <div class="text-danger small col-12 mt-1">{{ f.non_field_errors }}</div>
+                <div class="mz-form-error text-danger small mt-1" style="grid-column: 1 / -1;">
+                  {% for err in f.non_field_errors %}
+                    <div class="d-flex align-items-center gap-1">
+                      {% include "components/icon.html" with name="triangle-alert" size=12 class="text-danger flex-shrink-0" %}
+                      <span>{{ err }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
               {% endif %}
             </div>
           {% endfor %}
@@ -198,8 +220,13 @@
         {{ interest_formset.management_form }}
 
         {% if interest_formset.non_form_errors %}
-          <div class="mz-alert mz-alert-danger mb-3 py-2">
-            {{ interest_formset.non_form_errors }}
+          <div class="mz-alert mz-alert-danger mb-3 py-2" role="alert">
+            {% for error in interest_formset.non_form_errors %}
+              <div class="d-flex align-items-center gap-2">
+                {% include "components/icon.html" with name="triangle-alert" size=14 class="text-danger flex-shrink-0" %}
+                <span>{{ error }}</span>
+              </div>
+            {% endfor %}
           </div>
         {% endif %}
 
@@ -215,7 +242,7 @@
         <!-- Interests Rows Container -->
         <div class="mz-formset-container" id="interest-forms-container">
           {% for f in interest_formset %}
-            <div class="mz-formset-row interest-row" data-form-index="{{ forloop.counter0 }}">
+            <div class="mz-formset-row interest-row {% if f.errors %}border-danger{% endif %}" data-form-index="{{ forloop.counter0 }}">
               {% for hidden in f.hidden_fields %}
                 {{ hidden }}
               {% endfor %}
@@ -226,7 +253,12 @@
                 {{ f.field }}
                 {% if f.field.errors %}
                   <div class="mz-form-error text-danger small mt-1">
-                    <span>{{ f.field.errors.0 }}</span>
+                    {% for err in f.field.errors %}
+                      <div class="d-flex align-items-center gap-1">
+                        {% include "components/icon.html" with name="triangle-alert" size=12 class="text-danger flex-shrink-0" %}
+                        <span>{{ err }}</span>
+                      </div>
+                    {% endfor %}
                   </div>
                 {% endif %}
               </div>
@@ -240,7 +272,12 @@
                 </div>
                 {% if f.level.errors %}
                   <div class="mz-form-error text-danger small mt-1">
-                    <span>{{ f.level.errors.0 }}</span>
+                    {% for err in f.level.errors %}
+                      <div class="d-flex align-items-center gap-1">
+                        {% include "components/icon.html" with name="triangle-alert" size=12 class="text-danger flex-shrink-0" %}
+                        <span>{{ err }}</span>
+                      </div>
+                    {% endfor %}
                   </div>
                 {% endif %}
               </div>
@@ -257,7 +294,14 @@
               </div>
 
               {% if f.non_field_errors %}
-                <div class="text-danger small col-12 mt-1">{{ f.non_field_errors }}</div>
+                <div class="mz-form-error text-danger small mt-1" style="grid-column: 1 / -1;">
+                  {% for err in f.non_field_errors %}
+                    <div class="d-flex align-items-center gap-1">
+                      {% include "components/icon.html" with name="triangle-alert" size=12 class="text-danger flex-shrink-0" %}
+                      <span>{{ err }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
               {% endif %}
             </div>
           {% endfor %}

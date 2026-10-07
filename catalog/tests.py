@@ -896,3 +896,25 @@ class CoreMosaicTests(TestCase):
         self.assertContains(r, "Bạn không có quyền xem trang này", status_code=403)
         r = self.client.get("/khong-ton-tai/")
         self.assertEqual(r.status_code, 404)
+
+    def test_duplicate_skill_rows_show_clear_error(self):
+        from catalog.forms import StudentSkillFormSet
+        from catalog.models import Skill, Student
+
+        call_command("seed_demo", students=3, lecturers=2, topics=4, verbosity=0)
+        st = Student.objects.get(user__username="sv001")
+        st.skills.all().delete()
+        sk = Skill.objects.first()
+        data = {
+            "skills-TOTAL_FORMS": "2",
+            "skills-INITIAL_FORMS": "0",
+            "skills-MIN_NUM_FORMS": "0",
+            "skills-MAX_NUM_FORMS": "1000",
+            "skills-0-skill": sk.pk,
+            "skills-0-level": "3",
+            "skills-1-skill": sk.pk,
+            "skills-1-level": "4",
+        }
+        fs = StudentSkillFormSet(data, instance=st, prefix="skills")
+        self.assertFalse(fs.is_valid())
+        self.assertIn("bị chọn ở hai dòng", " ".join(fs.non_form_errors()))

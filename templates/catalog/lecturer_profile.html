@@ -1,37 +1,36 @@
 {% extends "base.html" %}
 
-{% block title %}Hồ sơ Giảng viên — {{ lecturer.user.get_full_name|default:lecturer.user.username }}{% endblock %}
+{% block title %}Hồ sơ Giảng viên — {{ lecturer.user.get_full_name|default:lecturer.user.username }} — Mosaic AI{% endblock %}
 
 {% block content %}
-<div class="profile-page">
-  <!-- Breadcrumb (DESIGN.md Section 9) -->
-  <nav aria-label="breadcrumb" class="profile-breadcrumb mb-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item">
-        <a href="{% url 'home' %}">
-          {% if is_faculty_admin %}Quản trị Khoa{% else %}Giảng viên{% endif %}
-        </a>
-      </li>
-      <li class="breadcrumb-item active" aria-current="page">Hồ sơ Giảng viên</li>
-    </ol>
-  </nav>
-
-  <!-- Page Header & Faculty Admin Switcher -->
-  <div class="profile-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+<div class="mz-lecturer-profile-page" data-mz-reveal>
+  <!-- Page Header & Action Buttons -->
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
     <div>
-      <div class="page-kicker">GIẢNG VIÊN</div>
-      <h1 class="profile-title mb-1">Hồ sơ Giảng viên</h1>
-      <p class="profile-subtitle">
-        Cập nhật thông tin bộ môn, lĩnh vực chuyên môn và chỉ tiêu hướng dẫn tốt nghiệp.
-      </p>
+      <h1 class="mz-h2 mb-1">Hồ sơ Giảng viên</h1>
+      <p class="mz-caption text-muted mb-0">Cập nhật thông tin bộ môn, lĩnh vực chuyên môn và chỉ tiêu hướng dẫn tốt nghiệp.</p>
     </div>
-    {% if is_faculty_admin and lecturers_list %}
-    <div class="admin-lecturer-selector card border p-2 px-3 shadow-sm bg-white flex-shrink-0">
-      <div class="d-flex align-items-center gap-2">
-        <label for="select-lecturer" class="form-label mb-0 text-nowrap fw-semibold small text-secondary">
-          <i class="bi bi-person-gear me-1 text-primary"></i>Chọn GV:
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'home' %}" class="mz-btn mz-btn-secondary">
+        {% include "components/icon.html" with name="arrow-left" size=16 %}
+        <span>Về trang chủ</span>
+      </a>
+      <button type="submit" form="lecturer-profile-form" class="mz-btn mz-btn-primary" id="btn-save-profile">
+        {% include "components/icon.html" with name="save" size=16 %}
+        <span>Lưu thay đổi</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Switcher dành cho Cán bộ Quản trị Khoa (nếu có danh sách GV) -->
+  {% if is_faculty_admin and lecturers_list %}
+    <div class="mz-card mb-4 py-2 px-3 bg-surface-subtle border" data-mz-reveal>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <label for="select-lecturer" class="mz-form-label mb-0 small text-strong text-nowrap">
+          {% include "components/icon.html" with name="users" size=16 class="text-primary me-1" %}
+          Chọn giảng viên cần điều chỉnh:
         </label>
-        <select id="select-lecturer" class="form-select form-select-sm" style="min-width: 220px;" onchange="if (this.value) window.location.href='/ho-so-giang-vien/' + this.value + '/';">
+        <select id="select-lecturer" class="mz-form-select mz-form-select-sm" style="max-width: 280px;" onchange="if (this.value) window.location.href='/ho-so-giang-vien/' + this.value + '/';">
           {% for item in lecturers_list %}
             <option value="{{ item.pk }}" {% if item.pk == lecturer.pk %}selected{% endif %}>
               {{ item.user.get_full_name|default:item.user.username }} ({{ item.department|default:"Chưa gán bộ môn" }})
@@ -40,73 +39,72 @@
         </select>
       </div>
     </div>
-    {% endif %}
-  </div>
+  {% endif %}
 
-  <!-- Lecturer Overview Card -->
-  <div class="lecturer-info-card p-3 p-md-4 mb-4 bg-white rounded-3 border shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-3">
-    <div class="d-flex align-items-center gap-3">
-      <div class="lecturer-avatar flex-shrink-0" aria-hidden="true">
-        {{ lecturer.user.first_name|first|default:lecturer.user.username|slice:":1"|upper }}
-      </div>
-      <div>
-        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-          <h2 class="h5 mb-0 fw-bold text-strong">{{ lecturer.user.get_full_name|default:lecturer.user.username }}</h2>
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 small fw-semibold">
-            {{ lecturer.user.get_role_display }}
-          </span>
+  <!-- Overview Card (Avatar chữ cái to, chức danh, thống kê tóm tắt) -->
+  <div class="mz-card mb-4" data-mz-reveal>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <!-- Avatar chữ cái to chuẩn Mosaic AI -->
+        <div class="mz-avatar-initials fs-3 fw-bold" style="width: 64px; height: 64px; border-radius: 12px;" aria-hidden="true">
+          {{ lecturer.user.first_name|first|default:lecturer.user.username|slice:":1"|upper }}
         </div>
-        <div class="text-secondary small d-flex align-items-center gap-2 flex-wrap">
-          <span><i class="bi bi-person-badge me-1"></i>Tài khoản: <code class="text-dark">{{ lecturer.user.username }}</code></span>
-          <span class="text-muted d-none d-sm-inline">·</span>
-          <span><i class="bi bi-building me-1"></i>{{ lecturer.department|default:"Chưa gán bộ môn" }}</span>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <h2 class="mz-h3 fs-4 mb-0 fw-bold text-strong">{{ lecturer.user.get_full_name|default:lecturer.user.username }}</h2>
+            <span class="mz-badge mz-badge-published">{{ lecturer.user.get_role_display }}</span>
+          </div>
+          <div class="mz-caption text-muted d-flex align-items-center gap-2 flex-wrap">
+            <span>Tài khoản: <strong class="text-strong font-monospace">{{ lecturer.user.username }}</strong></span>
+            <span>·</span>
+            <span>Bộ môn: <strong class="text-strong">{{ lecturer.department|default:"Chưa cập nhật bộ môn" }}</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3 flex-shrink-0">
+        <div class="p-3 bg-surface-subtle rounded-2 border text-center" style="min-width: 120px;">
+          <div class="mz-caption text-muted mb-1">Chỉ tiêu tối đa</div>
+          <div class="fw-bold text-strong fs-4">{{ lecturer.max_students }} SV</div>
+        </div>
+        <div class="p-3 bg-surface-subtle rounded-2 border text-center" style="min-width: 120px;">
+          <div class="mz-caption text-muted mb-1">Số đề tài</div>
+          <div class="fw-bold text-strong fs-4">{{ lecturer.topics.count }}</div>
         </div>
       </div>
     </div>
-    <div class="d-flex align-items-center gap-3">
-      <div class="lecturer-stat-badge">
-        <div class="stat-badge-num">{{ lecturer.max_students }}</div>
-        <div class="stat-badge-label">Chỉ tiêu tối đa</div>
-      </div>
-    </div>
   </div>
 
-  <!-- Outstanding Quota Locked Alert (DESIGN.md Section 20) -->
+  <!-- Thông báo trạng thái Khóa chỉ tiêu (nếu đợt đã đóng) -->
   {% if is_locked and not is_faculty_admin %}
-    <div class="quota-locked-alert alert alert-warning border-start border-4 border-warning shadow-sm d-flex align-items-start gap-3 p-3 p-md-4 mb-4 rounded-3" role="alert">
-      <div class="locked-icon-wrapper flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle bg-warning bg-opacity-25" style="width: 44px; height: 44px;">
-        <i class="bi bi-lock-fill fs-5 text-warning-emphasis"></i>
-      </div>
-      <div class="flex-grow-1">
-        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-          <h5 class="alert-heading fw-bold mb-0 fs-6 text-warning-emphasis">
-            Chỉ tiêu hướng dẫn đã bị khoá
-          </h5>
-          <span class="badge bg-warning text-dark border border-warning-subtle fw-semibold">
-            <i class="bi bi-clock-history me-1"></i>Đợt đăng ký đã đóng
-          </span>
+    <div class="mz-alert mz-alert-warning mb-4" role="alert" data-mz-reveal>
+      {% include "components/icon.html" with name="lock-keyhole" size=20 class="text-warning flex-shrink-0" %}
+      <div>
+        <div class="fw-semibold">Đợt đăng ký đã đóng. Chỉ tiêu hướng dẫn đang được khóa.</div>
+        <div class="mz-caption text-warning mt-1">
+          Chỉ tiêu hướng dẫn tối đa đã được chốt phục vụ thuật toán phân công ILP. Bạn vẫn có thể cập nhật Bộ môn và Lĩnh vực chuyên môn. Nếu cần điều chỉnh chỉ tiêu, vui lòng liên hệ Ban chủ nhiệm Khoa.
         </div>
-        <p class="mb-0 text-secondary" style="font-size: 14.5px; line-height: 1.55;">
-          Đợt đăng ký hiện đã đóng hoặc chỉ tiêu đã được chốt. Bạn vẫn có thể cập nhật thông tin <strong>Bộ môn</strong> và <strong>Lĩnh vực chuyên môn</strong>, nhưng <strong>chỉ Cán bộ Khoa mới có quyền điều chỉnh chỉ tiêu hướng dẫn</strong>. Nếu cần thay đổi chỉ tiêu trong giai đoạn này, vui lòng liên hệ Ban chủ nhiệm Khoa để được hỗ trợ.
-        </p>
       </div>
     </div>
   {% elif is_locked and is_faculty_admin %}
-    <div class="alert alert-info border-start border-4 border-info shadow-sm d-flex align-items-center gap-3 p-3 mb-4 rounded-3" role="alert">
-      <i class="bi bi-shield-check text-info fs-4 flex-shrink-0"></i>
-      <div class="small">
-        <span class="fw-semibold">Chế độ Quản trị Khoa:</span> Đợt đăng ký hiện đã đóng đối với giảng viên, nhưng với quyền Cán bộ Khoa, bạn vẫn có thể điều chỉnh chỉ tiêu hướng dẫn cho giảng viên này.
+    <div class="mz-alert mz-alert-info mb-4" role="alert" data-mz-reveal>
+      {% include "components/icon.html" with name="shield-check" size=20 class="text-info flex-shrink-0" %}
+      <div>
+        <div class="fw-semibold">Chế độ Cán bộ Khoa</div>
+        <div class="mz-caption text-info mt-1">
+          Đợt đăng ký đã đóng với giảng viên, nhưng với quyền quản trị Khoa, bạn vẫn có thể điều chỉnh chỉ tiêu hướng dẫn cho giảng viên này.
+        </div>
       </div>
     </div>
   {% endif %}
 
   <!-- Validation Error Alert Banner -->
   {% if form.errors or form.non_field_errors %}
-    <div class="alert alert-danger d-flex align-items-start gap-2 mb-4 rounded-3 shadow-sm" role="alert">
-      <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1 fs-5"></i>
+    <div class="mz-alert mz-alert-danger mb-4" role="alert">
+      {% include "components/icon.html" with name="triangle-alert" size=20 class="text-danger flex-shrink-0" %}
       <div>
-        <div class="fw-semibold">Không thể lưu thông tin hồ sơ.</div>
-        <div class="small">Vui lòng kiểm tra lại các trường được đánh dấu lỗi bên dưới.</div>
+        <div class="fw-semibold">Không thể lưu thông tin hồ sơ</div>
+        <div class="mz-caption text-danger">Vui lòng kiểm tra lại các trường được đánh dấu lỗi bên dưới.</div>
         {% if form.non_field_errors %}
           <div class="small mt-2 pt-2 border-top border-danger-subtle">
             {% for error in form.non_field_errors %}{{ error }}<br>{% endfor %}
@@ -119,154 +117,133 @@
   <form method="post" id="lecturer-profile-form" novalidate>
     {% csrf_token %}
 
-    <!-- 01: Bộ môn công tác -->
-    <section class="profile-section-card" id="section-department">
-      <div class="profile-section-heading">
-        <div class="profile-section-number">01</div>
-        <div>
-          <h2 class="profile-section-title">Bộ môn công tác</h2>
-          <p class="profile-section-desc">Bộ môn trực thuộc Khoa nơi giảng viên đang công tác, giảng dạy và quản lý chuyên môn.</p>
-        </div>
-      </div>
-
-      <div class="profile-section-content">
-        <div class="form-group mb-2">
-          <label for="{{ form.department.id_for_label }}" class="form-label">
-            {{ form.department.label }}
-          </label>
-          {{ form.department }}
-          {% if form.department.errors %}
-            <div class="form-error-msg">
-              <i class="bi bi-exclamation-circle"></i>
-              <span>{{ form.department.errors.0 }}</span>
+    <div class="row g-4">
+      <!-- Cột trái: Bộ môn công tác & Lĩnh vực chuyên môn -->
+      <div class="col-12 col-lg-8">
+        <!-- 01: Bộ môn công tác -->
+        <section class="mz-card mb-4" data-mz-reveal>
+          <div class="mz-card-header">
+            <div>
+              <h2 class="mz-card-title">01 · Bộ môn công tác</h2>
+              <div class="mz-caption text-muted">Bộ môn trực thuộc nơi giảng viên đang công tác và giảng dạy chuyên môn.</div>
             </div>
-          {% endif %}
-        </div>
-        <div class="profile-help-text mt-2">
-          <i class="bi bi-info-circle me-1"></i>Ví dụ: Bộ môn Công nghệ phần mềm, Bộ môn Hệ thống thông tin, Bộ môn Mạng máy tính & An toàn thông tin...
-        </div>
-      </div>
-    </section>
-
-    <!-- 02: Lĩnh vực chuyên môn -->
-    <section class="profile-section-card" id="section-fields">
-      <div class="profile-section-heading">
-        <div class="profile-section-number">02</div>
-        <div class="flex-grow-1 d-flex justify-content-between align-items-start flex-wrap gap-2">
-          <div>
-            <h2 class="profile-section-title">{{ form.fields.label|default:"Lĩnh vực chuyên môn" }}</h2>
-            <p class="profile-section-desc">Chọn các hướng nghiên cứu hoặc lĩnh vực thế mạnh bạn phụ trách hướng dẫn để sinh viên và hệ thống AI gợi ý đề tài phù hợp.</p>
           </div>
-          <span class="badge bg-light text-primary border rounded-pill px-3 py-2 small fw-semibold" id="selected-fields-count">
-            <i class="bi bi-check2-circle me-1"></i>Đã chọn: <span id="fields-count-num">0</span> lĩnh vực
-          </span>
-        </div>
-      </div>
 
-      <div class="profile-section-content">
-        <div class="row row-cols-1 row-cols-md-2 g-3 fields-chip-grid" id="fields-chip-container">
-          {% for checkbox in form.fields %}
-            <div class="col">
-              <label class="field-chip-card" for="{{ checkbox.id_for_label }}">
-                <div class="field-chip-checkbox-box">
+          <div class="mb-3">
+            <label for="{{ form.department.id_for_label }}" class="mz-form-label">
+              {{ form.department.label|default:"Bộ môn" }} <span class="text-danger">*</span>
+            </label>
+            {{ form.department }}
+            {% if form.department.errors %}
+              <div class="mz-form-error text-danger small mt-1">
+                {% for err in form.department.errors %}<div>{{ err }}</div>{% endfor %}
+              </div>
+            {% endif %}
+            <div class="mz-form-text">Ví dụ: Bộ môn Công nghệ phần mềm, Bộ môn Trí tuệ nhân tạo, Bộ môn Hệ thống thông tin...</div>
+          </div>
+        </section>
+
+        <!-- 02: Lĩnh vực chuyên môn (Dạng chip chọn) -->
+        <section class="mz-card mb-4" data-mz-reveal>
+          <div class="mz-card-header">
+            <div>
+              <h2 class="mz-card-title">02 · Lĩnh vực chuyên môn</h2>
+              <div class="mz-caption text-muted">Chọn các hướng nghiên cứu hoặc lĩnh vực thế mạnh bạn nhận hướng dẫn đồ án.</div>
+            </div>
+            <span class="mz-badge mz-badge-neutral" id="selected-fields-badge">
+              <span id="fields-count-num">0</span> lĩnh vực đã chọn
+            </span>
+          </div>
+
+          <div class="mb-3">
+            <div class="mz-chip-group d-flex flex-wrap gap-2 mt-1" id="lecturer-fields-container">
+              {% for checkbox in form.fields %}
+                <label class="mz-chip-item {% if checkbox.data.selected %}active{% endif %}" for="{{ checkbox.id_for_label }}">
                   {{ checkbox.tag }}
-                </div>
-                <div class="field-chip-body">
-                  <span class="field-chip-title">{{ checkbox.choice_label }}</span>
-                  <span class="field-chip-hint">Hướng đề tài & chuyên môn</span>
-                </div>
-              </label>
+                  <span>{{ checkbox.choice_label }}</span>
+                </label>
+              {% endfor %}
             </div>
-          {% endfor %}
-        </div>
 
-        {% if form.fields.errors %}
-          <div class="form-error-msg mt-3">
-            <i class="bi bi-exclamation-circle"></i>
-            <span>{{ form.fields.errors.0 }}</span>
+            {% if form.fields.errors %}
+              <div class="mz-form-error text-danger small mt-2">
+                {% for err in form.fields.errors %}<div>{{ err }}</div>{% endfor %}
+              </div>
+            {% endif %}
+            <div class="mz-form-text mt-2">
+              Các đề tài do giảng viên tạo và thuật toán đối sánh gợi ý sẽ ưu tiên liên kết với những lĩnh vực này.
+            </div>
           </div>
-        {% endif %}
-
-        <div class="profile-help-text mt-3">
-          <i class="bi bi-lightbulb me-1"></i>Gợi ý: Chọn ít nhất 1–2 lĩnh vực thế mạnh. Các đề tài do bạn đăng ký hoặc hướng dẫn sẽ được liên kết với những lĩnh vực này.
-        </div>
-      </div>
-    </section>
-
-    <!-- 03: Chỉ tiêu hướng dẫn tốt nghiệp -->
-    <section class="profile-section-card" id="section-quota">
-      <div class="profile-section-heading">
-        <div class="profile-section-number">03</div>
-        <div class="flex-grow-1 d-flex justify-content-between align-items-start flex-wrap gap-2">
-          <div>
-            <h2 class="profile-section-title">Chỉ tiêu hướng dẫn tốt nghiệp</h2>
-            <p class="profile-section-desc">Số lượng sinh viên tối đa giảng viên có thể nhận hướng dẫn trong đợt tốt nghiệp hiện tại.</p>
-          </div>
-          {% if is_locked and not is_faculty_admin %}
-            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 rounded-pill small fw-semibold">
-              <i class="bi bi-lock-fill me-1"></i>Đã khoá bởi Khoa
-            </span>
-          {% else %}
-            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small fw-semibold">
-              <i class="bi bi-unlock-fill me-1"></i>Đang mở điều chỉnh
-            </span>
-          {% endif %}
-        </div>
+        </section>
       </div>
 
-      <div class="profile-section-content">
-        <div class="form-group mb-3">
-          <label for="{{ form.max_students.id_for_label }}" class="form-label d-flex align-items-center justify-content-between">
-            <span>{{ form.max_students.label }}</span>
-            <span class="small text-muted fw-normal">Đơn vị: Sinh viên</span>
-          </label>
-          <div class="input-group input-group-quota">
-            <span class="input-group-text bg-light text-secondary border-end-0">
-              <i class="bi {% if is_locked and not is_faculty_admin %}bi-lock-fill text-warning-emphasis{% else %}bi-people-fill text-primary{% endif %}"></i>
-            </span>
-            {{ form.max_students }}
-            <span class="input-group-text bg-light text-secondary">sinh viên</span>
+      <!-- Cột phải: Chỉ tiêu hướng dẫn + Giải thích nghiệp vụ -->
+      <div class="col-12 col-lg-4">
+        <!-- 03: Chỉ tiêu hướng dẫn tốt nghiệp -->
+        <section class="mz-card mb-4" data-mz-reveal>
+          <div class="mz-card-header">
+            <div>
+              <h2 class="mz-card-title">03 · Chỉ tiêu hướng dẫn</h2>
+              <div class="mz-caption text-muted">Giới hạn sinh viên hướng dẫn trong đợt.</div>
+            </div>
+            {% if is_locked and not is_faculty_admin %}
+              <span class="mz-badge mz-badge-neutral">
+                {% include "components/icon.html" with name="lock-keyhole" size=12 class="me-1" %}
+                Đã khóa
+              </span>
+            {% else %}
+              <span class="mz-badge mz-badge-published">
+                {% include "components/icon.html" with name="sparkles" size=12 class="me-1" %}
+                Đang mở
+              </span>
+            {% endif %}
           </div>
 
-          {% if form.max_students.help_text %}
-            <div class="form-text text-muted mt-2">
-              <i class="bi bi-info-circle me-1"></i>{{ form.max_students.help_text }}
+          <div class="mb-3">
+            <label for="{{ form.max_students.id_for_label }}" class="mz-form-label">
+              {{ form.max_students.label|default:"Số sinh viên tối đa" }}
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-surface-subtle text-muted">
+                {% include "components/icon.html" with name="users" size=16 %}
+              </span>
+              {{ form.max_students }}
+              <span class="input-group-text bg-surface-subtle text-muted">SV</span>
             </div>
-          {% endif %}
 
-          {% if form.max_students.errors %}
-            <div class="form-error-msg mt-1">
-              <i class="bi bi-exclamation-circle"></i>
-              <span>{{ form.max_students.errors.0 }}</span>
-            </div>
-          {% endif %}
-        </div>
+            {% if form.max_students.help_text %}
+              <div class="mz-form-text">{{ form.max_students.help_text }}</div>
+            {% endif %}
 
-        <!-- Quota detailed explanation box -->
-        <div class="quota-explanation-box mt-3 p-3 rounded-3 bg-light border">
-          <div class="d-flex align-items-start gap-2">
-            <i class="bi bi-shield-check text-primary fs-5 mt-0 flex-shrink-0"></i>
-            <div class="small text-secondary">
-              <div class="fw-semibold text-strong mb-1">Mục đích và quy tắc tính chỉ tiêu:</div>
-              <ul class="mb-0 ps-3" style="line-height: 1.6;">
-                <li><strong>Thuật toán tối ưu hóa phân công (ILP):</strong> Chỉ tiêu này là ràng buộc cứng đối với số sinh viên được gán cho giảng viên, bảo đảm khối lượng công việc cân đối giữa các giảng viên trong Khoa.</li>
-                <li><strong>Nguyện vọng của sinh viên:</strong> Giảng viên có thể xem danh sách sinh viên đăng ký đề tài và duyệt theo thứ tự ưu tiên trong giới hạn chỉ tiêu này.</li>
-                <li><strong>Cơ chế khoá chỉ tiêu:</strong> Khi đợt đăng ký đóng, hệ thống sẽ tự động khoá chỉ tiêu để bảo đảm tính ổn định dữ liệu phục vụ xếp lịch bảo vệ và phân công. Cán bộ Quản trị Khoa có quyền điều chỉnh khi cần thiết.</li>
-              </ul>
-            </div>
+            {% if form.max_students.errors %}
+              <div class="mz-form-error text-danger small mt-1">
+                {% for err in form.max_students.errors %}<div>{{ err }}</div>{% endfor %}
+              </div>
+            {% endif %}
           </div>
+
+          <!-- Giải thích quy tắc ràng buộc chỉ tiêu -->
+          <div class="p-3 bg-surface-subtle rounded-2 border small text-muted">
+            <div class="fw-semibold text-strong mb-1">Ràng buộc thuật toán (ILP):</div>
+            <ul class="mb-0 ps-3" style="line-height: 1.6;">
+              <li>Chỉ tiêu là ràng buộc cứng bảo đảm cân đối tải giữa các giảng viên trong Khoa.</li>
+              <li>Khi đợt đăng ký đóng, chỉ tiêu sẽ tự động khóa để bảo đảm dữ liệu phân công ổn định.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- Thao tác lưu cố định -->
+        <div class="d-flex flex-column gap-2">
+          <button type="submit" class="mz-btn mz-btn-primary w-100 justify-content-center">
+            {% include "components/icon.html" with name="save" size=16 %}
+            <span>Lưu thay đổi hồ sơ</span>
+          </button>
+          <a href="{% url 'home' %}" class="mz-btn mz-btn-secondary w-100 justify-content-center">
+            {% include "components/icon.html" with name="arrow-left" size=16 %}
+            <span>Quay lại trang chủ</span>
+          </a>
         </div>
       </div>
-    </section>
-
-    <!-- Bottom Actions -->
-    <div class="profile-actions">
-      <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-back">
-        <i class="bi bi-arrow-left me-1"></i>Về trang chủ
-      </a>
-      <button type="submit" class="btn btn-save-profile" id="btn-save-profile">
-        <i class="bi bi-check-lg me-1"></i>Lưu thông tin
-      </button>
     </div>
   </form>
 </div>
@@ -278,64 +255,35 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("lecturer-profile-form");
   if (!form) return;
 
-  // 1. Ensure inputs have form-control class
-  form.querySelectorAll('input[type="text"], input[type="number"]').forEach(function (el) {
-    if (!el.classList.contains("form-control")) {
-      el.classList.add("form-control");
-    }
+  // 1. Chuẩn hóa style input
+  form.querySelectorAll("input[type='text'], input[type='number']").forEach(function (el) {
+    if (!el.classList.contains("mz-form-control")) el.classList.add("mz-form-control");
   });
 
-  // Placeholder and attributes for department and max_students
-  const deptInput = document.getElementById("{{ form.department.id_for_label }}") || form.querySelector('input[name="department"]');
-  if (deptInput && !deptInput.placeholder) {
-    deptInput.placeholder = "Ví dụ: Bộ môn Công nghệ phần mềm, Bộ môn Hệ thống thông tin...";
+  // 2. Chip Lĩnh vực chuyên môn tương tác và đếm số lượng
+  const chipsContainer = document.getElementById("lecturer-fields-container");
+  const countDisplay = document.getElementById("fields-count-num");
+
+  function updateSelectedCount() {
+    if (!chipsContainer) return;
+    const checked = chipsContainer.querySelectorAll("input[type='checkbox']:checked");
+    if (countDisplay) countDisplay.textContent = checked.length.toString();
   }
 
-  const maxStudentsInput = document.getElementById("{{ form.max_students.id_for_label }}") || form.querySelector('input[name="max_students"]');
-  if (maxStudentsInput) {
-    if (!maxStudentsInput.getAttribute("min")) maxStudentsInput.setAttribute("min", "1");
-    if (!maxStudentsInput.getAttribute("max")) maxStudentsInput.setAttribute("max", "30");
-  }
+  if (chipsContainer) {
+    chipsContainer.querySelectorAll("input[type='checkbox']").forEach(function (cb) {
+      const chip = cb.closest(".mz-chip-item");
+      if (chip && cb.checked) chip.classList.add("active");
 
-  // 2. Chip cards interactive checked state & selected counter
-  const chipContainer = document.getElementById("fields-chip-container");
-  const countNum = document.getElementById("fields-count-num");
-
-  function updateFieldsCount() {
-    if (!chipContainer) return;
-    const checkboxes = chipContainer.querySelectorAll('input[type="checkbox"]');
-    let checkedCount = 0;
-    checkboxes.forEach(function (cb) {
-      const card = cb.closest(".field-chip-card");
-      if (cb.checked) {
-        checkedCount++;
-        if (card) card.classList.add("is-selected");
-      } else {
-        if (card) card.classList.remove("is-selected");
-      }
+      cb.addEventListener("change", function () {
+        if (chip) {
+          if (cb.checked) chip.classList.add("active");
+          else chip.classList.remove("active");
+        }
+        updateSelectedCount();
+      });
     });
-    if (countNum) {
-      countNum.textContent = checkedCount;
-    }
-  }
-
-  if (chipContainer) {
-    chipContainer.addEventListener("change", function (e) {
-      if (e.target && e.target.type === "checkbox") {
-        updateFieldsCount();
-      }
-    });
-    updateFieldsCount();
-  }
-
-  // 3. Double-submit prevention & loading state
-  const saveBtn = document.getElementById("btn-save-profile");
-  if (saveBtn) {
-    form.addEventListener("submit", function () {
-      saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang lưu thông tin...';
-      saveBtn.classList.add("disabled");
-      saveBtn.style.pointerEvents = "none";
-    });
+    updateSelectedCount();
   }
 });
 </script>

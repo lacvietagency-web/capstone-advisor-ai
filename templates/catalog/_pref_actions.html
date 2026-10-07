@@ -1,27 +1,45 @@
-{# [UC12] Trạng thái duyệt + nút Đồng ý / Từ chối cho một nguyện vọng (dùng chung bản máy tính và điện thoại) #}
-<div class="d-flex flex-wrap align-items-center gap-2 {{ extra_class }}">
+{# [UC12] Trạng thái duyệt + nút Đồng ý / Từ chối cho một nguyện vọng #}
+<div class="d-inline-flex flex-wrap align-items-center gap-2 {{ extra_class }}">
   {% if row.pref.status == "ACCEPTED" %}
-    <span class="badge text-bg-success"><i class="bi bi-check2 me-1"></i>{{ row.pref.get_status_display }}</span>
+    <span class="mz-badge mz-badge-assigned">
+      {% include "components/icon.html" with name="badge-check" size=14 class="me-1" %}
+      <span>{{ row.pref.get_status_display }}</span>
+    </span>
   {% elif row.pref.status == "REJECTED" %}
-    <span class="badge text-bg-danger"><i class="bi bi-x me-1"></i>{{ row.pref.get_status_display }}</span>
+    <div class="d-flex flex-column align-items-start">
+      <span class="mz-badge mz-badge-rejected">
+        {% include "components/icon.html" with name="user-x" size=14 class="me-1" %}
+        <span>{{ row.pref.get_status_display }}</span>
+      </span>
+      {% if row.pref.reject_reason %}
+        <div class="mz-caption text-danger mt-1 text-break-word" style="max-width: 240px;" title="{{ row.pref.reject_reason }}">
+          <strong>Lý do:</strong> {{ row.pref.reject_reason }}
+        </div>
+      {% endif %}
+    </div>
   {% else %}
-    <span class="badge text-bg-light border">{{ row.pref.get_status_display }}</span>
+    <span class="mz-badge mz-badge-pending">
+      {% include "components/icon.html" with name="info" size=14 class="me-1" %}
+      <span>{{ row.pref.get_status_display }}</span>
+    </span>
   {% endif %}
+
   {% if row.pref.status != "ACCEPTED" %}
-  <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" class="m-0">
-    {% csrf_token %}
-    <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
-    <input type="hidden" name="action" value="accept">
-    <button type="submit" class="btn btn-sm btn-success">Đồng ý</button>
-  </form>
+    <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" class="m-0 d-inline-block">
+      {% csrf_token %}
+      <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
+      <input type="hidden" name="action" value="accept">
+      <button type="submit" class="mz-btn mz-btn-success mz-btn-sm" title="Đồng ý tiếp nhận sinh viên này">
+        {% include "components/icon.html" with name="check" size=14 %}
+        <span>Đồng ý</span>
+      </button>
+    </form>
   {% endif %}
+
   {% if row.pref.status != "REJECTED" %}
-  <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" class="m-0">
-    {% csrf_token %}
-    <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
-    <input type="hidden" name="action" value="reject">
-    <input type="text" name="reason" class="form-control form-control-sm" placeholder="Lý do từ chối (bắt buộc)" required minlength="5" aria-label="Lý do từ chối">
-    <button type="submit" class="btn btn-sm btn-outline-danger">Từ chối</button>
-  </form>
+    <button type="button" class="mz-btn mz-btn-outline-danger mz-btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal_{{ row.pref.pk }}" title="Từ chối yêu cầu (bắt buộc nhập lý do)">
+      {% include "components/icon.html" with name="x" size=14 %}
+      <span>Từ chối</span>
+    </button>
   {% endif %}
 </div>

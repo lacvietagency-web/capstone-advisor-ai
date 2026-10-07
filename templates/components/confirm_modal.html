@@ -8,6 +8,10 @@
         {# Biến thể: GV từ chối SV đăng ký đề tài (Bắt buộc nhập lý do >= 5 ký tự) #}
         <form method="post" action="{{ action_url }}" class="m-0">
           {% csrf_token %}
+          {% if preference_id %}<input type="hidden" name="preference_id" value="{{ preference_id }}">{% endif %}
+          {% if pref_id %}<input type="hidden" name="preference_id" value="{{ pref_id }}">{% endif %}
+          {% if student_id %}<input type="hidden" name="student_id" value="{{ student_id }}">{% endif %}
+          <input type="hidden" name="action" value="{{ action_name|default:'reject' }}">
           <div class="modal-header mz-modal-header">
             <h5 class="modal-title mz-modal-title" id="{{ modal_id|default:'confirmModal' }}Label">
               {{ title|default:'Xác nhận từ chối sinh viên' }}

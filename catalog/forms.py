@@ -1,7 +1,7 @@
 """Form nghiệp vụ: hồ sơ SV, nguyện vọng, đề tài của GV."""
 
 from django import forms
-from django.forms import inlineformset_factory
+from django.forms import BaseInlineFormSet, inlineformset_factory
 
 from .models import Lecturer, Student, StudentInterest, StudentSkill, Topic, TopicSkill
 
@@ -25,9 +25,39 @@ class StudentAboutForm(forms.ModelForm):
         }
 
 
-StudentSkillFormSet = inlineformset_factory(Student, StudentSkill, fields=["skill", "level"], extra=2, can_delete=True)
+class _NoDuplicateFormSet(BaseInlineFormSet):
+    """Báo lỗi rõ ràng khi một mục (kỹ năng/lĩnh vực) được chọn ở hai dòng."""
+
+    key_field = "skill"
+    key_label = "Kỹ năng"
+
+    def clean(self):
+        # Kiểm tra trước super().clean(): validate_unique của Django chỉ báo "dữ liệu trùng lặp cho skill".
+        seen = set()
+        for form in self.forms:
+            if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
+                continue
+            item = form.cleaned_data.get(self.key_field)
+            if item is None:
+                continue
+            if item.pk in seen:
+                raise forms.ValidationError(
+                    f"{self.key_label} “{item}” bị chọn ở hai dòng — hãy xoá hoặc đổi một dòng."
+                )
+            seen.add(item.pk)
+        super().clean()
+
+
+class _NoDuplicateFieldFormSet(_NoDuplicateFormSet):
+    key_field = "field"
+    key_label = "Lĩnh vực"
+
+
+StudentSkillFormSet = inlineformset_factory(
+    Student, StudentSkill, formset=_NoDuplicateFormSet, fields=["skill", "level"], extra=2, can_delete=True
+)
 StudentInterestFormSet = inlineformset_factory(
-    Student, StudentInterest, fields=["field", "level"], extra=1, can_delete=True
+    Student, StudentInterest, formset=_NoDuplicateFieldFormSet, fields=["field", "level"], extra=1, can_delete=True
 )
 
 
@@ -78,7 +108,12 @@ class TopicForm(forms.ModelForm):
 
 
 TopicSkillFormSet = inlineformset_factory(
-    Topic, TopicSkill, fields=["skill", "required_level", "weight", "is_mandatory"], extra=2, can_delete=True
+    Topic,
+    TopicSkill,
+    formset=_NoDuplicateFormSet,
+    fields=["skill", "required_level", "weight", "is_mandatory"],
+    extra=2,
+    can_delete=True,
 )
 
 

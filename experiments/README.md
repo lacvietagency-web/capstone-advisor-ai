@@ -99,6 +99,7 @@ python -m experiments.rq2_llm_stability --students 30 --topics-per-student 3
 | Ollama (Qwen2.5-3B) | `qwen2.5:3b` | 29 | 16.65 ± 8.16 | -0.180 ± 0.298 |
 | Groq (openai/gpt-oss-20b) | `openai/gpt-oss-20b` | 30 | 10.34 ± 4.86 | 0.710 ± 0.226 |
 | Groq (qwen/qwen3.8-27b) | `qwen/qwen3.8-27b` | 9 | 6.17 ± 1.94 | 0.878 ± 0.090 |
+| Groq (openai/gpt-oss-120b) | `openai/gpt-oss-120b` | 30 | 7.92 ± 3.18 | 0.823 ± 0.110 |
 <!-- /BANG:rq2 -->
 
 > Mọi dòng là gọi API thật; "Số SV" là số SV đo được (API miễn phí giới hạn lượt/phút nên có model đo được ít hơn). Nemotron-550B (OpenRouter) không phản hồi kịp lượt nào nên không có dòng. gpt-oss-120b (model M5) đo bổ sung khi hạn mức Groq hồi.

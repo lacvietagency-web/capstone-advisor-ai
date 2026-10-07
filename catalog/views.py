@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import F
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from recommend.models import Recommendation
@@ -402,3 +402,56 @@ def topic_detail(request, pk=None, id=None):
         "prerequisites": topic.prerequisites.select_related("course").all(),
     }
     return render(request, "catalog/topic_detail.html", context)
+
+
+# ---------------------------------------------------------------- Khoa: nhập dữ liệu Excel (UC15)
+MAX_IMPORT_BYTES = 5 * 1024 * 1024
+
+
+@login_required
+def faculty_import(request):
+    """Khoa tải tệp .xlsx lên: lỗi bất kỳ dòng nào thì không nhập gì (all-or-nothing), báo lỗi theo dòng."""
+    if not (getattr(request.user, "is_faculty_admin", False) or request.user.is_superuser):
+        raise PermissionDenied("Chỉ tài khoản Khoa mới có quyền nhập dữ liệu.")
+    from .importer import import_excel_data
+
+    result = None
+    if request.method == "POST":
+        f = request.FILES.get("file")
+        if not f:
+            messages.error(request, "Chưa chọn tệp Excel.")
+        elif not f.name.lower().endswith(".xlsx"):
+            messages.error(request, "Chỉ nhận tệp .xlsx.")
+        elif f.size > MAX_IMPORT_BYTES:
+            messages.error(request, "Tệp lớn hơn 5 MB.")
+        else:
+            ok, errors, stats = import_excel_data(f)
+            result = {"ok": ok, "errors": errors, "stats": stats, "filename": f.name}
+            AuditLog.objects.create(
+                user=request.user,
+                action="import_excel",
+                entity="Excel",
+                detail={"file": f.name, "ok": ok, "stats": stats, "n_errors": len(errors)},
+            )
+            if ok:
+                messages.success(request, "Đã nhập xong: " + ", ".join(f"{v} {k}" for k, v in stats.items()) + ".")
+            else:
+                messages.error(request, f"Không nhập gì vì có {len(errors)} lỗi — sửa tệp rồi tải lên lại.")
+    return render(
+        request, "catalog/faculty_import.html", {"result": result, "max_mb": MAX_IMPORT_BYTES // (1024 * 1024)}
+    )
+
+
+@login_required
+def faculty_import_sample(request):
+    """Tải tệp Excel mẫu (4 sheet: SinhVien, GiangVien, DeTai, KyNang)."""
+    if not (getattr(request.user, "is_faculty_admin", False) or request.user.is_superuser):
+        raise PermissionDenied("Chỉ tài khoản Khoa mới có quyền nhập dữ liệu.")
+    from .importer import create_sample_excel
+
+    resp = HttpResponse(
+        create_sample_excel(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    resp["Content-Disposition"] = 'attachment; filename="mau_nhap_lieu.xlsx"'
+    return resp

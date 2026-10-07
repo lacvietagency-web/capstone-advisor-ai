@@ -918,3 +918,26 @@ class CoreMosaicTests(TestCase):
         fs = StudentSkillFormSet(data, instance=st, prefix="skills")
         self.assertFalse(fs.is_valid())
         self.assertIn("bị chọn ở hai dòng", " ".join(fs.non_form_errors()))
+
+    def test_faculty_import_page(self):
+        import io
+
+        from catalog.importer import create_sample_excel
+
+        call_command("seed_demo", students=3, lecturers=2, topics=4, verbosity=0)
+        self.client.login(username="sv001", password="123456")
+        self.assertEqual(self.client.get("/khoa/nhap-excel/").status_code, 403)
+        User.objects.create_user("khoa_t", password="x12345678", role=User.Role.ADMIN)
+        self.client.login(username="khoa_t", password="x12345678")
+        self.assertEqual(self.client.get("/khoa/nhap-excel/").status_code, 200)
+        r = self.client.get("/khoa/nhap-excel/mau.xlsx")
+        self.assertEqual(r.status_code, 200)
+        f = io.BytesIO(create_sample_excel())
+        f.name = "mau.xlsx"
+        r = self.client.post("/khoa/nhap-excel/", {"file": f}, follow=True)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.context["result"]["ok"], r.context["result"]["errors"][:3])
+        bad = io.BytesIO(b"not excel")
+        bad.name = "x.txt"
+        r = self.client.post("/khoa/nhap-excel/", {"file": bad})
+        self.assertIsNone(r.context["result"])

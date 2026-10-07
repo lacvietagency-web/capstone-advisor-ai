@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{# Bản chức năng tối thiểu (lõi) — giao diện Mosaic làm ở P3 theo render 18. Giữ: form multipart, name="file", csrf, url faculty_import_sample. #}
+{% block title %}Nhập dữ liệu Excel — Mosaic AI{% endblock %}
+{% block content %}
+<h1 class="h3">Nhập dữ liệu Excel</h1>
+<p>Tệp .xlsx tối đa {{ max_mb }} MB, 4 sheet: SinhVien, GiangVien, DeTai, KyNang. Có lỗi ở bất kỳ dòng nào thì <strong>không nhập gì</strong>.</p>
+<p><a href="{% url 'faculty_import_sample' %}">Tải tệp mẫu</a></p>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="file" name="file" accept=".xlsx" required>
+  <button type="submit" class="btn btn-primary">Kiểm tra &amp; nhập</button>
+</form>
+{% if result %}
+  {% if result.ok %}
+    <ul>{% for k, v in result.stats.items %}<li>{{ k }}: {{ v }}</li>{% endfor %}</ul>
+  {% else %}
+    <ul>{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  {% endif %}
+{% endif %}
+{% endblock %}

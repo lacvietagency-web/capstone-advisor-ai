@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biên bản họp đánh giá giao diện</title>
+<style>
+ body{margin:0;background:#F6F4EE;color:#1d2430;font-family:"Segoe UI",system-ui,sans-serif;line-height:1.55}
+ main{max-width:1000px;margin:0 auto;padding:24px 16px 60px} h1{font-size:28px;margin:0 0 4px} h2{font-size:20px;margin:30px 0 8px;border-top:1px solid #ddd6c6;padding-top:16px}
+ .sub{color:#5d6676;margin:0 0 16px} table{width:100%;border-collapse:collapse;background:#fff;font-size:15px} td,th{border:1px solid #e0d9ca;padding:8px 10px;text-align:left;vertical-align:top} th{background:#efe9dc}
+ .ok{color:#18794E;font-weight:700}.no{color:#B42318;font-weight:700}.q{background:#FFF6D8}
+ .big{font-size:34px;font-weight:800} .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px} .card{background:#fff;border:1px solid #e0d9ca;border-radius:10px;padding:14px}
+ @media(max-width:700px){.cards{grid-template-columns:1fr}}
+</style></head><body><main>
+<h1>Biên bản họp đánh giá giao diện Mosaic AI</h1>
+<p class="sub">07/10/2026 · Thành phần: Gemini (art director), ChatGPT (chuyên gia trải nghiệm người dùng — phiên độc lập, không phải người vẽ), Claude (chủ trì, tổng hợp). 2 vòng: chấm độc lập → phản biện chéo.</p>
+
+<h2>1. Kết quả</h2>
+<div class="cards">
+ <div class="card">Bản cũ<br><span class="big">3,48</span>/10</div>
+ <div class="card">Gemini chấm<br><span class="big">8,27</span>/10</div>
+ <div class="card">ChatGPT chấm<br><span class="big">8,45</span>/10</div>
+</div>
+<p><b>Phán quyết chung của cả hai: DUYỆT CÓ ĐIỀU KIỆN.</b> Giữ nguyên hướng Mosaic AI, không làm lại từ đầu. Nhưng <b>không được copy y nguyên ảnh</b> ở những chỗ đã đánh dấu lỗi — phải sửa theo danh sách dưới đây khi code.</p>
+
+<h2>2. Hai bên thống nhất khen</h2>
+<ul>
+ <li>Bước nhảy lớn so với bản cũ: có bản sắc riêng, phân cấp rõ, dải số liệu gọn, hết "bệnh viện Bootstrap".</li>
+ <li>Chế độ tối là theme thật (không phải đảo màu).</li>
+ <li>Màn sinh viên trên điện thoại (Top 5 + M1–M5 + lý do) là điểm mạnh nhất (ChatGPT chấm nhóm này 8,64).</li>
+ <li>Code được bằng Django + Bootstrap 5 + 1 file CSS.</li>
+</ul>
+
+<h2>3. Lỗi trên ảnh — bắt buộc sửa (hai bên đồng ý)</h2>
+<table>
+<tr><th>#</th><th>Lỗi</th><th>Ảnh</th></tr>
+<tr><td>1</td><td><b>Còn ảnh người thật</b> ở góc trên phải → thay bằng chữ cái viết tắt</td><td>12, 17, 18</td></tr>
+<tr><td>2</td><td><b>Màu xanh Bootstrap lọt vào</b> nút/tab/menu → về đúng màu teal Mosaic</td><td>12, 17, 18</td></tr>
+<tr><td>3</td><td>Trang Phân công trên điện thoại còn <b>4 thẻ số liệu icon màu</b> + số liệu sai (95 đã xếp, phải là 43)</td><td>17</td></tr>
+<tr><td>4</td><td>Màn sinh viên <b>hiện dải số liệu của Khoa</b> (100 SV, 50 đề tài…) — SV không cần → bỏ</td><td>03, 04, 06, 07, 08, 09</td></tr>
+<tr><td>5</td><td>Bảng danh sách đề tài & bảng duyệt SV <b>nhồi 5 cột M1–M5</b> → chỉ hiện điểm tổng, bấm mới xem chi tiết</td><td>08, 11</td></tr>
+<tr><td>6</td><td>Logo vài chỗ vẽ <b>4 ô thay vì 5 ô</b> → dùng một file logo chuẩn duy nhất</td><td>nhiều ảnh</td></tr>
+<tr><td>7</td><td>Lỗi nhỏ: "Lĩnh vực quan tâm 3/5" phải là 3/3</td><td>06</td></tr>
+</table>
+
+<h2>4. Quy tắc khi code (để code không lệch thiết kế)</h2>
+<ul>
+ <li>Một nguồn màu duy nhất cho sáng/tối, nối sang biến của Bootstrap; <b>cấm</b> ghi thẳng mã màu xanh Bootstrap trong template.</li>
+ <li>Chế độ tối kiểm tra độ tương phản đạt chuẩn WCAG AA (đặc biệt ảnh 02, 04, 11).</li>
+ <li>Không chỉ dùng màu để báo trạng thái — luôn kèm chữ/biểu tượng.</li>
+ <li>Quy định chữ dài (tên đề tài, tên SV/GV): tối đa mấy dòng, cắt "…", xem đầy đủ khi bấm.</li>
+ <li>Bảng, bộ lọc, danh sách kỹ năng phải có cách hiển thị riêng trên điện thoại; trang Khoa trên điện thoại chỉ giữ phần xem nhanh + thao tác chính.</li>
+</ul>
+
+<h2>5. Câu hỏi nghiệp vụ hai AI nêu — đối chiếu với code hiện tại</h2>
+<table>
+<tr><th>Câu hỏi</th><th>Code hiện tại</th><th>Cần anh quyết?</th></tr>
+<tr><td>Nhập Excel lỗi 1 dòng thì sao?</td><td class="ok">Đã có: lỗi bất kỳ dòng nào → không nhập gì, báo lỗi theo dòng (all-or-nothing)</td><td>Không</td></tr>
+<tr><td>Kết quả nháp hay chính thức?</td><td class="ok">Đã có: SV chỉ thấy kết quả khi Khoa bấm Công bố</td><td>Không — chỉ cần giao diện ghi rõ "Chưa công bố"</td></tr>
+<tr><td>"Bắt buộc" của kỹ năng nghĩa là gì?</td><td class="ok">Đã có: là điều kiện loại (lọc cứng), không phải trọng số</td><td>Không — chỉ cần chữ giải thích trên form</td></tr>
+<tr><td>2 nút "Chạy ILP" và "Chạy thuật toán" có trùng?</td><td class="ok">Là một việc → giữ một nút chính</td><td>Không</td></tr>
+<tr class="q"><td>GV từ chối SV có phải ghi lý do không?</td><td class="no">Chưa có (chỉ bấm Từ chối)</td><td><b>Có</b> — anh chọn: bắt buộc / không bắt buộc / không cần</td></tr>
+<tr class="q"><td>Kiểm tra tổng trọng số kỹ năng của đề tài?</td><td class="no">Chưa có (trọng số tự do)</td><td><b>Có</b> — đề xuất: không bắt buộc tổng = 100%, chỉ hiển thị tỉ lệ</td></tr>
+<tr class="q"><td>SV sửa/đổi thứ tự nguyện vọng khi nào bị khoá?</td><td>Đang cho sửa đến khi đợt đóng; NV đã duyệt được giữ kết quả</td><td><b>Có</b> — giữ như hiện tại?</td></tr>
+</table>
+
+<h2>6. Đề xuất bước tiếp theo</h2>
+<ol>
+ <li>ChatGPT vẽ lại 3 ảnh lỗi nặng (12, 17, 18) + 1 ảnh SV không có dải số liệu Khoa (03) để anh xem lại.</li>
+ <li>ChatGPT làm tài nguyên: logo chuẩn 5 ô (SVG), 12 minh hoạ trạng thái; lấy ~57 icon Lucide.</li>
+ <li>Anh trả lời 3 câu ô vàng ở mục 5 → khoá bản bàn giao → đội AI bắt đầu code.</li>
+</ol>
+</main></body></html>

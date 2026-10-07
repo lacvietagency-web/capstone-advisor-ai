@@ -1,0 +1,13 @@
+{
+  "protocolVersion": "3.3",
+  "stack": "Django 5.1 templates + Bootstrap 5.3 (CDN) + 1 file CSS + Chart.js (CDN jsdelivr), không React/build step",
+  "buildDirectory": "không có bước build — static/ phục vụ trực tiếp",
+  "ports": {"preview_main": 8000, "preview_v2": 8001, "assets_viewer": 8002},
+  "testServerMode": "manage.py runserver --noreload với RECOMMEND_SEMANTIC=0 RECOMMEND_LLM=0, dữ liệu seed_demo",
+  "themeMode": "light + dark qua data-bs-theme trên <html>, lưu lựa chọn người dùng",
+  "breakpoints": [576, 768, 992, 1200, 1400],
+  "responsiveMatrix": ["390 (điện thoại)", "768", "1440 (máy tính)"],
+  "deploy": "chưa — chỉ chạy LAN trên máy agent",
+  "protectedRefs": ["main"],
+  "checks": ["manage.py test", "ruff check .", "ruff format --check .", "1 ảnh chụp máy tính + 1 điện thoại mỗi trang"]
+}

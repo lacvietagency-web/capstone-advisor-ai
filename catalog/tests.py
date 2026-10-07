@@ -167,15 +167,22 @@ class BusinessFlowTests(TestCase):
         self.assertIsNotNone(pref)
 
         url = f"/de-tai/{topic.pk}/dang-ky/"
-        r_post = self.client.post(url, {"preference_id": pref.pk, "action": "reject"})
+        # Không có lý do → bị chặn, trạng thái giữ nguyên
+        self.client.post(url, {"preference_id": pref.pk, "action": "reject"})
+        pref.refresh_from_db()
+        self.assertNotEqual(pref.status, Preference.Status.REJECTED)
+
+        r_post = self.client.post(url, {"preference_id": pref.pk, "action": "reject", "reason": "Chưa đủ kỹ năng Java"})
         self.assertRedirects(r_post, url)
         pref.refresh_from_db()
         self.assertEqual(pref.status, Preference.Status.REJECTED)
+        self.assertEqual(pref.reject_reason, "Chưa đủ kỹ năng Java")
 
         # Kiểm tra ghi AuditLog
         log = AuditLog.objects.filter(entity="Preference", entity_id=str(pref.pk), action="reject_registration").first()
         self.assertIsNotNone(log)
         self.assertEqual(log.detail["status"], Preference.Status.REJECTED)
+        self.assertEqual(log.detail["reason"], "Chưa đủ kỹ năng Java")
 
     def test_only_topic_owner_can_manage_registrations(self):
         """[UC12] Chỉ GV chủ đề tài mới có quyền xem và duyệt đăng ký (GV khác bị 403)."""
@@ -868,3 +875,24 @@ class ExcelImportTests(TestCase):
             res = st_admin.import_excel(req, Student.objects.none())
             self.assertEqual(res.status_code, 302)
             self.assertTrue(Student.objects.filter(student_code="SV001").exists())
+
+
+class CoreMosaicTests(TestCase):
+    """Phần lõi cho giao diện Mosaic: tỉ lệ trọng số kỹ năng, trang lỗi."""
+
+    def test_skill_weight_shares_display_only(self):
+        call_command("seed_demo", students=3, lecturers=2, topics=4, verbosity=0)
+        topic = Topic.objects.filter(skills__isnull=False).distinct().first()
+        shares = topic.skill_weight_shares()
+        self.assertTrue(shares)
+        self.assertTrue(all(0 <= pct <= 100 for _, pct in shares))
+        self.assertLessEqual(abs(sum(pct for _, pct in shares) - 100), len(shares))  # làm tròn
+
+    def test_403_and_404_pages(self):
+        call_command("seed_demo", students=3, lecturers=2, topics=4, verbosity=0)
+        self.client.login(username="sv001", password="123456")
+        r = self.client.get("/khoa/phan-cong/")
+        self.assertEqual(r.status_code, 403)
+        self.assertContains(r, "Bạn không có quyền xem trang này", status_code=403)
+        r = self.client.get("/khong-ton-tai/")
+        self.assertEqual(r.status_code, 404)

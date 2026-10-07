@@ -157,6 +157,12 @@ class Topic(models.Model):
     def __str__(self):
         return self.title
 
+    def skill_weight_shares(self):
+        """Tỉ lệ % trọng số từng kỹ năng yêu cầu — chỉ để HIỂN THỊ, không ép tổng = 100% (chủ dự án chốt 07/10/2026)."""
+        skills = list(self.skills.select_related("skill"))
+        total = sum(ts.weight for ts in skills) or 1
+        return [(ts, round(100 * ts.weight / total)) for ts in skills]
+
 
 class TopicSkill(models.Model):
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name="skills")
@@ -220,6 +226,7 @@ class Preference(models.Model):
     period = models.ForeignKey(RegistrationPeriod, on_delete=models.CASCADE)
     rank = models.PositiveSmallIntegerField("Nguyện vọng", validators=[MinValueValidator(1), MaxValueValidator(3)])
     status = models.CharField("Trạng thái", max_length=10, choices=Status.choices, default=Status.PENDING)
+    reject_reason = models.TextField("Lý do từ chối", blank=True)  # bắt buộc khi GV từ chối (chủ dự án chốt 07/10/2026)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

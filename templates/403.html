@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}403 — Bạn không có quyền xem trang này{% endblock %}
+{% block content %}
+<section class="error-page" aria-labelledby="err-title">
+  <p class="error-code">403</p>
+  <h1 id="err-title">Bạn không có quyền xem trang này</h1>
+  <p>Trang này dành cho vai trò khác. Hãy quay về trang chủ của bạn.</p>
+  <a class="btn btn-primary" href="{% url 'home' %}">Về trang chủ</a>
+</section>
+{% endblock %}

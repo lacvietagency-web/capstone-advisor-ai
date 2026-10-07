@@ -20,6 +20,7 @@
     {% csrf_token %}
     <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
     <input type="hidden" name="action" value="reject">
+    <input type="text" name="reason" class="form-control form-control-sm" placeholder="Lý do từ chối (bắt buộc)" required minlength="5" aria-label="Lý do từ chối">
     <button type="submit" class="btn btn-sm btn-outline-danger">Từ chối</button>
   </form>
   {% endif %}

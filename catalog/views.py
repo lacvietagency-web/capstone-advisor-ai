@@ -184,19 +184,25 @@ def _handle_preference_action(request, topic):
         return redirect("lecturer_registrations", pk=topic.pk)
 
     action_clean = (request.POST.get("action") or request.POST.get("status") or "").strip().upper().replace(" ", "_")
+    reason = ""
     if action_clean in ("ACCEPT", "ACCEPTED", "DONG_Y", "APPROVE", "ĐỒNG_Ý"):
         new_status = Preference.Status.ACCEPTED
         log_action = "accept_registration"
     elif action_clean in ("REJECT", "REJECTED", "TU_CHOI", "TỪ_CHỐI"):
         new_status = Preference.Status.REJECTED
         log_action = "reject_registration"
+        reason = (request.POST.get("reason") or "").strip()
+        if len(reason) < 5:  # GV phải ghi lý do để SV biết và Khoa truy vết khi khiếu nại
+            messages.error(request, "Vui lòng nhập lý do từ chối (ít nhất 5 ký tự).")
+            return redirect("lecturer_registrations", pk=topic.pk)
     else:
         messages.error(request, "Thao tác không hợp lệ.")
         return redirect("lecturer_registrations", pk=topic.pk)
 
     with transaction.atomic():
         pref.status = new_status
-        pref.save(update_fields=["status"])
+        pref.reject_reason = reason if new_status == Preference.Status.REJECTED else ""
+        pref.save(update_fields=["status", "reject_reason"])
         AuditLog.objects.create(
             user=request.user,
             action=log_action,
@@ -207,6 +213,7 @@ def _handle_preference_action(request, topic):
                 "student_id": pref.student_id,
                 "topic_id": topic.pk,
                 "rank": pref.rank,
+                "reason": pref.reject_reason,
             },
         )
 

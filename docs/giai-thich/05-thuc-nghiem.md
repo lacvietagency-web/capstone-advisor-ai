@@ -145,6 +145,7 @@ Trong RQ2:
 | Ollama (Qwen2.5-3B) | `qwen2.5:3b` | 29 | 16.65 ± 8.16 | -0.180 ± 0.298 |
 | Groq (openai/gpt-oss-20b) | `openai/gpt-oss-20b` | 30 | 10.34 ± 4.86 | 0.710 ± 0.226 |
 | Groq (qwen/qwen3.8-27b) | `qwen/qwen3.8-27b` | 9 | 6.17 ± 1.94 | 0.878 ± 0.090 |
+| Groq (openai/gpt-oss-120b) — model M5 | `openai/gpt-oss-120b` | 30 | 7.92 ± 3.18 | 0.823 ± 0.110 |
 
 ### (d) Đọc kết quả thế nào?
 
@@ -175,6 +176,7 @@ Mặc dù thiết kế ban đầu chọn 30 sinh viên, số mẫu thực tế k
 
 - Qwen2.5-3B: 29 sinh viên;
 - gpt-oss-20b: 30 sinh viên;
+- gpt-oss-120b (model M5 thật của hệ thống): 30 sinh viên — MAE 7,92, Spearman 0,823: ổn định tốt, đủ để dùng làm M5.
 - qwen3.8-27b: 9 sinh viên.
 
 Nguyên nhân là API miễn phí có giới hạn lượt gọi và giới hạn theo thời gian.

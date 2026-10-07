@@ -1,67 +1,55 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Đăng ký nguyện vọng — Capstone Advisor AI{% endblock %}
+{% block title %}Đăng ký nguyện vọng — Mosaic AI{% endblock %}
 
 {% block content %}
-<div class="preferences-page">
+<div class="mz-preferences-page">
   {% if not period %}
     <!-- Empty State: Không có đợt đăng ký nào mở -->
-    <div class="app-card text-center py-5 my-4">
-      <div class="empty-state">
-        <i class="bi bi-calendar-x empty-state-icon text-muted"></i>
-        <h1 class="h4 fw-bold mt-3 mb-2">Hiện chưa có đợt đăng ký nào đang mở</h1>
-        <p class="text-muted mb-4">
-          Hệ thống hiện không tiếp nhận đăng ký nguyện vọng. Vui lòng quay lại sau khi Khoa công bố đợt đăng ký đồ án tốt nghiệp mới.
-        </p>
-        <a href="{% url 'home' %}" class="btn btn-outline-primary">
-          <i class="bi bi-house-door me-1"></i>Về trang chủ
-        </a>
-      </div>
+    <div class="mz-card text-center py-5 my-4" data-mz-reveal>
+      {% include "components/empty_state.html" with illustration="empty-preferences" title="Hiện chưa có đợt đăng ký nào đang mở" description="Hệ thống hiện không tiếp nhận đăng ký nguyện vọng. Vui lòng quay lại sau khi Khoa công bố đợt đăng ký đồ án tốt nghiệp mới." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
     </div>
   {% else %}
-    <!-- Page Header (DESIGN.md Section 8) -->
-    <section class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4 pb-2 border-bottom">
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4" data-mz-reveal>
       <div>
-        <h1 class="h2 fw-bold text-dark mb-1">Đăng ký nguyện vọng</h1>
-        <p class="text-muted mb-0">
-          Sắp xếp 3 đề tài bạn mong muốn theo thứ tự ưu tiên. Hệ thống sẽ sử dụng thứ tự này khi thực hiện phân công.
+        <h1 class="mz-h2 mb-1">Đăng ký nguyện vọng</h1>
+        <p class="mz-caption text-muted mb-0">
+          Sắp xếp tối đa 3 đề tài theo thứ tự ưu tiên. NV1 là đề tài bạn mong muốn thực hiện nhất.
         </p>
       </div>
       <div class="text-start text-md-end">
         <div>
           {% if period.status == 'OPEN' %}
-            <span class="status-badge status-open">
-              <span class="dot"></span> Đợt đăng ký đang mở
-            </span>
+            {% include "components/status_badge.html" with status="open" label="Đợt đăng ký đang mở" %}
           {% else %}
-            <span class="status-badge status-closed">
-              <span class="dot"></span> {{ period.get_status_display }}
-            </span>
+            {% include "components/status_badge.html" with status="rejected" label="Đợt đăng ký đã đóng" %}
           {% endif %}
         </div>
-        <div class="text-muted small mt-1">
+        <div class="mz-caption text-muted mt-1">
           <strong>{{ period.name }}</strong>
           {% if period.end_at %}
             · Hạn cuối: {{ period.end_at|date:"d/m/Y H:i" }}
           {% endif %}
         </div>
       </div>
-    </section>
+    </div>
 
+    <!-- Banner khi đợt CLOSED theo Quyết định 3 -->
     {% if period.status != 'OPEN' %}
-      <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+      <div class="mz-alert mz-alert-warning mb-4" role="alert" data-mz-reveal>
+        {% include "components/icon.html" with name="triangle-alert" size=18 class="text-warning flex-shrink-0" %}
         <div>
-          <strong>Đợt đăng ký đã kết thúc.</strong> Bạn có thể xem lại các nguyện vọng đã đăng ký nhưng hiện không thể chỉnh sửa hoặc lưu mới.
+          <strong>Đợt đăng ký đã đóng — nguyện vọng không thể chỉnh sửa.</strong> Bạn chỉ có thể xem lại các nguyện vọng đã đăng ký trước đó.
         </div>
       </div>
     {% endif %}
 
-    <!-- Django Form Non-Field Errors -->
+    <!-- Form Non-Field Errors (Bắt buộc chứa chữ "không được trùng" khi trùng NV) -->
     {% if form.non_field_errors %}
-      <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
-        <i class="bi bi-exclamation-circle-fill flex-shrink-0 me-2"></i>
+      <div class="mz-alert mz-alert-danger mb-4" role="alert" data-mz-reveal>
+        {% include "components/icon.html" with name="triangle-alert" size=18 class="text-danger flex-shrink-0" %}
         <div>
           {% for error in form.non_field_errors %}
             <div>{{ error }}</div>
@@ -70,27 +58,23 @@
       </div>
     {% endif %}
 
-    <!-- Client-side JS Alert Box -->
-    <div id="formJsAlert" class="alert alert-danger d-none align-items-center mb-4" role="alert">
-      <i class="bi bi-exclamation-circle-fill flex-shrink-0 me-2"></i>
+    <!-- Client-side Alert Box -->
+    <div id="formJsAlert" class="mz-alert mz-alert-danger d-none mb-4" role="alert">
+      {% include "components/icon.html" with name="triangle-alert" size=18 class="text-danger flex-shrink-0" %}
       <span id="formJsAlertMessage"></span>
     </div>
 
-    <!-- Main Content Grid (DESIGN.md Section 9) -->
+    <!-- Main Layout: Cột trái (Nguyện vọng) + Cột phải (Top 5 gợi ý) -->
     <div class="row g-4">
-      <!-- Cột trái: Nguyện vọng của bạn (col-lg-7) -->
-      <div class="col-lg-7">
-        <section class="app-card preferences-card h-100">
-          <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+      <!-- Cột trái: Form 3 nguyện vọng -->
+      <div class="col-12 col-lg-7">
+        <section class="mz-card h-100" data-mz-reveal>
+          <div class="mz-card-header">
             <div>
-              <h2 class="h5 fw-bold mb-1 text-dark">
-                <i class="bi bi-list-check text-primary me-2"></i>Nguyện vọng của bạn
-              </h2>
-              <p class="text-muted small mb-0">
-                Chọn đủ 3 đề tài và sắp xếp theo mức độ ưu tiên. NV1 là đề tài bạn mong muốn nhất.
-              </p>
+              <h2 class="mz-card-title">Nguyện vọng của bạn</h2>
+              <div class="mz-caption text-muted">Chọn đủ 3 đề tài và sắp xếp theo mức độ ưu tiên</div>
             </div>
-            <span id="preferenceCountBadge" class="badge bg-light text-secondary border px-3 py-2 fw-semibold">
+            <span id="preferenceCountBadge" class="mz-badge mz-badge-neutral">
               Đã chọn 0/3
             </span>
           </div>
@@ -98,116 +82,236 @@
           <form id="preferencesForm" method="post" novalidate>
             {% csrf_token %}
 
-            <!-- NV1 Block -->
-            <div class="preference-block" id="nvBlock1" data-rank="1" draggable="true">
-              <div class="d-flex align-items-center justify-content-between mb-2">
+            <!-- NV1 Slot -->
+            <div class="mz-pref-slot" id="nvBlock1" data-rank="1" draggable="{% if period.status == 'OPEN' %}true{% else %}false{% endif %}">
+              <div class="mz-pref-header">
                 <div class="d-flex align-items-center gap-2">
-                  <span class="drag-handle" title="Kéo thả để đổi thứ tự nguyện vọng" aria-hidden="true">
-                    <i class="bi bi-grip-vertical fs-5"></i>
-                  </span>
-                  <span class="preference-number">NV1</span>
-                  <label for="{{ form.nv1.id_for_label }}" class="form-label fw-bold mb-0 text-dark">
+                  {% if period.status == 'OPEN' %}
+                    <span class="mz-pref-handle" title="Kéo thả để đổi thứ tự" aria-hidden="true">
+                      {% include "components/icon.html" with name="sliders-horizontal" size=16 %}
+                    </span>
+                  {% endif %}
+                  <span class="mz-pref-rank-badge">NV1</span>
+                  <label for="{{ form.nv1.id_for_label }}" class="fw-semibold text-strong mb-0 small">
                     Ưu tiên cao nhất <span class="text-danger">*</span>
                   </label>
                 </div>
-                <div class="reorder-actions d-flex gap-1">
-                  <button type="button" class="btn btn-outline-secondary btn-move-down" data-rank="1" title="Chuyển xuống NV2" aria-label="Chuyển NV1 xuống NV2">
-                    <i class="bi bi-arrow-down"></i>
-                  </button>
+
+                <div class="d-flex align-items-center gap-2">
+                  <!-- Trạng thái duyệt của GV cho NV1 -->
+                  {% for pref in user.student.preferences.all %}
+                    {% if pref.period_id == period.id and pref.rank == 1 %}
+                      {% if pref.status == 'ACCEPTED' %}
+                        <span class="mz-badge mz-badge-success" title="Giảng viên đã đồng ý hướng dẫn">
+                          {% include "components/icon.html" with name="badge-check" size=12 %}
+                          <span>Đã GV duyệt</span>
+                        </span>
+                      {% elif pref.status == 'REJECTED' %}
+                        <span class="mz-badge mz-badge-danger" title="Giảng viên từ chối">
+                          {% include "components/icon.html" with name="user-x" size=12 %}
+                          <span>Từ chối</span>
+                        </span>
+                      {% else %}
+                        <span class="mz-badge mz-badge-warning" title="Đang chờ giảng viên xem xét">
+                          {% include "components/icon.html" with name="info" size=12 %}
+                          <span>Chờ duyệt</span>
+                        </span>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+
+                  {% if period.status == 'OPEN' %}
+                    <div class="mz-pref-order-btns">
+                      <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm btn-move-down p-1" data-rank="1" title="Chuyển xuống NV2" aria-label="Chuyển NV1 xuống NV2">
+                        {% include "components/icon.html" with name="arrow-down" size=14 %}
+                      </button>
+                    </div>
+                  {% endif %}
                 </div>
               </div>
 
-              <div class="preference-field mb-2">
+              <!-- Trường form NV1 -->
+              <div class="mb-2">
                 {{ form.nv1 }}
                 {% if form.nv1.errors %}
-                  <div class="text-danger small mt-1">
+                  <div class="mz-form-error text-danger small mt-1">
                     {% for err in form.nv1.errors %}{{ err }}{% endfor %}
                   </div>
                 {% endif %}
-                <div class="form-text text-muted small mt-1">Đề tài bạn mong muốn nhất.</div>
               </div>
 
-              <!-- Compact Score Indicator NV1 -->
-              <div class="compact-score-preview js-compact-score" id="compactScore1" data-rank="1"></div>
+              <!-- Lý do từ chối nếu có cho NV1 -->
+              {% for pref in user.student.preferences.all %}
+                {% if pref.period_id == period.id and pref.rank == 1 and pref.status == 'REJECTED' %}
+                  <div class="mz-alert mz-alert-danger py-2 mt-2 mb-2">
+                    <div class="small">
+                      <strong>Lý do từ chối từ GV:</strong> {{ pref.reject_reason|default:'Chưa đáp ứng tiêu chí hướng dẫn của giảng viên.' }}
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+
+              <!-- Preview điểm AI cho NV1 -->
+              <div class="js-compact-score" id="compactScore1" data-rank="1"></div>
             </div>
 
-            <!-- NV2 Block -->
-            <div class="preference-block" id="nvBlock2" data-rank="2" draggable="true">
-              <div class="d-flex align-items-center justify-content-between mb-2">
+            <!-- NV2 Slot -->
+            <div class="mz-pref-slot" id="nvBlock2" data-rank="2" draggable="{% if period.status == 'OPEN' %}true{% else %}false{% endif %}">
+              <div class="mz-pref-header">
                 <div class="d-flex align-items-center gap-2">
-                  <span class="drag-handle" title="Kéo thả để đổi thứ tự nguyện vọng" aria-hidden="true">
-                    <i class="bi bi-grip-vertical fs-5"></i>
-                  </span>
-                  <span class="preference-number">NV2</span>
-                  <label for="{{ form.nv2.id_for_label }}" class="form-label fw-bold mb-0 text-dark">
+                  {% if period.status == 'OPEN' %}
+                    <span class="mz-pref-handle" title="Kéo thả để đổi thứ tự" aria-hidden="true">
+                      {% include "components/icon.html" with name="sliders-horizontal" size=16 %}
+                    </span>
+                  {% endif %}
+                  <span class="mz-pref-rank-badge">NV2</span>
+                  <label for="{{ form.nv2.id_for_label }}" class="fw-semibold text-strong mb-0 small">
                     Ưu tiên thứ hai
                   </label>
                 </div>
-                <div class="reorder-actions d-flex gap-1">
-                  <button type="button" class="btn btn-outline-secondary btn-move-up" data-rank="2" title="Chuyển lên NV1" aria-label="Chuyển NV2 lên NV1">
-                    <i class="bi bi-arrow-up"></i>
-                  </button>
-                  <button type="button" class="btn btn-outline-secondary btn-move-down" data-rank="2" title="Chuyển xuống NV3" aria-label="Chuyển NV2 xuống NV3">
-                    <i class="bi bi-arrow-down"></i>
-                  </button>
+
+                <div class="d-flex align-items-center gap-2">
+                  <!-- Trạng thái duyệt của GV cho NV2 -->
+                  {% for pref in user.student.preferences.all %}
+                    {% if pref.period_id == period.id and pref.rank == 2 %}
+                      {% if pref.status == 'ACCEPTED' %}
+                        <span class="mz-badge mz-badge-success" title="Giảng viên đã đồng ý hướng dẫn">
+                          {% include "components/icon.html" with name="badge-check" size=12 %}
+                          <span>Đã GV duyệt</span>
+                        </span>
+                      {% elif pref.status == 'REJECTED' %}
+                        <span class="mz-badge mz-badge-danger" title="Giảng viên từ chối">
+                          {% include "components/icon.html" with name="user-x" size=12 %}
+                          <span>Từ chối</span>
+                        </span>
+                      {% else %}
+                        <span class="mz-badge mz-badge-warning" title="Đang chờ giảng viên xem xét">
+                          {% include "components/icon.html" with name="info" size=12 %}
+                          <span>Chờ duyệt</span>
+                        </span>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+
+                  {% if period.status == 'OPEN' %}
+                    <div class="mz-pref-order-btns">
+                      <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm btn-move-up p-1" data-rank="2" title="Chuyển lên NV1" aria-label="Chuyển NV2 lên NV1">
+                        {% include "components/icon.html" with name="arrow-up" size=14 %}
+                      </button>
+                      <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm btn-move-down p-1" data-rank="2" title="Chuyển xuống NV3" aria-label="Chuyển NV2 xuống NV3">
+                        {% include "components/icon.html" with name="arrow-down" size=14 %}
+                      </button>
+                    </div>
+                  {% endif %}
                 </div>
               </div>
 
-              <div class="preference-field mb-2">
+              <!-- Trường form NV2 -->
+              <div class="mb-2">
                 {{ form.nv2 }}
                 {% if form.nv2.errors %}
-                  <div class="text-danger small mt-1">
+                  <div class="mz-form-error text-danger small mt-1">
                     {% for err in form.nv2.errors %}{{ err }}{% endfor %}
                   </div>
                 {% endif %}
-                <div class="form-text text-muted small mt-1">Đề tài ưu tiên tiếp theo nếu không được phân công NV1.</div>
               </div>
 
-              <!-- Compact Score Indicator NV2 -->
-              <div class="compact-score-preview js-compact-score" id="compactScore2" data-rank="2"></div>
+              <!-- Lý do từ chối nếu có cho NV2 -->
+              {% for pref in user.student.preferences.all %}
+                {% if pref.period_id == period.id and pref.rank == 2 and pref.status == 'REJECTED' %}
+                  <div class="mz-alert mz-alert-danger py-2 mt-2 mb-2">
+                    <div class="small">
+                      <strong>Lý do từ chối từ GV:</strong> {{ pref.reject_reason|default:'Chưa đáp ứng tiêu chí hướng dẫn của giảng viên.' }}
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+
+              <!-- Preview điểm AI cho NV2 -->
+              <div class="js-compact-score" id="compactScore2" data-rank="2"></div>
             </div>
 
-            <!-- NV3 Block -->
-            <div class="preference-block" id="nvBlock3" data-rank="3" draggable="true">
-              <div class="d-flex align-items-center justify-content-between mb-2">
+            <!-- NV3 Slot -->
+            <div class="mz-pref-slot" id="nvBlock3" data-rank="3" draggable="{% if period.status == 'OPEN' %}true{% else %}false{% endif %}">
+              <div class="mz-pref-header">
                 <div class="d-flex align-items-center gap-2">
-                  <span class="drag-handle" title="Kéo thả để đổi thứ tự nguyện vọng" aria-hidden="true">
-                    <i class="bi bi-grip-vertical fs-5"></i>
-                  </span>
-                  <span class="preference-number">NV3</span>
-                  <label for="{{ form.nv3.id_for_label }}" class="form-label fw-bold mb-0 text-dark">
+                  {% if period.status == 'OPEN' %}
+                    <span class="mz-pref-handle" title="Kéo thả để đổi thứ tự" aria-hidden="true">
+                      {% include "components/icon.html" with name="sliders-horizontal" size=16 %}
+                    </span>
+                  {% endif %}
+                  <span class="mz-pref-rank-badge">NV3</span>
+                  <label for="{{ form.nv3.id_for_label }}" class="fw-semibold text-strong mb-0 small">
                     Ưu tiên thứ ba
                   </label>
                 </div>
-                <div class="reorder-actions d-flex gap-1">
-                  <button type="button" class="btn btn-outline-secondary btn-move-up" data-rank="3" title="Chuyển lên NV2" aria-label="Chuyển NV3 lên NV2">
-                    <i class="bi bi-arrow-up"></i>
-                  </button>
+
+                <div class="d-flex align-items-center gap-2">
+                  <!-- Trạng thái duyệt của GV cho NV3 -->
+                  {% for pref in user.student.preferences.all %}
+                    {% if pref.period_id == period.id and pref.rank == 3 %}
+                      {% if pref.status == 'ACCEPTED' %}
+                        <span class="mz-badge mz-badge-success" title="Giảng viên đã đồng ý hướng dẫn">
+                          {% include "components/icon.html" with name="badge-check" size=12 %}
+                          <span>Đã GV duyệt</span>
+                        </span>
+                      {% elif pref.status == 'REJECTED' %}
+                        <span class="mz-badge mz-badge-danger" title="Giảng viên từ chối">
+                          {% include "components/icon.html" with name="user-x" size=12 %}
+                          <span>Từ chối</span>
+                        </span>
+                      {% else %}
+                        <span class="mz-badge mz-badge-warning" title="Đang chờ giảng viên xem xét">
+                          {% include "components/icon.html" with name="info" size=12 %}
+                          <span>Chờ duyệt</span>
+                        </span>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+
+                  {% if period.status == 'OPEN' %}
+                    <div class="mz-pref-order-btns">
+                      <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm btn-move-up p-1" data-rank="3" title="Chuyển lên NV2" aria-label="Chuyển NV3 lên NV2">
+                        {% include "components/icon.html" with name="arrow-up" size=14 %}
+                      </button>
+                    </div>
+                  {% endif %}
                 </div>
               </div>
 
-              <div class="preference-field mb-2">
+              <!-- Trường form NV3 -->
+              <div class="mb-2">
                 {{ form.nv3 }}
                 {% if form.nv3.errors %}
-                  <div class="text-danger small mt-1">
+                  <div class="mz-form-error text-danger small mt-1">
                     {% for err in form.nv3.errors %}{{ err }}{% endfor %}
                   </div>
                 {% endif %}
-                <div class="form-text text-muted small mt-1">Đề tài dự phòng phương án ba.</div>
               </div>
 
-              <!-- Compact Score Indicator NV3 -->
-              <div class="compact-score-preview js-compact-score" id="compactScore3" data-rank="3"></div>
+              <!-- Lý do từ chối nếu có cho NV3 -->
+              {% for pref in user.student.preferences.all %}
+                {% if pref.period_id == period.id and pref.rank == 3 and pref.status == 'REJECTED' %}
+                  <div class="mz-alert mz-alert-danger py-2 mt-2 mb-2">
+                    <div class="small">
+                      <strong>Lý do từ chối từ GV:</strong> {{ pref.reject_reason|default:'Chưa đáp ứng tiêu chí hướng dẫn của giảng viên.' }}
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+
+              <!-- Preview điểm AI cho NV3 -->
+              <div class="js-compact-score" id="compactScore3" data-rank="3"></div>
             </div>
 
-            <!-- Submit action bar (DESIGN.md Section 28 & 29) -->
+            <!-- Submit Action Bar -->
             <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 pt-3 mt-4 border-top">
-              <div class="text-muted small">
-                <i class="bi bi-info-circle me-1"></i>Thứ tự nguyện vọng ảnh hưởng trực tiếp đến kết quả phân công.
+              <div class="mz-caption text-muted">
+                {% include "components/icon.html" with name="info" size=14 class="me-1" %}
+                <span>Thứ tự nguyện vọng ảnh hưởng trực tiếp đến kết quả phân công.</span>
               </div>
-              <button type="submit" id="btnSubmitPreferences" class="btn btn-primary px-4 w-100 w-sm-auto" {% if period.status != 'OPEN' %}disabled{% endif %}>
-                <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
-                <i class="bi bi-check2-circle me-1 btn-icon"></i>
+              <button type="submit" id="btnSubmitPreferences" class="mz-btn mz-btn-primary px-4 w-100 w-sm-auto" {% if period.status != 'OPEN' %}disabled{% endif %}>
+                {% include "components/icon.html" with name="save" size=16 class="btn-icon" %}
                 <span class="btn-text">Lưu nguyện vọng</span>
               </button>
             </div>
@@ -215,275 +319,171 @@
         </section>
       </div>
 
-      <!-- Cột phải: Top 5 AI Gợi ý (col-lg-5) -->
-      <div class="col-lg-5">
-        <section class="app-card recommendations-card h-100">
-          <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+      <!-- Cột phải: Top 5 Đề tài gợi ý -->
+      <div class="col-12 col-lg-5">
+        <section class="mz-card h-100" data-mz-reveal>
+          <div class="mz-card-header">
             <div>
-              <h2 class="h5 fw-bold mb-1 text-dark">
-                <i class="bi bi-stars text-primary me-2"></i>Top 5 đề tài phù hợp
-              </h2>
-              <p class="text-muted small mb-0">
-                Gợi ý dựa trên hồ sơ học tập, kỹ năng và lĩnh vực bạn quan tâm.
-              </p>
+              <h2 class="mz-card-title">Top 5 đề tài phù hợp</h2>
+              <div class="mz-caption text-muted">Gợi ý từ Mosaic AI dựa trên hồ sơ của bạn</div>
             </div>
           </div>
 
-          <div class="recommendations-list d-flex flex-column gap-3">
+          <div class="d-flex flex-column gap-3">
             {% for r in top5 %}
-              <div class="topic-recommendation" id="top5-topic-{{ r.topic.id }}" data-topic-id="{{ r.topic.id }}" data-topic-title="{{ r.topic.title|escapejs }}" data-final-score="{{ r.final_score|floatformat:0 }}">
+              <div class="p-3 rounded-2 border bg-surface-subtle topic-recommendation" id="top5-topic-{{ r.topic.id }}" data-topic-id="{{ r.topic.id }}" data-topic-title="{{ r.topic.title|escapejs }}" data-final-score="{{ r.final_score|floatformat:0 }}">
                 <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
-                  <span class="rank-badge rank-badge-{{ forloop.counter }}">#{{ forloop.counter }}</span>
-                  <span class="score-badge {% if r.final_score >= 80 %}badge-score-high{% elif r.final_score >= 65 %}badge-score-med{% elif r.final_score >= 50 %}badge-score-fair{% else %}badge-score-low{% endif %}">
-                    {{ r.final_score|floatformat:0 }}/100 ·
-                    {% if r.final_score >= 80 %}Rất phù hợp{% elif r.final_score >= 65 %}Phù hợp{% elif r.final_score >= 50 %}Có thể cân nhắc{% else %}Phù hợp thấp{% endif %}
-                  </span>
+                  <span class="mz-rank-badge {% if forloop.counter == 1 %}mz-rank-badge-1{% endif %}">#{{ forloop.counter }}</span>
+                  <span class="fw-bold fs-6 text-primary">{{ r.final_score|floatformat:0 }}<span class="mz-caption text-muted">/100</span></span>
                 </div>
 
-                <h3 class="topic-title">
+                <h3 class="mz-card-title fs-6 mb-1 text-break-word topic-title">
                   {{ r.topic.title }}
                 </h3>
 
-                <div class="topic-meta d-flex flex-wrap align-items-center gap-2 mb-2">
-                  {% if r.topic.fields.all %}
-                    <div class="d-flex flex-wrap gap-1">
-                      {% for f in r.topic.fields.all %}
-                        <span class="badge bg-light text-secondary border">{{ f.name }}</span>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
+                <div class="mz-caption text-muted mb-2">
                   {% if r.topic.lecturer %}
-                    <span class="lecturer-name"><i class="bi bi-person me-1"></i>GV: {{ r.topic.lecturer }}</span>
+                    <span>GV: {{ r.topic.lecturer }}</span>
                   {% endif %}
-                  {% if r.topic.difficulty %}
-                    <span class="badge badge-difficulty">{{ r.topic.get_difficulty_display }}</span>
+                  {% if r.topic.fields.all %}
+                    ·
+                    {% for f in r.topic.fields.all %}
+                      <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
+                    {% endfor %}
                   {% endif %}
-                </div>
-
-                <!-- Progress Bar -->
-                <div class="score-progress-wrapper mb-3">
-                  <div class="d-flex justify-content-between small text-muted mb-1">
-                    <span class="score-label">Mức độ phù hợp</span>
-                    <span class="fw-semibold text-dark">{{ r.final_score|floatformat:0 }}%</span>
-                  </div>
-                  <div class="score-track" role="progressbar" aria-valuenow="{{ r.final_score|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100" aria-label="Mức độ phù hợp {{ r.final_score|floatformat:0 }}%">
-                    <div class="score-fill" style="width: {{ r.final_score|floatformat:0 }}%;"></div>
-                  </div>
                 </div>
 
                 {% if r.reason %}
-                  <div class="reason-snippet text-muted small mb-3 p-2 bg-light rounded border-start border-3 border-primary">
-                    {{ r.reason|truncatewords:22 }}
+                  <div class="mz-caption text-muted p-2 rounded bg-surface border mb-3">
+                    {{ r.reason|truncatewords:20 }}
                   </div>
                 {% endif %}
 
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
-                  <button type="button" class="btn btn-sm btn-outline-secondary js-show-score" data-topic-id="{{ r.topic.id }}">
-                    <i class="bi bi-info-circle me-1"></i>Xem lý do phù hợp
+                <div class="d-flex align-items-center justify-content-between gap-2 pt-2 border-top">
+                  <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm js-show-score" data-topic-id="{{ r.topic.id }}">
+                    {% include "components/icon.html" with name="info" size=14 %}
+                    <span>Xem lý do</span>
                   </button>
                   <div class="quick-select-container" data-topic-id="{{ r.topic.id }}">
-                    <button type="button" class="btn btn-sm btn-primary js-quick-select" data-topic-id="{{ r.topic.id }}" data-topic-title="{{ r.topic.title }}" {% if period.status != 'OPEN' %}disabled{% endif %}>
-                      <i class="bi bi-plus-lg me-1"></i>Chọn làm nguyện vọng
+                    <button type="button" class="mz-btn mz-btn-primary mz-btn-sm js-quick-select" data-topic-id="{{ r.topic.id }}" data-topic-title="{{ r.topic.title }}" {% if period.status != 'OPEN' %}disabled{% endif %}>
+                      {% include "components/icon.html" with name="plus" size=14 %}
+                      <span>Chọn làm NV</span>
                     </button>
                   </div>
                 </div>
               </div>
             {% empty %}
-              <!-- Empty state: Không có gợi ý Top 5 -->
-              <div class="empty-state py-4 text-center">
-                <i class="bi bi-lightbulb empty-state-icon text-muted"></i>
-                <h3 class="h6 fw-bold mt-2">Chưa có đề tài gợi ý</h3>
-                <p class="text-muted small">
-                  Hệ thống chưa tạo được danh sách đề tài phù hợp cho hồ sơ của bạn. Bạn vẫn có thể chọn nguyện vọng từ danh sách đề tài bên trái.
-                </p>
-                <a href="{% url 'student_profile' %}" class="btn btn-sm btn-outline-primary mt-2">
-                  <i class="bi bi-person-gear me-1"></i>Hoàn thiện hồ sơ
-                </a>
-              </div>
+              {% include "components/empty_state.html" with illustration="empty-topics" title="Chưa có đề tài gợi ý" description="Hệ thống chưa tạo được gợi ý. Bạn có thể chọn trực tiếp từ danh sách đề tài." primary_url="/ho-so/" primary_label="Hoàn thiện hồ sơ" %}
             {% endfor %}
           </div>
         </section>
       </div>
     </div>
 
-    <!-- Score Explanation Section (DESIGN.md Section 21-25 & 39) -->
-    <section id="scoreDetail" class="score-detail-card mt-4" hidden>
-      <div class="d-flex align-items-start justify-content-between mb-3 pb-2 border-bottom">
+    <!-- Khối giải thích điểm M1–M5 khi bấm Xem lý do -->
+    <section id="scoreDetail" class="mz-card mt-4" hidden data-mz-reveal>
+      <div class="mz-card-header">
         <div>
           <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge bg-primary-soft text-primary px-2 py-1"><i class="bi bi-stars me-1"></i>AI Phân tích</span>
-            <h2 class="h5 fw-bold mb-0 text-dark">Vì sao đề tài này phù hợp với bạn?</h2>
+            <span class="mz-badge mz-badge-published">Mosaic AI</span>
+            <h2 class="mz-card-title">Vì sao đề tài này phù hợp với bạn?</h2>
           </div>
-          <p class="text-muted small mb-0">
-            Đề tài: <strong id="scoreDetailTopicTitle" class="text-dark">—</strong>
-          </p>
+          <div class="mz-caption text-muted">
+            Đề tài: <strong id="scoreDetailTopicTitle" class="text-strong">—</strong>
+          </div>
         </div>
         <div class="d-flex align-items-center gap-3">
-          <div id="scoreDetailOverallBadge" class="score-badge badge-score-high fs-6">
-            --/100
-          </div>
-          <button type="button" class="btn-close" id="btnCloseScoreDetail" aria-label="Đóng bảng giải thích"></button>
+          <span id="scoreDetailOverallBadge" class="fw-bold fs-5 text-primary">--/100</span>
+          <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm" id="btnCloseScoreDetail" aria-label="Đóng bảng giải thích">
+            {% include "components/icon.html" with name="log-out" size=16 %}
+          </button>
         </div>
       </div>
 
-      <div class="row g-3 mb-4">
-        <!-- M1: Kỹ năng phù hợp -->
-        <div class="col-md-6 col-lg-4">
-          <div class="score-factor-card p-3 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-semibold text-dark small"><i class="bi bi-tools text-primary me-1"></i>Kỹ năng phù hợp</span>
-              <span id="m1Value" class="fw-bold text-primary small">0%</span>
-            </div>
-            <div class="score-track mb-2" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="m1BarAria">
-              <div id="m1Bar" class="score-fill" style="width: 0%;"></div>
-            </div>
-            <div class="score-label text-muted" style="font-size: 12.5px;">Mức độ kỹ năng của bạn phù hợp với yêu cầu của đề tài.</div>
+      <div class="row g-3 mb-3">
+        <!-- M1 -->
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="p-2 rounded bg-surface-subtle border text-center">
+            <div class="mz-caption text-muted">M1 Kỹ năng</div>
+            <div id="m1Value" class="fw-bold fs-5 text-primary">0%</div>
           </div>
         </div>
-
-        <!-- M2: Học lực phù hợp -->
-        <div class="col-md-6 col-lg-4">
-          <div class="score-factor-card p-3 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-semibold text-dark small"><i class="bi bi-mortarboard text-primary me-1"></i>Học lực phù hợp</span>
-              <span id="m2Value" class="fw-bold text-primary small">0%</span>
-            </div>
-            <div class="score-track mb-2" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="m2BarAria">
-              <div id="m2Bar" class="score-fill" style="width: 0%;"></div>
-            </div>
-            <div class="score-label text-muted" style="font-size: 12.5px;">Đánh giá dựa trên kết quả học tập ở các nhóm môn liên quan.</div>
+        <!-- M2 -->
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="p-2 rounded bg-surface-subtle border text-center">
+            <div class="mz-caption text-muted">M2 Học lực</div>
+            <div id="m2Value" class="fw-bold fs-5 text-primary">0%</div>
           </div>
         </div>
-
-        <!-- M3: Lĩnh vực quan tâm -->
-        <div class="col-md-6 col-lg-4">
-          <div class="score-factor-card p-3 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-semibold text-dark small"><i class="bi bi-compass text-primary me-1"></i>Lĩnh vực quan tâm</span>
-              <span id="m3Value" class="fw-bold text-primary small">0%</span>
-            </div>
-            <div class="score-track mb-2" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="m3BarAria">
-              <div id="m3Bar" class="score-fill" style="width: 0%;"></div>
-            </div>
-            <div class="score-label text-muted" style="font-size: 12.5px;">Mức độ đề tài trùng với lĩnh vực bạn đã lựa chọn hoặc quan tâm.</div>
+        <!-- M3 -->
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="p-2 rounded bg-surface-subtle border text-center">
+            <div class="mz-caption text-muted">M3 Lĩnh vực</div>
+            <div id="m3Value" class="fw-bold fs-5 text-primary">0%</div>
           </div>
         </div>
-
-        <!-- M4: Nội dung tương đồng -->
-        <div class="col-md-6 col-lg-6">
-          <div class="score-factor-card p-3 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-semibold text-dark small"><i class="bi bi-file-text text-primary me-1"></i>Nội dung tương đồng</span>
-              <span id="m4Value" class="fw-bold text-primary small">0%</span>
-            </div>
-            <div class="score-track mb-2" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="m4BarAria">
-              <div id="m4Bar" class="score-fill" style="width: 0%;"></div>
-            </div>
-            <div class="score-label text-muted" style="font-size: 12.5px;">So sánh nội dung hồ sơ của bạn với mô tả và yêu cầu của đề tài.</div>
+        <!-- M4 -->
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="p-2 rounded bg-surface-subtle border text-center">
+            <div class="mz-caption text-muted">M4 Ngữ nghĩa</div>
+            <div id="m4Value" class="fw-bold fs-5 text-primary">0%</div>
           </div>
         </div>
-
-        <!-- M5: Đánh giá tổng hợp AI -->
-        <div class="col-md-6 col-lg-6">
-          <div class="score-factor-card p-3 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-semibold text-dark small"><i class="bi bi-cpu text-primary me-1"></i>Đánh giá tổng hợp AI</span>
-              <span id="m5Value" class="fw-bold text-primary small">0%</span>
-            </div>
-            <div class="score-track mb-2" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="m5BarAria">
-              <div id="m5Bar" class="score-fill" style="width: 0%;"></div>
-            </div>
-            <div class="score-label text-muted" style="font-size: 12.5px;">AI xem xét tổng thể hồ sơ và yêu cầu của đề tài theo bộ tiêu chí của hệ thống.</div>
+        <!-- M5 -->
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="p-2 rounded bg-surface-subtle border text-center">
+            <div class="mz-caption text-muted">M5 LLM</div>
+            <div id="m5Value" class="fw-bold fs-5 text-primary">0%</div>
           </div>
         </div>
       </div>
 
-      <!-- AI Reason block if present -->
-      <div id="scoreDetailReasonBox" class="recommendation-reason mb-3 d-none">
-        <div class="recommendation-reason-title fw-bold">
-          <i class="bi bi-chat-quote me-1 text-primary"></i>Nhận xét từ AI:
-        </div>
-        <div id="scoreDetailReasonText" class="mt-1"></div>
-      </div>
-
-      <!-- Collapsible Technical Accordion (DESIGN.md Section 21 & 40) -->
-      <div class="accordion mb-3" id="accordionCalculation">
-        <div class="accordion-item border rounded-3 overflow-hidden">
-          <h2 class="accordion-header" id="headingCalc">
-            <button class="accordion-button collapsed py-2 px-3 bg-light text-muted small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCalc" aria-expanded="false" aria-controls="collapseCalc">
-              <i class="bi bi-question-circle me-2"></i>Tìm hiểu thêm về cách tính điểm gợi ý (Mô hình M1–M5)
-            </button>
-          </h2>
-          <div id="collapseCalc" class="accordion-collapse collapse" aria-labelledby="headingCalc" data-bs-parent="#accordionCalculation">
-            <div class="accordion-body small text-muted bg-white">
-              <ul class="mb-0 ps-3">
-                <li class="mb-1"><strong>M1 (Khớp kỹ năng):</strong> Đánh giá mức độ bạn đáp ứng các kỹ năng mà đề tài yêu cầu. Kỹ năng bắt buộc phải đạt ngưỡng tối thiểu.</li>
-                <li class="mb-1"><strong>M2 (Học lực liên quan):</strong> Kết hợp GPA tích lũy và kết quả học tập tại các môn tiên quyết, môn chuyên ngành liên quan tới đề tài.</li>
-                <li class="mb-1"><strong>M3 (Lĩnh vực quan tâm):</strong> Đo lường mức độ quan tâm bạn đã chọn trong hồ sơ năng lực đối với các lĩnh vực của đề tài.</li>
-                <li class="mb-1"><strong>M4 (Tương đồng nội dung):</strong> Sử dụng mô hình ngôn ngữ ngữ nghĩa để so sánh văn bản tự giới thiệu của bạn với mô tả chi tiết của đề tài.</li>
-                <li><strong>M5 (Đánh giá chuyên sâu LLM):</strong> Mô hình ngôn ngữ lớn đánh giá tổng thể độ phù hợp, tính khả thi và tiềm năng phát triển của bạn khi thực hiện đề tài.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Disclaimer (DESIGN.md Section 25) -->
-      <div class="ai-disclaimer pt-2 border-top d-flex align-items-center">
-        <i class="bi bi-shield-check text-muted me-2 fs-6"></i>
-        <span>Điểm phù hợp là thông tin tham khảo để hỗ trợ lựa chọn. Quyết định đăng ký nguyện vọng vẫn thuộc về bạn.</span>
+      <div id="scoreDetailReasonBox" class="mz-alert mz-alert-info d-none mb-3">
+        <div class="small" id="scoreDetailReasonText"></div>
       </div>
     </section>
 
-    <!-- Replace Chooser Modal (DESIGN.md Section 18) -->
+    <!-- Modal thay thế nguyện vọng khi đã đầy 3 slot -->
     <div class="modal fade" id="replaceModal" tabindex="-1" aria-labelledby="replaceModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3 border-0 shadow">
+        <div class="modal-content mz-card border-0 shadow">
           <div class="modal-header border-bottom pb-3">
             <h5 class="modal-title fw-bold" id="replaceModalLabel">
-              <i class="bi bi-arrow-repeat text-primary me-2"></i>Thay thế nguyện vọng
+              Thay thế nguyện vọng
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
           <div class="modal-body py-3">
-            <p class="text-muted small mb-3">
+            <p class="mz-caption text-muted mb-3">
               Cả 3 nguyện vọng của bạn đều đã được chọn. Bạn muốn thay thế nguyện vọng nào bằng đề tài dưới đây?
             </p>
-            <div class="p-3 mb-3 bg-light rounded-3 border">
-              <div class="small text-muted mb-1">Đề tài muốn thêm:</div>
+            <div class="p-3 mb-3 bg-surface-subtle rounded border">
+              <div class="mz-caption text-muted mb-1">Đề tài muốn thêm:</div>
               <strong id="replaceTopicTitle" class="text-primary d-block">—</strong>
             </div>
             <div class="d-grid gap-2">
-              <button type="button" class="btn btn-outline-primary text-start p-2 px-3 js-replace-choice" data-target-rank="1">
-                <span class="badge bg-primary text-white me-2">NV1</span>
+              <button type="button" class="mz-btn mz-btn-secondary text-start p-2 px-3 js-replace-choice" data-target-rank="1">
+                <span class="mz-pref-rank-badge me-2">NV1</span>
                 <span class="js-replace-current-nv" data-rank="1">Thay thế NV1</span>
               </button>
-              <button type="button" class="btn btn-outline-primary text-start p-2 px-3 js-replace-choice" data-target-rank="2">
-                <span class="badge bg-primary text-white me-2">NV2</span>
+              <button type="button" class="mz-btn mz-btn-secondary text-start p-2 px-3 js-replace-choice" data-target-rank="2">
+                <span class="mz-pref-rank-badge me-2">NV2</span>
                 <span class="js-replace-current-nv" data-rank="2">Thay thế NV2</span>
               </button>
-              <button type="button" class="btn btn-outline-primary text-start p-2 px-3 js-replace-choice" data-target-rank="3">
-                <span class="badge bg-primary text-white me-2">NV3</span>
+              <button type="button" class="mz-btn mz-btn-secondary text-start p-2 px-3 js-replace-choice" data-target-rank="3">
+                <span class="mz-pref-rank-badge me-2">NV3</span>
                 <span class="js-replace-current-nv" data-rank="3">Thay thế NV3</span>
               </button>
             </div>
           </div>
           <div class="modal-footer border-top pt-2">
-            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+            <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm" data-bs-dismiss="modal">Hủy</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Toast Notification Container (DESIGN.md Section 18) -->
-    <div class="ca-toast-container">
-      <div id="caToast" class="ca-toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <i class="bi bi-check-circle-fill text-success fs-5"></i>
-        <span id="caToastText">Đã cập nhật nguyện vọng</span>
-      </div>
-    </div>
-
-    <!-- Serialized Scores Data for Client-Side JS (DESIGN.md Section 44) -->
+    <!-- Serialized Scores Data for Client-Side JS -->
     <script id="topic-scores-data" type="application/json">
     {
       {% for topic_id, rec in scores.items %}
@@ -504,7 +504,7 @@
     </script>
   {% endif %}
 </div>
-<p class="mt-3"><a href="{% url 'topic_list' %}">← Xem danh sách đề tài để tìm kiếm và tra cứu chi tiết</a></p>
+<p class="mt-4"><a href="{% url 'topic_list' %}" class="mz-btn mz-btn-ghost mz-btn-sm">← Xem danh sách đề tài để tìm kiếm và tra cứu chi tiết</a></p>
 {% endblock %}
 
 {% block extra_js %}
@@ -529,40 +529,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const nv3 = document.getElementById("id_nv3") || document.querySelector('[name="nv3"]');
   const selects = { 1: nv1, 2: nv2, 3: nv3 };
 
-  // Add form-select class to selects
   [nv1, nv2, nv3].forEach(function (sel) {
     if (sel) {
-      sel.classList.add("form-select");
+      sel.classList.add("form-select", "mz-form-control");
+      {% if period.status != 'OPEN' %}
+        sel.disabled = true;
+      {% endif %}
     }
   });
-
-  // Toast helper
-  const toastEl = document.getElementById("caToast");
-  const toastText = document.getElementById("caToastText");
-  let toastTimer = null;
-
-  function showToast(message) {
-    if (!toastEl || !toastText) return;
-    toastText.textContent = message;
-    toastEl.classList.add("show");
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () {
-      toastEl.classList.remove("show");
-    }, 3500);
-  }
-
-  // Score Badge Helper
-  function getScoreBadge(score) {
-    if (score >= 80) {
-      return { text: "Rất phù hợp", className: "badge-score-high" };
-    } else if (score >= 65) {
-      return { text: "Phù hợp", className: "badge-score-med" };
-    } else if (score >= 50) {
-      return { text: "Có thể cân nhắc", className: "badge-score-fair" };
-    } else {
-      return { text: "Phù hợp thấp", className: "badge-score-low" };
-    }
-  }
 
   // 3. Compact Score Renderer below Select
   function renderCompactScore(rank, topicId) {
@@ -570,35 +544,26 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!container) return;
 
     if (!topicId) {
-      container.innerHTML = '<div class="text-muted small fst-italic mt-1"><i class="bi bi-dash-circle me-1"></i>Chưa chọn đề tài</div>';
+      container.innerHTML = '<div class="mz-caption text-muted fst-italic mt-1">Chưa chọn đề tài</div>';
       return;
     }
 
     const data = scoresMap[topicId];
     if (!data) {
-      container.innerHTML = '<div class="p-2 px-3 rounded-2 bg-light border mt-2 text-muted small"><i class="bi bi-info-circle me-1"></i>Chưa có dữ liệu đánh giá phù hợp cho đề tài này.</div>';
+      container.innerHTML = '<div class="mz-caption text-muted mt-1">Chưa có dữ liệu đánh giá gợi ý cho đề tài này.</div>';
       return;
     }
 
     const score = Number(data.final_score) || 0;
-    const badge = getScoreBadge(score);
-
     container.innerHTML = `
-      <div class="topic-score-summary mt-2">
-        <div class="d-flex align-items-center justify-content-between mb-1">
-          <span class="score-label small text-muted">
-            <i class="bi bi-check2-circle text-primary me-1"></i>Phù hợp với hồ sơ của bạn:
-          </span>
-          <span class="score-badge ${badge.className}">${score}/100 · ${badge.text}</span>
+      <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top">
+        <div class="d-flex align-items-center gap-2">
+          <span class="mz-caption text-muted">Điểm phù hợp:</span>
+          <strong class="text-primary">${score}/100</strong>
         </div>
-        <div class="score-track mb-2" role="progressbar" aria-valuenow="${score}" aria-valuemin="0" aria-valuemax="100" aria-label="Độ phù hợp ${score}%">
-          <div class="score-fill" style="width: ${score}%;"></div>
-        </div>
-        <div class="text-end">
-          <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none js-view-score-btn" data-topic-id="${topicId}">
-            <i class="bi bi-pie-chart me-1"></i>Xem chi tiết điểm
-          </button>
-        </div>
+        <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm p-0 js-view-score-btn" data-topic-id="${topicId}">
+          <span>Xem chi tiết điểm</span>
+        </button>
       </div>
     `;
 
@@ -615,20 +580,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const detailTopicTitle = document.getElementById("scoreDetailTopicTitle");
   const detailOverallBadge = document.getElementById("scoreDetailOverallBadge");
   const m1Value = document.getElementById("m1Value");
-  const m1Bar = document.getElementById("m1Bar");
-  const m1BarAria = document.getElementById("m1BarAria");
   const m2Value = document.getElementById("m2Value");
-  const m2Bar = document.getElementById("m2Bar");
-  const m2BarAria = document.getElementById("m2BarAria");
   const m3Value = document.getElementById("m3Value");
-  const m3Bar = document.getElementById("m3Bar");
-  const m3BarAria = document.getElementById("m3BarAria");
   const m4Value = document.getElementById("m4Value");
-  const m4Bar = document.getElementById("m4Bar");
-  const m4BarAria = document.getElementById("m4BarAria");
   const m5Value = document.getElementById("m5Value");
-  const m5Bar = document.getElementById("m5Bar");
-  const m5BarAria = document.getElementById("m5BarAria");
   const reasonBox = document.getElementById("scoreDetailReasonBox");
   const reasonText = document.getElementById("scoreDetailReasonText");
   const btnCloseDetail = document.getElementById("btnCloseScoreDetail");
@@ -643,11 +598,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function showScoreDetail(topicId) {
     if (!scoreDetailSection) return;
-
     const data = scoresMap[topicId];
     let topicName = "Đề tài #" + topicId;
 
-    // Find title from select options or Top 5 cards
     if (data && data.title) {
       topicName = data.title;
     } else {
@@ -659,35 +612,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (data) {
       const finalScore = Number(data.final_score) || 0;
-      const badge = getScoreBadge(finalScore);
-      detailOverallBadge.className = "score-badge fs-6 " + badge.className;
-      detailOverallBadge.textContent = finalScore + "/100 · " + badge.text;
+      detailOverallBadge.textContent = finalScore + "/100 điểm";
 
-      const m1 = data.m1 !== null ? Number(data.m1) : 0;
-      const m2 = data.m2 !== null ? Number(data.m2) : 0;
-      const m3 = data.m3 !== null ? Number(data.m3) : 0;
-      const m4 = data.m4 !== null ? Number(data.m4) : 0;
-      const m5 = data.m5 !== null ? Number(data.m5) : 0;
-
-      m1Value.textContent = m1 + "%";
-      m1Bar.style.width = m1 + "%";
-      m1BarAria.setAttribute("aria-valuenow", m1);
-
-      m2Value.textContent = m2 + "%";
-      m2Bar.style.width = m2 + "%";
-      m2BarAria.setAttribute("aria-valuenow", m2);
-
-      m3Value.textContent = m3 + "%";
-      m3Bar.style.width = m3 + "%";
-      m3BarAria.setAttribute("aria-valuenow", m3);
-
-      m4Value.textContent = (data.m4 !== null ? m4 + "%" : "Chưa có");
-      m4Bar.style.width = (data.m4 !== null ? m4 + "%" : "0%");
-      m4BarAria.setAttribute("aria-valuenow", m4);
-
-      m5Value.textContent = (data.m5 !== null ? m5 + "%" : "Chưa có");
-      m5Bar.style.width = (data.m5 !== null ? m5 + "%" : "0%");
-      m5BarAria.setAttribute("aria-valuenow", m5);
+      m1Value.textContent = (data.m1 !== null ? data.m1 + "%" : "—");
+      m2Value.textContent = (data.m2 !== null ? data.m2 + "%" : "—");
+      m3Value.textContent = (data.m3 !== null ? data.m3 + "%" : "—");
+      m4Value.textContent = (data.m4 !== null ? data.m4 + "%" : "—");
+      m5Value.textContent = (data.m5 !== null ? data.m5 + "%" : "—");
 
       if (data.reason && data.reason.trim()) {
         reasonText.textContent = data.reason;
@@ -696,10 +627,8 @@ document.addEventListener("DOMContentLoaded", function () {
         reasonBox.classList.add("d-none");
       }
     } else {
-      detailOverallBadge.className = "score-badge badge-score-low fs-6";
-      detailOverallBadge.textContent = "Chưa có dữ liệu đánh giá";
-      [m1Bar, m2Bar, m3Bar, m4Bar, m5Bar].forEach(b => b.style.width = "0%");
-      [m1Value, m2Value, m3Value, m4Value, m5Value].forEach(v => v.textContent = "0%");
+      detailOverallBadge.textContent = "Chưa có dữ liệu";
+      [m1Value, m2Value, m3Value, m4Value, m5Value].forEach(v => v.textContent = "—");
       reasonBox.classList.add("d-none");
     }
 
@@ -707,7 +636,7 @@ document.addEventListener("DOMContentLoaded", function () {
     scoreDetailSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
-  // 5. Update Duplicate Disabled Options across NV1-NV3 (DESIGN.md Section 14)
+  // 5. Update Duplicate Disabled Options
   const formJsAlert = document.getElementById("formJsAlert");
   const formJsAlertMessage = document.getElementById("formJsAlertMessage");
 
@@ -726,14 +655,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (hasDuplicate) {
       if (formJsAlert && formJsAlertMessage) {
-        formJsAlertMessage.textContent = "Mỗi nguyện vọng phải là một đề tài khác nhau.";
+        formJsAlertMessage.textContent = "Các nguyện vọng không được trùng đề tài.";
         formJsAlert.classList.remove("d-none");
-        formJsAlert.classList.add("d-flex");
       }
     } else {
       if (formJsAlert) {
         formJsAlert.classList.add("d-none");
-        formJsAlert.classList.remove("d-flex");
       }
     }
 
@@ -759,7 +686,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 6. Update Top 5 Badges (DESIGN.md Section 27)
+  // 6. Update Top 5 Badges
   function updateTop5Badges() {
     const chosenMap = {};
     if (nv1 && nv1.value) chosenMap[nv1.value] = 1;
@@ -772,21 +699,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (assignedRank) {
         container.innerHTML = `
-          <span class="quick-select-assigned">
-            <i class="bi bi-check-lg text-primary"></i> Đang là NV${assignedRank}
+          <span class="mz-badge mz-badge-success">
+            Đang là NV${assignedRank}
           </span>
         `;
       } else {
         const title = container.closest(".topic-recommendation")?.dataset.topicTitle || "";
         container.innerHTML = `
-          <button type="button" class="btn btn-sm btn-primary js-quick-select" data-topic-id="${topicId}" data-topic-title="${title}">
-            <i class="bi bi-plus-lg me-1"></i>Chọn làm nguyện vọng
+          <button type="button" class="mz-btn mz-btn-primary mz-btn-sm js-quick-select" data-topic-id="${topicId}" data-topic-title="${title}" {% if period.status != 'OPEN' %}disabled{% endif %}>
+            <span>Chọn làm NV</span>
           </button>
         `;
       }
     });
 
-    // Re-attach quick select listeners for updated buttons
     bindQuickSelectButtons();
   }
 
@@ -798,7 +724,7 @@ document.addEventListener("DOMContentLoaded", function () {
     countBadge.textContent = `Đã chọn ${count}/3`;
   }
 
-  // 8. Quick Select Logic (DESIGN.md Section 18 & 45)
+  // 8. Quick Select Logic
   let pendingReplaceTopicId = null;
   let pendingReplaceTopicTitle = "";
   const replaceModalEl = document.getElementById("replaceModal");
@@ -810,37 +736,29 @@ document.addEventListener("DOMContentLoaded", function () {
   function handleQuickSelect(topicId, topicTitle) {
     if (!nv1 || !nv2 || !nv3) return;
 
-    // Check if already in NV1, NV2, or NV3
     if (nv1.value === topicId || nv2.value === topicId || nv3.value === topicId) {
-      showToast("Đề tài này đã được chọn trong nguyện vọng.");
       return;
     }
 
-    // Find first empty NV slot
     if (!nv1.value) {
       setSelectValue(nv1, topicId);
-      showToast(`✓ Đã thêm vào NV1: ${topicTitle}`);
       return;
     }
     if (!nv2.value) {
       setSelectValue(nv2, topicId);
-      showToast(`✓ Đã thêm vào NV2: ${topicTitle}`);
       return;
     }
     if (!nv3.value) {
       setSelectValue(nv3, topicId);
-      showToast(`✓ Đã thêm vào NV3: ${topicTitle}`);
       return;
     }
 
-    // All 3 are filled -> open replace modal
     pendingReplaceTopicId = topicId;
     pendingReplaceTopicTitle = topicTitle;
 
     const modalTitleEl = document.getElementById("replaceTopicTitle");
     if (modalTitleEl) modalTitleEl.textContent = topicTitle;
 
-    // Set current titles in replace choices
     [1, 2, 3].forEach(function (rank) {
       const sel = selects[rank];
       const span = document.querySelector(`.js-replace-current-nv[data-rank="${rank}"]`);
@@ -870,14 +788,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Replace choice button clicks in modal
   document.querySelectorAll(".js-replace-choice").forEach(function (btn) {
     btn.addEventListener("click", function () {
       const targetRank = this.dataset.targetRank;
       const targetSel = selects[targetRank];
       if (targetSel && pendingReplaceTopicId) {
         setSelectValue(targetSel, pendingReplaceTopicId);
-        showToast(`✓ Đã thay thế vào NV${targetRank}`);
         if (replaceModalInstance) {
           replaceModalInstance.hide();
         }
@@ -885,7 +801,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Top 5 "Xem lý do phù hợp" buttons
   document.querySelectorAll(".js-show-score").forEach(function (btn) {
     btn.addEventListener("click", function () {
       const topicId = this.dataset.topicId;
@@ -893,7 +808,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // 9. Reorder Logic (Arrow Buttons & Drag and Drop - DESIGN.md Section 15)
+  // 9. Reorder Logic
   function swapPreferences(rankA, rankB) {
     const selA = selects[rankA];
     const selB = selects[rankB];
@@ -907,11 +822,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     selA.dispatchEvent(new Event("change", { bubbles: true }));
     selB.dispatchEvent(new Event("change", { bubbles: true }));
-
-    showToast(`✓ Đã hoán đổi NV${rankA} và NV${rankB}`);
   }
 
-  // Arrow button listeners
   document.querySelectorAll(".btn-move-down").forEach(function (btn) {
     btn.addEventListener("click", function () {
       const rank = Number(this.dataset.rank);
@@ -926,20 +838,22 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Drag and Drop (HTML5)
-  const prefBlocks = document.querySelectorAll(".preference-block");
+  // HTML5 Drag and Drop
+  const prefBlocks = document.querySelectorAll(".mz-pref-slot");
   let draggedRank = null;
 
   prefBlocks.forEach(function (block) {
     block.addEventListener("dragstart", function (e) {
+      {% if period.status != 'OPEN' %}
+        e.preventDefault();
+        return;
+      {% endif %}
       draggedRank = Number(this.dataset.rank);
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", draggedRank);
-      this.classList.add("is-dragging");
     });
 
     block.addEventListener("dragend", function () {
-      this.classList.remove("is-dragging");
       prefBlocks.forEach(b => b.classList.remove("drag-over"));
     });
 
@@ -976,50 +890,41 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // 11. Form Validation and Submit Handling (DESIGN.md Section 46 & 30)
+  // 11. Form Validation and Submit Handling
   if (form) {
     form.addEventListener("submit", function (e) {
-      // Must select at least NV1
       if (!nv1 || !nv1.value) {
         e.preventDefault();
         if (formJsAlert && formJsAlertMessage) {
           formJsAlertMessage.textContent = "Vui lòng chọn ít nhất Nguyện vọng 1 (ưu tiên cao nhất).";
           formJsAlert.classList.remove("d-none");
-          formJsAlert.classList.add("d-flex");
           formJsAlert.scrollIntoView({ behavior: "smooth", block: "center" });
         }
         if (nv1) nv1.focus();
         return;
       }
 
-      // Check duplicates
       const chosen = [nv1.value, nv2 ? nv2.value : "", nv3 ? nv3.value : ""].filter(Boolean);
       if (new Set(chosen).size !== chosen.length) {
         e.preventDefault();
         if (formJsAlert && formJsAlertMessage) {
           formJsAlertMessage.textContent = "Các nguyện vọng không được trùng đề tài.";
           formJsAlert.classList.remove("d-none");
-          formJsAlert.classList.add("d-flex");
           formJsAlert.scrollIntoView({ behavior: "smooth", block: "center" });
         }
         return;
       }
 
-      // Valid: Show loading spinner on submit button
       const submitBtn = document.getElementById("btnSubmitPreferences");
       if (submitBtn) {
         submitBtn.disabled = true;
-        const spinner = submitBtn.querySelector(".spinner-border");
-        const icon = submitBtn.querySelector(".btn-icon");
         const text = submitBtn.querySelector(".btn-text");
-        if (spinner) spinner.classList.remove("d-none");
-        if (icon) icon.classList.add("d-none");
         if (text) text.textContent = "Đang lưu...";
       }
     });
   }
 
-  // 12. Initial Initialization on Page Load
+  // Initial call
   [1, 2, 3].forEach(function (rank) {
     const sel = selects[rank];
     if (sel) {

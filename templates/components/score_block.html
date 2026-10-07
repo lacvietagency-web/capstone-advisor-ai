@@ -1,7 +1,7 @@
 {# Mosaic Score Block Component #}
 {# Điểm tổng + dải M1–M5 gọn gàng, thanh tỉ lệ, mở rộng xem chi tiết #}
 {# Tham số: total_score, m1, m2, m3, m4, m5, details, score_id #}
-{% with sid=score_id|default:forloop.counter|default:'default' %}
+{% with sid=score_id|default:'default' %}
 <div class="mz-score-block {{ extra_classes|default:'' }}" data-mz-reveal>
   <div class="mz-score-header">
     <div class="mz-score-total">

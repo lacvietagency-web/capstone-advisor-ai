@@ -1523,3 +1523,382 @@ a:hover {
   }
 }
 
+/* ==========================================================================
+   /* P1 */ — Giai đoạn P1: Các trang SINH VIÊN theo Mosaic AI
+   Tuân thủ nghiêm ngặt 14 thẻ nguyên liệu (.webby/NGUYEN-LIEU-AP-DUNG.md),
+   Tokens Mosaic, không màu xanh Bootstrap, không tràn ngang ở 390px.
+   ========================================================================== */
+
+/* 1. Surface Card Chuẩn Mosaic */
+.mz-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-xs);
+  color: var(--text-default);
+  margin-bottom: 16px;
+  transition: border-color 160ms var(--ease-standard);
+}
+
+.mz-card:hover {
+  border-color: var(--border-default);
+}
+
+.mz-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-soft);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mz-card-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin: 0;
+}
+
+/* 2. Thứ hạng đề tài (Rank Badge) */
+.mz-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  background-color: var(--bg-surface-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+
+.mz-rank-badge-1 {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.mz-pref-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  flex-shrink: 0;
+}
+
+/* 3. Tiến trình Sinh viên (Journey Stepper - motion|crossfade-slide-transition) */
+.mz-journey {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 16px 0 24px;
+  padding: 0 8px;
+}
+
+.mz-journey-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  gap: 6px;
+  transition: color 140ms var(--ease-standard);
+}
+
+.mz-journey-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  background-color: var(--bg-surface);
+  border: 2px solid var(--border-strong);
+  color: var(--text-muted);
+  transition: all 160ms var(--ease-standard);
+}
+
+.mz-journey-step.completed .mz-journey-circle {
+  background-color: var(--success);
+  border-color: var(--success);
+  color: #fff;
+}
+
+.mz-journey-step.active .mz-journey-circle {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+.mz-journey-step.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.mz-journey-line {
+  position: absolute;
+  top: 16px;
+  left: 36px;
+  right: 36px;
+  height: 2px;
+  background-color: var(--border-soft);
+  z-index: 1;
+}
+
+.mz-journey-line-fill {
+  height: 100%;
+  background-color: var(--success);
+  transition: width 240ms var(--ease-standard);
+}
+
+/* 4. Thanh Lọc Dính (component|sticky-typewriter-filter-bar) */
+.mz-sticky-filter-bar {
+  position: sticky;
+  top: 64px;
+  z-index: 95;
+  background-color: color-mix(in srgb, var(--bg-surface) 96%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-soft);
+  padding: 14px 16px;
+  margin: -16px -16px 20px -16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+@media (max-width: 767.98px) {
+  .mz-sticky-filter-bar {
+    top: 56px;
+  }
+}
+
+.mz-filter-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-soft);
+}
+
+.mz-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-soft);
+  font-size: 12px;
+  color: var(--text-default);
+}
+
+.mz-filter-chip-remove {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 2px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+}
+
+.mz-filter-chip-remove:hover {
+  color: var(--danger);
+}
+
+/* 5. Khối Nguyện Vọng (Preference Blocks & Drag/Order) */
+.mz-pref-slot {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 14px;
+  transition: border-color 160ms var(--ease-standard), box-shadow 160ms var(--ease-standard);
+  position: relative;
+}
+
+.mz-pref-slot:hover {
+  border-color: var(--border-default);
+}
+
+.mz-pref-slot.drag-over {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.mz-pref-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mz-pref-handle {
+  cursor: grab;
+  color: var(--text-disabled);
+  display: inline-flex;
+  align-items: center;
+}
+
+.mz-pref-handle:hover {
+  color: var(--text-default);
+}
+
+.mz-pref-order-btns {
+  display: inline-flex;
+  gap: 4px;
+}
+
+/* 6. Formset Rows (Kỹ năng & Lĩnh vực) */
+.mz-formset-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mz-formset-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr auto;
+  gap: 12px;
+  align-items: center;
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  transition: background-color 140ms var(--ease-standard);
+}
+
+.mz-formset-row.row-deleted {
+  opacity: 0.5;
+  text-decoration: line-through;
+  background-color: var(--danger-soft);
+}
+
+@media (max-width: 575.98px) {
+  .mz-formset-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.mz-level-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* 7. Floating Popover (layout|floating-anchor-popover) */
+.mz-popover {
+  position: fixed;
+  z-index: 1050;
+  display: none;
+  width: min(92vw, 360px);
+  background-color: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 16px;
+  animation: mz-popover-in 160ms var(--ease-enter);
+}
+
+.mz-popover.is-active {
+  display: block;
+}
+
+.mz-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: 1040;
+  display: none;
+}
+
+.mz-popover-backdrop.is-active {
+  display: block;
+}
+
+.mz-popover-arrow {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  transform: rotate(45deg);
+}
+
+.mz-popover[data-placement="bottom"] .mz-popover-arrow {
+  top: -6px;
+  border-bottom: none;
+  border-right: none;
+}
+
+.mz-popover[data-placement="top"] .mz-popover-arrow {
+  bottom: -6px;
+  border-top: none;
+  border-left: none;
+}
+
+@keyframes mz-popover-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 8. Fix Không Tràn Ngang ở 390px Mobile */
+.text-break-word {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 390px) {
+  .mz-models-strip {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 4px !important;
+  }
+  .mz-model-name {
+    font-size: 9px !important;
+  }
+  .mz-model-value {
+    font-size: 11px !important;
+  }
+  .mz-card {
+    padding: 12px 14px;
+  }
+}
+
+

@@ -1,43 +1,41 @@
 {% extends "base.html" %}
 
-{% block title %}{{ topic.title }} — Capstone Advisor AI{% endblock %}
+{% block title %}{{ topic.title }} — Mosaic AI{% endblock %}
 
 {% block content %}
 <!-- Điều hướng quay lại -->
-<div class="mb-3">
-  <a href="{% url 'topic_list' %}" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách đề tài
+<div class="mb-3" data-mz-reveal>
+  <a href="{% url 'topic_list' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
+    {% include "components/icon.html" with name="arrow-left" size=14 %}
+    <span>Quay lại danh sách đề tài</span>
   </a>
 </div>
 
 <!-- =========================================================================
      Tiêu đề đề tài & thông tin giảng viên
      ========================================================================= -->
-<div class="app-card mb-4">
+<div class="mz-card mb-4" data-mz-reveal>
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
-    <div>
+    <div class="flex-grow-1 min-w-0">
       <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        {% include "components/status_badge.html" with status=topic.status|lower label=topic.get_status_display %}
+
+        <span class="mz-badge mz-badge-neutral">
+          Độ khó: {{ topic.get_difficulty_display }}
+        </span>
+
         {% for f in topic.fields.all %}
-          <span class="badge bg-light text-secondary border">{{ f.name }}</span>
+          <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
         {% endfor %}
-
-        <span class="badge-difficulty">
-          <i class="bi bi-speedometer2 me-1"></i>Độ khó: {{ topic.get_difficulty_display }}
-        </span>
-
-        <!-- Nhãn trạng thái áp dụng Hermes Recipe: component|badge-pill-scale-pop -->
-        <span class="badge-pill-scale-pop {% if topic.status == 'OPEN' %}status-open{% elif topic.status == 'CLOSED' %}status-closed{% else %}status-pending{% endif %}" title="Trạng thái đề tài">
-          <span class="dot"></span>{{ topic.get_status_display }}
-        </span>
       </div>
 
-      <h1 class="card-heading fs-3 mb-2">{{ topic.title }}</h1>
+      <h1 class="mz-h2 fs-3 mb-2 text-break-word">{{ topic.title }}</h1>
 
-      <div class="text-muted">
-        <i class="bi bi-person-circle me-1"></i>Giảng viên hướng dẫn:
+      <div class="mz-caption text-muted">
+        Giảng viên hướng dẫn:
         <strong class="text-strong">{{ topic.lecturer.user.get_full_name|default:topic.lecturer.user.username }}</strong>
         {% if topic.lecturer.department %}
-          <span class="ms-1">· {{ topic.lecturer.department }}</span>
+          <span>· {{ topic.lecturer.department }}</span>
         {% endif %}
       </div>
     </div>
@@ -45,8 +43,9 @@
     {% if is_student %}
       <div class="d-flex flex-column align-items-md-end gap-2 flex-shrink-0">
         {% if not ineligible_reason %}
-          <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary">
-            <i class="bi bi-bookmark-plus me-1"></i>Đăng ký nguyện vọng
+          <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="mz-btn mz-btn-primary">
+            {% include "components/icon.html" with name="bookmark" size=16 %}
+            <span>Đăng ký nguyện vọng</span>
           </a>
         {% endif %}
       </div>
@@ -59,439 +58,63 @@
      ========================================================================= -->
 {% if is_student %}
   {% if ineligible_reason %}
-    <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4" role="alert">
-      <div class="d-flex align-items-start gap-2">
-        <i class="bi bi-exclamation-triangle-fill text-warning mt-1 fs-5"></i>
-        <div>
-          <strong>Bạn chưa đủ điều kiện đăng ký đề tài này.</strong> {{ ineligible_reason }}. Hãy cập nhật hồ sơ nếu thông tin chưa đúng, hoặc chọn đề tài khác.
-        </div>
-      </div>
-      <!-- Hermes Recipe: layout|floating-anchor-popover (Lý do chưa đủ điều kiện) -->
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-danger floating-popover-trigger flex-shrink-0 text-nowrap"
-        data-popover-id="popover-ineligible-detail"
-        aria-haspopup="dialog"
-        aria-expanded="false"
-      >
-        <i class="bi bi-question-circle-fill me-1"></i>Vì sao chưa đủ điều kiện?
-      </button>
-    </div>
-
-    <!-- Floating Anchor Popover for Ineligible Reason -->
-    <div id="popover-ineligible-detail" class="floating-anchor-popover" role="dialog" aria-modal="true" aria-labelledby="popover-ineligible-title">
-      <div class="floating-popover-drag-bar d-sm-none"></div>
-      <div class="floating-popover-arrow"></div>
-      <div class="floating-popover-header">
-        <h3 id="popover-ineligible-title" class="floating-popover-title text-danger">
-          <i class="bi bi-shield-exclamation me-1"></i>Lý do chưa đủ điều kiện
-        </h3>
-        <button type="button" class="floating-popover-close" data-dismiss="popover" aria-label="Đóng">&times;</button>
-      </div>
-      <div class="floating-popover-body">
-        <div class="mb-3">
-          <strong>Thông báo hệ thống:</strong>
-          <div class="p-2 bg-light rounded mt-1 border text-danger-emphasis">
-            {{ ineligible_reason }}
-          </div>
-        </div>
-        <div class="small text-muted mb-2">
-          <strong>Tiêu chí lọc cứng bao gồm:</strong>
-          <ul class="ps-3 mb-2 mt-1">
-            <li>Điểm trung bình tích lũy GPA (tối thiểu {{ topic.min_gpa|floatformat:2 }}).</li>
-            <li>Các môn học tiên quyết bắt buộc phải đạt điểm yêu cầu.</li>
-            <li>Kỹ năng chuyên môn bắt buộc ở mức độ tối thiểu theo đề cương đề tài.</li>
-          </ul>
-          Nếu bạn đã hoàn thành môn học hoặc đã có kỹ năng tương ứng nhưng chưa hiển thị, vui lòng cập nhật lại hồ sơ năng lực.
-        </div>
-      </div>
-      <div class="floating-popover-footer">
-        <a href="{% url 'student_profile' %}" class="btn btn-sm btn-primary">
-          <i class="bi bi-pencil-square me-1"></i>Cập nhật hồ sơ
-        </a>
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="popover">Đóng</button>
+    <div class="mz-alert mz-alert-warning mb-4" role="alert" data-mz-reveal>
+      {% include "components/icon.html" with name="triangle-alert" size=18 class="text-warning flex-shrink-0" %}
+      <div>
+        <strong>Bạn chưa đủ điều kiện đăng ký đề tài này.</strong> {{ ineligible_reason }}. Hãy cập nhật hồ sơ nếu thông tin chưa đúng, hoặc chọn đề tài khác.
       </div>
     </div>
   {% endif %}
 
-  <div class="app-card mb-4">
-    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-      <h2 class="card-heading mb-0">
-        <i class="bi bi-stars text-primary me-2"></i>Mức độ phù hợp với hồ sơ của bạn
-      </h2>
+  <div class="mz-card mb-4" data-mz-reveal>
+    <div class="mz-card-header">
+      <h2 class="mz-card-title">Mức độ phù hợp với hồ sơ của bạn</h2>
       {% if recommendation %}
-        <span class="badge bg-light text-primary border">AI đánh giá</span>
+        <span class="mz-badge mz-badge-published">Mosaic AI</span>
       {% else %}
-        <span class="badge bg-light text-muted border">Tham khảo tiêu chí M1–M5</span>
+        <span class="mz-badge mz-badge-neutral">Tham khảo tiêu chí M1–M5</span>
       {% endif %}
     </div>
 
     {% if recommendation %}
-      <!-- Tổng quan điểm số phù hợp khi có recommendation -->
-      <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between p-3 bg-light rounded-3 border mb-4 gap-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="ai-score" style="min-width: 110px; padding: 12px 18px;">
-            <div class="d-flex align-items-baseline">
-              <span class="ai-score-number" style="font-size: 32px;">{{ recommendation.final_score|floatformat:0 }}</span>
-              <span class="ai-score-denom">/100</span>
-            </div>
-            <div class="ai-score-label">
-              {% if recommendation.final_score >= 85 %}
-                Rất phù hợp
-              {% elif recommendation.final_score >= 70 %}
-                Phù hợp cao
-              {% elif recommendation.final_score >= 55 %}
-                Khá phù hợp
-              {% else %}
-                Cần cân nhắc
-              {% endif %}
-            </div>
-          </div>
-          <div>
-            <h3 class="fs-6 fw-bold mb-1 text-strong">Điểm phù hợp tổng hợp</h3>
-            <p class="text-muted small mb-0">
-              Dựa trên phân tích đa tiêu chí từ hồ sơ năng lực và các yêu cầu chi tiết của đề tài. Bấm vào từng vòng số liệu bên dưới để xem cách tính chi tiết.
-            </p>
-          </div>
-        </div>
+      <!-- Khối điểm AI P0 (score_block) -->
+      {% include "components/score_block.html" with total_score=recommendation.final_score|floatformat:0 m1=recommendation.m1_skill|floatformat:0 m2=recommendation.m2_academic|floatformat:0 m3=recommendation.m3_field|floatformat:0 m4=recommendation.m4_semantic|floatformat:0 m5=recommendation.m5_llm|floatformat:0 score_id=topic.id %}
 
-        {% if not ineligible_reason %}
-          <div class="flex-shrink-0">
-            <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary">
-              <i class="bi bi-bookmark-plus me-1"></i>Đăng ký nguyện vọng
-            </a>
-          </div>
-        {% endif %}
+      <!-- Khối lý do AI P0 (reason_block) -->
+      {% if recommendation.reason %}
+        <div class="mt-3">
+          {% include "components/reason_block.html" with reason_1=recommendation.reason %}
+        </div>
+      {% endif %}
+
+      <div class="mz-caption text-muted mt-3 pt-2 border-top">
+        Điểm phù hợp được tính toán tự động dựa trên 5 mô hình M1–M5 của hệ thống Mosaic AI.
       </div>
+
+      {% if not ineligible_reason %}
+        <div class="mt-3 pt-2 border-top">
+          <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="mz-btn mz-btn-primary">
+            {% include "components/icon.html" with name="bookmark" size=16 %}
+            <span>Đăng ký nguyện vọng cho đề tài này</span>
+          </a>
+        </div>
+      {% endif %}
     {% else %}
-      <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
-        <i class="bi bi-info-circle-fill fs-5"></i>
+      <div class="mz-alert mz-alert-info mb-3">
+        {% include "components/icon.html" with name="info" size=18 class="text-info flex-shrink-0" %}
         <div>
           Chưa có điểm đánh giá phù hợp cho đề tài này (đề tài nằm ngoài Top gợi ý hoặc hồ sơ chưa được cập nhật). Dưới đây là các tiêu chuẩn đánh giá M1–M5 của hệ thống. Bạn vẫn có thể đăng ký bình thường nếu cảm thấy đề tài phù hợp.
         </div>
       </div>
-    {% endif %}
 
-    <!-- =========================================================================
-         Hermes Recipe: component|circular-metric-process-cluster
-         (Cụm vòng điểm M1–M5 theo quy trình chuẩn hoá)
-         Kết hợp layout|floating-anchor-popover cho từng mốc
-         ========================================================================= -->
-    <div class="feature-number-wrap metric-process-cluster">
-      <ol class="metric-cluster-list">
-        <!-- M1: Phù hợp kỹ năng -->
-        <li class="metric-cluster-step" aria-label="Mô hình M1: Phù hợp kỹ năng {% if recommendation %}{{ recommendation.m1_skill|floatformat:0 }}{% else %}chưa có điểm{% endif %} trên 100">
-          <div
-            class="circle-div floating-popover-trigger"
-            data-popover-id="popover-m1"
-            role="button"
-            tabindex="0"
-            aria-haspopup="dialog"
-            aria-expanded="false"
-            title="Bấm để xem cách tính M1"
-          >
-            <svg class="metric-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
-              <circle class="ring-bg" cx="50" cy="50" r="42" fill="none" stroke-width="7"/>
-              <circle
-                class="ring-bar"
-                cx="50"
-                cy="50"
-                r="42"
-                fill="none"
-                stroke-width="7"
-                stroke-linecap="round"
-                stroke-dasharray="264"
-                style="stroke-dashoffset: calc(264px - (264px * {% if recommendation %}{{ recommendation.m1_skill|floatformat:0 }}{% else %}0{% endif %} / 100));"
-              />
-            </svg>
-            <span class="metric-badge-code">M1</span>
-            <h4 class="metric-value">{% if recommendation %}{{ recommendation.m1_skill|floatformat:0 }}{% else %}—{% endif %}</h4>
-            <span class="metric-unit">/100</span>
-          </div>
-          <div class="metric-step-label">
-            <span class="metric-step-title">Kỹ năng</span>
-            <span class="metric-step-desc">M1 · Skill</span>
-          </div>
-        </li>
-
-        <div class="arrow-wrap" aria-hidden="true"><i class="bi bi-chevron-right"></i></div>
-
-        <!-- M2: Phù hợp học lực -->
-        <li class="metric-cluster-step" aria-label="Mô hình M2: Phù hợp học lực {% if recommendation %}{{ recommendation.m2_academic|floatformat:0 }}{% else %}chưa có điểm{% endif %} trên 100">
-          <div
-            class="circle-div floating-popover-trigger"
-            data-popover-id="popover-m2"
-            role="button"
-            tabindex="0"
-            aria-haspopup="dialog"
-            aria-expanded="false"
-            title="Bấm để xem cách tính M2"
-          >
-            <svg class="metric-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
-              <circle class="ring-bg" cx="50" cy="50" r="42" fill="none" stroke-width="7"/>
-              <circle
-                class="ring-bar"
-                cx="50"
-                cy="50"
-                r="42"
-                fill="none"
-                stroke-width="7"
-                stroke-linecap="round"
-                stroke-dasharray="264"
-                style="stroke-dashoffset: calc(264px - (264px * {% if recommendation %}{{ recommendation.m2_academic|floatformat:0 }}{% else %}0{% endif %} / 100));"
-              />
-            </svg>
-            <span class="metric-badge-code">M2</span>
-            <h4 class="metric-value">{% if recommendation %}{{ recommendation.m2_academic|floatformat:0 }}{% else %}—{% endif %}</h4>
-            <span class="metric-unit">/100</span>
-          </div>
-          <div class="metric-step-label">
-            <span class="metric-step-title">Học lực</span>
-            <span class="metric-step-desc">M2 · Academic</span>
-          </div>
-        </li>
-
-        <div class="arrow-wrap" aria-hidden="true"><i class="bi bi-chevron-right"></i></div>
-
-        <!-- M3: Phù hợp lĩnh vực -->
-        <li class="metric-cluster-step" aria-label="Mô hình M3: Phù hợp lĩnh vực {% if recommendation %}{{ recommendation.m3_field|floatformat:0 }}{% else %}chưa có điểm{% endif %} trên 100">
-          <div
-            class="circle-div floating-popover-trigger"
-            data-popover-id="popover-m3"
-            role="button"
-            tabindex="0"
-            aria-haspopup="dialog"
-            aria-expanded="false"
-            title="Bấm để xem cách tính M3"
-          >
-            <svg class="metric-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
-              <circle class="ring-bg" cx="50" cy="50" r="42" fill="none" stroke-width="7"/>
-              <circle
-                class="ring-bar"
-                cx="50"
-                cy="50"
-                r="42"
-                fill="none"
-                stroke-width="7"
-                stroke-linecap="round"
-                stroke-dasharray="264"
-                style="stroke-dashoffset: calc(264px - (264px * {% if recommendation %}{{ recommendation.m3_field|floatformat:0 }}{% else %}0{% endif %} / 100));"
-              />
-            </svg>
-            <span class="metric-badge-code">M3</span>
-            <h4 class="metric-value">{% if recommendation %}{{ recommendation.m3_field|floatformat:0 }}{% else %}—{% endif %}</h4>
-            <span class="metric-unit">/100</span>
-          </div>
-          <div class="metric-step-label">
-            <span class="metric-step-title">Lĩnh vực</span>
-            <span class="metric-step-desc">M3 · Field</span>
-          </div>
-        </li>
-
-        <div class="arrow-wrap" aria-hidden="true"><i class="bi bi-chevron-right"></i></div>
-
-        <!-- M4: Tương đồng nội dung -->
-        <li class="metric-cluster-step" aria-label="Mô hình M4: Tương đồng nội dung {% if recommendation and recommendation.m4_semantic is not None %}{{ recommendation.m4_semantic|floatformat:0 }}{% else %}chưa tính{% endif %}">
-          <div
-            class="circle-div floating-popover-trigger"
-            data-popover-id="popover-m4"
-            role="button"
-            tabindex="0"
-            aria-haspopup="dialog"
-            aria-expanded="false"
-            title="Bấm để xem cách tính M4"
-          >
-            <svg class="metric-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
-              <circle class="ring-bg" cx="50" cy="50" r="42" fill="none" stroke-width="7"/>
-              <circle
-                class="ring-bar"
-                cx="50"
-                cy="50"
-                r="42"
-                fill="none"
-                stroke-width="7"
-                stroke-linecap="round"
-                stroke-dasharray="264"
-                style="stroke-dashoffset: calc(264px - (264px * {% if recommendation and recommendation.m4_semantic is not None %}{{ recommendation.m4_semantic|floatformat:0 }}{% else %}0{% endif %} / 100));"
-              />
-            </svg>
-            <span class="metric-badge-code">M4</span>
-            <h4 class="metric-value">{% if recommendation and recommendation.m4_semantic is not None %}{{ recommendation.m4_semantic|floatformat:0 }}{% else %}—{% endif %}</h4>
-            <span class="metric-unit">/100</span>
-          </div>
-          <div class="metric-step-label">
-            <span class="metric-step-title">Ngữ nghĩa</span>
-            <span class="metric-step-desc">M4 · Semantic</span>
-          </div>
-        </li>
-
-        <div class="arrow-wrap" aria-hidden="true"><i class="bi bi-chevron-right"></i></div>
-
-        <!-- M5: Đánh giá hỗ trợ từ AI -->
-        <li class="metric-cluster-step" aria-label="Mô hình M5: Đánh giá hỗ trợ từ AI {% if recommendation and recommendation.m5_llm is not None %}{{ recommendation.m5_llm|floatformat:0 }}{% else %}chưa tính{% endif %}">
-          <div
-            class="circle-div floating-popover-trigger"
-            data-popover-id="popover-m5"
-            role="button"
-            tabindex="0"
-            aria-haspopup="dialog"
-            aria-expanded="false"
-            title="Bấm để xem cách tính M5"
-          >
-            <svg class="metric-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
-              <circle class="ring-bg" cx="50" cy="50" r="42" fill="none" stroke-width="7"/>
-              <circle
-                class="ring-bar"
-                cx="50"
-                cy="50"
-                r="42"
-                fill="none"
-                stroke-width="7"
-                stroke-linecap="round"
-                stroke-dasharray="264"
-                style="stroke-dashoffset: calc(264px - (264px * {% if recommendation and recommendation.m5_llm is not None %}{{ recommendation.m5_llm|floatformat:0 }}{% else %}0{% endif %} / 100));"
-              />
-            </svg>
-            <span class="metric-badge-code">M5</span>
-            <h4 class="metric-value">{% if recommendation and recommendation.m5_llm is not None %}{{ recommendation.m5_llm|floatformat:0 }}{% else %}—{% endif %}</h4>
-            <span class="metric-unit">/100</span>
-          </div>
-          <div class="metric-step-label">
-            <span class="metric-step-title">Hỗ trợ AI</span>
-            <span class="metric-step-desc">M5 · LLM Review</span>
-          </div>
-        </li>
-      </ol>
-    </div>
-
-    <!-- Popovers giải thích chi tiết M1–M5 (Hermes Recipe: layout|floating-anchor-popover) -->
-    <!-- Popover M1 -->
-    <div id="popover-m1" class="floating-anchor-popover" role="dialog" aria-modal="true" aria-labelledby="popover-m1-title">
-      <div class="floating-popover-drag-bar d-sm-none"></div>
-      <div class="floating-popover-arrow"></div>
-      <div class="floating-popover-header">
-        <h3 id="popover-m1-title" class="floating-popover-title">
-          <span class="badge bg-primary text-white me-1">M1</span> Phù hợp kỹ năng
-        </h3>
-        <button type="button" class="floating-popover-close" data-dismiss="popover" aria-label="Đóng">&times;</button>
-      </div>
-      <div class="floating-popover-body">
-        <div class="mb-2"><strong>Điểm số:</strong> {% if recommendation %}{{ recommendation.m1_skill|floatformat:0 }} / 100{% else %}Chưa tính{% endif %}</div>
-        <p class="text-muted small mb-0">
-          Dựa trên mức độ tương đồng giữa các kỹ năng trong hồ sơ của bạn và kỹ năng yêu cầu của đề tài, có tính đến trọng số và mức độ thành thạo.
-        </p>
-      </div>
-      <div class="floating-popover-footer">
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="popover">Đóng</button>
-      </div>
-    </div>
-
-    <!-- Popover M2 -->
-    <div id="popover-m2" class="floating-anchor-popover" role="dialog" aria-modal="true" aria-labelledby="popover-m2-title">
-      <div class="floating-popover-drag-bar d-sm-none"></div>
-      <div class="floating-popover-arrow"></div>
-      <div class="floating-popover-header">
-        <h3 id="popover-m2-title" class="floating-popover-title">
-          <span class="badge bg-primary text-white me-1">M2</span> Phù hợp học lực
-        </h3>
-        <button type="button" class="floating-popover-close" data-dismiss="popover" aria-label="Đóng">&times;</button>
-      </div>
-      <div class="floating-popover-body">
-        <div class="mb-2"><strong>Điểm số:</strong> {% if recommendation %}{{ recommendation.m2_academic|floatformat:0 }} / 100{% else %}Chưa tính{% endif %}</div>
-        <p class="text-muted small mb-0">
-          So sánh kết quả học tập liên quan (điểm trung bình tích lũy GPA và các môn học nền tảng) với ngưỡng yêu cầu tối thiểu của đề tài.
-        </p>
-      </div>
-      <div class="floating-popover-footer">
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="popover">Đóng</button>
-      </div>
-    </div>
-
-    <!-- Popover M3 -->
-    <div id="popover-m3" class="floating-anchor-popover" role="dialog" aria-modal="true" aria-labelledby="popover-m3-title">
-      <div class="floating-popover-drag-bar d-sm-none"></div>
-      <div class="floating-popover-arrow"></div>
-      <div class="floating-popover-header">
-        <h3 id="popover-m3-title" class="floating-popover-title">
-          <span class="badge bg-primary text-white me-1">M3</span> Phù hợp lĩnh vực
-        </h3>
-        <button type="button" class="floating-popover-close" data-dismiss="popover" aria-label="Đóng">&times;</button>
-      </div>
-      <div class="floating-popover-body">
-        <div class="mb-2"><strong>Điểm số:</strong> {% if recommendation %}{{ recommendation.m3_field|floatformat:0 }} / 100{% else %}Chưa tính{% endif %}</div>
-        <p class="text-muted small mb-0">
-          Đánh giá mức độ trùng khớp giữa các lĩnh vực bạn quan tâm trong hồ sơ và các lĩnh vực nghiên cứu trực thuộc của đề tài.
-        </p>
-      </div>
-      <div class="floating-popover-footer">
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="popover">Đóng</button>
-      </div>
-    </div>
-
-    <!-- Popover M4 -->
-    <div id="popover-m4" class="floating-anchor-popover" role="dialog" aria-modal="true" aria-labelledby="popover-m4-title">
-      <div class="floating-popover-drag-bar d-sm-none"></div>
-      <div class="floating-popover-arrow"></div>
-      <div class="floating-popover-header">
-        <h3 id="popover-m4-title" class="floating-popover-title">
-          <span class="badge bg-primary text-white me-1">M4</span> Tương đồng nội dung
-        </h3>
-        <button type="button" class="floating-popover-close" data-dismiss="popover" aria-label="Đóng">&times;</button>
-      </div>
-      <div class="floating-popover-body">
-        <div class="mb-2"><strong>Điểm số:</strong> {% if recommendation and recommendation.m4_semantic is not None %}{{ recommendation.m4_semantic|floatformat:0 }} / 100{% else %}Chưa tính{% endif %}</div>
-        <p class="text-muted small mb-0">
-          Đo mức độ tương đồng về ngữ nghĩa giữa phần giới thiệu bản thân trong hồ sơ của bạn và phần mô tả chi tiết của đề tài qua mô hình nhúng vector.
-        </p>
-      </div>
-      <div class="floating-popover-footer">
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="popover">Đóng</button>
-      </div>
-    </div>
-
-    <!-- Popover M5 -->
-    <div id="popover-m5" class="floating-anchor-popover" role="dialog" aria-modal="true" aria-labelledby="popover-m5-title">
-      <div class="floating-popover-drag-bar d-sm-none"></div>
-      <div class="floating-popover-arrow"></div>
-      <div class="floating-popover-header">
-        <h3 id="popover-m5-title" class="floating-popover-title">
-          <span class="badge bg-primary text-white me-1">M5</span> Đánh giá hỗ trợ từ AI
-        </h3>
-        <button type="button" class="floating-popover-close" data-dismiss="popover" aria-label="Đóng">&times;</button>
-      </div>
-      <div class="floating-popover-body">
-        <div class="mb-2"><strong>Điểm số:</strong> {% if recommendation and recommendation.m5_llm is not None %}{{ recommendation.m5_llm|floatformat:0 }} / 100{% else %}Chưa tính{% endif %}</div>
-        <p class="text-muted small mb-0">
-          AI đọc hồ sơ và yêu cầu đề tài theo một bộ tiêu chí cố định để cung cấp thêm một góc đánh giá tham khảo độc lập.
-        </p>
-      </div>
-      <div class="floating-popover-footer">
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="popover">Đóng</button>
-      </div>
-    </div>
-
-    <!-- Nhận xét và lý do AI nếu có -->
-    {% if recommendation and recommendation.reason %}
-      <div class="recommendation-reason mt-3">
-        <div class="recommendation-reason-title">
-          <i class="bi bi-lightbulb me-1"></i>Vì sao đề tài này phù hợp?
+      {% if not ineligible_reason %}
+        <div class="mt-3">
+          <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="mz-btn mz-btn-primary">
+            {% include "components/icon.html" with name="bookmark" size=16 %}
+            <span>Đăng ký nguyện vọng</span>
+          </a>
         </div>
-        <div>{{ recommendation.reason|linebreaksbr }}</div>
-      </div>
-    {% endif %}
-
-    <!-- AI Disclosure note (DESIGN.md Section 36) -->
-    <div class="d-flex align-items-center gap-2 mt-3 pt-2 text-muted small border-top">
-      <i class="bi bi-info-circle text-primary"></i>
-      <span>Điểm phù hợp là dữ liệu hỗ trợ tham khảo, không thay thế quyết định của sinh viên, giảng viên hoặc khoa.</span>
-    </div>
-
-    {% if not ineligible_reason %}
-      <div class="mt-3 pt-2 border-top">
-        <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary">
-          <i class="bi bi-bookmark-plus me-1"></i>Đăng ký nguyện vọng cho đề tài này
-        </a>
-      </div>
+      {% endif %}
     {% endif %}
   </div>
 {% endif %}
@@ -503,23 +126,25 @@
   <!-- Cột trái: Mô tả, Kỹ năng yêu cầu, Môn học tiên quyết -->
   <div class="col-12 col-lg-8">
     <!-- Mô tả đề tài -->
-    <div class="app-card mb-4">
-      <h2 class="card-heading border-bottom pb-2 mb-3">Mô tả đề tài</h2>
-      <div class="topic-description" style="line-height: 1.7; white-space: pre-line;">
+    <div class="mz-card mb-4" data-mz-reveal>
+      <div class="mz-card-header">
+        <h2 class="mz-card-title">Mô tả đề tài</h2>
+      </div>
+      <div class="mz-caption text-default fs-6" style="line-height: 1.7; white-space: pre-line;">
         {{ topic.description }}
       </div>
     </div>
 
     <!-- Kỹ năng yêu cầu -->
-    <div class="app-card mb-4">
-      <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
-        <h2 class="card-heading mb-0">Kỹ năng yêu cầu</h2>
-        <span class="badge bg-light text-muted border">{{ skills|length }} kỹ năng</span>
+    <div class="mz-card mb-4" data-mz-reveal>
+      <div class="mz-card-header">
+        <h2 class="mz-card-title">Kỹ năng yêu cầu</h2>
+        <span class="mz-badge mz-badge-neutral">{{ skills|length }} kỹ năng</span>
       </div>
 
       {% if skills %}
         <div class="table-responsive">
-          <table class="table app-table">
+          <table class="table mz-table mb-0">
             <thead>
               <tr>
                 <th>Kỹ năng</th>
@@ -533,19 +158,19 @@
                 <tr>
                   <td><strong class="text-strong">{{ s.skill.name }}</strong></td>
                   <td>
-                    <div class="d-flex align-items-center gap-1">
+                    <div class="d-flex align-items-center gap-2">
                       <span>Mức {{ s.required_level }}/5</span>
-                      <div class="progress flex-grow-1 ms-2" style="height: 6px; width: 60px;">
-                        <div class="progress-bar" style="width: {% widthratio s.required_level 5 100 %}%;"></div>
+                      <div class="progress flex-grow-1" style="height: 6px; width: 60px; background-color: var(--border-soft);">
+                        <div class="progress-bar" style="width: {% widthratio s.required_level 5 100 %}%; background-color: var(--accent);"></div>
                       </div>
                     </div>
                   </td>
                   <td>{{ s.weight }}</td>
                   <td>
                     {% if s.is_mandatory %}
-                      <span class="badge-pill-scale-pop status-danger">Bắt buộc</span>
+                      <span class="mz-badge mz-badge-danger">Bắt buộc</span>
                     {% else %}
-                      <span class="badge bg-light text-secondary border">Tùy chọn</span>
+                      <span class="mz-badge mz-badge-neutral">Tùy chọn</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -554,22 +179,22 @@
           </table>
         </div>
       {% else %}
-        <div class="text-muted py-2 small">
-          <i class="bi bi-check-circle me-1"></i>Đề tài không đặt yêu cầu kỹ năng cụ thể.
+        <div class="mz-caption text-muted py-2">
+          Đề tài không đặt yêu cầu kỹ năng cụ thể.
         </div>
       {% endif %}
     </div>
 
     <!-- Môn học tiên quyết -->
-    <div class="app-card mb-4">
-      <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
-        <h2 class="card-heading mb-0">Môn học tiên quyết</h2>
-        <span class="badge bg-light text-muted border">{{ prerequisites|length }} môn</span>
+    <div class="mz-card mb-4" data-mz-reveal>
+      <div class="mz-card-header">
+        <h2 class="mz-card-title">Môn học tiên quyết</h2>
+        <span class="mz-badge mz-badge-neutral">{{ prerequisites|length }} môn</span>
       </div>
 
       {% if prerequisites %}
         <div class="table-responsive">
-          <table class="table app-table">
+          <table class="table mz-table mb-0">
             <thead>
               <tr>
                 <th>Mã môn</th>
@@ -582,15 +207,15 @@
                 <tr>
                   <td><code>{{ p.course.code }}</code></td>
                   <td><strong class="text-strong">{{ p.course.name }}</strong></td>
-                  <td><span class="badge bg-light text-primary border">≥ {{ p.min_score|floatformat:1 }} / 10</span></td>
+                  <td><span class="mz-badge mz-badge-info">≥ {{ p.min_score|floatformat:1 }} / 10</span></td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
       {% else %}
-        <div class="text-muted py-2 small">
-          <i class="bi bi-info-circle me-1"></i>Đề tài không yêu cầu môn học tiên quyết.
+        <div class="mz-caption text-muted py-2">
+          Đề tài không yêu cầu môn học tiên quyết.
         </div>
       {% endif %}
     </div>
@@ -598,45 +223,44 @@
 
   <!-- Cột phải: Thông số đề tài -->
   <div class="col-12 col-lg-4">
-    <div class="app-card mb-4">
-      <h2 class="card-heading border-bottom pb-2 mb-3">Thông số đề tài</h2>
+    <div class="mz-card mb-4" data-mz-reveal>
+      <div class="mz-card-header">
+        <h2 class="mz-card-title">Thông số đề tài</h2>
+      </div>
 
       <div class="d-flex flex-column gap-3">
         <div>
-          <div class="profile-stat-label">Sức chứa</div>
-          <div class="profile-stat-value">
-            <i class="bi bi-people me-1 text-primary"></i>{{ topic.capacity }} sinh viên
+          <div class="mz-caption text-muted">Sức chứa</div>
+          <div class="fw-semibold text-strong fs-5 mt-1">
+            {{ topic.capacity }} sinh viên
           </div>
         </div>
 
         <div>
-          <div class="profile-stat-label">Số người đã đăng ký NV1</div>
-          <div class="profile-stat-value">
-            <i class="bi bi-bookmark-check me-1 text-success"></i>{{ nv1_count }} sinh viên
+          <div class="mz-caption text-muted">Số người đã đăng ký NV1</div>
+          <div class="fw-semibold text-strong fs-5 mt-1">
+            {{ nv1_count }} sinh viên
           </div>
         </div>
 
         <div>
-          <div class="profile-stat-label">GPA tối thiểu</div>
-          <div class="profile-stat-value">
-            <i class="bi bi-mortarboard me-1 text-info"></i>{{ topic.min_gpa|floatformat:2 }}
+          <div class="mz-caption text-muted">GPA tối thiểu</div>
+          <div class="fw-semibold text-strong fs-5 mt-1">
+            {{ topic.min_gpa|floatformat:2 }}
           </div>
         </div>
 
         <div>
-          <div class="profile-stat-label">Độ khó</div>
-          <div class="profile-stat-value">
-            <span class="badge-difficulty">{{ topic.get_difficulty_display }}</span>
+          <div class="mz-caption text-muted">Độ khó</div>
+          <div class="mt-1">
+            <span class="mz-badge mz-badge-neutral">{{ topic.get_difficulty_display }}</span>
           </div>
         </div>
 
         <div>
-          <div class="profile-stat-label">Trạng thái</div>
-          <div class="profile-stat-value">
-            <!-- Nhãn trạng thái áp dụng Hermes Recipe: component|badge-pill-scale-pop -->
-            <span class="badge-pill-scale-pop {% if topic.status == 'OPEN' %}status-open{% elif topic.status == 'CLOSED' %}status-closed{% else %}status-pending{% endif %}">
-              <span class="dot"></span>{{ topic.get_status_display }}
-            </span>
+          <div class="mz-caption text-muted">Trạng thái</div>
+          <div class="mt-1">
+            {% include "components/status_badge.html" with status=topic.status|lower label=topic.get_status_display %}
           </div>
         </div>
       </div>
@@ -644,8 +268,9 @@
       {% if is_student %}
         <div class="mt-4 pt-3 border-top">
           {% if not ineligible_reason %}
-            <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary w-100">
-              <i class="bi bi-bookmark-plus me-1"></i>Đăng ký nguyện vọng
+            <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="mz-btn mz-btn-primary w-100">
+              {% include "components/icon.html" with name="bookmark" size=16 %}
+              <span>Đăng ký nguyện vọng</span>
             </a>
           {% endif %}
         </div>
@@ -653,162 +278,4 @@
     </div>
   </div>
 </div>
-
-<!-- Backdrop cho Floating Popover -->
-<div class="floating-popover-backdrop" id="floating-popover-backdrop" aria-hidden="true"></div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  // =========================================================================
-  // Hermes Recipe: layout|floating-anchor-popover controller
-  // =========================================================================
-  var activePopover = null;
-  var activeAnchor = null;
-  var backdrop = document.getElementById("floating-popover-backdrop");
-
-  function positionPopover(anchor, popover) {
-    if (window.innerWidth <= 576) {
-      // Mobile bottomsheet mode
-      popover.style.top = "";
-      popover.style.left = "";
-      popover.setAttribute("data-placement", "bottomsheet");
-      return;
-    }
-
-    var rect = anchor.getBoundingClientRect();
-    var popWidth = popover.offsetWidth || 320;
-    var popHeight = popover.offsetHeight || 190;
-    var arrow = popover.querySelector(".floating-popover-arrow");
-
-    // Default: show below anchor
-    var placement = "bottom";
-    var top = rect.bottom + 10;
-    var left = rect.left + (rect.width / 2) - (popWidth / 2);
-
-    // If overflowing below bottom of viewport, flip to top
-    if (top + popHeight > window.innerHeight && rect.top - popHeight - 10 > 0) {
-      placement = "top";
-      top = rect.top - popHeight - 10;
-    }
-
-    // Keep within horizontal boundaries
-    var minLeft = 12;
-    var maxLeft = window.innerWidth - popWidth - 12;
-    if (left < minLeft) left = minLeft;
-    if (left > maxLeft) left = maxLeft;
-
-    popover.style.top = top + "px";
-    popover.style.left = left + "px";
-    popover.setAttribute("data-placement", placement);
-
-    // Position arrow pointing directly to the center of the anchor
-    if (arrow) {
-      var arrowLeft = rect.left + (rect.width / 2) - left - 6;
-      if (arrowLeft < 16) arrowLeft = 16;
-      if (arrowLeft > popWidth - 22) arrowLeft = popWidth - 22;
-      arrow.style.left = arrowLeft + "px";
-    }
-  }
-
-  function openPopover(anchor, popoverId) {
-    var popover = document.getElementById(popoverId);
-    if (!popover) return;
-
-    if (activePopover && activePopover !== popover) {
-      closeActivePopover();
-    }
-
-    activePopover = popover;
-    activeAnchor = anchor;
-    anchor.setAttribute("aria-expanded", "true");
-
-    popover.classList.add("is-active");
-    if (backdrop) backdrop.classList.add("is-active");
-
-    positionPopover(anchor, popover);
-
-    // Focus close button for accessibility
-    var closeBtn = popover.querySelector(".floating-popover-close") || popover.querySelector("[data-dismiss='popover']");
-    if (closeBtn) setTimeout(function () { closeBtn.focus(); }, 50);
-  }
-
-  function closeActivePopover() {
-    if (!activePopover) return;
-    activePopover.classList.remove("is-active");
-    if (backdrop) backdrop.classList.remove("is-active");
-    if (activeAnchor) {
-      activeAnchor.setAttribute("aria-expanded", "false");
-      activeAnchor.focus();
-    }
-    activePopover = null;
-    activeAnchor = null;
-  }
-
-  // Bind popover triggers (both buttons and metric circular nodes)
-  var triggers = document.querySelectorAll(".floating-popover-trigger");
-  triggers.forEach(function (trigger) {
-    trigger.addEventListener("click", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      var popoverId = this.getAttribute("data-popover-id");
-      if (activePopover && activePopover.id === popoverId) {
-        closeActivePopover();
-      } else {
-        openPopover(this, popoverId);
-      }
-    });
-
-    // Keyboard support for Enter and Space on circular nodes
-    trigger.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        var popoverId = this.getAttribute("data-popover-id");
-        if (activePopover && activePopover.id === popoverId) {
-          closeActivePopover();
-        } else {
-          openPopover(this, popoverId);
-        }
-      }
-    });
-  });
-
-  // Close buttons
-  document.querySelectorAll("[data-dismiss='popover']").forEach(function (btn) {
-    btn.addEventListener("click", function (e) {
-      e.preventDefault();
-      closeActivePopover();
-    });
-  });
-
-  // Backdrop click
-  if (backdrop) {
-    backdrop.addEventListener("click", function () {
-      closeActivePopover();
-    });
-  }
-
-  // Esc key dismissal
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && activePopover) {
-      closeActivePopover();
-    }
-  });
-
-  // Click outside dismissal
-  document.addEventListener("click", function (e) {
-    if (activePopover && !activePopover.contains(e.target) && (!activeAnchor || !activeAnchor.contains(e.target))) {
-      closeActivePopover();
-    }
-  });
-
-  // Reposition on window resize / orientation change
-  window.addEventListener("resize", function () {
-    if (activePopover && activeAnchor) {
-      positionPopover(activeAnchor, activePopover);
-    }
-  });
-});
-</script>
 {% endblock %}

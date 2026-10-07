@@ -1,331 +1,320 @@
 {% extends "base.html" %}
 
-{% block title %}Danh sách đề tài — Capstone Advisor AI{% endblock %}
+{% block title %}Danh sách đề tài — Mosaic AI{% endblock %}
 
 {% block content %}
-<div class="page-header mb-3">
-  <h1>Danh sách đề tài tốt nghiệp</h1>
-  <p class="page-subtitle">Tra cứu, tìm kiếm và lọc đề tài theo lĩnh vực, giảng viên hướng dẫn và độ khó.</p>
-</div>
+<div class="mz-topic-list-page">
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3" data-mz-reveal>
+    <div>
+      <h1 class="mz-h2 mb-1">Danh sách đề tài tốt nghiệp</h1>
+      <p class="mz-caption text-muted mb-0">Tra cứu, tìm kiếm và lọc đề tài theo lĩnh vực, giảng viên hướng dẫn và độ khó.</p>
+    </div>
+    <div class="mz-caption text-muted">
+      Tổng số: <strong>{{ page_obj.paginator.count }}</strong> đề tài
+    </div>
+  </div>
 
-<!-- =========================================================================
-     Hermes Recipe: component|sticky-typewriter-filter-bar
-     (Thanh lọc dính + chip lọc đang chọn)
-     ========================================================================= -->
-<div class="sticky-filter-bar" id="topic-filter-bar">
-  <form method="get" action="{% url 'topic_list' %}" id="topic-filter-form" class="sticky-filter-form">
-    <div class="row g-3 align-items-end">
-      <!-- Tìm kiếm theo tên đề tài -->
-      <div class="col-12 col-md-6 col-lg-3">
-        <label for="filter-query" class="form-label">Tìm kiếm tên đề tài</label>
-        <div class="input-group">
-          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-          <input
-            type="text"
-            id="filter-query"
-            name="q"
-            class="form-control"
-            placeholder="Nhập tên đề tài..."
-            value="{{ search_query }}"
-            autocomplete="off"
-          >
+  <!-- =========================================================================
+       Thanh Lọc Dính (component|sticky-typewriter-filter-bar)
+       Nền surface 96-98% opacity, sticky top 64px, border-bottom
+       ========================================================================= -->
+  <div class="mz-sticky-filter-bar" id="topic-filter-bar">
+    <form method="get" action="{% url 'topic_list' %}" id="topic-filter-form">
+      <div class="row g-2 align-items-end">
+        <!-- Tìm kiếm theo tên đề tài -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <label for="filter-query" class="form-label mz-caption text-muted mb-1">Tìm kiếm đề tài</label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-surface border-end-0">
+              {% include "components/icon.html" with name="search" size=14 class="text-muted" %}
+            </span>
+            <input
+              type="text"
+              id="filter-query"
+              name="q"
+              class="form-control form-control-sm border-start-0"
+              placeholder="Nhập tên đề tài..."
+              value="{{ search_query }}"
+              autocomplete="off"
+            >
+          </div>
         </div>
-      </div>
 
-      <!-- Lọc theo lĩnh vực -->
-      <div class="col-12 col-md-6 col-lg-3">
-        <label for="filter-field" class="form-label">Lĩnh vực</label>
-        <select id="filter-field" name="field" class="form-select">
-          <option value="">-- Tất cả lĩnh vực --</option>
-          {% for f in fields %}
-            <option value="{{ f.id }}" {% if selected_field == f.id|stringformat:"s" %}selected{% endif %}>
-              {{ f.name }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <!-- Lọc theo giảng viên -->
-      <div class="col-12 col-md-6 col-lg-3">
-        <label for="filter-lecturer" class="form-label">Giảng viên hướng dẫn</label>
-        <select id="filter-lecturer" name="lecturer" class="form-select">
-          <option value="">-- Tất cả giảng viên --</option>
-          {% for l in lecturers %}
-            <option value="{{ l.id }}" {% if selected_lecturer == l.id|stringformat:"s" %}selected{% endif %}>
-              {{ l.user.get_full_name|default:l.user.username }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <!-- Lọc theo độ khó -->
-      <div class="col-12 col-md-6 col-lg-3">
-        <label for="filter-difficulty" class="form-label">Độ khó</label>
-        <select id="filter-difficulty" name="difficulty" class="form-select">
-          <option value="">-- Tất cả độ khó --</option>
-          {% for val, label in difficulties %}
-            <option value="{{ val }}" {% if selected_difficulty == val|stringformat:"s" %}selected{% endif %}>
-              {{ label }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
-
-    <!-- Hàng nút lọc & thống kê -->
-    <div class="d-flex align-items-center flex-wrap gap-2 mt-3 pt-2 border-top">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-funnel me-1"></i>Lọc đề tài
-      </button>
-      <a href="{% url 'topic_list' %}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-counterclockwise me-1"></i>Xóa bộ lọc
-      </a>
-      <div class="ms-auto text-muted small">
-        Tìm thấy <strong>{{ page_obj.paginator.count }}</strong> đề tài
-      </div>
-    </div>
-
-    <!-- Chip lọc đang chọn (Active filter chips) -->
-    {% if search_query or selected_field or selected_lecturer or selected_difficulty %}
-    <div class="active-filters-container" aria-label="Các bộ lọc đang được áp dụng">
-      <span class="active-filters-heading">
-        <i class="bi bi-funnel-fill text-primary"></i>Đang lọc theo:
-      </span>
-
-      {% if search_query %}
-      <span class="filter-chip">
-        <span class="filter-chip-label">Từ khóa:</span>
-        <strong class="filter-chip-val">"{{ search_query }}"</strong>
-        <button type="button" class="filter-chip-remove" data-clear-param="q" title="Bỏ lọc theo từ khóa" aria-label="Bỏ lọc theo từ khóa">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </span>
-      {% endif %}
-
-      {% if selected_field %}
-        {% for f in fields %}
-          {% if selected_field == f.id|stringformat:"s" %}
-          <span class="filter-chip">
-            <span class="filter-chip-label">Lĩnh vực:</span>
-            <strong class="filter-chip-val">{{ f.name }}</strong>
-            <button type="button" class="filter-chip-remove" data-clear-param="field" title="Bỏ lọc lĩnh vực {{ f.name }}" aria-label="Bỏ lọc lĩnh vực {{ f.name }}">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </span>
-          {% endif %}
-        {% endfor %}
-      {% endif %}
-
-      {% if selected_lecturer %}
-        {% for l in lecturers %}
-          {% if selected_lecturer == l.id|stringformat:"s" %}
-          <span class="filter-chip">
-            <span class="filter-chip-label">GVHD:</span>
-            <strong class="filter-chip-val">{{ l.user.get_full_name|default:l.user.username }}</strong>
-            <button type="button" class="filter-chip-remove" data-clear-param="lecturer" title="Bỏ lọc giảng viên {{ l.user.get_full_name|default:l.user.username }}" aria-label="Bỏ lọc giảng viên">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </span>
-          {% endif %}
-        {% endfor %}
-      {% endif %}
-
-      {% if selected_difficulty %}
-        {% for val, label in difficulties %}
-          {% if selected_difficulty == val|stringformat:"s" %}
-          <span class="filter-chip">
-            <span class="filter-chip-label">Độ khó:</span>
-            <strong class="filter-chip-val">{{ label }}</strong>
-            <button type="button" class="filter-chip-remove" data-clear-param="difficulty" title="Bỏ lọc độ khó {{ label }}" aria-label="Bỏ lọc độ khó {{ label }}">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </span>
-          {% endif %}
-        {% endfor %}
-      {% endif %}
-
-      <a href="{% url 'topic_list' %}" class="filter-chip-clear-all" aria-label="Xóa tất cả bộ lọc">
-        <i class="bi bi-x-circle me-1"></i>Xóa tất cả
-      </a>
-    </div>
-    {% endif %}
-  </form>
-</div>
-
-<!-- =========================================================================
-     Danh sách đề tài
-     ========================================================================= -->
-<div class="topic-list-container">
-  {% for t in topics %}
-    <div class="app-card mb-3">
-      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3">
-        <!-- Thông tin tiêu đề & giảng viên -->
-        <div class="flex-grow-1">
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-            <!-- Nhãn trạng thái với hiệu ứng badge-pill-scale-pop -->
-            <span class="badge-pill-scale-pop {% if t.status == 'OPEN' %}status-open{% elif t.status == 'CLOSED' %}status-closed{% else %}status-pending{% endif %}" title="Trạng thái đề tài">
-              <span class="dot"></span>{{ t.get_status_display }}
-            </span>
-
-            <span class="badge-difficulty">
-              <i class="bi bi-speedometer2 me-1"></i>{{ t.get_difficulty_display }}
-            </span>
-
-            {% for f in t.fields.all %}
-              <span class="badge bg-light text-secondary border">{{ f.name }}</span>
+        <!-- Lọc theo lĩnh vực -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <label for="filter-field" class="form-label mz-caption text-muted mb-1">Lĩnh vực</label>
+          <select id="filter-field" name="field" class="form-select form-select-sm">
+            <option value="">-- Tất cả lĩnh vực --</option>
+            {% for f in fields %}
+              <option value="{{ f.id }}" {% if selected_field == f.id|stringformat:"s" %}selected{% endif %}>
+                {{ f.name }}
+              </option>
             {% endfor %}
-          </div>
-
-          <h2 class="card-heading mb-1">
-            <a href="{% url 'topic_detail' t.id %}" class="text-decoration-none text-strong">
-              {{ t.title }}
-            </a>
-          </h2>
-
-          <div class="small text-muted mb-2">
-            <i class="bi bi-person me-1"></i>GVHD:
-            <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>
-            {% if t.lecturer.department %} · {{ t.lecturer.department }}{% endif %}
-          </div>
-
-          <p class="text-muted mb-3 small" style="line-height: 1.5;">
-            {{ t.description|truncatewords:45 }}
-          </p>
-
-          <div class="d-flex flex-wrap align-items-center gap-3 small text-muted">
-            <div>
-              <i class="bi bi-people me-1"></i>Sức chứa: <strong>{{ t.capacity }}</strong> SV
-            </div>
-            <div>
-              <i class="bi bi-bookmark-check me-1"></i>Số người đã đăng ký NV1: <strong>{{ t.nv1_count }}</strong>
-            </div>
-            {% if t.min_gpa > 0 %}
-              <div>
-                <i class="bi bi-mortarboard me-1"></i>GPA tối thiểu: <strong>{{ t.min_gpa|floatformat:2 }}</strong>
-              </div>
-            {% endif %}
-          </div>
+          </select>
         </div>
 
-        <!-- Điểm phù hợp & hành động -->
-        <div class="d-flex flex-column align-items-sm-end gap-2 flex-shrink-0">
-          {% if is_student and t.recommendation %}
-            <div class="ai-score" title="Mức độ phù hợp tổng hợp theo mô hình AI">
-              <div class="d-flex align-items-baseline">
-                <span class="ai-score-number">{{ t.recommendation.final_score|floatformat:0 }}</span>
-                <span class="ai-score-denom">/100</span>
-              </div>
-              <div class="ai-score-label">Điểm phù hợp</div>
-            </div>
-          {% endif %}
+        <!-- Lọc theo giảng viên -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <label for="filter-lecturer" class="form-label mz-caption text-muted mb-1">Giảng viên hướng dẫn</label>
+          <select id="filter-lecturer" name="lecturer" class="form-select form-select-sm">
+            <option value="">-- Tất cả giảng viên --</option>
+            {% for l in lecturers %}
+              <option value="{{ l.id }}" {% if selected_lecturer == l.id|stringformat:"s" %}selected{% endif %}>
+                {{ l.user.get_full_name|default:l.user.username }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
 
-          <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
-            <a href="{% url 'topic_detail' t.id %}" class="btn btn-sm btn-outline-primary">
-              <i class="bi bi-info-circle me-1"></i>Chi tiết
-            </a>
-
-            {% if is_student and t.ineligible_reason %}
-              <!-- Popover trigger lý do chưa đủ điều kiện (floating-anchor-popover) -->
-              <button
-                type="button"
-                class="badge-pill-scale-pop status-danger floating-popover-trigger"
-                data-popover-id="popover-ineligible-{{ t.id }}"
-                aria-haspopup="dialog"
-                aria-expanded="false"
-                title="Bấm để xem chi tiết điều kiện"
-              >
-                <span class="dot"></span><i class="bi bi-lock me-1"></i>Chưa đủ điều kiện
-              </button>
-
-              <!-- Floating Popover container for this topic -->
-              <div id="popover-ineligible-{{ t.id }}" class="floating-anchor-popover" role="dialog" aria-modal="true" aria-labelledby="popover-title-{{ t.id }}">
-                <div class="floating-popover-drag-bar d-sm-none"></div>
-                <div class="floating-popover-arrow"></div>
-                <div class="floating-popover-header">
-                  <h3 id="popover-title-{{ t.id }}" class="floating-popover-title text-danger">
-                    <i class="bi bi-exclamation-octagon-fill me-1"></i>Chưa đủ điều kiện
-                  </h3>
-                  <button type="button" class="floating-popover-close" data-dismiss="popover" aria-label="Đóng">&times;</button>
-                </div>
-                <div class="floating-popover-body">
-                  <div class="mb-2"><strong>Lý do:</strong> {{ t.ineligible_reason }}</div>
-                  <div class="small text-muted">
-                    Bạn chưa đáp ứng tiêu chí lọc cứng của đề tài này (GPA, môn tiên quyết hoặc kỹ năng). Hãy cập nhật hồ sơ hoặc chọn đề tài khác phù hợp hơn.
-                  </div>
-                </div>
-                <div class="floating-popover-footer">
-                  <a href="{% url 'student_profile' %}" class="btn btn-sm btn-primary">Cập nhật hồ sơ</a>
-                  <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="popover">Đóng</button>
-                </div>
-              </div>
-            {% elif is_student %}
-              <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="btn btn-sm btn-primary">
-                <i class="bi bi-bookmark-plus me-1"></i>Đăng ký NV
-              </a>
-            {% endif %}
-          </div>
+        <!-- Lọc theo độ khó -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <label for="filter-difficulty" class="form-label mz-caption text-muted mb-1">Độ khó</label>
+          <select id="filter-difficulty" name="difficulty" class="form-select form-select-sm">
+            <option value="">-- Tất cả độ khó --</option>
+            {% for val, label in difficulties %}
+              <option value="{{ val }}" {% if selected_difficulty == val|stringformat:"s" %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
         </div>
       </div>
-    </div>
-  {% empty %}
-    <div class="app-card text-center py-5">
-      <div class="empty-state">
-        <div class="empty-state-icon"><i class="bi bi-search"></i></div>
-        <h3 class="empty-state-title">Không tìm thấy đề tài nào</h3>
-        <p class="empty-state-desc">Hãy thử thay đổi điều kiện lọc hoặc từ khóa tìm kiếm để xem các đề tài khác.</p>
-        <a href="{% url 'topic_list' %}" class="btn btn-outline-secondary mt-3">
-          <i class="bi bi-arrow-counterclockwise me-1"></i>Xem tất cả đề tài
+
+      <!-- Hàng nút lọc & thống kê -->
+      <div class="d-flex align-items-center flex-wrap gap-2 mt-2 pt-2 border-top">
+        <button type="submit" class="mz-btn mz-btn-primary mz-btn-sm">
+          {% include "components/icon.html" with name="filter" size=14 %}
+          <span>Lọc đề tài</span>
+        </button>
+        <a href="{% url 'topic_list' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
+          {% include "components/icon.html" with name="refresh-cw" size=14 %}
+          <span>Xóa bộ lọc</span>
         </a>
       </div>
-    </div>
-  {% endfor %}
-</div>
 
-<!-- Phân trang -->
-{% if page_obj.has_other_pages %}
-  <nav aria-label="Phân trang đề tài" class="mt-4">
-    <ul class="pagination justify-content-center">
-      {% if page_obj.has_previous %}
-        <li class="page-item">
-          <a class="page-link" href="?{{ querystring }}&page={{ page_obj.previous_page_number }}" aria-label="Trang trước">
-            <span aria-hidden="true">&laquo; Trang trước</span>
+      <!-- Active filter chips -->
+      {% if search_query or selected_field or selected_lecturer or selected_difficulty %}
+        <div class="mz-filter-chips" aria-label="Bộ lọc đang được áp dụng">
+          <span class="mz-caption text-muted me-1">Đang lọc:</span>
+
+          {% if search_query %}
+            <span class="mz-filter-chip">
+              <span>Từ khóa: <strong>"{{ search_query }}"</strong></span>
+              <button type="button" class="mz-filter-chip-remove" data-clear-param="q" title="Bỏ lọc từ khóa" aria-label="Bỏ lọc từ khóa">
+                &times;
+              </button>
+            </span>
+          {% endif %}
+
+          {% if selected_field %}
+            {% for f in fields %}
+              {% if selected_field == f.id|stringformat:"s" %}
+                <span class="mz-filter-chip">
+                  <span>Lĩnh vực: <strong>{{ f.name }}</strong></span>
+                  <button type="button" class="mz-filter-chip-remove" data-clear-param="field" title="Bỏ lọc lĩnh vực" aria-label="Bỏ lọc lĩnh vực">
+                    &times;
+                  </button>
+                </span>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          {% if selected_lecturer %}
+            {% for l in lecturers %}
+              {% if selected_lecturer == l.id|stringformat:"s" %}
+                <span class="mz-filter-chip">
+                  <span>GV: <strong>{{ l.user.get_full_name|default:l.user.username }}</strong></span>
+                  <button type="button" class="mz-filter-chip-remove" data-clear-param="lecturer" title="Bỏ lọc GV" aria-label="Bỏ lọc GV">
+                    &times;
+                  </button>
+                </span>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          {% if selected_difficulty %}
+            {% for val, label in difficulties %}
+              {% if selected_difficulty == val|stringformat:"s" %}
+                <span class="mz-filter-chip">
+                  <span>Độ khó: <strong>{{ label }}</strong></span>
+                  <button type="button" class="mz-filter-chip-remove" data-clear-param="difficulty" title="Bỏ lọc độ khó" aria-label="Bỏ lọc độ khó">
+                    &times;
+                  </button>
+                </span>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          <a href="{% url 'topic_list' %}" class="mz-caption text-muted ms-auto text-decoration-none">
+            Xóa tất cả
           </a>
-        </li>
-      {% else %}
-        <li class="page-item disabled">
-          <span class="page-link">&laquo; Trang trước</span>
-        </li>
+        </div>
       {% endif %}
+    </form>
+  </div>
 
-      {% for p in page_obj.paginator.page_range %}
-        {% if p == page_obj.number %}
-          <li class="page-item active" aria-current="page">
-            <span class="page-link">{{ p }}</span>
-          </li>
-        {% elif p >= page_obj.number|add:"-3" and p <= page_obj.number|add:"3" %}
+  <!-- =========================================================================
+       Danh sách đề tài (Chỉ hiển thị điểm tổng, KHÔNG nhồi 5 cột M1-M5)
+       ========================================================================= -->
+  <div class="mz-topic-list">
+    {% for t in topics %}
+      <div class="mz-card mb-3" data-mz-reveal>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+          <!-- Thông tin tiêu đề & giảng viên -->
+          <div class="flex-grow-1 min-w-0">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+              {% include "components/status_badge.html" with status=t.status|lower label=t.get_status_display %}
+
+              <span class="mz-badge mz-badge-neutral">
+                {{ t.get_difficulty_display }}
+              </span>
+
+              {% for f in t.fields.all %}
+                <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
+              {% endfor %}
+            </div>
+
+            <h2 class="mz-card-title fs-5 mb-1 text-break-word">
+              <a href="{% url 'topic_detail' t.id %}" class="text-strong text-decoration-none">
+                {{ t.title }}
+              </a>
+            </h2>
+
+            <div class="mz-caption text-muted mb-2">
+              GVHD: <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>
+              {% if t.lecturer.department %} · {{ t.lecturer.department }}{% endif %}
+            </div>
+
+            <p class="mz-caption text-muted mb-3" style="line-height: 1.55;">
+              {{ t.description|truncatewords:40 }}
+            </p>
+
+            <div class="d-flex flex-wrap align-items-center gap-3 mz-caption text-muted">
+              <div>
+                Sức chứa: <strong class="text-strong">{{ t.capacity }}</strong> sinh viên
+              </div>
+              <div>
+                Số người đã đăng ký NV1: <strong class="text-strong">{{ t.nv1_count }}</strong>
+              </div>
+              {% if t.min_gpa > 0 %}
+                <div>
+                  GPA tối thiểu: <strong class="text-strong">{{ t.min_gpa|floatformat:2 }}</strong>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Điểm tổng phù hợp & Hành động (Chỉ hiển thị điểm tổng theo Biên bản mục 3) -->
+          <div class="d-flex flex-column align-items-md-end gap-2 flex-shrink-0">
+            {% if is_student and t.recommendation %}
+              <div class="text-md-end p-2 px-3 rounded bg-surface-subtle border">
+                <div class="fw-bold fs-4 text-primary">{{ t.recommendation.final_score|floatformat:0 }}<span class="mz-caption text-muted">/100</span></div>
+                <div class="mz-caption text-muted">Điểm phù hợp</div>
+              </div>
+            {% endif %}
+
+            <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
+              <a href="{% url 'topic_detail' t.id %}" class="mz-btn mz-btn-secondary mz-btn-sm">
+                {% include "components/icon.html" with name="eye" size=14 %}
+                <span>Chi tiết</span>
+              </a>
+
+              {% if is_student and t.ineligible_reason %}
+                <!-- Popover trigger lý do chưa đủ điều kiện (floating-anchor-popover) -->
+                <button
+                  type="button"
+                  class="mz-btn mz-btn-ghost mz-btn-sm text-danger floating-popover-trigger"
+                  data-popover-id="popover-ineligible-{{ t.id }}"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                  title="Bấm để xem chi tiết điều kiện"
+                >
+                  {% include "components/icon.html" with name="lock" size=14 class="text-danger me-1" %}
+                  <span>Chưa đủ điều kiện</span>
+                </button>
+
+                <!-- Floating Popover container for this topic -->
+                <div id="popover-ineligible-{{ t.id }}" class="mz-popover" role="dialog" aria-modal="true" aria-labelledby="popover-title-{{ t.id }}">
+                  <div class="mz-popover-arrow"></div>
+                  <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <h3 id="popover-title-{{ t.id }}" class="mz-card-title text-danger fs-6 mb-0">
+                      Chưa đủ điều kiện đăng ký
+                    </h3>
+                    <button type="button" class="btn-close" data-dismiss="popover" aria-label="Đóng"></button>
+                  </div>
+                  <div class="mz-caption text-muted mb-3">
+                    <div class="mb-2 text-danger fw-semibold">Lý do: {{ t.ineligible_reason }}</div>
+                    <div>Bạn chưa đáp ứng điều kiện tiên quyết hoặc kỹ năng bắt buộc của đề tài này. Hãy cập nhật hồ sơ hoặc lựa chọn đề tài khác.</div>
+                  </div>
+                  <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'student_profile' %}" class="mz-btn mz-btn-primary mz-btn-sm">Cập nhật hồ sơ</a>
+                    <button type="button" class="mz-btn mz-btn-secondary mz-btn-sm" data-dismiss="popover">Đóng</button>
+                  </div>
+                </div>
+              {% elif is_student %}
+                <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="mz-btn mz-btn-primary mz-btn-sm">
+                  {% include "components/icon.html" with name="bookmark" size=14 %}
+                  <span>Đăng ký NV</span>
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="mz-card">
+        {% include "components/empty_state.html" with illustration="empty-search" title="Không tìm thấy đề tài nào" description="Hãy thử thay đổi điều kiện lọc hoặc từ khóa tìm kiếm để xem các đề tài khác." primary_url="/danh-sach-de-tai/" primary_label="Xem tất cả đề tài" %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Phân trang -->
+  {% if page_obj.has_other_pages %}
+    <nav aria-label="Phân trang đề tài" class="mt-4">
+      <ul class="pagination pagination-sm justify-content-center">
+        {% if page_obj.has_previous %}
           <li class="page-item">
-            <a class="page-link" href="?{{ querystring }}&page={{ p }}">{{ p }}</a>
+            <a class="page-link" href="?{{ querystring }}&page={{ page_obj.previous_page_number }}" aria-label="Trang trước">
+              &laquo; Trang trước
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">&laquo; Trang trước</span>
           </li>
         {% endif %}
-      {% endfor %}
 
-      {% if page_obj.has_next %}
-        <li class="page-item">
-          <a class="page-link" href="?{{ querystring }}&page={{ page_obj.next_page_number }}" aria-label="Trang sau">
-            <span aria-hidden="true">Trang sau &raquo;</span>
-          </a>
-        </li>
-      {% else %}
-        <li class="page-item disabled">
-          <span class="page-link">Trang sau &raquo;</span>
-        </li>
-      {% endif %}
-    </ul>
-  </nav>
-{% endif %}
+        {% for p in page_obj.paginator.page_range %}
+          {% if p == page_obj.number %}
+            <li class="page-item active" aria-current="page">
+              <span class="page-link">{{ p }}</span>
+            </li>
+          {% elif p >= page_obj.number|add:"-3" and p <= page_obj.number|add:"3" %}
+            <li class="page-item">
+              <a class="page-link" href="?{{ querystring }}&page={{ p }}">{{ p }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
 
-<!-- Backdrop cho Floating Popover -->
-<div class="floating-popover-backdrop" id="floating-popover-backdrop" aria-hidden="true"></div>
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?{{ querystring }}&page={{ page_obj.next_page_number }}" aria-label="Trang sau">
+              Trang sau &raquo;
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Trang sau &raquo;</span>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+
+  <!-- Backdrop cho Floating Popover -->
+  <div class="mz-popover-backdrop" id="floating-popover-backdrop" aria-hidden="true"></div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -357,39 +346,25 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // =========================================================================
-  // Hermes Recipe: layout|floating-anchor-popover controller
-  // =========================================================================
+  // Floating Popover Controller (layout|floating-anchor-popover)
   var activePopover = null;
   var activeAnchor = null;
   var backdrop = document.getElementById("floating-popover-backdrop");
 
   function positionPopover(anchor, popover) {
-    if (window.innerWidth <= 576) {
-      // Mobile bottomsheet mode
-      popover.style.top = "";
-      popover.style.left = "";
-      popover.setAttribute("data-placement", "bottomsheet");
-      return;
-    }
-
     var rect = anchor.getBoundingClientRect();
     var popWidth = popover.offsetWidth || 320;
-    var popHeight = popover.offsetHeight || 180;
-    var arrow = popover.querySelector(".floating-popover-arrow");
+    var popHeight = popover.offsetHeight || 160;
 
-    // Default to placing below anchor
     var placement = "bottom";
     var top = rect.bottom + 8;
     var left = rect.left + (rect.width / 2) - (popWidth / 2);
 
-    // If bottom overflow, flip to top
     if (top + popHeight > window.innerHeight && rect.top - popHeight - 8 > 0) {
       placement = "top";
       top = rect.top - popHeight - 8;
     }
 
-    // Keep within horizontal boundaries
     var minLeft = 12;
     var maxLeft = window.innerWidth - popWidth - 12;
     if (left < minLeft) left = minLeft;
@@ -398,14 +373,6 @@ document.addEventListener("DOMContentLoaded", function () {
     popover.style.top = top + "px";
     popover.style.left = left + "px";
     popover.setAttribute("data-placement", placement);
-
-    // Position arrow pointing to trigger center
-    if (arrow) {
-      var arrowLeft = rect.left + (rect.width / 2) - left - 6;
-      if (arrowLeft < 14) arrowLeft = 14;
-      if (arrowLeft > popWidth - 20) arrowLeft = popWidth - 20;
-      arrow.style.left = arrowLeft + "px";
-    }
   }
 
   function openPopover(anchor, popoverId) {
@@ -424,10 +391,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (backdrop) backdrop.classList.add("is-active");
 
     positionPopover(anchor, popover);
-
-    // Trap focus to close button
-    var closeBtn = popover.querySelector(".floating-popover-close") || popover.querySelector("[data-dismiss='popover']");
-    if (closeBtn) setTimeout(function () { closeBtn.focus(); }, 50);
   }
 
   function closeActivePopover() {
@@ -436,13 +399,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (backdrop) backdrop.classList.remove("is-active");
     if (activeAnchor) {
       activeAnchor.setAttribute("aria-expanded", "false");
-      activeAnchor.focus();
     }
     activePopover = null;
     activeAnchor = null;
   }
 
-  // Bind popover triggers
   var triggers = document.querySelectorAll(".floating-popover-trigger");
   triggers.forEach(function (trigger) {
     trigger.addEventListener("click", function (e) {
@@ -457,7 +418,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Close on dismiss buttons
   document.querySelectorAll("[data-dismiss='popover']").forEach(function (btn) {
     btn.addEventListener("click", function (e) {
       e.preventDefault();
@@ -465,28 +425,22 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Close on backdrop click
   if (backdrop) {
-    backdrop.addEventListener("click", function () {
-      closeActivePopover();
-    });
+    backdrop.addEventListener("click", closeActivePopover);
   }
 
-  // Close on Esc key
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && activePopover) {
       closeActivePopover();
     }
   });
 
-  // Close on click outside (desktop)
   document.addEventListener("click", function (e) {
     if (activePopover && !activePopover.contains(e.target) && (!activeAnchor || !activeAnchor.contains(e.target))) {
       closeActivePopover();
     }
   });
 
-  // Reposition on window resize / scroll
   window.addEventListener("resize", function () {
     if (activePopover && activeAnchor) {
       positionPopover(activeAnchor, activePopover);

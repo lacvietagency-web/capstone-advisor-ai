@@ -301,6 +301,11 @@
   // 8. INITIALIZATION ON DOM READY
   // --------------------------------------------------------------------------
   document.addEventListener('DOMContentLoaded', function () {
+    // Modal nằm trong ngăn kéo/khối có transform sẽ bị kẹt dưới backdrop → đưa ra cuối body
+    document.querySelectorAll('.modal').forEach(function (m) {
+      if (m.parentElement !== document.body) document.body.appendChild(m);
+    });
+
     // Theme toggle button click listeners
     document.querySelectorAll('.mz-theme-toggle').forEach(function (btn) {
       btn.addEventListener('click', function (e) {

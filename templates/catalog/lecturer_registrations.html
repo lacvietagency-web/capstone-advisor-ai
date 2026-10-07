@@ -388,7 +388,7 @@
          CONFIRM MODALS TỪ CHỐI CHO TỪNG SINH VIÊN (BẮT BUỘC NHẬP LÝ DO >= 5 KÝ TỰ)
          ========================================================================= -->
     {% for row in rows %}
-      {% include "components/confirm_modal.html" with modal_id="rejectModal_"|add:row.pref.pk|stringformat:"s" variant="reject" title="Từ chối yêu cầu đăng ký" student_name=row.pref.student.user.get_full_name|default:row.pref.student.user.username|add:" ("|add:row.pref.student.student_code|add:")" topic_title=topic.title action_url=request.path pref_id=row.pref.pk %}
+      {% with pk_s=row.pref.pk|stringformat:"s" %}{% include "components/confirm_modal.html" with modal_id="rejectModal_"|add:pk_s variant="reject" title="Từ chối yêu cầu đăng ký" student_name=row.pref.student.user.get_full_name|default:row.pref.student.user.username|add:" ("|add:row.pref.student.student_code|add:")" topic_title=topic.title action_url=request.path pref_id=row.pref.pk %}{% endwith %}
     {% endfor %}
 
   {% else %}

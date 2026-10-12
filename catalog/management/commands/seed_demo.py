@@ -154,6 +154,13 @@ class Command(BaseCommand):
     def handle(self, *args, **o):
         self.rnd = random.Random(o["seed"])
         self._reset()
+        # tài khoản Khoa demo (khớp gợi ý ở trang đăng nhập); admin superuser vẫn giữ nguyên
+        kh, _ = User.objects.update_or_create(
+            username="khoa01",
+            defaults=dict(role=User.Role.ADMIN, last_name="Cán bộ", first_name="Khoa", is_active=True),
+        )
+        kh.set_password("123456")
+        kh.save()
         self._catalog()
         lecturers = [self._lecturer(i) for i in range(1, o["lecturers"] + 1)]
         topics = [self._topic(i, self.rnd.choice(lecturers)) for i in range(o["topics"])]
@@ -171,7 +178,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Đã tạo {o['students']} SV, {o['lecturers']} GV, {o['topics']} đề tài, {len(self.skills)} kỹ năng. "
-                f"Đề tài hot nhất (số NV1): {top}. Mật khẩu mọi tài khoản demo: 123456 (sv001, gv001…)"
+                f"Đề tài hot nhất (số NV1): {top}. Mật khẩu mọi tài khoản demo: 123456 (sv001, gv001, khoa01)"
             )
         )
 

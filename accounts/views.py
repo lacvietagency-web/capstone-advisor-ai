@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 
 from allocate.services import get_student_allocation_result
 from catalog.models import Preference, RegistrationPeriod, Student, Topic
+from recommend.services import ensure_recommendations
 
 
 def _get_lecturer_dashboard_context(lecturer) -> dict:
@@ -49,6 +50,57 @@ def _get_lecturer_dashboard_context(lecturer) -> dict:
     }
 
 
+def student_journey(student, has_preferences, period):
+    """Hành trình 4 mục của SV (hồ sơ → gợi ý AI → nguyện vọng → kết quả), tách khỏi trạng thái của đợt.
+
+    Mỗi mục có `state` (done / current / todo / missed) và `note` — backend quyết định theo dữ liệu thật,
+    template chỉ hiển thị. Ví dụ đợt đã đóng mà SV chưa nộp nguyện vọng → "Chưa nộp trong đợt này" (missed).
+    """
+    status = period.status if period else None
+    is_open = status == RegistrationPeriod.Status.OPEN
+    is_published = status == RegistrationPeriod.Status.PUBLISHED
+    has_profile = student.skills.exists()
+    has_recs = student.recommendations.filter(rank__isnull=False).exists()
+
+    if has_preferences:
+        pref = ("done", "Đã nộp · có thể sửa" if is_open else "Đã nộp · chỉ xem")
+    elif is_open:
+        pref = ("todo", "Chưa nộp · đợt đang mở")
+    else:
+        pref = ("missed" if period else "todo", "Chưa nộp trong đợt này" if period else "Chưa có đợt đăng ký")
+    if is_published:
+        result = ("done", "Đã công bố · xem kết quả")
+    else:
+        result = ("todo", "Khoa đang xử lý" if period and not is_open else "Chưa có kết quả")
+    items = [
+        (
+            "Hồ sơ năng lực",
+            "student_profile",
+            "done" if has_profile else "todo",
+            "Hoàn thành" if has_profile else "Chưa khai kỹ năng",
+        ),
+        (
+            "Gợi ý AI",
+            "topic_list",
+            "done" if has_recs else "todo",
+            "Đã tạo danh sách phù hợp" if has_recs else "Chưa có gợi ý",
+        ),
+        ("Nguyện vọng", "student_preferences", *pref),
+        ("Kết quả phân công", "student_allocation_result", *result),
+    ]
+    first_todo = next((i for i, it in enumerate(items) if it[2] == "todo"), None)
+    return [
+        {
+            "number": i + 1,
+            "label": label,
+            "url_name": url_name,
+            "state": "current" if i == first_todo else state,
+            "note": note,
+        }
+        for i, (label, url_name, state, note) in enumerate(items)
+    ]
+
+
 @login_required
 def home(request):
     """Trang chủ chia theo vai trò người dùng (Khoa, Giảng viên, Sinh viên).
@@ -80,13 +132,16 @@ def home(request):
     if not hasattr(user, "student"):
         return render(request, "pages/missing_profile.html")
     student = user.student
+    ensure_recommendations(student)
     allocation_result = get_student_allocation_result(student)
+    preferences = Preference.objects.filter(student=student).select_related("topic__lecturer__user").order_by("rank")
     return render(
         request,
         "pages/home_student.html",
         {
             "student": student,
-            "preferences": Preference.objects.filter(student=student).select_related("topic").order_by("rank"),
+            "preferences": preferences,
+            "journey": student_journey(student, bool(preferences), allocation_result["period"]),
             "recommendations": student.recommendations.filter(rank__isnull=False)
             .select_related("topic")
             .order_by("rank")[:5],

@@ -9,7 +9,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from recommend.models import Recommendation
-from recommend.services import refresh_student, score_preferences
+from recommend.services import ensure_recommendations, refresh_student, score_preferences
 
 from .forms import (
     LecturerProfileForm,
@@ -82,9 +82,10 @@ def student_profile(request):
 @login_required
 def student_preferences(request):
     st = _student(request)
+    ensure_recommendations(st)
     period = _open_period()
     if period is None:
-        return render(request, "catalog/student_preferences.html", {"period": None})
+        return render(request, "catalog/student_preferences.html", _submitted_preferences(st))
     current = {p.rank: p.topic for p in Preference.objects.filter(student=st, period=period)}
     initial = {f"nv{r}": t for r, t in current.items()}
     preset_topic_id = request.GET.get("topic") or request.GET.get("topic_id")
@@ -132,6 +133,21 @@ def student_preferences(request):
     return render(
         request, "catalog/student_preferences.html", {"period": period, "form": form, "top5": top5, "scores": scores}
     )
+
+
+def _submitted_preferences(student):
+    """Không có đợt đang mở: cho SV xem lại nguyện vọng đã nộp ở đợt gần nhất (chỉ đọc) thay vì trang trống."""
+    last = Preference.objects.filter(student=student).select_related("period").order_by("-period__start_at").first()
+    if last is None:
+        return {"period": None, "last_period": None, "submitted": []}
+    scores = {r.topic_id: r for r in Recommendation.objects.filter(student=student)}
+    prefs = (
+        Preference.objects.filter(student=student, period=last.period)
+        .select_related("topic__lecturer__user")
+        .order_by("rank")
+    )
+    submitted = [{"pref": p, "rec": scores.get(p.topic_id)} for p in prefs]
+    return {"period": None, "last_period": last.period, "submitted": submitted}
 
 
 # ---------------------------------------------------------------- giảng viên
@@ -241,6 +257,8 @@ def lecturer_registrations(request, pk):
     prefs = (
         Preference.objects.filter(topic=topic).select_related("student__user", "period").order_by("rank", "created_at")
     )
+    for p in prefs:
+        ensure_recommendations(p.student)
     scores = {r.student_id: r for r in Recommendation.objects.filter(topic=topic)}
     rows = [{"pref": p, "rec": scores.get(p.student_id)} for p in prefs]
     return render(request, "catalog/lecturer_registrations.html", {"topic": topic, "rows": rows})
@@ -332,6 +350,7 @@ def topic_list(request):
     )
     if is_student_user:
         student = request.user.student
+        ensure_recommendations(student)
         scores_map = get_student_recommendations_map(student)
 
     for topic in page_obj:
@@ -357,6 +376,7 @@ def topic_list(request):
         "querystring": querystring,
         "is_student": student is not None,
         "student": student,
+        "open_period": _open_period(),
     }
     return render(request, "catalog/topic_list.html", context)
 
@@ -389,10 +409,13 @@ def topic_detail(request, pk=None, id=None):
         and hasattr(request.user, "student")
     )
     student = request.user.student if is_student else None
+    if student:
+        ensure_recommendations(student)
     recommendation = get_student_match_score(student, topic)
 
     context = {
         "ineligible_reason": _ineligible_reason(student, topic),
+        "open_period": _open_period(),
         "topic": topic,
         "nv1_count": nv1_count,
         "is_student": is_student,

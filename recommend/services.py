@@ -105,3 +105,12 @@ def refresh_student(student, topics=None, top=5, semantic=None, llm=None, top_k=
     for c in head[top:] + rest:
         _save(student, c, None, weights, weights_version)
     return min(len(head), top)
+
+
+def ensure_recommendations(student):
+    """Bảo đảm SV đã có điểm gợi ý: dữ liệu vào từ seed/Excel/trang quản trị không tự chạy recommend_all.
+
+    Chỉ tính M1–M4 (chạy tại chỗ, không tốn phí); M5 (LLM) vẫn được chấm khi SV lưu hồ sơ hoặc nguyện vọng.
+    """
+    if not Recommendation.objects.filter(student=student).exists():
+        refresh_student(student, llm=False)

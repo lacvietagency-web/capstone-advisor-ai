@@ -3,6 +3,8 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from catalog.models import AuditLog, RegistrationPeriod, Student, Topic
@@ -16,6 +18,8 @@ from .services import (
     publish_allocations,
     run_allocation,
 )
+
+ALLOCATIONS_PER_PAGE = 20  # bảng phân công: 100+ SV một trang là không dùng được
 
 
 def _check_faculty_admin(user):
@@ -78,19 +82,53 @@ def _get_selected_period(request):
     return period or RegistrationPeriod.objects.order_by("-start_at").first()
 
 
+SORTS = {  # tham số ?sort= → cột sắp xếp (chỉ nhận giá trị trong bảng này)
+    "code": "student__student_code",
+    "gpa": "-student__gpa",
+    "score": "-match_score",
+    "rank": "preference_rank",
+}
+PER_PAGE_CHOICES = (10, 20, 50)
+
+
+def _status_filter(request):
+    """Lọc trạng thái: ?status=assigned|unassigned (giữ tương thích ?unassigned_only=1 cũ)."""
+    if request.GET.get("unassigned_only") == "1":
+        return "unassigned"
+    return request.GET.get("status") or "all"
+
+
+def _per_page(request):
+    try:
+        n = int(request.GET.get("per_page") or ALLOCATIONS_PER_PAGE)
+    except ValueError:
+        n = ALLOCATIONS_PER_PAGE
+    return n if n in PER_PAGE_CHOICES else ALLOCATIONS_PER_PAGE
+
+
 def _get_allocations_and_suggestions(period, request):
     """Lấy danh sách phân công nháp và danh sách gợi ý Pha 2 nếu có yêu cầu."""
     if not period:
         return [], None, None, []
 
-    unassigned_only = request.GET.get("unassigned_only") == "1"
+    status = _status_filter(request)
     alloc_qs = (
         Allocation.objects.filter(period=period)
         .select_related("student__user", "topic__lecturer__user")
-        .order_by("student__student_code")
+        .order_by(SORTS.get(request.GET.get("sort"), "student__student_code"), "student__student_code")
     )
-    if unassigned_only:
-        alloc_qs = alloc_qs.filter(topic__isnull=True)
+    if status in ("unassigned", "assigned"):
+        alloc_qs = alloc_qs.filter(topic__isnull=status == "unassigned")
+    if request.GET.get("rank") in ("1", "2", "3"):
+        alloc_qs = alloc_qs.filter(preference_rank=request.GET["rank"])
+    query = (request.GET.get("q") or "").strip()
+    if query:  # tìm theo mã SV, tên SV hoặc tên đề tài
+        alloc_qs = alloc_qs.filter(
+            Q(student__student_code__icontains=query)
+            | Q(student__user__first_name__icontains=query)
+            | Q(student__user__last_name__icontains=query)
+            | Q(topic__title__icontains=query)
+        )
     allocations = list(alloc_qs)
 
     suggest_student = None
@@ -137,6 +175,9 @@ def allocation_dashboard(request):
             last_metrics = (last_run.detail.get("metrics") or {}) if last_run else {}
             metrics_data["elapsed_time"] = last_metrics.get("elapsed_time")
 
+    params = request.GET.copy()
+    params.pop("page", None)
+    params.pop("suggest_student_id", None)
     return render(
         request,
         "allocate/dashboard.html",
@@ -144,8 +185,17 @@ def allocation_dashboard(request):
             "periods": periods,
             "period": period,
             "allocations": allocations,
+            "page_obj": Paginator(allocations, _per_page(request)).get_page(request.GET.get("page")),
+            "status": _status_filter(request),
+            "rank": request.GET.get("rank") or "",
+            "sort": request.GET.get("sort") or "code",
+            "per_page": _per_page(request),
+            "per_page_choices": PER_PAGE_CHOICES,
+            "total_count": Allocation.objects.filter(period=period).count() if period else 0,
+            "q": (request.GET.get("q") or "").strip(),
+            "querystring": params.urlencode(),
             "metrics": metrics_data,
-            "unassigned_only": request.GET.get("unassigned_only") == "1",
+            "unassigned_only": _status_filter(request) == "unassigned",
             "suggest_student": suggest_student,
             "suggestions": suggestions,
             "open_topics": open_topics,

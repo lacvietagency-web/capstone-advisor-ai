@@ -212,6 +212,18 @@ class Command(BaseCommand):
         lec.fields.set(self.rnd.sample(list(self.fields.values()), 2))
         return lec
 
+    def _unique_title(self, title, skill):
+        """Tên đề tài không trùng mà không cần đánh số "(12)": bản trùng được ghi rõ hướng công nghệ.
+
+        Không rút thêm số ngẫu nhiên → dữ liệu demo (và các chỉ số phân công) giữ nguyên như trước.
+        """
+        if not Topic.objects.filter(title=title).exists():
+            return title
+        k, candidate = 2, f"{title} — hướng {skill}"
+        while Topic.objects.filter(title=candidate).exists():
+            candidate, k = f"{title} — hướng {skill}, nhóm {k}", k + 1
+        return candidate
+
     def _topic(self, i, lec):
         rnd = self.rnd
         f = rnd.choice(list(lec.fields.all()))
@@ -219,7 +231,7 @@ class Command(BaseCommand):
         used = ", ".join(rnd.sample(FIELDS[f.name], min(2, len(FIELDS[f.name]))))
         t = Topic.objects.create(
             lecturer=lec,
-            title=f"{title} ({i + 1})",
+            title=self._unique_title(title, used.split(", ")[0]),
             difficulty=rnd.choice([1, 2, 2, 3]),
             description=f"Xây dựng {title.lower()}. Đề tài thuộc lĩnh vực {f.name}, yêu cầu vận dụng {used}.",
             min_gpa=rnd.choice([0, 2.0, 2.5]),

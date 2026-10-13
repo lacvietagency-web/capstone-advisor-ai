@@ -465,7 +465,7 @@ class TopicPermissionAndDetailTests(TestCase):
         self.assertContains(response, "Kỹ năng phù hợp tốt với yêu cầu đề tài.")
 
     def test_student_views_topic_without_recommendation(self):
-        """Sinh viên xem đề tài chưa có gợi ý vẫn thấy nút đăng ký nhưng thấy thông báo chưa có điểm."""
+        """SV chưa có gợi ý (dữ liệu vừa nhập, chưa chạy recommend_all): mở trang là hệ thống tự tính điểm M1–M4."""
         user, topic = self.pick()
         self.login(user)
         student = Student.objects.get(user__username=user)
@@ -474,7 +474,8 @@ class TopicPermissionAndDetailTests(TestCase):
         response = self.client.get(f"/danh-sach-de-tai/{topic.id}/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Đăng ký nguyện vọng")
-        self.assertContains(response, "Chưa có điểm đánh giá phù hợp")
+        self.assertTrue(Recommendation.objects.filter(student=student, topic=topic).exists())
+        self.assertContains(response, "Mức độ phù hợp với hồ sơ của bạn")
 
     def test_student_sees_topic_detail_elements(self):
         """Trang chi tiết đề tài hiển thị đầy đủ: mô tả, kỹ năng yêu cầu, môn tiên quyết, sức chứa, số NV1."""

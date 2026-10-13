@@ -2,287 +2,216 @@
 
 {% block title %}{{ topic.title }} — Capstone AI{% endblock %}
 
-{% block breadcrumb %}
-  <span>Sinh viên</span>
-  <span>/</span>
-  <a href="{% url 'topic_list' %}" class="text-decoration-none text-muted">Danh sách đề tài</a>
-  <span>/</span>
-  <span class="mz-breadcrumb-active text-truncate" style="max-width: 360px;" title="{{ topic.title }}">{{ topic.title }}</span>
-{% endblock %}
-
 {% block content %}
-<!-- Điều hướng quay lại -->
-<div class="mb-3" data-mz-reveal>
-  <a href="{% url 'topic_list' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-    {% include "components/icon.html" with name="arrow-left" size=14 %}
-    <span>Quay lại danh sách đề tài</span>
-  </a>
-</div>
-
-<!-- =========================================================================
-     Tiêu đề đề tài & thông tin giảng viên
-     ========================================================================= -->
-<div class="mz-card mb-4" data-mz-reveal>
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
-    <div class="flex-grow-1 min-w-0">
-      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-        {% include "components/status_badge.html" with status=topic.status|lower label=topic.get_status_display %}
-
-        <span class="mz-badge mz-badge-neutral">
-          Độ khó: {{ topic.get_difficulty_display }}
-        </span>
-
-        {% for f in topic.fields.all %}
-          <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
-        {% endfor %}
-      </div>
-
-      <h1 class="mz-h2 fs-3 mb-2 text-break-word">{{ topic.title }}</h1>
-
-      <div class="mz-caption text-muted">
-        Giảng viên hướng dẫn:
-        <strong class="text-strong">{{ topic.lecturer.user.get_full_name|default:topic.lecturer.user.username }}</strong>
-        {% if topic.lecturer.department %}
-          <span>· {{ topic.lecturer.department }}</span>
-        {% endif %}
-      </div>
+<header class="at-page-header">
+  <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí">
+      <a href="{% url 'home' %}">Trang chủ</a>
+      <a href="{% url 'topic_list' %}">Đề tài</a>
+      <span>{{ topic.title }}</span>
+    </nav>
+    <h1 class="h1">{{ topic.title }}</h1>
+    <div class="at-meta at-mt-2">
+      <span>GVHD: <strong>{{ topic.lecturer.user.get_full_name|default:topic.lecturer.user.username }}</strong>{% if topic.lecturer.department %} · {{ topic.lecturer.department }}{% endif %}</span>
+      {% for f in topic.fields.all %}
+        <span class="at-tag">{{ f.name }}</span>
+      {% endfor %}
+      <span class="at-tag">{{ topic.get_difficulty_display }}</span>
+      {% include "components/status.html" with status=topic.status label=topic.get_status_display %}
     </div>
-
-    {% if is_student %}
-      <div class="d-flex flex-column align-items-md-end gap-2 flex-shrink-0">
-        {% if not ineligible_reason %}
-          <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="mz-btn mz-btn-primary">
-            {% include "components/icon.html" with name="bookmark" size=16 %}
-            <span>Đăng ký nguyện vọng</span>
-          </a>
-        {% endif %}
-      </div>
+  </div>
+  <div class="at-page-actions">
+    <a href="{% url 'topic_list' %}" class="btn btn-secondary">
+      {% include "components/icon.html" with name="arrow-left" %}Danh sách đề tài
+    </a>
+    {% if is_student and not ineligible_reason and open_period %}
+      <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary">
+        {% include "components/icon.html" with name="bookmark" %}Đăng ký nguyện vọng
+      </a>
     {% endif %}
   </div>
-</div>
+</header>
 
-<!-- =========================================================================
-     Khu vực đánh giá mức độ phù hợp & điều kiện đăng ký (Dành cho Sinh viên)
-     ========================================================================= -->
-{% if is_student %}
-  {% if ineligible_reason %}
-    <div class="mz-alert mz-alert-warning mb-4" role="alert" data-mz-reveal>
-      {% include "components/icon.html" with name="triangle-alert" size=18 class="text-warning flex-shrink-0" %}
-      <div>
-        <strong>Bạn chưa đủ điều kiện đăng ký đề tài này.</strong> {{ ineligible_reason }}. Hãy cập nhật hồ sơ nếu thông tin chưa đúng, hoặc chọn đề tài khác.
-      </div>
-    </div>
+<div class="at-stack">
+  {% if is_student and ineligible_reason %}
+    {% include "components/banner.html" with kind="warning" title="Chưa đủ điều kiện" text="Bạn chưa đủ điều kiện đăng ký đề tài này. "|add:ineligible_reason %}
   {% endif %}
 
-  <div class="mz-card mb-4" data-mz-reveal>
-    <div class="mz-card-header">
-      <h2 class="mz-card-title">Mức độ phù hợp với hồ sơ của bạn</h2>
-      {% if recommendation %}
-        <span class="mz-badge mz-badge-published">Capstone AI</span>
-      {% else %}
-        <span class="mz-badge mz-badge-neutral">Tham khảo tiêu chí M1–M5</span>
-      {% endif %}
-    </div>
-
-    {% if recommendation %}
-      <!-- Khối điểm AI P0 (score_block) -->
-      {% include "components/score_block.html" with total_score=recommendation.final_score|floatformat:0 m1=recommendation.m1_skill|floatformat:0 m2=recommendation.m2_academic|floatformat:0 m3=recommendation.m3_field|floatformat:0 m4=recommendation.m4_semantic|floatformat:0 m5=recommendation.m5_llm|floatformat:0 score_id=topic.id %}
-
-      <!-- Khối lý do AI P0 (reason_block) -->
-      {% if recommendation.reason %}
-        <div class="mt-3">
-          {% include "components/reason_block.html" with reason_1=recommendation.reason %}
+  <div class="at-grid">
+    <div class="at-col-8 at-stack">
+      <section class="at-panel">
+        <div class="at-panel-header">
+          <h2 class="h3">Mô tả đề tài</h2>
         </div>
-      {% endif %}
+        <div class="at-pre">{{ topic.description }}</div>
+      </section>
 
-      <div class="mz-caption text-muted mt-3 pt-2 border-top">
-        Điểm phù hợp được tính toán tự động dựa trên 5 mô hình M1–M5 của hệ thống Capstone AI.
-      </div>
-
-      {% if not ineligible_reason %}
-        <div class="mt-3 pt-2 border-top">
-          <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="mz-btn mz-btn-primary">
-            {% include "components/icon.html" with name="bookmark" size=16 %}
-            <span>Đăng ký nguyện vọng cho đề tài này</span>
-          </a>
+      <section class="at-panel">
+        <div class="at-panel-header">
+          <div>
+            <h2 class="h3">Kỹ năng yêu cầu</h2>
+            <p class="at-secondary">{{ skills|length }} kỹ năng được thiết lập cho đề tài này.</p>
+          </div>
         </div>
-      {% endif %}
-    {% else %}
-      <div class="mz-alert mz-alert-info mb-3">
-        {% include "components/icon.html" with name="info" size=18 class="text-info flex-shrink-0" %}
-        <div>
-          Chưa có điểm đánh giá phù hợp cho đề tài này (đề tài nằm ngoài Top gợi ý hoặc hồ sơ chưa được cập nhật).
-        </div>
-      </div>
-
-      {% if not ineligible_reason %}
-        <div class="mt-3">
-          <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="mz-btn mz-btn-primary">
-            {% include "components/icon.html" with name="bookmark" size=16 %}
-            <span>Đăng ký nguyện vọng</span>
-          </a>
-        </div>
-      {% endif %}
-    {% endif %}
-  </div>
-{% endif %}
-
-<!-- =========================================================================
-     Chi tiết nội dung đề tài: Bố cục 2 cột
-     ========================================================================= -->
-<div class="row g-4">
-  <!-- Cột trái: Mô tả, Kỹ năng yêu cầu, Môn học tiên quyết -->
-  <div class="col-12 col-lg-8">
-    <!-- Mô tả đề tài -->
-    <div class="mz-card mb-4" data-mz-reveal>
-      <div class="mz-card-header">
-        <h2 class="mz-card-title">Mô tả đề tài</h2>
-      </div>
-      <div class="mz-caption text-default fs-6" style="line-height: 1.7; white-space: pre-line;">
-        {{ topic.description }}
-      </div>
-    </div>
-
-    <!-- Kỹ năng yêu cầu -->
-    <div class="mz-card mb-4" data-mz-reveal>
-      <div class="mz-card-header">
-        <h2 class="mz-card-title">Kỹ năng yêu cầu</h2>
-        <span class="mz-badge mz-badge-neutral">{{ skills|length }} kỹ năng</span>
-      </div>
-
-      {% if skills %}
-        <div class="table-responsive">
-          <table class="table mz-table mb-0">
+        {% if skills %}
+          <table class="at-table d-none d-md-table">
             <thead>
               <tr>
                 <th>Kỹ năng</th>
                 <th>Mức yêu cầu</th>
-                <th>Trọng số</th>
+                <th class="at-th-num">Trọng số</th>
                 <th>Tính chất</th>
               </tr>
             </thead>
             <tbody>
               {% for s in skills %}
                 <tr>
-                  <td><strong class="text-strong">{{ s.skill.name }}</strong></td>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <span>Mức {{ s.required_level }}/5</span>
-                      <div class="progress flex-grow-1" style="height: 6px; width: 60px; background-color: var(--border-soft);">
-                        <div class="progress-bar" style="width: {% widthratio s.required_level 5 100 %}%; background-color: var(--accent);"></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>{{ s.weight }}</td>
+                  <td class="at-td-main">{{ s.skill.name }}</td>
+                  <td>Mức {{ s.required_level }}/5</td>
+                  <td class="at-td-num">{{ s.weight }}%</td>
                   <td>
                     {% if s.is_mandatory %}
-                      <span class="mz-badge mz-badge-danger">Bắt buộc</span>
+                      {% include "components/status.html" with kind="danger" label="Bắt buộc" %}
                     {% else %}
-                      <span class="mz-badge mz-badge-neutral">Tùy chọn</span>
+                      {% include "components/status.html" with kind="neutral" label="Tuỳ chọn" %}
                     {% endif %}
                   </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
-        </div>
-      {% else %}
-        <div class="mz-caption text-muted py-2">
-          Đề tài không đặt yêu cầu kỹ năng cụ thể.
-        </div>
-      {% endif %}
-    </div>
+          <div class="at-list d-md-none">
+            {% for s in skills %}
+              <article class="at-item">
+                <div class="at-row at-row--between">
+                  <strong>{{ s.skill.name }}</strong>
+                  {% if s.is_mandatory %}
+                    {% include "components/status.html" with kind="danger" label="Bắt buộc" %}
+                  {% else %}
+                    {% include "components/status.html" with kind="neutral" label="Tuỳ chọn" %}
+                  {% endif %}
+                </div>
+                <dl class="at-kv at-mt-2">
+                  <dt>Mức yêu cầu</dt><dd>Mức {{ s.required_level }}/5</dd>
+                  <dt>Trọng số</dt><dd class="at-num">{{ s.weight }}%</dd>
+                </dl>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="at-secondary">Đề tài không đặt yêu cầu kỹ năng cụ thể.</p>
+        {% endif %}
+      </section>
 
-    <!-- Môn học tiên quyết -->
-    <div class="mz-card mb-4" data-mz-reveal>
-      <div class="mz-card-header">
-        <h2 class="mz-card-title">Môn học tiên quyết</h2>
-        <span class="mz-badge mz-badge-neutral">{{ prerequisites|length }} môn</span>
-      </div>
-
-      {% if prerequisites %}
-        <div class="table-responsive">
-          <table class="table mz-table mb-0">
+      <section class="at-panel">
+        <div class="at-panel-header">
+          <div>
+            <h2 class="h3">Môn học tiên quyết</h2>
+            <p class="at-secondary">{{ prerequisites|length }} môn học tiên quyết cần đạt.</p>
+          </div>
+        </div>
+        {% if prerequisites %}
+          <table class="at-table d-none d-md-table">
             <thead>
               <tr>
                 <th>Mã môn</th>
                 <th>Tên môn học</th>
-                <th>Điểm tối thiểu</th>
+                <th class="at-th-num">Điểm tối thiểu</th>
               </tr>
             </thead>
             <tbody>
               {% for p in prerequisites %}
                 <tr>
-                  <td><code>{{ p.course.code }}</code></td>
-                  <td><strong class="text-strong">{{ p.course.name }}</strong></td>
-                  <td><span class="mz-badge mz-badge-info">≥ {{ p.min_score|floatformat:1 }} / 10</span></td>
+                  <td class="at-num"><code>{{ p.course.code }}</code></td>
+                  <td class="at-td-main">{{ p.course.name }}</td>
+                  <td class="at-td-num">≥ {{ p.min_score|floatformat:1 }} / 10</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
-        </div>
-      {% else %}
-        <div class="mz-caption text-muted py-2">
-          Đề tài không yêu cầu môn học tiên quyết.
-        </div>
-      {% endif %}
+          <div class="at-list d-md-none">
+            {% for p in prerequisites %}
+              <article class="at-item">
+                <div class="at-row at-row--between">
+                  <strong>{{ p.course.name }}</strong>
+                  <code>{{ p.course.code }}</code>
+                </div>
+                <dl class="at-kv at-mt-2">
+                  <dt>Điểm tối thiểu</dt>
+                  <dd class="at-num">≥ {{ p.min_score|floatformat:1 }} / 10</dd>
+                </dl>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="at-secondary">Đề tài không yêu cầu môn học tiên quyết.</p>
+        {% endif %}
+      </section>
     </div>
-  </div>
 
-  <!-- Cột phải: Thông số đề tài -->
-  <div class="col-12 col-lg-4">
-    <div class="mz-card mb-4" data-mz-reveal>
-      <div class="mz-card-header">
-        <h2 class="mz-card-title">Thông số đề tài</h2>
-      </div>
-
-      <div class="d-flex flex-column gap-3">
-        <div>
-          <div class="mz-caption text-muted">Sức chứa</div>
-          <div class="fw-semibold text-strong fs-5 mt-1">
-            {{ topic.capacity }} sinh viên
-          </div>
-        </div>
-
-        <div>
-          <div class="mz-caption text-muted">Số người đã đăng ký NV1</div>
-          <div class="fw-semibold text-strong fs-5 mt-1">
-            {{ nv1_count }} sinh viên
-          </div>
-        </div>
-
-        <div>
-          <div class="mz-caption text-muted">GPA tối thiểu</div>
-          <div class="fw-semibold text-strong fs-5 mt-1">
-            {{ topic.min_gpa|floatformat:2 }}
-          </div>
-        </div>
-
-        <div>
-          <div class="mz-caption text-muted">Độ khó</div>
-          <div class="mt-1">
-            <span class="mz-badge mz-badge-neutral">{{ topic.get_difficulty_display }}</span>
-          </div>
-        </div>
-
-        <div>
-          <div class="mz-caption text-muted">Trạng thái</div>
-          <div class="mt-1">
-            {% include "components/status_badge.html" with status=topic.status|lower label=topic.get_status_display %}
-          </div>
-        </div>
-      </div>
-
+    <div class="at-col-4 at-stack">
       {% if is_student %}
-        <div class="mt-4 pt-3 border-top">
-          {% if not ineligible_reason %}
-            <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="mz-btn mz-btn-primary w-100">
-              {% include "components/icon.html" with name="bookmark" size=16 %}
-              <span>Đăng ký nguyện vọng</span>
-            </a>
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <h2 class="h3">Mức độ phù hợp với hồ sơ của bạn</h2>
+          </div>
+          {% if recommendation %}
+            <div class="at-mb-4">
+              {% include "components/score.html" with rec=recommendation size="lg" %}
+            </div>
+            {% include "components/evidence.html" with rec=recommendation detail=True %}
+            {% if recommendation.reason %}
+              <div class="at-mt-4">
+                {% include "components/note.html" with title="Lý do phù hợp" text=recommendation.reason %}
+              </div>
+            {% endif %}
+          {% else %}
+            {% include "components/score.html" with rec=None hint="Hồ sơ chưa có đánh giá cho đề tài này" %}
+            <p class="at-secondary at-mt-3">Chưa có điểm đánh giá phù hợp cho đề tài này.</p>
           {% endif %}
-        </div>
+        </section>
+
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <h2 class="h3">Điều kiện đăng ký</h2>
+          </div>
+          {% if eligibility %}
+            <ul class="at-steps">
+              {% for cond in eligibility %}
+                <li data-state="{% if cond.ok %}done{% else %}todo{% endif %}">
+                  {% if cond.ok %}
+                    {% include "components/icon.html" with name="check" size=14 %}
+                    <span>{{ cond.label }}: cần {{ cond.required|floatformat:2 }}, bạn có {{ cond.actual|default:"0"|floatformat:2 }}</span>
+                  {% else %}
+                    {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
+                    <span class="at-warning-ink">{{ cond.label }}: cần {{ cond.required|floatformat:2 }}, bạn có {{ cond.actual|default:"0"|floatformat:2 }}</span>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="at-secondary">Đề tài không có điều kiện ràng buộc đặc biệt.</p>
+          {% endif %}
+        </section>
       {% endif %}
+
+      <section class="at-panel">
+        <div class="at-panel-header">
+          <h2 class="h3">Thông số đề tài</h2>
+        </div>
+        <dl class="at-kv">
+          <dt>Sức chứa</dt>
+          <dd class="at-num">{{ topic.capacity }} sinh viên</dd>
+          <dt>Số người đã đăng ký NV1</dt>
+          <dd class="at-num">{{ nv1_count }}</dd>
+          <dt>GPA tối thiểu</dt>
+          <dd class="at-num">{{ topic.min_gpa|floatformat:2 }}</dd>
+          <dt>Độ khó</dt>
+          <dd>{{ topic.get_difficulty_display }}</dd>
+          <dt>Trạng thái</dt>
+          <dd>{% include "components/status.html" with status=topic.status label=topic.get_status_display %}</dd>
+        </dl>
+      </section>
     </div>
   </div>
 </div>

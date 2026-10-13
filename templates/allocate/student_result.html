@@ -1,258 +1,105 @@
 {% extends "base.html" %}
 
-{% block title %}Kết quả phân công đồ án — Capstone AI{% endblock %}
+{% block title %}Kết quả phân công đề tài — Capstone AI{% endblock %}
 
 {% block content %}
-<div class="mz-result-page">
-  <!-- Page Header -->
-  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4" data-mz-reveal>
-    <div>
-      <h1 class="mz-h2 mb-1">Kết quả phân công đồ án tốt nghiệp</h1>
-      <p class="mz-caption text-muted mb-0">Tra cứu kết quả phân công đề tài và giảng viên hướng dẫn chính thức từ Hội đồng Khoa.</p>
-    </div>
-    {% if periods|length > 1 %}
-      <div class="d-flex align-items-center gap-2">
-        <label for="periodSelect" class="form-label mz-caption text-nowrap mb-0 text-muted">Chọn đợt:</label>
-        <select id="periodSelect" class="form-select form-select-sm" onchange="if(this.value) window.location.href='?period_id=' + this.value;">
+<header class="at-page-header">
+  <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí">
+      <a href="{% url 'home' %}">Trang chủ</a>
+      <span>Kết quả phân công</span>
+    </nav>
+    <h1 class="h1">Kết quả phân công đề tài</h1>
+    <p class="at-page-desc">Kết quả phân công đề tài và giảng viên hướng dẫn chính thức từ Hội đồng Khoa.</p>
+  </div>
+  {% if periods|length > 1 %}
+    <div class="at-page-actions">
+      <form method="get" class="at-row">
+        <label for="periodSelect" class="at-secondary">Đợt:</label>
+        <select id="periodSelect" name="period_id" class="form-select form-select-sm" data-at-autosubmit aria-label="Chọn đợt đăng ký">
           {% for p in periods %}
             <option value="{{ p.pk }}" {% if period and period.pk == p.pk %}selected{% endif %}>
               {{ p.name }} ({{ p.get_status_display }})
             </option>
           {% endfor %}
         </select>
-      </div>
-    {% endif %}
-  </div>
-
-  {% if not period %}
-    <!-- 1. Chưa có đợt đăng ký -->
-    <div class="mz-card text-center py-5" data-mz-reveal>
-      {% include "components/empty_state.html" with illustration="empty-result" title="Chưa có đợt đăng ký nào" description="Hiện tại hệ thống chưa có đợt đăng ký đồ án tốt nghiệp nào được tạo." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
-    </div>
-
-  {% elif not is_published %}
-    <!-- 2. Đợt CHƯA CÔNG BỐ: Phân biệt rõ "Chưa công bố" -->
-    <div class="mz-card border-info-subtle mb-4" data-mz-reveal>
-      <div class="mz-card-header">
-        <div class="d-flex align-items-center gap-2">
-          {% include "components/status_badge.html" with status="open" label="Chưa công bố" %}
-          <span class="mz-caption text-muted">Đợt đăng ký: <strong>{{ period.name }}</strong></span>
-        </div>
-        <span class="mz-badge mz-badge-neutral">Trạng thái: {{ period.get_status_display }}</span>
-      </div>
-
-      <div class="row align-items-center g-4 py-2">
-        <div class="col-12 col-lg-8">
-          <div class="d-flex align-items-start gap-3">
-            <div class="rounded-circle bg-info-subtle p-3 text-info d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px;">
-              {% include "components/icon.html" with name="sparkles" size=24 class="text-info" %}
-            </div>
-            <div>
-              <h2 class="mz-card-title fs-5 mb-2 text-primary">Hội đồng Khoa đang thẩm định phân công</h2>
-              <p class="mz-caption text-default mb-2" style="line-height: 1.6;">
-                Kết quả phân công đề tài cho đợt <strong>{{ period.name }}</strong> hiện chưa được công bố chính thức.
-                Hội đồng Khoa đang thẩm định phân công, rà soát chỉ tiêu giảng viên và chạy thuật toán tối ưu để đảm bảo kết quả tốt nhất.
-              </p>
-              <p class="mz-caption text-muted mb-0">
-                {% include "components/icon.html" with name="info" size=12 class="me-1 text-primary" %}
-                Kết quả chính thức sẽ được công bố tại trang này ngay sau khi hoàn tất xét duyệt.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 col-lg-4 border-start-lg">
-          <div class="p-3 bg-surface-subtle rounded-2 border">
-            <div class="mz-caption fw-semibold text-muted text-uppercase mb-2">Quy trình phân công</div>
-            <div class="d-flex flex-column gap-2 mz-caption">
-              <div class="d-flex align-items-center gap-2 text-success">
-                {% include "components/icon.html" with name="badge-check" size=14 class="text-success" %}
-                <span>1. Đăng ký nguyện vọng NV1–NV3</span>
-              </div>
-              <div class="d-flex align-items-center gap-2 text-primary fw-semibold">
-                {% include "components/icon.html" with name="sparkles" size=14 class="text-primary" %}
-                <span>2. Khoa thẩm định & chạy tối ưu</span>
-              </div>
-              <div class="d-flex align-items-center gap-2 text-muted">
-                {% include "components/icon.html" with name="circle-dot" size=14 class="text-muted" %}
-                <span>3. Công bố kết quả chính thức</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  {% elif unassigned or not topic %}
-    <!-- 3. Đợt ĐÃ CÔNG BỐ nhưng sinh viên chưa được xếp (bắt buộc chứa chuỗi "Chưa được phân công đề tài") -->
-    <div class="mz-card border-warning-subtle mb-4" data-mz-reveal>
-      <div class="mz-card-header">
-        <div class="d-flex align-items-center gap-2">
-          {% include "components/status_badge.html" with status="pending" label="Chưa được phân công" %}
-          <span class="mz-caption text-muted">Đợt đăng ký: <strong>{{ period.name }}</strong> (Đã công bố)</span>
-        </div>
-      </div>
-      <div class="d-flex align-items-start gap-3 py-2">
-        <div class="rounded-circle bg-warning-soft p-3 text-warning d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px;">
-          {% include "components/icon.html" with name="triangle-alert" size=24 class="text-warning" %}
-        </div>
-        <div>
-          <h2 class="mz-card-title fs-5 mb-2">Chưa được phân công đề tài</h2>
-          <p class="mz-caption text-default mb-2" style="line-height: 1.6;">
-            Đợt <strong>{{ period.name }}</strong> đã công bố kết quả chính thức. Do các đề tài bạn đăng ký đã đủ chỉ tiêu hoặc chưa đáp ứng đủ tiêu chí tiên quyết, bạn chưa được phân công đề tài trong đợt phân công này.
-          </p>
-          <p class="mz-caption text-muted mb-0">
-            Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung (Pha 2) vào các đề tài còn chỉ tiêu.
-          </p>
-        </div>
-      </div>
-    </div>
-
-  {% else %}
-    <!-- 4. Đợt ĐÃ CÔNG BỐ: Phân biệt rõ "Chính thức" -->
-    <div class="mz-card border-success-subtle mb-4" data-mz-reveal>
-      <div class="mz-card-header">
-        <div class="d-flex align-items-center gap-2">
-          {% include "components/status_badge.html" with status="published" label="Chính thức" %}
-          <span class="mz-caption text-muted">Đợt đăng ký: <strong>{{ period.name }}</strong></span>
-        </div>
-        <span class="mz-badge mz-badge-success">Quyết định phân công chính thức</span>
-      </div>
-
-      <!-- Thông điệp chúc mừng -->
-      <div class="mz-alert mz-alert-success mb-4" role="status">
-        {% include "components/icon.html" with name="badge-check" size=20 class="text-success flex-shrink-0" %}
-        <div>
-          <h2 class="fs-6 mb-1 text-success fw-bold">Chúc mừng bạn đã được phân công đề tài tốt nghiệp!</h2>
-          <div class="mz-caption text-muted">
-            Hội đồng Khoa đã phê duyệt kết quả phân công chính thức cho sinh viên <strong>{{ student.student_code }} – {{ student.user.get_full_name|default:student.user.username }}</strong>.
-          </div>
-        </div>
-      </div>
-
-      <!-- Chi tiết phân công 4 thông tin cốt lõi -->
-      <div class="row g-4">
-        <!-- Cột trái: Đề tài được phân -->
-        <div class="col-12 col-lg-7">
-          <div class="p-3 rounded-2 border bg-surface h-100">
-            <div class="mz-caption text-uppercase mb-2 text-primary fw-semibold">Đề tài được phân công</div>
-            <h3 class="mz-card-title fs-5 mb-2 text-break-word">
-              <a href="{% url 'topic_detail' topic.pk %}" class="text-strong text-decoration-none">
-                {{ topic.title }}
-              </a>
-            </h3>
-            {% if topic.fields.all %}
-              <div class="d-flex flex-wrap gap-1 mb-3">
-                {% for f in topic.fields.all %}
-                  <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
-                {% endfor %}
-              </div>
-            {% endif %}
-            <div class="mz-caption text-muted mb-3" style="line-height: 1.6;">
-              {{ topic.description|linebreaksbr }}
-            </div>
-            <div class="pt-2 border-top">
-              <a href="{% url 'topic_detail' topic.pk %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-                {% include "components/icon.html" with name="eye" size=14 %}
-                <span>Xem chi tiết đề tài</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cột phải: GVHD, NV đạt, Điểm phù hợp -->
-        <div class="col-12 col-lg-5">
-          <div class="d-flex flex-column gap-3 h-100">
-            <!-- GVHD -->
-            <div class="p-3 rounded-2 border bg-surface">
-              <div class="mz-caption text-uppercase mb-1 text-muted">GVHD (Giảng viên hướng dẫn)</div>
-              <div class="d-flex align-items-center gap-2 mt-2">
-                <div class="mz-avatar-initials flex-shrink-0">
-                  {{ lecturer.user.first_name|slice:":1"|default:lecturer.user.username|slice:":1"|upper }}
-                </div>
-                <div class="min-w-0">
-                  <div class="fw-bold fs-6 text-strong text-truncate">
-                    {{ lecturer.user.get_full_name|default:lecturer.user.username }}
-                  </div>
-                  {% if lecturer.department %}
-                    <div class="mz-caption text-muted">{{ lecturer.department }}</div>
-                  {% endif %}
-                  {% if lecturer.user.email %}
-                    <div class="mz-caption text-muted">{{ lecturer.user.email }}</div>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-
-            <!-- NV đạt & Điểm phù hợp -->
-            <div class="row g-3">
-              <!-- NV đạt -->
-              <div class="col-6">
-                <div class="p-3 rounded-2 border bg-surface h-100 text-center">
-                  <div class="mz-caption text-uppercase mb-2 text-muted">NV đạt</div>
-                  <div class="mt-1">
-                    {% if preference_rank %}
-                      <span class="mz-pref-rank-badge fs-6 px-3 py-1">NV{{ preference_rank }}</span>
-                      <div class="mz-caption text-muted mt-2">Nguyện vọng {{ preference_rank }}</div>
-                    {% else %}
-                      <span class="mz-badge mz-badge-neutral fs-6 px-2 py-1">Xếp bổ sung</span>
-                      <div class="mz-caption text-muted mt-2">Khoa phân công (Pha 2)</div>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Điểm phù hợp -->
-              <div class="col-6">
-                <div class="p-3 rounded-2 border bg-surface h-100 text-center">
-                  <div class="mz-caption text-uppercase mb-2 text-muted">Điểm phù hợp</div>
-                  <div class="mt-1">
-                    {% if match_score is not None %}
-                      <div class="d-flex align-items-baseline justify-content-center">
-                        <span class="fw-bold fs-2 text-primary">{{ match_score|floatformat:1 }}</span>
-                        <span class="mz-caption text-muted">/100</span>
-                      </div>
-                      <div class="mz-caption text-muted mt-1">
-                        {% if match_score >= 85 %}
-                          Rất phù hợp
-                        {% elif match_score >= 70 %}
-                          Phù hợp cao
-                        {% elif match_score >= 55 %}
-                          Khá phù hợp
-                        {% else %}
-                          Đạt chuẩn
-                        {% endif %}
-                      </div>
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Ghi chú các bước tiếp theo -->
-            <div class="p-3 rounded-2 border bg-surface-subtle">
-              <div class="fw-semibold mz-caption text-primary mb-2 d-flex align-items-center gap-1">
-                {% include "components/icon.html" with name="sparkles" size=14 %}
-                <span>Các bước tiếp theo dành cho bạn:</span>
-              </div>
-              <ul class="mz-caption text-muted ps-3 mb-0">
-                <li>Chủ động liên hệ GVHD qua email để trao đổi đề cương chi tiết.</li>
-                <li>Tham gia buổi họp phân công theo thông báo của Khoa.</li>
-                <li>Bắt đầu nghiên cứu tài liệu và lập kế hoạch thực hiện.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
+      </form>
     </div>
   {% endif %}
+</header>
 
-  <div class="mt-4" data-mz-reveal>
-    <a href="{% url 'home' %}" class="mz-btn mz-btn-secondary">
-      {% include "components/icon.html" with name="arrow-left" size=16 %}
-      <span>Quay lại Trang chủ</span>
-    </a>
-  </div>
+<div class="at-stack">
+  {% if period %}
+    {% include "components/period.html" with period=period %}
+  {% endif %}
+
+  {% if not period %}
+    <section class="at-panel">
+      {% include "components/empty.html" with illustration="empty-result" title="Chưa có đợt đăng ký nào" desc="Hiện tại hệ thống chưa có đợt đăng ký đồ án nào." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
+    </section>
+  {% elif not is_published %}
+    <section class="at-panel">
+      {% include "components/empty.html" with illustration="empty-result" title="Khoa đang xử lý phân công" desc="Hội đồng Khoa đang thẩm định phân công và chạy thuật toán tối ưu. Kết quả chính thức sẽ được công bố tại đây khi hoàn tất xét duyệt." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
+    </section>
+  {% elif unassigned or not topic %}
+    <section class="at-panel">
+      {% include "components/empty.html" with illustration="empty-result" title="Chưa được phân công trong đợt này" desc="Chưa được phân công đề tài trong đợt này. Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
+    </section>
+  {% else %}
+    <section class="at-panel">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Đề tài được phân công</h2>
+          <div class="at-chips at-mt-2">
+            {% for f in topic.fields.all %}
+              <span class="at-tag">{{ f.name }}</span>
+            {% endfor %}
+            <span class="at-tag">{{ topic.get_difficulty_display }}</span>
+          </div>
+        </div>
+        <div>
+          {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
+        </div>
+      </div>
+
+      <div class="at-grid">
+        <div class="at-col-8">
+          <h3 class="h4 at-mb-3">
+            <a href="{% url 'topic_detail' topic.pk %}" class="at-title-link">{{ topic.title }}</a>
+          </h3>
+          <dl class="at-kv">
+            <dt>GVHD</dt>
+            <dd>
+              <strong>{{ lecturer.user.get_full_name|default:lecturer.user.username }}</strong>
+              {% if lecturer.department %}<span class="at-secondary"> · Bộ môn {{ lecturer.department }}</span>{% endif %}
+              {% if lecturer.user.email %}<div class="at-secondary">{{ lecturer.user.email }}</div>{% endif %}
+            </dd>
+            <dt>NV đạt</dt>
+            <dd>
+              {% if preference_rank %}
+                <span class="at-rank">NV{{ preference_rank }}</span>
+                <span class="at-secondary"> (Nguyện vọng {{ preference_rank }})</span>
+              {% else %}
+                <span class="at-badge">Xếp bổ sung</span>
+                <span class="at-secondary"> (Khoa phân công bổ sung Pha 2)</span>
+              {% endif %}
+            </dd>
+            <dt>Mô tả đề tài</dt>
+            <dd class="at-pre at-clamp-4">{{ topic.description }}</dd>
+          </dl>
+        </div>
+        <div class="at-col-4 at-text-right">
+          <div class="at-secondary at-mb-1">Điểm phù hợp</div>
+          {% include "components/score.html" with value=match_score size="lg" label="Điểm phù hợp" %}
+        </div>
+      </div>
+
+      <div class="at-divider"></div>
+      <div class="at-row at-row--between">
+        <span class="at-secondary">Chủ động liên hệ GVHD qua email để trao đổi đề cương chi tiết.</span>
+        <a href="{% url 'topic_detail' topic.pk %}" class="btn btn-secondary btn-sm">Xem chi tiết đề tài</a>
+      </div>
+    </section>
+  {% endif %}
 </div>
 {% endblock %}

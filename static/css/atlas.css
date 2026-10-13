@@ -445,3 +445,6 @@ a.at-journey-step:hover .at-journey-label { color: var(--at-brand); text-decorat
 @media print { .at-rail, .at-topbar, .at-bottomnav, .at-toasts, .at-page-actions, .at-actionbar { display: none !important; } .at-main { margin: 0; padding: 0; } body { background: #fff; } }
 .at-auth-brand h1 { color: #FFFFFF; } .at-auth-brand .at-logo--light { display: none; } .at-auth-brand .at-logo--dark { display: inline-block; }
 .at-auth-brand .at-auth-foot { font-size: 12px; line-height: 19px; color: #D5E2DB; }
+/* Bảng nhiều cột ở 768–1199px: cuộn ngang TRONG khối chứa, không làm tràn cả trang (thông số 2.2) */
+.at-panel:has(.at-table), .at-table-wrap { overflow-x: auto; }
+.at-table th, .at-table td.at-td-actions, .at-table td.at-td-num { white-space: nowrap; }

@@ -2,806 +2,538 @@
 
 {% block title %}Thống kê & Báo cáo — Capstone AI{% endblock %}
 
-{% block breadcrumb %}
-  <span>Khoa CNTT</span>
-  <span>/</span>
-  <span class="mz-breadcrumb-active">Thống kê &amp; Báo cáo</span>
-{% endblock %}
-
-{% block page_title %}Thống kê &amp; Báo cáo{% endblock %}
-
 {% block content %}
-<div class="mz-stats-container">
-  <!-- Header Khoa & Chọn đợt -->
-  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-4">
-    <div>
-      <h1 class="mz-page-title mb-1">Thống kê &amp; Báo cáo Khoa</h1>
-      <p class="mz-page-subtitle mb-0">Tổng hợp số liệu thống kê về đăng ký đề tài và kết quả phân công của sinh viên.</p>
-    </div>
-
-    <div class="d-flex flex-wrap align-items-center gap-2">
-      <!-- Bộ chọn đợt đăng ký -->
-      <form method="get" class="d-flex align-items-center gap-2 m-0" id="statsPeriodForm">
-        <label for="periodSelect" class="visually-hidden">Đợt đăng ký</label>
-        <div class="input-group input-group-sm">
-          <span class="input-group-text bg-surface border-default">
-            {% include "components/icon.html" with name="calendar3" size=14 class="text-muted" %}
-          </span>
-          <select name="period_id" id="periodSelect" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 180px;">
-            {% for p in periods %}
-              <option value="{{ p.pk }}" {% if period and period.pk == p.pk %}selected{% endif %}>
-                {{ p.name }} ({{ p.get_status_display }})
-              </option>
-            {% empty %}
-              <option value="">Chưa có đợt đăng ký</option>
-            {% endfor %}
-          </select>
-        </div>
-      </form>
-
-      <a href="{% url 'allocation_dashboard' %}" class="mz-btn mz-btn-primary mz-btn-sm">
-        {% include "components/icon.html" with name="route" size=15 %}
-        <span>Phân công đề tài</span>
-      </a>
-      <a href="{% url 'home' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-        {% include "components/icon.html" with name="arrow-left" size=15 %}
-        <span>Về trang chủ</span>
-      </a>
-    </div>
+<header class="at-page-header">
+  <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí">
+      <a href="{% url 'home' %}">Khoa</a>
+      <span>Thống kê &amp; Báo cáo</span>
+    </nav>
+    <h1>Thống kê &amp; Báo cáo Khoa</h1>
+    <p class="at-page-desc">Tổng hợp số liệu thống kê về đăng ký đề tài và kết quả phân công của sinh viên theo từng đợt.</p>
   </div>
-
-  <!-- DẢI SỐ LIỆU TỔNG QUAN (layout|fused-metric-ribbon-dock) -->
-  <div class="mz-metric-ribbon-surface mb-4" role="region" aria-label="Dải số liệu thống kê tổng quan">
-    <div class="mz-metric-ribbon-grid">
-      <!-- 1. SV Đã đăng ký -->
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">SV đã đăng ký</div>
-        <div class="mz-metric-value text-accent">
-          {{ reg_stats.registered_students }} <span class="fs-6 text-muted fw-normal">/ {{ reg_stats.total_students }}</span>
-        </div>
-        <div class="mz-metric-sub">Tỉ lệ: <strong>{{ reg_stats.registered_rate }}%</strong></div>
-      </div>
-
-      <!-- 2. Chưa đăng ký -->
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Chưa đăng ký NV</div>
-        <div class="mz-metric-value {% if reg_stats.unregistered_students > 0 %}text-warning{% else %}text-success{% endif %}">
-          {{ reg_stats.unregistered_students }} SV
-        </div>
-        <div class="mz-metric-sub">Tỉ lệ: <strong>{{ reg_stats.unregistered_rate }}%</strong></div>
-      </div>
-
-      <!-- 3. Đạt NV1 (ILP) -->
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Tối ưu đạt NV1</div>
-        <div class="mz-metric-value text-success">
-          {{ comparison.ilp.nv1_pct }}%
-        </div>
-        <div class="mz-metric-sub">mô hình ILP</div>
-      </div>
-
-      <!-- 4. Đạt Top 3 (ILP) -->
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Đạt Top 3 NV</div>
-        <div class="mz-metric-value text-strong">
-          {{ comparison.ilp.top3_pct }}%
-        </div>
-        <div class="mz-metric-sub">mô hình ILP</div>
-      </div>
-
-      <!-- 5. Tỉ lệ xếp thành công -->
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Tỉ lệ xếp xong</div>
-        <div class="mz-metric-value text-accent">
-          {{ comparison.ilp.assigned_pct }}%
-        </div>
-        <div class="mz-metric-sub">ILP vs {{ comparison.greedy.assigned_pct }}% Greedy</div>
-      </div>
-
-      <!-- 6. Điểm TB đạt được -->
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Điểm phù hợp TB</div>
-        <div class="mz-metric-value text-strong">
-          {{ comparison.ilp.avg_match }}
-        </div>
-        <div class="mz-metric-sub">thang điểm 100</div>
-      </div>
-
-      <!-- 7. Chưa xếp (ILP) -->
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Chưa được xếp</div>
-        <div class="mz-metric-value {% if comparison.ilp.unassigned_count > 0 %}text-danger{% else %}text-success{% endif %}">
-          {{ comparison.ilp.unassigned_count }} SV
-        </div>
-        <div class="mz-metric-sub">sau giải ILP</div>
-      </div>
-    </div>
+  <div class="at-page-actions">
+    {# Bộ chọn đợt autosubmit #}
+    <form method="get" class="at-row">
+      <label for="atStatsPeriodSelect" class="visually-hidden">Đợt đăng ký</label>
+      <select id="atStatsPeriodSelect" name="period_id" class="form-select form-select-sm" data-at-autosubmit>
+        {% for p in periods %}
+          <option value="{{ p.pk }}"{% if period and period.pk == p.pk %} selected{% endif %}>
+            {{ p.name }} ({{ p.get_status_display }})
+          </option>
+        {% empty %}
+          <option value="">Chưa có đợt</option>
+        {% endfor %}
+      </select>
+    </form>
+    <a href="{% url 'allocation_dashboard' %}{% if period %}?period_id={{ period.pk }}{% endif %}" class="btn btn-primary btn-sm">
+      {% include "components/icon.html" with name="route" %}Phân công đề tài
+    </a>
   </div>
+</header>
 
-  <!-- =========================================================================
-       HÀNG 1: TÌNH HÌNH ĐĂNG KÝ + TOP ĐỀ TÀI NV1 NHIỀU NHẤT
-       ========================================================================= -->
-  <div class="row g-4 mb-4">
-    <!-- 1. Tình hình đăng ký sinh viên -->
-    <div class="col-12 col-lg-5">
-      <div class="mz-bento-card p-3 p-md-4 h-100">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <div>
-            <h2 class="h5 fw-bold text-strong mb-1">Tình hình đăng ký sinh viên</h2>
-            <p class="text-muted small mb-0">Tỉ lệ sinh viên đã nộp nguyện vọng so với tổng chỉ tiêu.</p>
-          </div>
-          {% include "components/icon.html" with name="chart-pie" size=20 class="text-accent" %}
-        </div>
+<div class="at-stack">
+  {# Dải trạng thái đợt #}
+  {% if period %}
+    {% include "components/period.html" with period=period text="Đợt thống kê hiện tại" %}
+  {% endif %}
 
-        <div class="mz-chart-wrapper my-3" style="min-height: 240px; position: relative;">
-          <canvas id="registrationChart" aria-label="Biểu đồ tỷ lệ đăng ký sinh viên"></canvas>
-        </div>
-
-        <div class="row g-2 pt-3 border-top text-center">
-          <div class="col-6">
-            <div class="text-muted small">Đã nộp nguyện vọng</div>
-            <div class="fw-bold text-success fs-5">
-              {{ reg_stats.registered_students }} <span class="fs-6 text-muted fw-normal">({{ reg_stats.registered_rate }}%)</span>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="text-muted small">Chưa nộp nguyện vọng</div>
-            <div class="fw-bold text-danger fs-5">
-              {{ reg_stats.unregistered_students }} <span class="fs-6 text-muted fw-normal">({{ reg_stats.unregistered_rate }}%)</span>
-            </div>
-          </div>
-        </div>
-      </div>
+  {# Dải số liệu Metric Ledger #}
+  <section class="at-ledger" aria-label="Chỉ số đăng ký và phân công">
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Sinh viên</div>
+      <div class="at-ledger-value">{{ reg_stats.total_students }}</div>
+      <div class="at-ledger-note">trong hệ thống</div>
     </div>
-
-    <!-- 2. Top đề tài được chọn NV1 nhiều nhất -->
-    <div class="col-12 col-lg-7">
-      <div class="mz-bento-card p-3 p-md-4 h-100">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <div>
-            <h2 class="h5 fw-bold text-strong mb-1">Top đề tài được chọn NV1 nhiều nhất</h2>
-            <p class="text-muted small mb-0">Mức độ cạnh tranh nguyện vọng 1 trên từng đề tài tốt nghiệp.</p>
-          </div>
-          <span class="mz-badge mz-badge-accent">Top 10</span>
-        </div>
-
-        <div class="table-responsive mt-3">
-          <table class="table mz-table align-middle mb-0">
-            <thead>
-              <tr>
-                <th style="width: 40px;">#</th>
-                <th style="min-width: 200px;">Tên đề tài</th>
-                <th style="min-width: 130px;">Giảng viên</th>
-                <th class="text-center" style="width: 80px;">Chỉ tiêu</th>
-                <th class="text-center" style="width: 80px;">Số NV1</th>
-                <th class="text-end" style="width: 110px;">Cạnh tranh</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in topic_nv1_list %}
-                <tr>
-                  <td>
-                    <span class="mz-rank-badge {% if forloop.counter <= 3 %}rank-top{% endif %}">
-                      {{ forloop.counter }}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="fw-semibold text-strong text-truncate" style="max-width: 220px;" title="{{ item.title }}">
-                      {{ item.title }}
-                    </div>
-                  </td>
-                  <td>
-                    <span class="text-muted small">{{ item.lecturer_name }}</span>
-                  </td>
-                  <td class="text-center">{{ item.capacity }}</td>
-                  <td class="text-center fw-bold text-accent">{{ item.nv1_count }}</td>
-                  <td class="text-end">
-                    {% if item.competition_rate >= 2.0 %}
-                      <span class="mz-badge mz-badge-danger">{{ item.competition_rate }}x</span>
-                    {% elif item.competition_rate > 1.0 %}
-                      <span class="mz-badge mz-badge-warning">{{ item.competition_rate }}x</span>
-                    {% elif item.competition_rate == 1.0 %}
-                      <span class="mz-badge mz-badge-teal">1.0x</span>
-                    {% else %}
-                      <span class="mz-badge mz-badge-neutral">{{ item.competition_rate }}x</span>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="6" class="text-center text-muted py-3">Chưa có sinh viên đăng ký nguyện vọng.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Đã đăng ký NV</div>
+      <div class="at-ledger-value">{{ reg_stats.registered_students }}</div>
+      <div class="at-ledger-note">{{ reg_stats.registered_rate }}% sinh viên</div>
     </div>
-  </div>
-
-  <!-- =========================================================================
-       HÀNG 2: PHÂN BỐ LĨNH VỰC + TẢI GIẢNG VIÊN SO VỚI CHỈ TIÊU
-       ========================================================================= -->
-  <div class="row g-4 mb-4">
-    <!-- 1. Phân bố theo lĩnh vực -->
-    <div class="col-12 col-lg-5">
-      <div class="mz-bento-card p-3 p-md-4 h-100">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <div>
-            <h2 class="h5 fw-bold text-strong mb-1">Phân bố theo lĩnh vực</h2>
-            <p class="text-muted small mb-0">Tỉ lệ sinh viên quan tâm và đăng ký theo hướng chuyên môn.</p>
-          </div>
-          {% include "components/icon.html" with name="layers-3" size=20 class="text-accent" %}
-        </div>
-
-        <div class="mz-chart-wrapper my-3" style="min-height: 240px; position: relative;">
-          <canvas id="fieldChart" aria-label="Biểu đồ phân bố lĩnh vực"></canvas>
-        </div>
-
-        <div class="table-responsive mt-2">
-          <table class="table mz-table align-middle mb-0">
-            <thead>
-              <tr>
-                <th>Lĩnh vực</th>
-                <th class="text-center">Số NV1</th>
-                <th class="text-end">Tỉ trọng</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for f in field_list %}
-                {% if f.count > 0 %}
-                  <tr>
-                    <td class="fw-medium text-strong">{{ f.field_name }}</td>
-                    <td class="text-center fw-bold text-accent">{{ f.count }}</td>
-                    <td class="text-end text-muted">{{ f.percentage }}%</td>
-                  </tr>
-                {% endif %}
-              {% empty %}
-                <tr>
-                  <td colspan="3" class="text-center text-muted py-2">Chưa có dữ liệu lĩnh vực</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div class="at-ledger-item{% if reg_stats.unregistered_students > 0 %} at-ledger-item--warn{% endif %}">
+      <div class="at-ledger-label">Chưa đăng ký NV</div>
+      <div class="at-ledger-value">{{ reg_stats.unregistered_students }}</div>
+      <div class="at-ledger-note">{{ reg_stats.unregistered_rate }}% sinh viên</div>
     </div>
-
-    <!-- 2. Tải giảng viên so với chỉ tiêu -->
-    <div class="col-12 col-lg-7">
-      <div class="mz-bento-card p-3 p-md-4 h-100">
-        <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-          <div>
-            <h2 class="h5 fw-bold text-strong mb-1">Tải giảng viên so với chỉ tiêu</h2>
-            <p class="text-muted small mb-0">
-              Số sinh viên được phân công so với hạn ngạch hướng dẫn tối đa của từng thầy cô.
-            </p>
-          </div>
-          <span class="mz-caption text-muted">
-            {% include "components/icon.html" with name="info" size=14 class="me-1" %}
-            {{ load_source|default:"Thực tế" }}
-          </span>
-        </div>
-
-        <div class="mz-chart-wrapper my-3" style="min-height: 280px; position: relative;">
-          <canvas id="lecturerChart" aria-label="Biểu đồ tải giảng viên"></canvas>
-        </div>
-
-        <div class="table-responsive mt-2">
-          <table class="table mz-table align-middle mb-0">
-            <thead>
-              <tr>
-                <th>Giảng viên</th>
-                <th class="text-center">Đã xếp</th>
-                <th class="text-center">Chỉ tiêu</th>
-                <th class="text-end">Tỉ lệ tải</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for l in lecturer_load %}
-                <tr>
-                  <td class="fw-medium text-strong">{{ l.name }}</td>
-                  <td class="text-center fw-bold text-accent">{{ l.assigned_count }} SV</td>
-                  <td class="text-center text-muted">{{ l.capacity }} SV</td>
-                  <td class="text-end">
-                    {% if l.load_rate > 100 %}
-                      <span class="mz-badge mz-badge-danger">{{ l.load_rate }}% (Vượt)</span>
-                    {% elif l.load_rate == 100 %}
-                      <span class="mz-badge mz-badge-teal">100% (Đủ)</span>
-                    {% else %}
-                      <span class="mz-badge mz-badge-neutral">{{ l.load_rate }}%</span>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="4" class="text-center text-muted py-2">Chưa có dữ liệu giảng viên</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div class="at-ledger-item at-ledger-item--ai">
+      <div class="at-ledger-label">Tối ưu đạt NV1</div>
+      <div class="at-ledger-value">{{ comparison.ilp.nv1_pct }}<small> %</small></div>
+      <div class="at-ledger-note">mô hình ILP</div>
     </div>
-  </div>
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Đạt Top 3 NV</div>
+      <div class="at-ledger-value">{{ comparison.ilp.top3_pct }}<small> %</small></div>
+      <div class="at-ledger-note">mô hình ILP</div>
+    </div>
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Tỉ lệ xếp xong</div>
+      <div class="at-ledger-value">{{ comparison.ilp.assigned_pct }}<small> %</small></div>
+      <div class="at-ledger-note">ILP vs {{ comparison.greedy.assigned_pct }}% Greedy</div>
+    </div>
+  </section>
 
-  <!-- =========================================================================
-       HÀNG 3: SO SÁNH THUẬT TOÁN ILP VS GREEDY
-       (interaction|inline-sentence-comparison-toggle)
-       ========================================================================= -->
-  <div class="mz-bento-card p-3 p-md-4 mb-4" id="algorithmComparisonSection">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
-      <div>
-        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-          <h2 class="h5 fw-bold text-strong mb-0">So sánh thuật toán ILP vs Greedy</h2>
-          <span class="mz-badge mz-badge-teal">Mô phỏng độc lập</span>
+  {# Lưới biểu đồ và bảng số liệu kiểm chứng #}
+  <div class="at-grid">
+    {# Biểu đồ 1: Tình hình đăng ký (at-col-6) #}
+    <section class="at-panel at-panel--flush at-col-6">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Tình hình đăng ký nguyện vọng</h2>
+          <p>Tỷ lệ sinh viên đã nộp ít nhất 1 nguyện vọng so với chưa đăng ký.</p>
         </div>
-        <p class="text-muted small mb-0">
-          Đối chiếu kết quả phân công giữa Mô hình Tối ưu toàn cục (ILP) và Thuật toán Tham lam (Greedy).
-        </p>
       </div>
-
-      <!-- Toggle so sánh theo câu (interaction|inline-sentence-comparison-toggle) -->
-      <div class="mz-sentence-toggle-dock">
-        <span class="mz-toggle-label {% if not is_greedy %}active{% endif %}" id="lblILP">ILP (Khuyến nghị)</span>
-        <button type="button"
-                class="mz-switch-toggle"
-                id="btnAlgoToggle"
-                role="switch"
-                aria-checked="false"
-                aria-label="Chuyển chế độ so sánh giữa ILP và Greedy">
-          <span class="mz-switch-thumb"></span>
-        </button>
-        <span class="mz-toggle-label" id="lblGreedy">Greedy (So sánh)</span>
+      <div class="at-panel-body">
+        <div class="at-chart at-chart--sm">
+          <canvas id="chartReg" aria-label="Biểu đồ tỷ lệ đăng ký nguyện vọng" role="img"></canvas>
+        </div>
       </div>
-    </div>
-
-    <!-- Nhận định tự động -->
-    <div class="mz-alert mz-alert-info mb-4" id="algoStatementAlert">
-      {% include "components/icon.html" with name="wand-sparkles" size=18 class="text-accent flex-shrink-0 mt-1" %}
-      <div id="algoStatementContent" class="small">
-        <strong>Thuật toán Tối ưu toàn cục (ILP):</strong> Đạt tỉ lệ thỏa mãn NV1 <strong>{{ comparison.ilp.nv1_pct }}%</strong> (vượt trội +{{ comparison.delta.nv1_pct }}% so với Greedy), phân công thành công <strong>{{ comparison.ilp.assigned_pct }}%</strong> sinh viên với điểm phù hợp AI trung bình <strong>{{ comparison.ilp.avg_match }}</strong> và 0 trường hợp vi phạm chỉ tiêu GV.
-      </div>
-    </div>
-
-    <!-- Bảng so sánh 2 thuật toán -->
-    <div class="table-responsive mb-4">
-      <table class="table mz-table table-bordered align-middle mb-0" id="tableComparison">
+      <table class="at-table d-none d-md-table">
         <thead>
-          <tr class="text-center">
-            <th class="text-start" style="min-width: 200px;">Chỉ số đánh giá chất lượng</th>
-            <th style="width: 160px;" class="mz-col-ilp">
-              {% include "components/icon.html" with name="wand-sparkles" size=15 class="text-accent me-1" %}
-              <span>ILP (Khuyến nghị)</span>
-            </th>
-            <th style="width: 160px;" class="mz-col-greedy">
-              {% include "components/icon.html" with name="git-compare" size=15 class="text-muted me-1" %}
-              <span>Greedy (Tham lam)</span>
-            </th>
-            <th style="width: 130px;">Chênh lệch</th>
+          <tr>
+            <th>Tình trạng</th>
+            <th class="at-th-num">Số sinh viên</th>
+            <th class="at-th-num">Tỷ lệ</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="fw-medium text-strong">Tỉ lệ đạt Nguyện vọng 1 (% NV1)</td>
-            <td class="text-center fw-bold text-accent">{{ comparison.ilp.nv1_pct }}%</td>
-            <td class="text-center text-muted">{{ comparison.greedy.nv1_pct }}%</td>
-            <td class="text-center">
-              {% if comparison.delta.nv1_pct > 0 %}
-                <span class="text-success fw-bold">+{{ comparison.delta.nv1_pct }}%</span>
-              {% elif comparison.delta.nv1_pct == 0 %}
-                <span class="text-muted">Bằng nhau</span>
-              {% else %}
-                <span class="text-danger">{{ comparison.delta.nv1_pct }}%</span>
-              {% endif %}
-            </td>
+            <td class="at-td-main">Đã đăng ký nguyện vọng</td>
+            <td class="at-td-num">{{ reg_stats.registered_students }}</td>
+            <td class="at-td-num">{{ reg_stats.registered_rate }}%</td>
           </tr>
           <tr>
-            <td class="fw-medium text-strong">Tỉ lệ đạt Top 3 nguyện vọng (% Top3)</td>
-            <td class="text-center fw-bold text-accent">{{ comparison.ilp.top3_pct }}%</td>
-            <td class="text-center text-muted">{{ comparison.greedy.top3_pct }}%</td>
-            <td class="text-center">
-              {% if comparison.delta.top3_pct > 0 %}
-                <span class="text-success fw-bold">+{{ comparison.delta.top3_pct }}%</span>
-              {% elif comparison.delta.top3_pct == 0 %}
-                <span class="text-muted">Bằng nhau</span>
-              {% else %}
-                <span class="text-danger">{{ comparison.delta.top3_pct }}%</span>
-              {% endif %}
-            </td>
-          </tr>
-          <tr>
-            <td class="fw-medium text-strong">Tỉ lệ sinh viên được xếp (% Đã xếp)</td>
-            <td class="text-center fw-bold text-accent">{{ comparison.ilp.assigned_pct }}%</td>
-            <td class="text-center text-muted">{{ comparison.greedy.assigned_pct }}%</td>
-            <td class="text-center">
-              {% if comparison.delta.assigned_pct > 0 %}
-                <span class="text-success fw-bold">+{{ comparison.delta.assigned_pct }}%</span>
-              {% elif comparison.delta.assigned_pct == 0 %}
-                <span class="text-muted">Bằng nhau</span>
-              {% else %}
-                <span class="text-danger">{{ comparison.delta.assigned_pct }}%</span>
-              {% endif %}
-            </td>
-          </tr>
-          <tr>
-            <td class="fw-medium text-strong">Sinh viên chưa xếp (cần Pha 2)</td>
-            <td class="text-center fw-bold {% if comparison.ilp.unassigned_count > 0 %}text-danger{% else %}text-success{% endif %}">
-              {{ comparison.ilp.unassigned_count }} SV
-            </td>
-            <td class="text-center text-muted">{{ comparison.greedy.unassigned_count }} SV</td>
-            <td class="text-center">
-              {% if comparison.ilp.unassigned_count < comparison.greedy.unassigned_count %}
-                <span class="text-success fw-bold">Ít hơn {{ comparison.greedy.unassigned_count|add:"-"|add:comparison.ilp.unassigned_count }} SV</span>
-              {% elif comparison.ilp.unassigned_count == comparison.greedy.unassigned_count %}
-                <span class="text-muted">Bằng nhau</span>
-              {% else %}
-                <span class="text-danger">Nhiều hơn</span>
-              {% endif %}
-            </td>
-          </tr>
-          <tr>
-            <td class="fw-medium text-strong">Điểm phù hợp AI trung bình</td>
-            <td class="text-center fw-bold text-accent">{{ comparison.ilp.avg_match }}</td>
-            <td class="text-center text-muted">{{ comparison.greedy.avg_match }}</td>
-            <td class="text-center">
-              {% if comparison.delta.avg_match > 0 %}
-                <span class="text-success fw-bold">+{{ comparison.delta.avg_match }}</span>
-              {% elif comparison.delta.avg_match == 0 %}
-                <span class="text-muted">Bằng nhau</span>
-              {% else %}
-                <span class="text-danger">{{ comparison.delta.avg_match }}</span>
-              {% endif %}
-            </td>
-          </tr>
-          <tr>
-            <td class="fw-medium text-strong">Vi phạm chỉ tiêu giảng viên</td>
-            <td class="text-center fw-bold text-success">{{ comparison.ilp.violations }}</td>
-            <td class="text-center text-muted">{{ comparison.greedy.violations }}</td>
-            <td class="text-center">
-              <span class="text-success fw-semibold">0 vi phạm</span>
-            </td>
+            <td class="at-td-main">Chưa đăng ký nguyện vọng</td>
+            <td class="at-td-num">{{ reg_stats.unregistered_students }}</td>
+            <td class="at-td-num">{{ reg_stats.unregistered_rate }}%</td>
           </tr>
         </tbody>
       </table>
-    </div>
+      <div class="at-panel-body d-md-none">
+        <div class="at-list">
+          <article class="at-item">
+            <div class="at-row at-row--between">
+              <strong>Đã đăng ký</strong>
+              <span class="at-num">{{ reg_stats.registered_students }} ({{ reg_stats.registered_rate }}%)</span>
+            </div>
+          </article>
+          <article class="at-item">
+            <div class="at-row at-row--between">
+              <strong>Chưa đăng ký</strong>
+              <span class="at-num">{{ reg_stats.unregistered_students }} ({{ reg_stats.unregistered_rate }}%)</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
 
-    <!-- Biểu đồ so sánh dạng cột -->
-    <div class="mz-chart-wrapper" style="min-height: 260px; position: relative;">
-      <canvas id="comparisonChart" aria-label="Biểu đồ so sánh hiệu năng ILP và Greedy"></canvas>
-    </div>
+    {# Biểu đồ 2: Phân bố theo lĩnh vực (at-col-6) #}
+    <section class="at-panel at-panel--flush at-col-6">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Phân bố theo lĩnh vực</h2>
+          <p>Số lượng nguyện vọng 1 đăng ký theo từng chuyên môn/lĩnh vực.</p>
+        </div>
+      </div>
+      <div class="at-panel-body">
+        <div class="at-chart at-chart--sm">
+          <canvas id="chartField" aria-label="Biểu đồ phân bố lĩnh vực" role="img"></canvas>
+        </div>
+      </div>
+      <table class="at-table d-none d-md-table">
+        <thead>
+          <tr>
+            <th>Lĩnh vực</th>
+            <th class="at-th-num">Số NV1</th>
+            <th class="at-th-num">Tỷ lệ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in field_list %}
+            <tr>
+              <td class="at-td-main">{{ f.field_name }}</td>
+              <td class="at-td-num">{{ f.count }}</td>
+              <td class="at-td-num">{{ f.percentage }}%</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" class="at-muted at-text-center">Chưa có dữ liệu lĩnh vực</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="at-panel-body d-md-none">
+        <div class="at-list">
+          {% for f in field_list %}
+            <article class="at-item">
+              <div class="at-row at-row--between">
+                <strong>{{ f.field_name }}</strong>
+                <span class="at-num">{{ f.count }} NV1 ({{ f.percentage }}%)</span>
+              </div>
+            </article>
+          {% empty %}
+            <div class="at-empty"><div class="at-empty-title">Chưa có dữ liệu lĩnh vực</div></div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {# Biểu đồ 3: Đề tài NV1 nhiều nhất (at-col-12) #}
+    <section class="at-panel at-panel--flush at-col-12">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Đề tài nhận nhiều NV1 nhất</h2>
+          <p>Xếp hạng các đề tài có số lượng sinh viên chọn làm nguyện vọng 1 cao nhất.</p>
+        </div>
+      </div>
+      <div class="at-panel-body">
+        <div class="at-chart">
+          <canvas id="chartTopic" aria-label="Biểu đồ đề tài NV1 nhiều nhất" role="img"></canvas>
+        </div>
+      </div>
+      <table class="at-table d-none d-md-table">
+        <thead>
+          <tr>
+            <th>Tên đề tài</th>
+            <th>Giảng viên</th>
+            <th class="at-th-num">Sức chứa</th>
+            <th class="at-th-num">Số NV1</th>
+            <th class="at-th-num">Tỷ lệ cạnh tranh</th>
+            <th class="at-th-num">Tỷ lệ %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in topic_nv1_list %}
+            <tr>
+              <td class="at-td-main">{{ t.title }}</td>
+              <td>{{ t.lecturer_name }}</td>
+              <td class="at-td-num">{{ t.capacity }}</td>
+              <td class="at-td-num">{{ t.nv1_count }}</td>
+              <td class="at-td-num">{{ t.competition_rate }}</td>
+              <td class="at-td-num">{{ t.percentage }}%</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="at-muted at-text-center py-4">Chưa có lượt đăng ký NV1 nào</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="at-panel-body d-md-none">
+        <div class="at-list">
+          {% for t in topic_nv1_list %}
+            <article class="at-item">
+              <strong>{{ t.title }}</strong>
+              <div class="at-secondary at-mt-2">GVHD: {{ t.lecturer_name }}</div>
+              <dl class="at-kv at-mt-3">
+                <dt>Sức chứa</dt><dd class="at-num">{{ t.capacity }}</dd>
+                <dt>Số NV1</dt><dd class="at-num">{{ t.nv1_count }}</dd>
+                <dt>Cạnh tranh</dt><dd class="at-num">{{ t.competition_rate }}</dd>
+                <dt>Tỷ lệ</dt><dd class="at-num">{{ t.percentage }}%</dd>
+              </dl>
+            </article>
+          {% empty %}
+            <div class="at-empty"><div class="at-empty-title">Chưa có lượt đăng ký NV1 nào</div></div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {# Biểu đồ 4: Tải giảng viên so chỉ tiêu (at-col-12) #}
+    <section class="at-panel at-panel--flush at-col-12">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Tải giảng viên so với chỉ tiêu</h2>
+          <p>Nguồn số liệu: <strong>{{ load_source }}</strong>.</p>
+        </div>
+      </div>
+      <div class="at-panel-body">
+        <div class="at-chart">
+          <canvas id="chartLec" aria-label="Biểu đồ tải giảng viên" role="img"></canvas>
+        </div>
+      </div>
+      <table class="at-table d-none d-md-table">
+        <thead>
+          <tr>
+            <th>Giảng viên</th>
+            <th class="at-th-num">Đã phân công</th>
+            <th class="at-th-num">Chỉ tiêu tối đa</th>
+            <th class="at-th-num">Tỷ lệ tải</th>
+            <th>Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in lecturer_load %}
+            <tr>
+              <td class="at-td-main">{{ l.name }}</td>
+              <td class="at-td-num">{{ l.assigned_count }}</td>
+              <td class="at-td-num">{{ l.capacity }}</td>
+              <td class="at-td-num">{{ l.load_rate }}%</td>
+              <td>
+                {% if l.status == "Quá tải" %}
+                  {% include "components/status.html" with kind="danger" label=l.status %}
+                {% elif l.status == "Đầy chỉ tiêu" %}
+                  {% include "components/status.html" with kind="success" label=l.status %}
+                {% elif l.status == "Đang nhận" %}
+                  {% include "components/status.html" with kind="info" label=l.status %}
+                {% else %}
+                  {% include "components/status.html" with kind="neutral" label=l.status %}
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="at-muted at-text-center py-4">Chưa có dữ liệu giảng viên</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="at-panel-body d-md-none">
+        <div class="at-list">
+          {% for l in lecturer_load %}
+            <article class="at-item">
+              <div class="at-row at-row--between at-row--top">
+                <strong>{{ l.name }}</strong>
+                {% if l.status == "Quá tải" %}
+                  {% include "components/status.html" with kind="danger" label=l.status %}
+                {% elif l.status == "Đầy chỉ tiêu" %}
+                  {% include "components/status.html" with kind="success" label=l.status %}
+                {% elif l.status == "Đang nhận" %}
+                  {% include "components/status.html" with kind="info" label=l.status %}
+                {% else %}
+                  {% include "components/status.html" with kind="neutral" label=l.status %}
+                {% endif %}
+              </div>
+              <dl class="at-kv at-mt-3">
+                <dt>Đã phân công</dt><dd class="at-num">{{ l.assigned_count }} / {{ l.capacity }}</dd>
+                <dt>Tỷ lệ tải</dt><dd class="at-num">{{ l.load_rate }}%</dd>
+              </dl>
+            </article>
+          {% empty %}
+            <div class="at-empty"><div class="at-empty-title">Chưa có dữ liệu giảng viên</div></div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {# Biểu đồ 5: So sánh ILP vs Greedy (at-col-12) #}
+    <section class="at-panel at-panel--flush at-col-12">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">So sánh thuật toán ILP và Greedy</h2>
+          <p>Mô phỏng hiệu năng giữa mô hình tối ưu toàn cục (ILP) và thuật toán tham lam (Greedy).</p>
+        </div>
+      </div>
+      <div class="at-panel-body">
+        <div class="at-chart">
+          <canvas id="chartComp" aria-label="Biểu đồ so sánh ILP và Greedy" role="img"></canvas>
+        </div>
+      </div>
+      <table class="at-table d-none d-md-table">
+        <thead>
+          <tr>
+            <th>Chỉ số so sánh</th>
+            <th class="at-th-num">Mô hình ILP</th>
+            <th class="at-th-num">Thuật toán Greedy</th>
+            <th class="at-th-num">Chênh lệch (&Delta;)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="at-td-main">Đạt Nguyện vọng 1</td>
+            <td class="at-td-num">{{ comparison.ilp.nv1_pct }}%</td>
+            <td class="at-td-num">{{ comparison.greedy.nv1_pct }}%</td>
+            <td class="at-td-num">+{{ comparison.delta.nv1_pct }}%</td>
+          </tr>
+          <tr>
+            <td class="at-td-main">Đạt Top 3 nguyện vọng</td>
+            <td class="at-td-num">{{ comparison.ilp.top3_pct }}%</td>
+            <td class="at-td-num">{{ comparison.greedy.top3_pct }}%</td>
+            <td class="at-td-num">+{{ comparison.delta.top3_pct }}%</td>
+          </tr>
+          <tr>
+            <td class="at-td-main">Tỷ lệ phân công thành công</td>
+            <td class="at-td-num">{{ comparison.ilp.assigned_pct }}%</td>
+            <td class="at-td-num">{{ comparison.greedy.assigned_pct }}%</td>
+            <td class="at-td-num">+{{ comparison.delta.assigned_pct }}%</td>
+          </tr>
+          <tr>
+            <td class="at-td-main">Điểm phù hợp AI trung bình</td>
+            <td class="at-td-num">{{ comparison.ilp.avg_match }}</td>
+            <td class="at-td-num">{{ comparison.greedy.avg_match }}</td>
+            <td class="at-td-num">+{{ comparison.delta.avg_match }}</td>
+          </tr>
+          <tr>
+            <td class="at-td-main">Số sinh viên chưa xếp</td>
+            <td class="at-td-num">{{ comparison.ilp.unassigned_count }}</td>
+            <td class="at-td-num">{{ comparison.greedy.unassigned_count }}</td>
+            <td class="at-td-num">{{ comparison.delta.unassigned_count }}</td>
+          </tr>
+          <tr>
+            <td class="at-td-main">Thời gian tính toán</td>
+            <td class="at-td-num">{{ comparison.ilp.elapsed_time }} s</td>
+            <td class="at-td-num">{{ comparison.greedy.elapsed_time }} s</td>
+            <td class="at-td-num">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="at-panel-body d-md-none">
+        <div class="at-list">
+          <article class="at-item">
+            <strong>Đạt Nguyện vọng 1</strong>
+            <dl class="at-kv at-mt-3">
+              <dt>ILP</dt><dd class="at-num">{{ comparison.ilp.nv1_pct }}%</dd>
+              <dt>Greedy</dt><dd class="at-num">{{ comparison.greedy.nv1_pct }}%</dd>
+              <dt>Chênh lệch</dt><dd class="at-num">+{{ comparison.delta.nv1_pct }}%</dd>
+            </dl>
+          </article>
+          <article class="at-item">
+            <strong>Đạt Top 3 nguyện vọng</strong>
+            <dl class="at-kv at-mt-3">
+              <dt>ILP</dt><dd class="at-num">{{ comparison.ilp.top3_pct }}%</dd>
+              <dt>Greedy</dt><dd class="at-num">{{ comparison.greedy.top3_pct }}%</dd>
+              <dt>Chênh lệch</dt><dd class="at-num">+{{ comparison.delta.top3_pct }}%</dd>
+            </dl>
+          </article>
+          <article class="at-item">
+            <strong>Tỷ lệ phân công thành công</strong>
+            <dl class="at-kv at-mt-3">
+              <dt>ILP</dt><dd class="at-num">{{ comparison.ilp.assigned_pct }}%</dd>
+              <dt>Greedy</dt><dd class="at-num">{{ comparison.greedy.assigned_pct }}%</dd>
+            </dl>
+          </article>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 
-<!-- NẠP DỮ LIỆU JSON TỪ BACKEND -->
+{# Dữ liệu JSON cho biểu đồ #}
+{{ chart_data|json_script:"atStats" }}
 {{ chart_data|json_script:"stats-data" }}
 {% endblock %}
 
 {% block extra_js %}
-<!-- Chart.js via CDN jsdelivr -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-/**
- * Capstone AI — Script Báo cáo Thống kê Khoa
- * - Đọc màu từ biến CSS (--chart-1 đến --chart-6, --accent, --success, v.v.)
- * - Cập nhật lại màu sắc khi chuyển đổi Theme Sáng / Tối (mosaic-theme-change)
- * - Tương tác so sánh ILP vs Greedy (interaction|inline-sentence-comparison-toggle)
- */
-document.addEventListener("DOMContentLoaded", function () {
-  var dataElem = document.getElementById("stats-data");
-  if (!dataElem) return;
+  {% load static %}
+  <script src="{% static 'vendor/chart.umd.min.js' %}"></script><!-- cdn.jsdelivr.net/npm/chart.js compatibility -->
+  <script>
+  (function () {
+    var raw = document.getElementById("atStats");
+    if (!raw) return;
+    var data;
+    try { data = JSON.parse(raw.textContent); } catch (e) { return; }
+    if (!data) return;
 
-  var statsData = {};
-  try {
-    statsData = JSON.parse(dataElem.textContent || "{}");
-  } catch (e) {
-    statsData = {};
-  }
-
-  // 1. Hàm lấy màu từ biến CSS theo theme hiện tại
-  function getThemeColors() {
-    var cs = getComputedStyle(document.documentElement);
-    return {
-      chart1: cs.getPropertyValue('--chart-1').trim() || '#0A9396',
-      chart2: cs.getPropertyValue('--chart-2').trim() || '#3E8FB0',
-      chart3: cs.getPropertyValue('--chart-3').trim() || '#7A7D2D',
-      chart4: cs.getPropertyValue('--chart-4').trim() || '#EE9B00',
-      chart5: cs.getPropertyValue('--chart-5').trim() || '#BB5D48',
-      chart6: cs.getPropertyValue('--chart-6').trim() || '#66717A',
-      accent: cs.getPropertyValue('--accent').trim() || '#005F73',
-      accentSoft: cs.getPropertyValue('--accent-soft').trim() || '#D9F0EF',
-      success: cs.getPropertyValue('--success').trim() || '#287A52',
-      danger: cs.getPropertyValue('--danger').trim() || '#A33638',
-      warning: cs.getPropertyValue('--warning').trim() || '#B66700',
-      textDefault: cs.getPropertyValue('--text-default').trim() || '#303638',
-      textMuted: cs.getPropertyValue('--text-muted').trim() || '#687174',
-      textStrong: cs.getPropertyValue('--text-strong').trim() || '#181C1E',
-      borderSoft: cs.getPropertyValue('--border-soft').trim() || '#E4E7E3',
-      bgSurface: cs.getPropertyValue('--bg-surface').trim() || '#FFFFFF',
-    };
-  }
-
-  var c = getThemeColors();
-
-  // Cấu hình Chart.js chung theo spec Mosaic
-  Chart.defaults.font.family = '"Noto Sans", system-ui, sans-serif';
-  Chart.defaults.font.size = 12;
-  Chart.defaults.color = c.textMuted;
-  Chart.defaults.borderColor = c.borderSoft;
-  Chart.defaults.plugins.tooltip.backgroundColor = c.bgSurface;
-  Chart.defaults.plugins.tooltip.titleColor = c.textStrong;
-  Chart.defaults.plugins.tooltip.bodyColor = c.textDefault;
-  Chart.defaults.plugins.tooltip.borderColor = c.borderSoft;
-  Chart.defaults.plugins.tooltip.borderWidth = 1;
-  Chart.defaults.plugins.tooltip.cornerRadius = 8;
-  Chart.defaults.plugins.tooltip.padding = 10;
-
-  var chartInstances = [];
-
-  // =========================================================================
-  // 1. Biểu đồ tròn Tỷ lệ đăng ký (Doughnut)
-  // =========================================================================
-  var regCanvas = document.getElementById("registrationChart");
-  var regChart = null;
-  if (regCanvas && statsData.registration) {
-    regChart = new Chart(regCanvas, {
-      type: "doughnut",
-      data: {
-        labels: statsData.registration.labels,
-        datasets: [{
-          data: statsData.registration.data,
-          backgroundColor: [c.success, c.danger],
-          borderWidth: 2,
-          borderColor: c.bgSurface
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "72%",
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: { boxWidth: 12, padding: 14, color: c.textDefault }
-          }
-        }
-      }
-    });
-    chartInstances.push(regChart);
-  }
-
-  // =========================================================================
-  // 2. Biểu đồ phân bố Lĩnh vực (Doughnut / Bar)
-  // =========================================================================
-  var fieldCanvas = document.getElementById("fieldChart");
-  var fieldChart = null;
-  if (fieldCanvas && statsData.fields) {
-    var fieldColors = [c.chart1, c.chart2, c.chart3, c.chart4, c.chart5, c.chart6];
-    fieldChart = new Chart(fieldCanvas, {
-      type: "doughnut",
-      data: {
-        labels: statsData.fields.labels,
-        datasets: [{
-          data: statsData.fields.counts,
-          backgroundColor: fieldColors.slice(0, statsData.fields.labels.length),
-          borderWidth: 2,
-          borderColor: c.bgSurface
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "68%",
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: { boxWidth: 10, padding: 10, color: c.textDefault }
-          }
-        }
-      }
-    });
-    chartInstances.push(fieldChart);
-  }
-
-  // =========================================================================
-  // 3. Biểu đồ tải giảng viên (Horizontal Bar)
-  // =========================================================================
-  var lecCanvas = document.getElementById("lecturerChart");
-  var lecChart = null;
-  if (lecCanvas && statsData.lecturers) {
-    lecChart = new Chart(lecCanvas, {
-      type: "bar",
-      data: {
-        labels: statsData.lecturers.labels,
-        datasets: [
-          {
-            label: "Đã phân công",
-            data: statsData.lecturers.assigned,
-            backgroundColor: c.accent,
-            borderRadius: 4,
-            barThickness: 12
-          },
-          {
-            label: "Chỉ tiêu",
-            data: statsData.lecturers.capacity,
-            backgroundColor: c.borderSoft,
-            borderRadius: 4,
-            barThickness: 12
-          }
-        ]
-      },
-      options: {
-        indexAxis: "y",
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            grid: { color: c.borderSoft },
-            ticks: { color: c.textMuted }
-          },
-          y: {
-            grid: { display: false },
-            ticks: { color: c.textStrong }
-          }
+    // 1. Biểu đồ đăng ký
+    var cReg = document.getElementById("chartReg");
+    if (cReg && data.registration) {
+      cReg.dataset.atChart = JSON.stringify({
+        type: "doughnut",
+        data: {
+          labels: data.registration.labels,
+          datasets: [{
+            data: data.registration.data,
+            backgroundColor: ["var(--at-chart-1)", "var(--at-chart-3)"]
+          }]
         },
-        plugins: {
-          legend: {
-            position: "top",
-            labels: { boxWidth: 12, padding: 12, color: c.textDefault }
-          }
+        options: {
+          plugins: { legend: { position: "bottom" } }
         }
-      }
-    });
-    chartInstances.push(lecChart);
-  }
+      });
+    }
 
-  // =========================================================================
-  // 4. Biểu đồ so sánh ILP vs Greedy (Grouped Bar)
-  // =========================================================================
-  var compCanvas = document.getElementById("comparisonChart");
-  var compChart = null;
-  if (compCanvas && statsData.comparison) {
-    compChart = new Chart(compCanvas, {
-      type: "bar",
-      data: {
-        labels: statsData.comparison.categories,
-        datasets: [
-          {
-            label: "ILP (Khuyến nghị)",
-            data: statsData.comparison.ilp,
-            backgroundColor: c.accent,
-            borderRadius: 4,
-            barPercentage: 0.7,
-            categoryPercentage: 0.6
-          },
-          {
-            label: "Greedy (Tham lam)",
-            data: statsData.comparison.greedy,
-            backgroundColor: c.chart6,
-            borderRadius: 4,
-            barPercentage: 0.7,
-            categoryPercentage: 0.6
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            ticks: {
-              callback: function (val) { return val + "%"; },
-              color: c.textMuted
+    // 2. Biểu đồ lĩnh vực
+    var cField = document.getElementById("chartField");
+    if (cField && data.fields) {
+      var fieldColors = [
+        "var(--at-chart-1)", "var(--at-chart-2)", "var(--at-chart-3)",
+        "var(--at-chart-4)", "var(--at-chart-5)", "var(--at-chart-6)"
+      ];
+      cField.dataset.atChart = JSON.stringify({
+        type: "doughnut",
+        data: {
+          labels: data.fields.labels,
+          datasets: [{
+            data: data.fields.counts,
+            backgroundColor: fieldColors.slice(0, data.fields.labels.length)
+          }]
+        },
+        options: {
+          plugins: { legend: { position: "bottom" } }
+        }
+      });
+    }
+
+    // 3. Biểu đồ đề tài NV1
+    var cTopic = document.getElementById("chartTopic");
+    if (cTopic && data.topics) {
+      cTopic.dataset.atChart = JSON.stringify({
+        type: "bar",
+        data: {
+          labels: data.topics.labels,
+          datasets: [
+            {
+              label: "Số sinh viên chọn NV1",
+              data: data.topics.counts,
+              backgroundColor: "var(--at-chart-1)"
             },
-            grid: { color: c.borderSoft }
-          },
-          x: {
-            grid: { display: false },
-            ticks: { color: c.textStrong }
-          }
+            {
+              label: "Sức chứa đề tài",
+              data: data.topics.capacities,
+              backgroundColor: "var(--at-chart-4)"
+            }
+          ]
         },
-        plugins: {
-          legend: {
-            position: "top",
-            labels: { boxWidth: 12, padding: 12, color: c.textDefault }
-          }
+        options: {
+          scales: { y: { beginAtZero: true } }
         }
-      }
-    });
-    chartInstances.push(compChart);
-  }
-
-  // =========================================================================
-  // 5. Cập nhật màu động khi đổi Theme Sáng / Tối
-  // =========================================================================
-  function updateThemeColors() {
-    var next = getThemeColors();
-
-    Chart.defaults.color = next.textMuted;
-    Chart.defaults.borderColor = next.borderSoft;
-    Chart.defaults.plugins.tooltip.backgroundColor = next.bgSurface;
-    Chart.defaults.plugins.tooltip.titleColor = next.textStrong;
-    Chart.defaults.plugins.tooltip.bodyColor = next.textDefault;
-    Chart.defaults.plugins.tooltip.borderColor = next.borderSoft;
-
-    if (regChart) {
-      regChart.data.datasets[0].backgroundColor = [next.success, next.danger];
-      regChart.data.datasets[0].borderColor = next.bgSurface;
-      regChart.update();
+      });
     }
 
-    if (fieldChart) {
-      var fColors = [next.chart1, next.chart2, next.chart3, next.chart4, next.chart5, next.chart6];
-      fieldChart.data.datasets[0].backgroundColor = fColors.slice(0, fieldChart.data.labels.length);
-      fieldChart.data.datasets[0].borderColor = next.bgSurface;
-      fieldChart.update();
+    // 4. Biểu đồ tải giảng viên
+    var cLec = document.getElementById("chartLec");
+    if (cLec && data.lecturers) {
+      cLec.dataset.atChart = JSON.stringify({
+        type: "bar",
+        data: {
+          labels: data.lecturers.labels,
+          datasets: [
+            {
+              label: "Đã phân công",
+              data: data.lecturers.assigned,
+              backgroundColor: "var(--at-chart-2)"
+            },
+            {
+              label: "Chỉ tiêu tối đa",
+              data: data.lecturers.capacity,
+              backgroundColor: "var(--at-chart-5)"
+            }
+          ]
+        },
+        options: {
+          scales: { y: { beginAtZero: true } }
+        }
+      });
     }
 
-    if (lecChart) {
-      lecChart.data.datasets[0].backgroundColor = next.accent;
-      lecChart.data.datasets[1].backgroundColor = next.borderSoft;
-      lecChart.options.scales.x.grid.color = next.borderSoft;
-      lecChart.options.scales.x.ticks.color = next.textMuted;
-      lecChart.options.scales.y.ticks.color = next.textStrong;
-      lecChart.update();
+    // 5. Biểu đồ so sánh ILP vs Greedy
+    var cComp = document.getElementById("chartComp");
+    if (cComp && data.comparison) {
+      cComp.dataset.atChart = JSON.stringify({
+        type: "bar",
+        data: {
+          labels: data.comparison.categories,
+          datasets: [
+            {
+              label: "Tối ưu ILP (%)",
+              data: data.comparison.ilp,
+              backgroundColor: "var(--at-chart-1)"
+            },
+            {
+              label: "Tham lam Greedy (%)",
+              data: data.comparison.greedy,
+              backgroundColor: "var(--at-chart-3)"
+            }
+          ]
+        },
+        options: {
+          scales: { y: { beginAtZero: true, max: 100 } }
+        }
+      });
     }
-
-    if (compChart) {
-      compChart.data.datasets[0].backgroundColor = next.accent;
-      compChart.data.datasets[1].backgroundColor = next.chart6;
-      compChart.options.scales.y.grid.color = next.borderSoft;
-      compChart.options.scales.y.ticks.color = next.textMuted;
-      compChart.options.scales.x.ticks.color = next.textStrong;
-      compChart.update();
-    }
-  }
-
-  window.addEventListener('mosaic-theme-change', updateThemeColors);
-
-  // =========================================================================
-  // 6. TOGGLE SO SÁNH ILP VS GREEDY (interaction|inline-sentence-comparison-toggle)
-  // =========================================================================
-  var btnToggle = document.getElementById("btnAlgoToggle");
-  var lblILP = document.getElementById("lblILP");
-  var lblGreedy = document.getElementById("lblGreedy");
-  var stmtAlert = document.getElementById("algoStatementAlert");
-  var stmtContent = document.getElementById("algoStatementContent");
-  var isGreedyActive = false;
-
-  function setAlgoMode(greedy) {
-    isGreedyActive = greedy;
-    if (btnToggle) {
-      btnToggle.setAttribute("aria-checked", greedy ? "true" : "false");
-    }
-
-    if (greedy) {
-      if (lblILP) lblILP.classList.remove("active");
-      if (lblGreedy) lblGreedy.classList.add("active");
-      if (stmtContent) {
-        stmtContent.innerHTML = '<strong>Thuật toán Tham lam (Greedy):</strong> Đạt tỉ lệ NV1 <strong>{{ comparison.greedy.nv1_pct }}%</strong>, phân công <strong>{{ comparison.greedy.assigned_pct }}%</strong> sinh viên với điểm phù hợp TB <strong>{{ comparison.greedy.avg_match }}</strong>. Phù hợp chạy nhanh để đối chiếu, nhưng thường có tỉ lệ chưa xếp cao hơn ILP.';
-      }
-    } else {
-      if (lblILP) lblILP.classList.add("active");
-      if (lblGreedy) lblGreedy.classList.remove("active");
-      if (stmtContent) {
-        stmtContent.innerHTML = '<strong>Thuật toán Tối ưu toàn cục (ILP):</strong> Đạt tỉ lệ thỏa mãn NV1 <strong>{{ comparison.ilp.nv1_pct }}%</strong> (vượt trội +{{ comparison.delta.nv1_pct }}% so với Greedy), phân công thành công <strong>{{ comparison.ilp.assigned_pct }}%</strong> sinh viên với điểm phù hợp AI trung bình <strong>{{ comparison.ilp.avg_match }}</strong> và 0 trường hợp vi phạm chỉ tiêu GV.';
-      }
-    }
-  }
-
-  if (btnToggle) {
-    btnToggle.addEventListener("click", function () {
-      setAlgoMode(!isGreedyActive);
-    });
-  }
-  if (lblILP) {
-    lblILP.addEventListener("click", function () { setAlgoMode(false); });
-  }
-  if (lblGreedy) {
-    lblGreedy.addEventListener("click", function () { setAlgoMode(true); });
-  }
-});
-</script>
+  })();
+  </script>
 {% endblock %}

@@ -1,320 +1,166 @@
 {% extends "base.html" %}
 
-{% block title %}Trang chủ Khoa — Capstone AI{% endblock %}
-
-{% block breadcrumb %}
-  <span>Khoa CNTT</span>
-  <span>/</span>
-  <span class="mz-breadcrumb-active">Trang chủ</span>
-{% endblock %}
-
-{% block page_title %}Bảng điều khiển Khoa{% endblock %}
+{% block title %}Bảng điều khiển Khoa — Capstone AI{% endblock %}
 
 {% block content %}
-<div class="mz-home-admin-container">
-  <!-- Header Khoa -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-    <div>
-      <h1 class="mz-page-title mb-1">Bảng điều khiển Khoa</h1>
-      <p class="mz-page-subtitle mb-0">Tổng quan hệ thống phân công đề tài tốt nghiệp cho sinh viên.</p>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <a href="/quan-tri/" class="mz-btn mz-btn-secondary mz-btn-sm">
-        {% include "components/icon.html" with name="settings-2" size=16 %}
-        <span>Trang quản trị</span>
-      </a>
-      <a href="{% url 'allocation_dashboard' %}" class="mz-btn mz-btn-primary mz-btn-sm">
-        {% include "components/icon.html" with name="route" size=16 %}
-        <span>Phân công đề tài</span>
-      </a>
-    </div>
+<header class="at-page-header">
+  <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí">
+      <a href="{% url 'home' %}">Khoa</a>
+      <span>Tổng quan</span>
+    </nav>
+    <h1>Bảng điều khiển Khoa</h1>
+    <p class="at-page-desc">Tổng quan hệ thống phân công đề tài tốt nghiệp cho sinh viên.</p>
   </div>
+  <div class="at-page-actions">
+    <a href="{% url 'allocation_dashboard' %}" class="btn btn-primary">
+      {% include "components/icon.html" with name="route" %}Mở trang phân công
+    </a>
+  </div>
+</header>
 
+<div class="at-stack">
+  {# Dải trạng thái đợt đăng ký gần nhất #}
   {% if periods %}
     {% with current_period=periods.0 %}
-    <!-- Block đợt đăng ký hiện tại & quy trình -->
-    <div class="mz-bento-card p-3 p-md-4 mb-4">
-      <div class="row g-4 align-items-center">
-        <!-- Thông tin đợt -->
-        <div class="col-12 col-lg-6">
-          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-            <span class="mz-badge mz-badge-accent">Đợt đăng ký hiện tại</span>
-            {% if current_period.status == 'OPEN' %}
-              {% include "components/status_badge.html" with status="open" label=current_period.get_status_display %}
-            {% elif current_period.status == 'OPTIMIZED' %}
-              {% include "components/status_badge.html" with status="pending" label=current_period.get_status_display %}
-            {% elif current_period.status == 'PUBLISHED' %}
-              {% include "components/status_badge.html" with status="published" label=current_period.get_status_display %}
-            {% else %}
-              {% include "components/status_badge.html" with status="draft" label=current_period.get_status_display %}
-            {% endif %}
-          </div>
-          <h2 class="h4 fw-bold text-strong mb-2">{{ current_period.name }}</h2>
-          <div class="d-flex flex-wrap align-items-center gap-3 text-muted small">
-            <span class="d-inline-flex align-items-center gap-1">
-              {% include "components/icon.html" with name="circle-help" size=14 class="text-muted" %}
-              <span>{{ current_period.start_at|date:"d/m/Y" }} – {{ current_period.end_at|date:"d/m/Y" }}</span>
-            </span>
-            <span class="d-inline-flex align-items-center gap-1">
-              {% include "components/icon.html" with name="users" size=14 class="text-muted" %}
-              <span>Đăng ký: <strong>{{ current_period.student_count|default:"0" }} sinh viên</strong></span>
-            </span>
-          </div>
-        </div>
-
-        <!-- Quy trình 4 bước -->
-        <div class="col-12 col-lg-6">
-          <div class="mz-process-timeline" role="region" aria-label="Tiến độ quy trình phân công">
-            <div class="mz-process-step {% if current_period.status == 'OPEN' or current_period.status == 'OPTIMIZED' or current_period.status == 'PUBLISHED' %}is-done{% else %}is-active{% endif %}">
-              <div class="mz-step-num">
-                {% if current_period.status == 'OPTIMIZED' or current_period.status == 'PUBLISHED' %}
-                  {% include "components/icon.html" with name="check" size=12 %}
-                {% else %}1{% endif %}
-              </div>
-              <div class="mz-step-info">
-                <div class="mz-step-name">Mở đăng ký</div>
-                <div class="mz-step-sub">Thu nhận NV</div>
-              </div>
-            </div>
-            <div class="mz-process-step-line"></div>
-            <div class="mz-process-step {% if current_period.status == 'OPTIMIZED' or current_period.status == 'PUBLISHED' %}is-done{% elif current_period.status == 'CLOSED' %}is-active{% endif %}">
-              <div class="mz-step-num">
-                {% if current_period.status == 'PUBLISHED' %}
-                  {% include "components/icon.html" with name="check" size=12 %}
-                {% else %}2{% endif %}
-              </div>
-              <div class="mz-step-info">
-                <div class="mz-step-name">Duyệt &amp; Khóa</div>
-                <div class="mz-step-sub">Chốt hồ sơ</div>
-              </div>
-            </div>
-            <div class="mz-process-step-line"></div>
-            <div class="mz-process-step {% if current_period.status == 'PUBLISHED' %}is-done{% elif current_period.status == 'OPTIMIZED' %}is-active{% endif %}">
-              <div class="mz-step-num">
-                {% if current_period.status == 'PUBLISHED' %}
-                  {% include "components/icon.html" with name="check" size=12 %}
-                {% else %}3{% endif %}
-              </div>
-              <div class="mz-step-info">
-                <div class="mz-step-name">Phân công</div>
-                <div class="mz-step-sub">Chạy ILP</div>
-              </div>
-            </div>
-            <div class="mz-process-step-line"></div>
-            <div class="mz-process-step {% if current_period.status == 'PUBLISHED' %}is-active is-done{% endif %}">
-              <div class="mz-step-num">4</div>
-              <div class="mz-step-info">
-                <div class="mz-step-name">Công bố</div>
-                <div class="mz-step-sub">Kết quả chính thức</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      {% include "components/period.html" with period=current_period text="Đợt đăng ký gần nhất" %}
     {% endwith %}
   {% endif %}
 
-  <!-- DẢI SỐ LIỆU KHOA (layout|fused-metric-ribbon-dock) -->
-  <div class="mz-metric-ribbon-surface mb-4" role="region" aria-label="Dải số liệu tổng quan">
-    <div class="mz-metric-ribbon-grid">
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Tổng sinh viên</div>
-        <div class="mz-metric-value text-accent">{{ n_students|default:"—" }}</div>
-        <div class="mz-metric-sub">trong hệ thống</div>
-      </div>
-
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Tổng đề tài</div>
-        <div class="mz-metric-value text-strong">{{ n_topics|default:"—" }}</div>
-        <div class="mz-metric-sub">đề tài khả dụng</div>
-      </div>
-
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Đợt đăng ký</div>
-        <div class="mz-metric-value text-strong">{% if n_periods %}{{ n_periods }}{% else %}{{ periods|length }}{% endif %}</div>
-        <div class="mz-metric-sub">trong năm học</div>
-      </div>
-
-      <div class="mz-metric-cell">
-        <div class="mz-metric-label">Sinh viên có NV</div>
-        <div class="mz-metric-value text-success">
-          {% if periods and periods.0.student_count %}
-            {{ periods.0.student_count }}
-          {% else %}
-            —
-          {% endif %}
-        </div>
-        <div class="mz-metric-sub">đợt mới nhất</div>
-      </div>
+  {# Dải số liệu tổng quan của Khoa #}
+  <section class="at-ledger" aria-label="Chỉ số tổng quan">
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Sinh viên</div>
+      <div class="at-ledger-value">{{ n_students|default:"0" }}</div>
+      <div class="at-ledger-note">trong hệ thống</div>
     </div>
-  </div>
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Đề tài</div>
+      <div class="at-ledger-value">{{ n_topics|default:"0" }}</div>
+      <div class="at-ledger-note">khả dụng</div>
+    </div>
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Đợt đăng ký</div>
+      <div class="at-ledger-value">{% if n_periods %}{{ n_periods }}{% else %}{{ periods|length }}{% endif %}</div>
+      <div class="at-ledger-note">trong năm học</div>
+    </div>
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Sinh viên có NV</div>
+      <div class="at-ledger-value">{% if periods and periods.0.student_count %}{{ periods.0.student_count }}{% else %}0{% endif %}</div>
+      <div class="at-ledger-note">đợt mới nhất</div>
+    </div>
+  </section>
 
-  <!-- WORKSPACE GRID: DANH SÁCH ĐỢT + LỐI TẮT THAO TÁC -->
-  <div class="row g-4 mb-4">
-    <!-- Cột trái: Danh sách đợt đăng ký -->
-    <div class="col-12 col-lg-8">
-      <div class="mz-bento-card p-0 overflow-hidden h-100">
-        <div class="p-3 p-md-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div>
-            <h2 class="h5 fw-bold text-strong mb-1">Danh sách đợt đăng ký</h2>
-            <p class="text-muted small mb-0">Các đợt mở đăng ký và tiếp nhận nguyện vọng của sinh viên.</p>
-          </div>
-          {% if periods %}
-            <span class="mz-caption text-muted">{{ periods|length }} đợt gần nhất</span>
-          {% endif %}
+  {# Bố cục 2 cột: Bảng các đợt đăng ký và Lối tắt thao tác #}
+  <div class="at-grid">
+    {# Cột 8: Danh sách các đợt đăng ký #}
+    <section class="at-panel at-panel--flush at-col-8">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Các đợt đăng ký</h2>
+          <p>Danh sách các đợt mở đăng ký và tiếp nhận nguyện vọng của sinh viên.</p>
+        </div>
+      </div>
+
+      {% if periods %}
+        <div class="at-table-wrap">
+        <table class="at-table d-none d-md-table">
+          <thead>
+            <tr>
+              <th>Đợt đăng ký</th>
+              <th>Thời gian</th>
+              <th class="at-th-num">Sinh viên</th>
+              <th>Trạng thái</th>
+              <th class="at-td-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in periods %}
+              <tr>
+                <td class="at-td-main">{{ p.name }}</td>
+                <td><span class="at-num">{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}</span></td>
+                <td class="at-td-num">{{ p.student_count|default:"0" }}</td>
+                <td>{% include "components/status.html" with status=p.status label=p.get_status_display %}</td>
+                <td class="at-td-actions">
+                  <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="btn btn-secondary btn-sm">Phân công</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
         </div>
 
-        {% if periods %}
-          <!-- Desktop Table -->
-          <div class="table-responsive d-none d-md-block">
-            <table class="table mz-table mb-0 align-middle">
-              <thead>
-                <tr>
-                  <th scope="col" style="min-width: 220px;">Đợt đăng ký</th>
-                  <th scope="col" style="min-width: 180px;">Thời gian</th>
-                  <th scope="col" style="width: 120px;" class="text-center">Sinh viên</th>
-                  <th scope="col" style="width: 160px;">Trạng thái</th>
-                  <th scope="col" style="width: 110px;" class="text-end">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for p in periods %}
-                  <tr>
-                    <td>
-                      <div class="fw-semibold text-strong">{{ p.name }}</div>
-                    </td>
-                    <td>
-                      <span class="text-muted small">{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}</span>
-                    </td>
-                    <td class="text-center">
-                      <span class="fw-semibold text-accent">{% if p.student_count %}{{ p.student_count }}{% else %}{{ p.preference_set.count|default:"—" }}{% endif %}</span>
-                    </td>
-                    <td>
-                      {% if p.status == 'OPEN' %}
-                        {% include "components/status_badge.html" with status="open" label=p.get_status_display %}
-                      {% elif p.status == 'CLOSED' %}
-                        {% include "components/status_badge.html" with status="draft" label=p.get_status_display %}
-                      {% elif p.status == 'OPTIMIZED' %}
-                        {% include "components/status_badge.html" with status="pending" label=p.get_status_display %}
-                      {% elif p.status == 'PUBLISHED' %}
-                        {% include "components/status_badge.html" with status="published" label=p.get_status_display %}
-                      {% else %}
-                        {% include "components/status_badge.html" with status="draft" label=p.get_status_display %}
-                      {% endif %}
-                    </td>
-                    <td class="text-end">
-                      <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="mz-btn mz-btn-ghost mz-btn-sm p-1" title="Xem phân công đợt này">
-                        {% include "components/icon.html" with name="route" size=16 %}
-                      </a>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Mobile Stacked Card List (<768px, an toàn 390px) -->
-          <div class="d-md-none divide-y">
+        <div class="at-panel-body d-md-none">
+          <div class="at-list">
             {% for p in periods %}
-              <div class="p-3 border-bottom">
-                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                  <div class="fw-semibold text-strong fs-6">{{ p.name }}</div>
-                  <div>
-                    {% if p.status == 'OPEN' %}
-                      {% include "components/status_badge.html" with status="open" label=p.get_status_display %}
-                    {% elif p.status == 'OPTIMIZED' %}
-                      {% include "components/status_badge.html" with status="pending" label=p.get_status_display %}
-                    {% elif p.status == 'PUBLISHED' %}
-                      {% include "components/status_badge.html" with status="published" label=p.get_status_display %}
-                    {% else %}
-                      {% include "components/status_badge.html" with status="draft" label=p.get_status_display %}
-                    {% endif %}
-                  </div>
+              <article class="at-item">
+                <div class="at-row at-row--between at-row--top">
+                  <strong>{{ p.name }}</strong>
+                  {% include "components/status.html" with status=p.status label=p.get_status_display %}
                 </div>
-
-                <div class="text-muted small mb-2 d-flex align-items-center gap-1">
-                  {% include "components/icon.html" with name="circle-help" size=14 class="text-muted" %}
-                  <span>{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}</span>
+                <dl class="at-kv at-mt-3">
+                  <dt>Thời gian</dt>
+                  <dd class="at-num">{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}</dd>
+                  <dt>Sinh viên</dt>
+                  <dd class="at-num">{{ p.student_count|default:"0" }}</dd>
+                </dl>
+                <div class="at-form-actions at-mt-4">
+                  <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="btn btn-secondary btn-sm">Phân công</a>
                 </div>
-
-                <div class="d-flex justify-content-between align-items-center pt-2">
-                  <div class="small text-muted">
-                    Đăng ký: <strong class="text-accent">{% if p.student_count %}{{ p.student_count }}{% else %}{{ p.preference_set.count|default:"—" }}{% endif %} SV</strong>
-                  </div>
-                  <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="mz-btn mz-btn-secondary mz-btn-sm py-1 px-2">
-                    <span>Phân công</span>
-                    {% include "components/icon.html" with name="chevron-right" size=14 %}
-                  </a>
-                </div>
-              </div>
+              </article>
             {% endfor %}
           </div>
-        {% else %}
-          <div class="p-4 text-center">
-            {% include "components/empty_state.html" with illustration="empty-topics" title="Chưa có đợt đăng ký" description="Khoa chưa mở đợt đăng ký đồ án nào trong năm học này." %}
-          </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- Cột phải: Lối tắt thao tác (Quick actions) -->
-    <div class="col-12 col-lg-4">
-      <div class="mz-bento-card p-3 p-md-4 h-100">
-        <h2 class="h5 fw-bold text-strong mb-1">Lối tắt thao tác</h2>
-        <p class="text-muted small mb-3">Các chức năng quản trị và điều hành thường dùng.</p>
-
-        <div class="d-flex flex-column gap-2">
-          <!-- Lối tắt 1: Phân công đề tài -->
-          <a href="{% url 'allocation_dashboard' %}" class="mz-quick-action-link">
-            <div class="mz-quick-action-icon text-accent">
-              {% include "components/icon.html" with name="route" size=20 %}
-            </div>
-            <div class="mz-quick-action-content">
-              <div class="mz-quick-action-title">Phân công đề tài</div>
-              <div class="mz-quick-action-desc">Chạy tối ưu ILP, so sánh Greedy &amp; chỉnh tay Pha 2</div>
-            </div>
-            {% include "components/icon.html" with name="chevron-right" size=16 class="text-muted" %}
-          </a>
-
-          <!-- Lối tắt 2: Thống kê & Báo cáo -->
-          <a href="{% url 'faculty_statistics' %}" class="mz-quick-action-link">
-            <div class="mz-quick-action-icon text-accent">
-              {% include "components/icon.html" with name="chart-pie" size=20 %}
-            </div>
-            <div class="mz-quick-action-content">
-              <div class="mz-quick-action-title">Thống kê &amp; Báo cáo</div>
-              <div class="mz-quick-action-desc">Biểu đồ tiến độ, lĩnh vực, tải GV &amp; thuật toán</div>
-            </div>
-            {% include "components/icon.html" with name="chevron-right" size=16 class="text-muted" %}
-          </a>
-
-          <!-- Lối tắt 3: Nhập dữ liệu Excel -->
-          <a href="{% url 'faculty_import' %}" class="mz-quick-action-link">
-            <div class="mz-quick-action-icon text-accent">
-              {% include "components/icon.html" with name="file-spreadsheet" size=20 %}
-            </div>
-            <div class="mz-quick-action-content">
-              <div class="mz-quick-action-title">Nhập dữ liệu Excel</div>
-              <div class="mz-quick-action-desc">Nhập danh sách SV, GV, đề tài &amp; kỹ năng (.xlsx)</div>
-            </div>
-            {% include "components/icon.html" with name="chevron-right" size=16 class="text-muted" %}
-          </a>
-
-          <!-- Lối tắt 4: Quản trị hệ thống -->
-          <a href="/quan-tri/" class="mz-quick-action-link">
-            <div class="mz-quick-action-icon text-accent">
-              {% include "components/icon.html" with name="settings-2" size=20 %}
-            </div>
-            <div class="mz-quick-action-content">
-              <div class="mz-quick-action-title">Quản trị hệ thống</div>
-              <div class="mz-quick-action-desc">Trang Django admin quản lý toàn diện cơ sở dữ liệu</div>
-            </div>
-            {% include "components/icon.html" with name="chevron-right" size=16 class="text-muted" %}
-          </a>
         </div>
+      {% else %}
+        {% include "components/empty.html" with illustration="empty-topics" title="Chưa có đợt đăng ký" desc="Khoa chưa mở đợt đăng ký đồ án nào trong năm học này." %}
+      {% endif %}
+    </section>
+
+    {# Cột 4: Lối tắt thao tác #}
+    <aside class="at-panel at-col-4">
+      <h2 class="h3 at-mb-4">Lối tắt thao tác</h2>
+      <div class="at-list">
+        <a href="{% url 'allocation_dashboard' %}" class="at-item">
+          <div class="at-row at-row--between">
+            <span class="at-row">{% include "components/icon.html" with name="route" %}<strong>Phân công đề tài</strong></span>
+            {% include "components/icon.html" with name="chevron-right" size=16 class="at-muted" %}
+          </div>
+          <p class="at-secondary at-mt-2">Chạy tối ưu ILP, so sánh Greedy và điều chỉnh</p>
+        </a>
+
+        <a href="{% url 'faculty_statistics' %}" class="at-item">
+          <div class="at-row at-row--between">
+            <span class="at-row">{% include "components/icon.html" with name="chart-line" %}<strong>Thống kê &amp; Báo cáo</strong></span>
+            {% include "components/icon.html" with name="chevron-right" size=16 class="at-muted" %}
+          </div>
+          <p class="at-secondary at-mt-2">Báo cáo nguyện vọng, lĩnh vực, tải giảng viên</p>
+        </a>
+
+        <a href="{% url 'faculty_import' %}" class="at-item">
+          <div class="at-row at-row--between">
+            <span class="at-row">{% include "components/icon.html" with name="file-spreadsheet" %}<strong>Nhập dữ liệu Excel</strong></span>
+            {% include "components/icon.html" with name="chevron-right" size=16 class="at-muted" %}
+          </div>
+          <p class="at-secondary at-mt-2">Nhập sinh viên, giảng viên, đề tài từ tệp .xlsx</p>
+        </a>
+
+        <a href="{% url 'lecturer_profile' %}" class="at-item">
+          <div class="at-row at-row--between">
+            <span class="at-row">{% include "components/icon.html" with name="users" %}<strong>Giảng viên</strong></span>
+            {% include "components/icon.html" with name="chevron-right" size=16 class="at-muted" %}
+          </div>
+          <p class="at-secondary at-mt-2">Danh sách và hồ sơ năng lực giảng viên</p>
+        </a>
+
+        <a href="/quan-tri/" class="at-item">
+          <div class="at-row at-row--between">
+            <span class="at-row">{% include "components/icon.html" with name="settings-2" %}<strong>Quản trị hệ thống</strong></span>
+            {% include "components/icon.html" with name="chevron-right" size=16 class="at-muted" %}
+          </div>
+          <p class="at-secondary at-mt-2">Trang Django admin quản lý cơ sở dữ liệu</p>
+        </a>
       </div>
-    </div>
+    </aside>
   </div>
 </div>
 {% endblock %}

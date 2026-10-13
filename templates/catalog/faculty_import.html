@@ -2,286 +2,173 @@
 
 {% block title %}Nhập dữ liệu Excel — Capstone AI{% endblock %}
 
-{% block breadcrumb %}
-  <span>Khoa CNTT</span>
-  <span>/</span>
-  <span class="mz-breadcrumb-active">Nhập Excel</span>
-{% endblock %}
-
-{% block page_title %}Nhập dữ liệu Excel{% endblock %}
+{% block canvas_class %}at-canvas--read{% endblock %}
 
 {% block content %}
-<div class="mz-import-container">
-  <!-- Header Khoa -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-    <div>
-      <h1 class="mz-page-title mb-1">Nhập danh sách từ Excel</h1>
-      <p class="mz-page-subtitle mb-0">Tải lên tệp .xlsx chứa thông tin sinh viên, giảng viên, đề tài và kỹ năng.</p>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <a href="{% url 'faculty_import_sample' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-        {% include "components/icon.html" with name="file-spreadsheet" size=15 %}
-        <span>Tải tệp mẫu (.xlsx)</span>
-      </a>
-      <a href="{% url 'home' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-        {% include "components/icon.html" with name="arrow-left" size=15 %}
-        <span>Về trang chủ</span>
-      </a>
-    </div>
+<header class="at-page-header">
+  <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí">
+      <a href="{% url 'home' %}">Khoa</a>
+      <span>Nhập Excel</span>
+    </nav>
+    <h1>Nhập danh sách từ Excel</h1>
+    <p class="at-page-desc">Tải lên tệp .xlsx chứa thông tin sinh viên, giảng viên, đề tài và kỹ năng vào hệ thống.</p>
   </div>
-
-  <!-- BƯỚC 1: TẢI FILE MẪU & THÔNG TIN -->
-  <div class="mz-bento-card p-3 p-md-4 mb-4">
-    <div class="row g-4 align-items-center">
-      <div class="col-12 col-md-7">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <span class="mz-step-badge">1</span>
-          <h2 class="h5 fw-bold text-strong mb-0">Tải file mẫu</h2>
-        </div>
-        <p class="text-muted small mb-3">
-          Sử dụng file mẫu để đảm bảo dữ liệu đúng định dạng và thứ tự cột. File mẫu bao gồm 4 sheet: <strong>SinhVien</strong>, <strong>GiangVien</strong>, <strong>DeTai</strong> và <strong>KyNang</strong>.
-        </p>
-        <a href="{% url 'faculty_import_sample' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-          {% include "components/icon.html" with name="file-spreadsheet" size=16 class="text-success me-1" %}
-          <span>Tải file mẫu sinh viên &amp; đề tài (.xlsx)</span>
-        </a>
-      </div>
-
-      <div class="col-12 col-md-5">
-        <div class="p-3 rounded bg-surface-subtle border">
-          <div class="d-flex align-items-center gap-2 mb-2 text-accent fw-semibold small">
-            {% include "components/icon.html" with name="info" size=16 %}
-            <span>Quy định tệp dữ liệu</span>
-          </div>
-          <ul class="text-muted small ps-3 mb-0 d-flex flex-column gap-1">
-            <li>Định dạng: Microsoft Excel (<strong>.xlsx</strong>)</li>
-            <li>4 sheet bắt buộc: SinhVien, GiangVien, DeTai, KyNang</li>
-            <li>Dung lượng tối đa: <strong>{{ max_mb }} MB</strong></li>
-            <li>Chính sách: <strong>Lỗi 1 dòng = Không nhập gì (All-or-nothing)</strong></li>
-          </ul>
-        </div>
-      </div>
-    </div>
+  <div class="at-page-actions">
+    <a href="{% url 'faculty_import_sample' %}" class="btn btn-secondary">
+      {% include "components/icon.html" with name="file-spreadsheet" %}Tải tệp mẫu (.xlsx)
+    </a>
   </div>
+</header>
 
-  <!-- BƯỚC 2: TẢI LÊN FILE EXCEL (DROPZONE) -->
-  <div class="mz-bento-card p-3 p-md-4 mb-4">
-    <div class="d-flex align-items-center gap-2 mb-2">
-      <span class="mz-step-badge">2</span>
-      <h2 class="h5 fw-bold text-strong mb-0">Tải lên file Excel</h2>
+<div class="at-stack">
+  {# Bước 1: Hướng dẫn định dạng & tải mẫu #}
+  <section class="at-panel">
+    <div class="at-panel-header">
+      <div>
+        <h2 class="h3">Bước 1: Tải tệp mẫu và chuẩn bị dữ liệu</h2>
+        <p>Sử dụng tệp mẫu chuẩn của Khoa để đảm bảo đúng định dạng và thứ tự cột.</p>
+      </div>
+      <a href="{% url 'faculty_import_sample' %}" class="btn btn-secondary btn-sm">
+        {% include "components/icon.html" with name="file-spreadsheet" %}Tải mẫu .xlsx
+      </a>
     </div>
-    <p class="text-muted small mb-3">
-      Kéo thả file vào vùng bên dưới hoặc chọn file từ máy tính của bạn.
-    </p>
 
-    <form method="post" enctype="multipart/form-data" id="excelUploadForm" class="m-0">
+    <div class="at-inset">
+      <dl class="at-kv">
+        <dt>Định dạng</dt>
+        <dd>Microsoft Excel (<strong>.xlsx</strong>)</dd>
+        <dt>4 sheet chuẩn</dt>
+        <dd><strong>SinhVien</strong>, <strong>GiangVien</strong>, <strong>DeTai</strong>, <strong>KyNang</strong></dd>
+        <dt>Dung lượng</dt>
+        <dd>Tối đa <strong>{{ max_mb }} MB</strong></dd>
+        <dt>Chính sách</dt>
+        <dd>Kiểm tra toàn bộ (All-or-nothing): Nếu phát hiện lỗi ở bất kỳ dòng nào, hệ thống sẽ dừng và không lưu bản ghi nào.</dd>
+      </dl>
+    </div>
+  </section>
+
+  {# Bước 2: Tải lên tệp dữ liệu #}
+  <section class="at-panel">
+    <div class="at-panel-header">
+      <div>
+        <h2 class="h3">Bước 2: Tải lên tệp dữ liệu</h2>
+        <p>Chọn tệp .xlsx từ máy tính để hệ thống kiểm tra cấu trúc và ghi vào cơ sở dữ liệu.</p>
+      </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" data-at-busy>
       {% csrf_token %}
-      <input type="file" name="file" id="excelFileInput" accept=".xlsx" required class="d-none" onchange="handleFileSelected(this)">
+      <div class="at-field">
+        <label class="form-label at-required" for="atFileInput">Tệp dữ liệu Excel</label>
+        <input class="form-control" type="file" id="atFileInput" name="file" accept=".xlsx" required>
+        <div class="form-text">Chỉ nhận tệp có định dạng .xlsx, dung lượng tối đa {{ max_mb }} MB.</div>
+      </div>
 
-      <!-- Dropzone container -->
-      <div class="mz-dropzone-box text-center p-4 p-md-5 border rounded"
-           id="excelDropzone"
-           onclick="document.getElementById('excelFileInput').click()"
-           tabindex="0"
-           role="button"
-           aria-label="Chọn hoặc kéo thả tệp Excel">
-        <div class="mb-3">
-          {% include "components/icon.html" with name="upload" size=36 class="text-accent" %}
-        </div>
-        <div class="fw-bold text-strong fs-6 mb-1">Kéo thả file Excel vào đây</div>
-        <div class="text-muted small mb-3">Chỉ chấp nhận file .xlsx, dung lượng tối đa {{ max_mb }}MB</div>
-        <button type="button" class="mz-btn mz-btn-primary mz-btn-sm" onclick="event.stopPropagation(); document.getElementById('excelFileInput').click()">
-          {% include "components/icon.html" with name="file-spreadsheet" size=15 %}
-          <span>Chọn file từ máy tính</span>
+      <div class="at-form-actions">
+        <button type="submit" class="btn btn-primary">
+          {% include "components/icon.html" with name="upload" %}Tải lên và nhập dữ liệu
         </button>
       </div>
-
-      <!-- File preview container (ẩn cho đến khi có file) -->
-      <div class="mz-file-preview-card p-3 border rounded bg-surface mt-3 d-none" id="filePreviewCard">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div class="d-flex align-items-center gap-3">
-            <div class="mz-file-icon-badge text-success">
-              {% include "components/icon.html" with name="file-spreadsheet" size=24 %}
-            </div>
-            <div>
-              <div class="fw-semibold text-strong" id="previewFileName">ten_file.xlsx</div>
-              <div class="text-muted small" id="previewFileSize">0 KB</div>
-            </div>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm text-danger" onclick="removeSelectedFile()">
-              {% include "components/icon.html" with name="trash-2" size=15 %}
-              <span>Gỡ bỏ</span>
-            </button>
-            <button type="submit" class="mz-btn mz-btn-primary mz-btn-sm" id="btnSubmitImport">
-              {% include "components/icon.html" with name="check" size=15 %}
-              <span>Kiểm tra &amp; Nhập dữ liệu</span>
-            </button>
-          </div>
-        </div>
-      </div>
     </form>
-  </div>
+  </section>
 
-  <!-- BƯỚC 3: KẾT QUẢ KIỂM TRA DỮ LIỆU & CHÍNH SÁCH -->
-  <div class="mz-bento-card p-3 p-md-4 mb-4">
-    <div class="d-flex align-items-center gap-2 mb-3">
-      <span class="mz-step-badge">3</span>
-      <h2 class="h5 fw-bold text-strong mb-0">Kết quả kiểm tra dữ liệu</h2>
-    </div>
-
-    <!-- Alert chính sách nhập dữ liệu (BẮT BUỘC THEO QUY ĐỊNH) -->
-    <div class="mz-alert mz-alert-warning mb-4">
-      {% include "components/icon.html" with name="triangle-alert" size=18 class="text-warning flex-shrink-0 mt-1" %}
-      <div>
-        <div class="fw-semibold text-strong">Chính sách nhập dữ liệu (All-or-nothing):</div>
-        <div class="small">
-          Nếu có <strong>bất kỳ dòng nào bị lỗi</strong>, hệ thống sẽ <strong>không nhập gì cả</strong> vào cơ sở dữ liệu. Vui lòng rà soát danh sách lỗi chi tiết, sửa lại file Excel và tải lên lại.
+  {# Bước 3: Kết quả kiểm tra và nhập dữ liệu #}
+  {% if result %}
+    <section class="at-panel at-panel--flush">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Kết quả nhập dữ liệu</h2>
+          <p>Tệp xử lý: <strong>{{ result.filename }}</strong></p>
         </div>
       </div>
-    </div>
 
-    {% if result %}
       {% if result.ok %}
-        <!-- KẾT QUẢ THÀNH CÔNG -->
-        <div class="mz-alert mz-alert-success mb-3">
-          {% include "components/icon.html" with name="circle-check-big" size=20 class="text-success flex-shrink-0 mt-1" %}
-          <div>
-            <div class="fw-bold text-success fs-6">Nhập dữ liệu thành công!</div>
-            <div class="small">
-              File <strong>{{ result.filename }}</strong> đã được kiểm tra tính hợp lệ và nhập vào cơ sở dữ liệu.
-            </div>
-          </div>
+        <div class="at-panel-body">
+          {% include "components/banner.html" with kind="success" title="Nhập dữ liệu thành công" text="Toàn bộ thông tin trong tệp đã được kiểm tra hợp lệ và ghi nhận vào cơ sở dữ liệu hệ thống." %}
         </div>
 
-        <!-- BẢNG RESULT.STATS -->
-        <div class="table-responsive">
-          <table class="table mz-table align-middle mb-0">
-            <thead>
+        <div class="at-table-wrap">
+        <table class="at-table d-none d-md-table">
+          <thead>
+            <tr>
+              <th>Đối tượng dữ liệu</th>
+              <th class="at-th-num">Số lượng đã nhập</th>
+              <th>Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for label, count in result.rows %}
               <tr>
-                <th style="min-width: 200px;">Đối tượng dữ liệu</th>
-                <th class="text-center" style="width: 140px;">Số lượng nhập</th>
-                <th class="text-end" style="width: 140px;">Trạng thái</th>
+                <td class="at-td-main">{{ label }}</td>
+                <td class="at-td-num">{{ count }}</td>
+                <td>{% include "components/status.html" with status="ACCEPTED" label="Hợp lệ" %}</td>
               </tr>
-            </thead>
-            <tbody>
-              {% for k, v in result.rows %}
-                <tr>
-                  <td>
-                    <div class="fw-semibold text-strong">{{ k }}</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="fw-bold text-accent fs-6">{{ v }}</span>
-                  </td>
-                  <td class="text-end">
-                    <span class="mz-badge mz-badge-teal">
-                      <span class="mz-badge-dot"></span>Hợp lệ
-                    </span>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+            {% endfor %}
+          </tbody>
+        </table>
         </div>
 
+        <div class="at-panel-body d-md-none">
+          <div class="at-list">
+            {% for label, count in result.rows %}
+              <article class="at-item">
+                <div class="at-row at-row--between at-row--top">
+                  <strong>{{ label }}</strong>
+                  {% include "components/status.html" with status="ACCEPTED" label="Hợp lệ" %}
+                </div>
+                <dl class="at-kv at-mt-3">
+                  <dt>Số lượng</dt>
+                  <dd class="at-num">{{ count }}</dd>
+                </dl>
+              </article>
+            {% endfor %}
+          </div>
+        </div>
       {% else %}
-        <!-- KẾT QUẢ CÓ LỖI (DANH SÁCH RESULT.ERRORS) -->
-        <div class="mz-alert mz-alert-danger mb-3">
-          {% include "components/icon.html" with name="triangle-alert" size=20 class="text-danger flex-shrink-0 mt-1" %}
-          <div>
-            <div class="fw-bold text-danger fs-6">
-              Không thể nhập dữ liệu vì phát hiện {{ result.errors|length }} lỗi
-            </div>
-            <div class="small">
-              Dữ liệu chưa được lưu. Vui lòng kiểm tra các dòng bị lỗi dưới đây trong file <strong>{{ result.filename }}</strong>:
-            </div>
-          </div>
+        <div class="at-panel-body">
+          {% include "components/banner.html" with kind="danger" title="Không thể nhập dữ liệu" text="Phát hiện lỗi trong quá trình kiểm tra. Dữ liệu chưa được ghi vào hệ thống. Vui lòng sửa lại các dòng bên dưới và tải lên lại." %}
         </div>
 
-        <div class="mz-error-list-container border rounded overflow-hidden">
-          <div class="p-3 bg-surface-subtle border-bottom d-flex justify-content-between align-items-center">
-            <span class="fw-semibold text-strong small">Danh sách chi tiết lỗi theo dòng ({{ result.errors|length }} lỗi)</span>
-            <span class="mz-badge mz-badge-danger">{{ result.errors|length }} lỗi</span>
-          </div>
-          <div class="divide-y" style="max-height: 400px; overflow-y: auto;">
-            {% for e in result.errors %}
-              <div class="p-3 border-bottom d-flex align-items-start gap-2">
-                <span class="mz-badge mz-badge-danger flex-shrink-0 mt-1">Lỗi</span>
-                <span class="text-default font-monospace small">{{ e }}</span>
-              </div>
+        <div class="at-table-wrap">
+        <table class="at-table d-none d-md-table">
+          <thead>
+            <tr>
+              <th style="width:72px">STT</th>
+              <th>Chi tiết thông báo lỗi</th>
+              <th style="width:120px">Phân loại</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for err in result.errors %}
+              <tr>
+                <td class="at-num">{{ forloop.counter }}</td>
+                <td>{{ err }}</td>
+                <td>{% include "components/status.html" with status="REJECTED" label="Lỗi dòng" %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+
+        <div class="at-panel-body d-md-none">
+          <div class="at-list">
+            {% for err in result.errors %}
+              <article class="at-item">
+                <div class="at-row at-row--between at-row--top">
+                  <span class="at-badge at-badge--danger">Dòng lỗi #{{ forloop.counter }}</span>
+                </div>
+                <p class="at-mt-2 at-mb-0">{{ err }}</p>
+              </article>
             {% endfor %}
           </div>
         </div>
       {% endif %}
-
-    {% else %}
-      <!-- CHƯA CÓ FILE / EMPTY STATE -->
-      <div class="py-4 text-center">
-        {% include "components/empty_state.html" with illustration="empty-excel" title="Chưa có dữ liệu kiểm tra" description="Vui lòng chọn hoặc kéo thả tệp .xlsx vào ô tải lên ở bước 2 để bắt đầu kiểm tra và nhập dữ liệu." %}
-      </div>
-    {% endif %}
-  </div>
+    </section>
+  {% else %}
+    <section class="at-panel">
+      {% include "components/empty.html" with illustration="empty-topics" title="Chưa có dữ liệu kiểm tra" desc="Vui lòng chọn tệp .xlsx ở bước 2 và bấm 'Tải lên và nhập dữ liệu' để bắt đầu kiểm tra và nhập." %}
+    </section>
+  {% endif %}
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-/**
- * Capstone AI — Script điều khiển Nhập Excel Khoa
- * - Kéo thả file Excel (Drag & Drop)
- * - Preview file được chọn
- */
-function handleFileSelected(input) {
-  if (!input.files || !input.files[0]) return;
-  var file = input.files[0];
-
-  var previewCard = document.getElementById('filePreviewCard');
-  var nameEl = document.getElementById('previewFileName');
-  var sizeEl = document.getElementById('previewFileSize');
-
-  if (nameEl) nameEl.textContent = file.name;
-  if (sizeEl) sizeEl.textContent = (file.size / 1024).toFixed(1) + ' KB';
-
-  if (previewCard) previewCard.classList.remove('d-none');
-}
-
-function removeSelectedFile() {
-  var input = document.getElementById('excelFileInput');
-  if (input) input.value = '';
-  var previewCard = document.getElementById('filePreviewCard');
-  if (previewCard) previewCard.classList.add('d-none');
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  var dropzone = document.getElementById('excelDropzone');
-  var fileInput = document.getElementById('excelFileInput');
-
-  if (!dropzone || !fileInput) return;
-
-  ['dragenter', 'dragover'].forEach(function (eventName) {
-    dropzone.addEventListener(eventName, function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.classList.add('mz-dropzone-dragover');
-    }, false);
-  });
-
-  ['dragleave', 'drop'].forEach(function (eventName) {
-    dropzone.addEventListener(eventName, function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.classList.remove('mz-dropzone-dragover');
-    }, false);
-  });
-
-  dropzone.addEventListener('drop', function (e) {
-    var dt = e.dataTransfer;
-    var files = dt.files;
-    if (files && files.length) {
-      fileInput.files = files;
-      handleFileSelected(fileInput);
-    }
-  }, false);
-});
-</script>
 {% endblock %}

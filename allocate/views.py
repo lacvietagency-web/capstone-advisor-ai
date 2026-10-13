@@ -184,6 +184,7 @@ def allocation_dashboard(request):
             )  # thời gian giải lấy từ lần chạy gần nhất (đo lại khi xem trang thì không có ý nghĩa)
             last_metrics = (last_run.detail.get("metrics") or {}) if last_run else {}
             metrics_data["elapsed_time"] = last_metrics.get("elapsed_time")
+        metrics_data["unassigned_count"] = Allocation.objects.filter(period=period, topic__isnull=True).count()
 
     params = request.GET.copy()
     params.pop("page", None)

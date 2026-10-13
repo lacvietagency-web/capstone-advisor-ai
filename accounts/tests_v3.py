@@ -108,3 +108,16 @@ class V34CoreTests(TestCase):
         self.client.post(url, {"preference_id": pref.pk, "action": "reject", "reason": "Thiếu kỹ năng bắt buộc."})
         pref.refresh_from_db()
         self.assertEqual(pref.status, Preference.Status.REJECTED)
+
+
+@override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
+class V34DashboardTests(TestCase):
+    def test_unassigned_count_shown(self):
+        from allocate.models import Allocation
+
+        call_command("seed_demo", students=12, lecturers=4, topics=10, verbosity=0)
+        period = RegistrationPeriod.objects.get()
+        run_allocation(period, algorithm="GREEDY")
+        self.client.login(username="khoa01", password="123456")
+        m = self.client.get("/khoa/phan-cong/").context["metrics"]
+        self.assertEqual(m["unassigned_count"], Allocation.objects.filter(period=period, topic__isnull=True).count())

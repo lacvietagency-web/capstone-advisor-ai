@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
+  <title id="title">500 Hệ thống gặp sự cố</title>
+  <style>
+    .p{stroke:#8BB8A4;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:#8DBFD0;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:#A8B4AB;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  </style>
+  <rect x="53" y="36" width="118" height="26" rx="7" class="p"/>
+  <rect x="53" y="68" width="118" height="26" rx="7" class="p"/>
+  <rect x="53" y="100" width="118" height="26" rx="7" class="p"/>
+  <circle cx="68" cy="49" r="3" fill="#8BB8A4"/>
+  <circle cx="68" cy="81" r="3" fill="#8BB8A4"/>
+  <circle cx="68" cy="113" r="3" fill="#8BB8A4"/>
+  <path d="M85 49h62M85 81h62M85 113h39" class="n"/>
+  <path d="M185 77l24 42h-48l24-42Z" class="a"/>
+  <path d="M185 91v13M185 111h.1" class="a"/>
+</svg>

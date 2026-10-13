@@ -208,8 +208,8 @@ def _handle_preference_action(request, topic):
         new_status = Preference.Status.REJECTED
         log_action = "reject_registration"
         reason = (request.POST.get("reason") or "").strip()
-        if len(reason) < 5:  # GV phải ghi lý do để SV biết và Khoa truy vết khi khiếu nại
-            messages.error(request, "Vui lòng nhập lý do từ chối (ít nhất 5 ký tự).")
+        if not 5 <= len(reason) <= 500:  # GV phải ghi lý do để SV biết và Khoa truy vết khi khiếu nại
+            messages.error(request, "Lý do từ chối cần từ 5 đến 500 ký tự.")
             return redirect("lecturer_registrations", pk=topic.pk)
     else:
         messages.error(request, "Thao tác không hợp lệ.")
@@ -260,7 +260,7 @@ def lecturer_registrations(request, pk):
     for p in prefs:
         ensure_recommendations(p.student)
     scores = {r.student_id: r for r in Recommendation.objects.filter(topic=topic)}
-    rows = [{"pref": p, "rec": scores.get(p.student_id)} for p in prefs]
+    rows = [{"pref": p, "rec": scores.get(p.student_id), "eligibility": _eligibility(p.student, topic)} for p in prefs]
     return render(request, "catalog/lecturer_registrations.html", {"topic": topic, "rows": rows})
 
 
@@ -357,6 +357,7 @@ def topic_list(request):
         topic.recommendation = scores_map.get(topic.id)
         topic.match_score = topic.recommendation.final_score if topic.recommendation else None
         topic.ineligible_reason = _ineligible_reason(student, topic)
+        topic.eligibility = _eligibility(student, topic)
 
     get_params = request.GET.copy()
     get_params.pop("page", None)
@@ -379,6 +380,17 @@ def topic_list(request):
         "open_period": _open_period(),
     }
     return render(request, "catalog/topic_list.html", context)
+
+
+def _eligibility(student, topic):
+    """Danh sách điều kiện bắt buộc (eligibility_reasons) cho SV đang xem; [] nếu không phải SV."""
+    if student is None:
+        return []
+    from recommend.engine import Profile, eligibility_reasons
+
+    if not hasattr(student, "_profile"):
+        student._profile = Profile(student)
+    return eligibility_reasons(student._profile, topic)
 
 
 def _ineligible_reason(student, topic):
@@ -415,6 +427,7 @@ def topic_detail(request, pk=None, id=None):
 
     context = {
         "ineligible_reason": _ineligible_reason(student, topic),
+        "eligibility": _eligibility(student, topic),
         "open_period": _open_period(),
         "topic": topic,
         "nv1_count": nv1_count,

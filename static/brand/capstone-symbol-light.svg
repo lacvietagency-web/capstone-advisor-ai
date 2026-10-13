@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+width="64" height="64" viewBox="0 0 64 64"
+fill="none" role="img"
+aria-labelledby="title desc">
+<title id="title">Capstone AI</title>
+<desc id="desc">Biểu tượng sách mở và dấu chọn tri thức</desc>
+<path
+d="M32 49V21
+M32 21C24 15 15 14 8 17V45
+C17 45 28 42 32 49Z
+M32 21C40 15 49 14 56 17V45
+C56 45 36 42 32 49Z"
+stroke="#305F52"
+stroke-width="4.5"
+stroke-linecap="round"
+stroke-linejoin="round"/>
+<path
+d="M22 34L28 39L42 25"
+stroke="#386D80"
+stroke-width="4.5"
+stroke-linecap="round"
+stroke-linejoin="round"/>
+</svg>

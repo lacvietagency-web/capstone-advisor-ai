@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
   <title id="title">Chưa có gợi ý AI</title>
   <style>
-    .p{stroke:var(--mz-teal-500,#0A9396);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-    .a{stroke:var(--mz-amber-500,#EE9B00);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-    .n{stroke:var(--border-strong,#B9C0BC);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .p{stroke:#305F52;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:#386D80;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:#69736C;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
   </style>
   <rect x="52" y="32" width="100" height="92" rx="12" class="p"/>
   <circle cx="84" cy="61" r="13" class="p"/>

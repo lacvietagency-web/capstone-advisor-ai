@@ -1,229 +1,52 @@
 {% extends "base.html" %}
 {% load static %}
-
 {% block title %}Đăng nhập — Capstone AI{% endblock %}
-
 {% block body %}
-<div class="mz-login-page">
-  <!-- Topbar tinh gọn dành riêng cho trang đăng nhập -->
-  <header class="mz-login-topbar">
-    <div class="container-fluid px-3 px-md-4 d-flex align-items-center justify-content-between">
-      <a class="mz-brand-link" href="{% url 'home' %}">
-        <svg class="mz-brand-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Capstone AI Logo">
-          <rect x="5" y="5" width="16" height="16" rx="4" fill="#4f46e5"/><rect x="27" y="5" width="16" height="16" rx="4" fill="#7c3aed"/><rect x="5" y="27" width="16" height="16" rx="4" fill="#a855f7"/><rect x="27" y="27" width="16" height="16" rx="4" fill="#6366f1"/>
-        </svg>
-        <div class="mz-brand-text">
-          <span class="mz-brand-title">Capstone<span>AI</span></span>
-        </div>
-      </a>
-
-      <!-- Theme Switch Button -->
-      <button
-        type="button"
-        class="mz-theme-toggle"
-        role="switch"
-        aria-checked="false"
-        aria-label="Chuyển chế độ sáng/tối"
-        title="Chuyển chế độ sáng/tối"
-      >
-        <span class="mz-theme-toggle-thumb" aria-hidden="true"></span>
-      </button>
+<main class="at-auth" id="main">
+  <section class="at-auth-brand" aria-label="Giới thiệu hệ thống">
+    <span class="at-brand">{% include "components/logo.html" %}<span>Capstone AI</span></span>
+    <div>
+      <h1>Chọn đề tài tốt nghiệp có căn cứ, phân công minh bạch.</h1>
+      <p class="at-mt-4">Hệ thống chấm mức phù hợp giữa sinh viên và đề tài bằng 5 tiêu chí M1–M5 có trọng số AHP, rồi phân công tối ưu bằng ILP.</p>
+      <ul class="at-auth-points at-mt-6">
+        <li>{% include "components/icon.html" with name="check" %}<span>Sinh viên: xem Top 5 đề tài phù hợp kèm lý do, đăng ký 3 nguyện vọng.</span></li>
+        <li>{% include "components/icon.html" with name="check" %}<span>Giảng viên: duyệt sinh viên đăng ký với điểm phân tích từng tiêu chí.</span></li>
+        <li>{% include "components/icon.html" with name="check" %}<span>Khoa: chạy phân công, xếp tay pha 2, chốt và công bố kết quả.</span></li>
+      </ul>
     </div>
-  </header>
+    <span class="at-auth-foot">Capstone Advisor AI · Hệ thống hỗ trợ tư vấn và phân công đề tài tốt nghiệp</span>
+  </section>
 
-  <!-- Container trung tâm chia 2 cột chuẩn Image 19 -->
-  <main class="mz-login-main">
-    <div class="container">
-      <div class="row g-4 g-xl-5 align-items-center justify-content-center">
-        <!-- Cột trái: Thương hiệu & Tính năng hệ thống -->
-        <div class="col-12 col-lg-6 col-xl-6">
-          <div class="mz-login-hero pe-lg-3">
-            <div class="d-inline-flex align-items-center gap-2 mb-3">
-              <span class="mz-badge mz-badge-teal">
-                <span class="mz-badge-dot"></span>Đợt DATN 2026 đang mở
-              </span>
-            </div>
-
-            <!-- Logo lớn & Slogan -->
-            <div class="d-flex align-items-center gap-3 mb-3">
-              <svg class="mz-brand-logo-lg flex-shrink-0" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Capstone AI" style="width: 56px; height: 56px;">
-                <rect x="5" y="5" width="16" height="16" rx="4" fill="#4f46e5"/><rect x="27" y="5" width="16" height="16" rx="4" fill="#7c3aed"/><rect x="5" y="27" width="16" height="16" rx="4" fill="#a855f7"/><rect x="27" y="27" width="16" height="16" rx="4" fill="#6366f1"/>
-              </svg>
-              <div>
-                <h1 class="mz-login-brand-title mb-0">Capstone AI</h1>
-                <div class="mz-login-brand-tagline">Gợi ý đúng. Phân công tốt.</div>
-              </div>
-            </div>
-
-            <p class="mz-login-desc text-muted mb-4">
-              Hệ thống tư vấn và phân công đề tài tốt nghiệp cho sinh viên, giảng viên và Khoa.
-            </p>
-
-            <!-- 3 Khối tính năng nổi bật -->
-            <div class="d-flex flex-column gap-3 mb-4">
-              <div class="mz-feature-item d-flex align-items-start gap-3">
-                <div class="mz-feature-icon-box text-accent">
-                  {% include "components/icon.html" with name="sparkles" size=20 %}
-                </div>
-                <div>
-                  <div class="fw-semibold text-strong">Gợi ý Top 5 đề tài phù hợp</div>
-                  <div class="text-muted small">Ứng dụng AI gợi ý đề tài và lộ trình học tập theo năng lực và sở thích.</div>
-                </div>
-              </div>
-
-              <div class="mz-feature-item d-flex align-items-start gap-3">
-                <div class="mz-feature-icon-box text-accent">
-                  {% include "components/icon.html" with name="bookmark" size=20 %}
-                </div>
-                <div>
-                  <div class="fw-semibold text-strong">Quản lý nguyện vọng NV1 – NV3</div>
-                  <div class="text-muted small">Sinh viên dễ dàng đăng ký, theo dõi và điều chỉnh nguyện vọng.</div>
-                </div>
-              </div>
-
-              <div class="mz-feature-item d-flex align-items-start gap-3">
-                <div class="mz-feature-icon-box text-accent">
-                  {% include "components/icon.html" with name="route" size=20 %}
-                </div>
-                <div>
-                  <div class="fw-semibold text-strong">Tối ưu phân công bằng ILP</div>
-                  <div class="text-muted small">Phân công dựa trên thuật toán tối ưu, công bằng và minh bạch.</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Các vai trò trong hệ thống -->
-            <div class="mz-roles-strip pt-3 border-top">
-              <div class="mz-caption text-muted mb-2">Dành cho các vai trò trong hệ thống</div>
-              <div class="d-flex flex-wrap align-items-center gap-2">
-                <span class="mz-role-chip">
-                  {% include "components/icon.html" with name="user-round" size=14 class="text-accent me-1" %}
-                  <span>Sinh viên</span>
-                </span>
-                <span class="mz-role-chip">
-                  {% include "components/icon.html" with name="graduation-cap" size=14 class="text-accent me-1" %}
-                  <span>Giảng viên</span>
-                </span>
-                <span class="mz-role-chip">
-                  {% include "components/icon.html" with name="layout-dashboard" size=14 class="text-accent me-1" %}
-                  <span>Cán bộ Khoa</span>
-                </span>
-              </div>
-            </div>
-          </div>
+  <section class="at-auth-form">
+    <div>
+      <span class="at-brand at-auth-mobile-brand">{% include "components/logo.html" %}<span>Capstone AI</span></span>
+      <h2>Đăng nhập</h2>
+      <p class="at-secondary at-mt-2 at-mb-6">Dùng tài khoản do Khoa cấp.</p>
+      {% if form.errors %}
+        <div class="at-mb-6">{% include "components/banner.html" with kind="danger" text="Thông tin đăng nhập không chính xác. Kiểm tra lại tên đăng nhập và mật khẩu." %}</div>
+      {% endif %}
+      <form method="post" action="{% url 'login' %}" data-at-busy novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="at-field">
+          <label class="form-label" for="id_username">Tên đăng nhập</label>
+          <input class="form-control{% if form.errors %} is-invalid{% endif %}" type="text" name="username" id="id_username" value="{{ form.username.value|default:'' }}" autocomplete="username" autocapitalize="none" required autofocus>
         </div>
-
-        <!-- Cột phải: Form Đăng nhập -->
-        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
-          <div class="mz-login-card p-4 p-sm-5 border rounded-3 bg-surface shadow-sm">
-            <h2 class="h4 fw-bold text-strong mb-1">Đăng nhập</h2>
-            <p class="text-muted small mb-4">
-              Sử dụng tài khoản được cấp để truy cập hệ thống Capstone AI.
-            </p>
-
-            {% if form.errors %}
-              <div class="mz-alert mz-alert-danger mb-3" role="alert">
-                {% include "components/icon.html" with name="triangle-alert" size=18 class="text-danger flex-shrink-0 mt-1" %}
-                <div>
-                  <div class="fw-semibold text-strong">Sai tên đăng nhập hoặc mật khẩu</div>
-                  <div class="small">Vui lòng kiểm tra lại thông tin đăng nhập của bạn.</div>
-                </div>
-              </div>
-            {% endif %}
-
-            <form method="post" action="{% url 'login' %}">
-              {% csrf_token %}
-              <div class="mb-3">
-                <label for="id_username" class="form-label small fw-semibold text-strong">Tên đăng nhập</label>
-                <div class="input-group">
-                  <span class="input-group-text bg-surface border-default text-muted">
-                    {% include "components/icon.html" with name="user" size=16 %}
-                  </span>
-                  <input
-                    type="text"
-                    name="username"
-                    id="id_username"
-                    class="form-control"
-                    autofocus
-                    required
-                    autocomplete="username"
-                    placeholder="Nhập mã sinh viên, mã GV hoặc tài khoản Khoa"
-                  >
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label for="id_password" class="form-label small fw-semibold text-strong">Mật khẩu</label>
-                <div class="input-group">
-                  <span class="input-group-text bg-surface border-default text-muted">
-                    {% include "components/icon.html" with name="lock-keyhole" size=16 %}
-                  </span>
-                  <input
-                    type="password"
-                    name="password"
-                    id="id_password"
-                    class="form-control"
-                    required
-                    autocomplete="current-password"
-                    placeholder="••••••••••"
-                  >
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary border-default bg-surface"
-                    id="btnTogglePassword"
-                    aria-label="Hiện/ẩn mật khẩu"
-                    onclick="togglePasswordVisibility()"
-                  >
-                    {% include "components/icon.html" with name="eye" size=16 class="text-muted" %}
-                  </button>
-                </div>
-              </div>
-
-              <div class="d-flex justify-content-between align-items-center mb-4 small">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="checkbox" id="rememberMe">
-                  <label class="form-check-label text-muted" for="rememberMe">
-                    Ghi nhớ đăng nhập
-                  </label>
-                </div>
-                <span class="text-muted" title="Liên hệ Văn phòng Khoa để đặt lại mật khẩu">
-                  Quên mật khẩu?
-                </span>
-              </div>
-
-              <button type="submit" class="mz-btn mz-btn-primary w-100 py-2 fs-6 mb-3">
-                {% include "components/icon.html" with name="send" size=16 %}
-                <span>Đăng nhập</span>
-              </button>
-            </form>
-
-            <!-- Gợi ý tài khoản demo -->
-            <div class="mz-demo-accounts p-2 px-3 rounded bg-surface-subtle border small text-muted text-center mt-3">
-              Ví dụ tài khoản demo: SV <code>sv001</code> · GV <code>gv001</code> · Khoa <code>khoa01</code><br>
-              Mật khẩu: <code>123456</code>
-            </div>
-
-            <!-- Footer nhỏ -->
-            <div class="mt-4 pt-3 border-top text-center text-muted small mz-caption">
-              Bảo mật đăng nhập · Phân quyền theo vai trò · Hỗ trợ sáng/tối
-            </div>
-          </div>
+        <div class="at-field">
+          <label class="form-label" for="id_password">Mật khẩu</label>
+          <input class="form-control{% if form.errors %} is-invalid{% endif %}" type="password" name="password" id="id_password" autocomplete="current-password" required>
         </div>
+        <button type="submit" class="btn btn-primary at-w-100 at-mt-2">Đăng nhập</button>
+      </form>
+      <div class="at-inset at-mt-8">
+        <div class="at-label at-mb-2">Tài khoản dùng thử (mật khẩu 123456)</div>
+        <dl class="at-kv">
+          <dt>Sinh viên</dt><dd><code>sv001</code></dd>
+          <dt>Giảng viên</dt><dd><code>gv001</code></dd>
+          <dt>Khoa</dt><dd><code>khoa01</code></dd>
+        </dl>
       </div>
     </div>
-  </main>
-</div>
-
-<script>
-function togglePasswordVisibility() {
-  var passInput = document.getElementById('id_password');
-  var btn = document.getElementById('btnTogglePassword');
-  if (!passInput) return;
-  if (passInput.type === 'password') {
-    passInput.type = 'text';
-  } else {
-    passInput.type = 'password';
-  }
-}
-</script>
+  </section>
+</main>
 {% endblock body %}

@@ -52,3 +52,59 @@ class V3CoreTests(TestCase):
         self.assertEqual([a.student.student_code for a in one["allocations"]], ["20230001"])
         assigned = self.client.get("/khoa/phan-cong/?status=assigned").context["allocations"]
         self.assertTrue(all(a.topic_id for a in assigned))
+
+
+@override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
+class V34CoreTests(TestCase):
+    """Phán quyết ATLAS V3.4: ngăn kéo tải riêng, điều kiện có cấu trúc, công bố có chặn, lý do từ chối 5–500."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", students=12, lecturers=4, topics=10, verbosity=0)
+        cls.period = RegistrationPeriod.objects.get()
+
+    def test_eligibility_reasons_agree_with_eligible(self):
+        from catalog.models import Student, Topic
+        from recommend.engine import Profile, eligibility_reasons, eligible
+
+        for st in Student.objects.all()[:5]:
+            p = Profile(st)
+            for t in Topic.objects.all():
+                self.assertEqual(eligible(p, t)[0], all(r["ok"] for r in eligibility_reasons(p, t)))
+
+    def test_student_drawer_fragment(self):
+        from catalog.models import Student
+
+        run_allocation(self.period, algorithm="GREEDY")
+        st = Student.objects.get(user__username="sv001")
+        url = f"/khoa/phan-cong/{self.period.pk}/sinh-vien/{st.pk}/"
+        self.client.login(username="sv001", password="123456")
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.client.login(username="khoa01", password="123456")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, "<html")
+        self.assertEqual(len(resp.context["prefs"]), st.preferences.count())
+
+    def test_publish_refused_without_allocations_and_twice(self):
+        self.client.login(username="khoa01", password="123456")
+        self.client.post("/khoa/phan-cong/", {"action": "publish", "period_id": self.period.pk})
+        self.period.refresh_from_db()
+        self.assertNotEqual(self.period.status, RegistrationPeriod.Status.PUBLISHED)
+        run_allocation(self.period, algorithm="GREEDY")
+        self.client.post(f"/khoa/phan-cong/?period_id={self.period.pk}", {"action": "publish"})
+        self.period.refresh_from_db()
+        self.assertEqual(self.period.status, RegistrationPeriod.Status.PUBLISHED)
+
+    def test_reject_reason_max_length(self):
+        from catalog.models import Preference
+
+        pref = Preference.objects.select_related("topic__lecturer__user").first()
+        self.client.force_login(pref.topic.lecturer.user)
+        url = f"/de-tai/{pref.topic.pk}/dang-ky/"
+        self.client.post(url, {"preference_id": pref.pk, "action": "reject", "reason": "x" * 501})
+        pref.refresh_from_db()
+        self.assertEqual(pref.status, Preference.Status.PENDING)
+        self.client.post(url, {"preference_id": pref.pk, "action": "reject", "reason": "Thiếu kỹ năng bắt buộc."})
+        pref.refresh_from_db()
+        self.assertEqual(pref.status, Preference.Status.REJECTED)

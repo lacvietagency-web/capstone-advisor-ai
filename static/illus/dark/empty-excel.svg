@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Chưa tải file Excel</title>
+  <style>
+    .p{stroke:#8BB8A4;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:#8DBFD0;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:#A8B4AB;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  </style>
+  <rect x="61" y="28" width="92" height="104" rx="10" class="p"/>
+  <path d="M128 28v25h25" class="p"/>
+  <path d="M83 76h48M83 92h48M83 108h48" class="n"/>
+  <path d="M107 43v28M96 54l11-11 11 11" class="a"/>
+  <path d="M173 76v25M161 88h24" class="a"/>
+</svg>

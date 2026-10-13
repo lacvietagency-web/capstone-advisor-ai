@@ -1,6 +1,8 @@
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
+from django.views.generic import TemplateView
 
 from accounts.views import home, root
 from allocate import views as av
@@ -48,6 +50,11 @@ urlpatterns = [
     path("de-tai/<int:pk>/sua/", cv.lecturer_topic_edit, name="lecturer_topic_edit"),
     path("de-tai/<int:pk>/dang-ky/", cv.lecturer_registrations, name="lecturer_registrations"),
     path("khoa/phan-cong/", av.allocation_dashboard, name="allocation_dashboard"),
+    path(
+        "khoa/phan-cong/<int:period_id>/sinh-vien/<int:student_id>/",
+        av.allocation_student_detail,
+        name="allocation_student_detail",
+    ),
     path("khoa/nhap-excel/", cv.faculty_import, name="faculty_import"),
     path("khoa/nhap-excel/mau.xlsx", cv.faculty_import_sample, name="faculty_import_sample"),
     path("khoa/thong-ke/", rv.faculty_statistics, name="faculty_statistics"),
@@ -57,3 +64,6 @@ urlpatterns = [
     path("danh-sach-de-tai/<int:pk>/", cv.topic_detail, name="topic_detail"),
     path("quan-tri/", admin.site.urls),
 ]
+
+if settings.DEBUG:  # trang mẫu thành phần ATLAS cho đội giao diện
+    urlpatterns.append(path("mau-giao-dien/", TemplateView.as_view(template_name="styleguide.html")))

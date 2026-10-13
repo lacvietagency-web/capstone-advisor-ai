@@ -1,0 +1,72 @@
+{# Mảnh HTML nạp vào ngăn kéo "Chi tiết sinh viên" (trang Phân công). Context: period, student, allocation, prefs[{pref, rec, eligibility}], can_edit, suggestions[{topic, score, remaining_cap, remaining_quota}] #}
+<div class="at-stack at-stack--tight">
+  <div class="at-row at-row--top">
+    <span class="at-avatar at-avatar--lg" aria-hidden="true">{{ student.user.first_name|slice:":1"|upper }}</span>
+    <div class="at-grow">
+      <h3>{{ student.user.get_full_name|default:student.user.username }}</h3>
+      <div class="at-meta"><span>MSSV <strong class="at-num">{{ student.student_code }}</strong></span><span>GPA <strong class="at-num">{{ student.gpa }}</strong></span><span>{{ student.major.name }}</span></div>
+    </div>
+  </div>
+
+  <section>
+    <h4 class="at-mb-2">Kết quả hiện tại</h4>
+    {% if allocation and allocation.topic %}
+      <div class="at-inset">
+        <div class="at-row at-row--between at-row--top">
+          <div class="at-grow"><strong>{{ allocation.topic.title }}</strong><div class="at-secondary">GVHD: {{ allocation.topic.lecturer }}</div></div>
+          {% include "components/score.html" with value=allocation.match_score size="sm" %}
+        </div>
+        <div class="at-row at-mt-3">
+          {% if allocation.preference_rank %}<span class="at-rank">NV{{ allocation.preference_rank }}</span>{% else %}{% include "components/status.html" with kind="info" label="Xếp ngoài nguyện vọng" %}{% endif %}
+          {% include "components/status.html" with kind="neutral" label=allocation.get_source_display %}
+          {% include "components/status.html" with status=allocation.status label=allocation.get_status_display %}
+        </div>
+      </div>
+    {% elif allocation %}
+      {% include "components/banner.html" with kind="warning" title="Chưa được xếp đề tài" text="Thuật toán chưa tìm được đề tài còn chỗ trong các nguyện vọng của sinh viên này. Xếp tay ở pha 2 bên dưới." %}
+    {% else %}
+      {% include "components/banner.html" with kind="neutral" text="Đợt này chưa chạy phân công cho sinh viên này." %}
+    {% endif %}
+  </section>
+
+  <section>
+    <h4 class="at-mb-2">Nguyện vọng đã nộp</h4>
+    {% for row in prefs %}
+      <div class="at-inset at-mb-2">
+        <div class="at-row at-row--between at-row--top">
+          <div class="at-grow"><span class="at-rank">NV{{ row.pref.rank }}</span> <strong>{{ row.pref.topic.title }}</strong><div class="at-secondary">GVHD: {{ row.pref.topic.lecturer }}</div></div>
+          {% include "components/score.html" with rec=row.rec size="sm" %}
+        </div>
+        <ul class="at-steps at-mt-3">
+          {% for c in row.eligibility %}<li data-state="{% if c.ok %}done{% else %}todo{% endif %}">{% if c.ok %}{% include "components/icon.html" with name="check" size=14 %}{% else %}{% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}{% endif %}{{ c.label }}: cần {{ c.required }}, có {{ c.actual|default_if_none:"chưa có" }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% empty %}
+      <p class="at-secondary">Sinh viên không nộp nguyện vọng trong đợt này.</p>
+    {% endfor %}
+  </section>
+
+  {% if can_edit %}
+  <section>
+    <h4 class="at-mb-2">Xếp tay (pha 2)</h4>
+    {% if suggestions %}
+      <form method="post" action="{% url 'allocation_dashboard' %}?period_id={{ period.pk }}" data-at-busy>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="manual_assign">
+        <input type="hidden" name="student_id" value="{{ student.pk }}">
+        <label class="form-label" for="atAssignTopic">Đề tài còn chỗ, sinh viên đủ điều kiện</label>
+        <select class="form-select" id="atAssignTopic" name="topic_id" required>
+          {% for s in suggestions %}<option value="{{ s.topic.pk }}">{{ s.topic.title }} — {{ s.score }} điểm · còn {{ s.remaining_cap }} chỗ</option>{% endfor %}
+          {% if allocation and allocation.topic %}<option value="none">Bỏ xếp (để trống)</option>{% endif %}
+        </select>
+        <div class="form-text">Sắp theo điểm phù hợp. Chỉ hiện đề tài còn sức chứa và giảng viên còn chỉ tiêu.</div>
+        <div class="at-form-actions"><button type="submit" class="btn btn-primary">Lưu xếp tay</button></div>
+      </form>
+    {% else %}
+      {% include "components/banner.html" with kind="neutral" text="Không còn đề tài nào vừa còn chỗ vừa đủ điều kiện cho sinh viên này." %}
+    {% endif %}
+  </section>
+  {% else %}
+    {% include "components/banner.html" with kind="neutral" text="Đợt đã công bố — kết quả chỉ xem, không chỉnh sửa." %}
+  {% endif %}
+</div>

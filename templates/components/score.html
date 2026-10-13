@@ -1,0 +1,18 @@
+{# Điểm phù hợp bằng chữ số lớn. Tham số: rec (Recommendation hoặc None) HOẶC value (số); size = lg (mặc định) | md | sm; label (tuỳ chọn). #}
+{# Chưa có M5 → ghi "Điểm sơ bộ M1–M4"; không có điểm → "Chưa có điểm" (không hiện 0, không hiện gạch ngang). #}
+{% if rec %}
+  <div class="at-score{% if size and size != 'lg' %} at-score--{{ size }}{% endif %}">
+    <span class="at-score-value">{{ rec.final_score|floatformat:1 }}<small> /100</small></span>
+    <span class="at-score-label">{% if label %}{{ label }}{% elif rec.m5_llm is None %}Điểm sơ bộ M1–M4{% else %}Điểm phù hợp{% endif %}</span>
+  </div>
+{% elif value is not None and value != "" %}
+  <div class="at-score{% if size and size != 'lg' %} at-score--{{ size }}{% endif %}">
+    <span class="at-score-value">{{ value|floatformat:1 }}<small> /100</small></span>
+    <span class="at-score-label">{{ label|default:"Điểm phù hợp" }}</span>
+  </div>
+{% else %}
+  <div class="at-score at-score--none{% if size and size != 'lg' %} at-score--{{ size }}{% endif %}">
+    <span class="at-score-value">Chưa có điểm</span>
+    {% if hint %}<span class="at-score-label">{{ hint }}</span>{% endif %}
+  </div>
+{% endif %}

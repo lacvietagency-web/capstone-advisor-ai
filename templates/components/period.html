@@ -1,0 +1,10 @@
+{# Dải trạng thái đợt đăng ký. Tham số: period (RegistrationPeriod); text (câu giải thích, tuỳ chọn). #}
+{% if period %}
+<div class="at-period">
+  {% include "components/icon.html" with name="clipboard-list" class="at-muted" %}
+  <span class="at-period-name">{{ period.name }}</span>
+  {% include "components/status.html" with status=period.status label=period.get_status_display %}
+  <span class="at-secondary at-num">{{ period.start_at|date:"d/m/Y" }} – {{ period.end_at|date:"d/m/Y" }}</span>
+  {% if text %}<span class="at-secondary">{{ text }}</span>{% endif %}
+</div>
+{% endif %}

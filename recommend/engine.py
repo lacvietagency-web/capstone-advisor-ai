@@ -99,6 +99,46 @@ def eligible(p: Profile, topic: Topic):
     return True, ""
 
 
+def eligibility_reasons(p: Profile, topic: Topic):
+    """Từng điều kiện bắt buộc của đề tài với giá trị yêu cầu / thực tế của SV — để giao diện nói rõ thiếu gì.
+
+    Cùng luật với eligible() (GPA, môn tiên quyết, kỹ năng bắt buộc); đề tài đủ điều kiện ⇔ mọi mục ok=True.
+    """
+    out = [
+        {
+            "rule_type": "gpa",
+            "label": "GPA tối thiểu",
+            "required": float(topic.min_gpa),
+            "actual": p.gpa,
+            "ok": p.gpa >= float(topic.min_gpa),
+        }
+    ]
+    for pre in topic.prerequisites.all():
+        have = p.courses.get(pre.course_id)
+        out.append(
+            {
+                "rule_type": "course",
+                "label": f"Môn {pre.course.name}",
+                "required": float(pre.min_score),
+                "actual": have,
+                "ok": (have or 0) >= float(pre.min_score),
+            }
+        )
+    for ts in topic.skills.all():
+        if ts.is_mandatory:
+            have = p.skills.get(ts.skill_id, 0)
+            out.append(
+                {
+                    "rule_type": "skill",
+                    "label": f"Kỹ năng {ts.skill.name}",
+                    "required": ts.required_level,
+                    "actual": have,
+                    "ok": have >= ts.required_level,
+                }
+            )
+    return out
+
+
 # ---------------------------------------------------------------- M1: khớp kỹ năng
 def m1_skill(p: Profile, topic: Topic):
     """M1 = 100 · Σ w_k·min(mức_SV/mức_yêu_cầu, 1) / Σ w_k  — đáp ứng bao nhiêu phần kỹ năng đề tài cần."""

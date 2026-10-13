@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from catalog.models import AuditLog, RegistrationPeriod, Student, Topic
+from catalog.models import AuditLog, Field, Lecturer, Preference, RegistrationPeriod, Student, Topic
 
 from .models import Allocation
 from .services import (
@@ -54,7 +54,13 @@ def _handle_manual(request, period):
 
 
 def _handle_publish(request, period):
-    """Xử lý chốt danh sách phân công và công bố đợt."""
+    """Xử lý chốt danh sách phân công và công bố đợt (từ chối nếu đợt đã công bố hoặc chưa chạy phân công)."""
+    if period.status == RegistrationPeriod.Status.PUBLISHED:
+        messages.error(request, f"Đợt '{period.name}' đã công bố trước đó — không công bố lại.")
+        return redirect(f"/khoa/phan-cong/?period_id={period.pk}")
+    if not Allocation.objects.filter(period=period).exists():
+        messages.error(request, "Chưa có kết quả phân công để công bố — hãy chạy ILP hoặc Greedy trước.")
+        return redirect(f"/khoa/phan-cong/?period_id={period.pk}")
     count = publish_allocations(period, user=request.user)
     messages.success(
         request,
@@ -121,6 +127,10 @@ def _get_allocations_and_suggestions(period, request):
         alloc_qs = alloc_qs.filter(topic__isnull=status == "unassigned")
     if request.GET.get("rank") in ("1", "2", "3"):
         alloc_qs = alloc_qs.filter(preference_rank=request.GET["rank"])
+    if (request.GET.get("lecturer") or "").isdigit():
+        alloc_qs = alloc_qs.filter(topic__lecturer_id=request.GET["lecturer"])
+    if (request.GET.get("field") or "").isdigit():
+        alloc_qs = alloc_qs.filter(topic__fields__id=request.GET["field"]).distinct()
     query = (request.GET.get("q") or "").strip()
     if query:  # tìm theo mã SV, tên SV hoặc tên đề tài
         alloc_qs = alloc_qs.filter(
@@ -194,11 +204,52 @@ def allocation_dashboard(request):
             "total_count": Allocation.objects.filter(period=period).count() if period else 0,
             "q": (request.GET.get("q") or "").strip(),
             "querystring": params.urlencode(),
+            "lecturers": Lecturer.objects.select_related("user").order_by("user__last_name", "user__first_name"),
+            "fields": Field.objects.order_by("name"),
+            "lecturer_id": request.GET.get("lecturer") or "",
+            "field_id": request.GET.get("field") or "",
             "metrics": metrics_data,
             "unassigned_only": _status_filter(request) == "unassigned",
             "suggest_student": suggest_student,
             "suggestions": suggestions,
             "open_topics": open_topics,
+        },
+    )
+
+
+@login_required
+def allocation_student_detail(request, period_id, student_id):
+    """Mảnh HTML cho ngăn kéo "Chi tiết sinh viên" ở trang phân công — chỉ tải khi Khoa mở, không nhúng sẵn 100 SV.
+
+    Gồm: kết quả hiện tại, NV1–NV3 gốc (điểm phù hợp + điều kiện bắt buộc từng NV), đề tài còn chỗ cho xếp tay pha 2.
+    """
+    _check_faculty_admin(request.user)
+    from recommend.engine import Profile, eligibility_reasons
+    from recommend.models import Recommendation
+
+    period = get_object_or_404(RegistrationPeriod, pk=period_id)
+    student = get_object_or_404(Student.objects.select_related("user", "major"), pk=student_id)
+    alloc = Allocation.objects.filter(period=period, student=student).select_related("topic__lecturer__user").first()
+    scores = {r.topic_id: r for r in Recommendation.objects.filter(student=student)}
+    profile = Profile(student)
+    prefs = [
+        {"pref": p, "rec": scores.get(p.topic_id), "eligibility": eligibility_reasons(profile, p.topic)}
+        for p in Preference.objects.filter(student=student, period=period)
+        .select_related("topic__lecturer__user")
+        .prefetch_related("topic__skills__skill", "topic__prerequisites__course")
+        .order_by("rank")
+    ]
+    can_edit = period.status != RegistrationPeriod.Status.PUBLISHED
+    return render(
+        request,
+        "allocate/_student_drawer.html",
+        {
+            "period": period,
+            "student": student,
+            "allocation": alloc,
+            "prefs": prefs,
+            "can_edit": can_edit,
+            "suggestions": get_phase2_suggestions(period, student) if can_edit else [],
         },
     )
 

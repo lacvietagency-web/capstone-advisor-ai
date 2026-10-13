@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% comment %}
+  TRANG MẪU THÀNH PHẦN ATLAS — /mau-giao-dien/ (chỉ khi DEBUG). Mỗi khối dưới đây là mã HTML CHUẨN để chép vào trang nghiệp vụ.
+  Không có trong trang này = chưa có thành phần → ghi yêu cầu vào REQUESTS, không tự chế CSS.
+{% endcomment %}
+{% block title %}Mẫu giao diện ATLAS — Capstone AI{% endblock %}
+{% block content %}
+
+{# ===== 1. TIÊU ĐỀ TRANG: breadcrumb → h1 → mô tả; hành động chính bên phải ===== #}
+<header class="at-page-header">
+  <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí"><a href="#">Khoa</a><span>Phân công đề tài</span></nav>
+    <h1>Phân công đề tài</h1>
+    <p class="at-page-desc">Mô tả ngắn tối đa 2 dòng: trang này để làm gì.</p>
+  </div>
+  <div class="at-page-actions">
+    <a href="#" class="btn btn-secondary">{% include "components/icon.html" with name="download" %}Hành động phụ</a>
+    <button type="button" class="btn btn-primary">{% include "components/icon.html" with name="play" %}Hành động chính</button>
+  </div>
+</header>
+
+<div class="at-stack">
+
+{# ===== 2. DẢI TRẠNG THÁI ĐỢT + DẢI THÔNG BÁO LÂU DÀI ===== #}
+<section class="at-stack at-stack--tight">
+  {% include "components/period.html" with period=current_period text="Câu giải thích trạng thái đợt (tuỳ chọn)" %}
+  {% include "components/banner.html" with kind="warning" title="Tiêu đề (tuỳ chọn)" text="Banner dùng cho thông tin có hiệu lực lâu: Đợt đã đóng, Kết quả chưa công bố… kind: info | success | warning | danger | neutral" %}
+</section>
+
+{# ===== 3. DẢI SỐ LIỆU (Metric Ledger): một dải phẳng, KHÔNG thẻ riêng, KHÔNG icon tròn. Số lấy từ context, không gõ cứng ===== #}
+<section class="at-ledger" aria-label="Chỉ số">
+  <div class="at-ledger-item"><div class="at-ledger-label">Sinh viên</div><div class="at-ledger-value">100</div><div class="at-ledger-note">trong đợt</div></div>
+  <div class="at-ledger-item"><div class="at-ledger-label">Đã phân công</div><div class="at-ledger-value">43<small> %</small></div><div class="at-ledger-note">43 sinh viên</div></div>
+  <div class="at-ledger-item at-ledger-item--warn"><div class="at-ledger-label">Chờ pha 2</div><div class="at-ledger-value">57</div><div class="at-ledger-note">at-ledger-item--warn khi cần chú ý</div></div>
+  <div class="at-ledger-item at-ledger-item--ai"><div class="at-ledger-label">Điểm phù hợp TB</div><div class="at-ledger-value">63,8</div><div class="at-ledger-note">at-ledger-item--ai cho điểm AI</div></div>
+</section>
+
+{# ===== 4. LƯỚI 12 CỘT + BỀ MẶT (panel). Không lồng panel trong panel; tách bên trong bằng at-inset hoặc at-divider ===== #}
+<div class="at-grid">
+  <section class="at-panel at-col-8">
+    <div class="at-panel-header">
+      <div><h2 class="h3">Tiêu đề khối (h2 cỡ h3)</h2><p>Mô tả khối, 13px, màu phụ.</p></div>
+      <a href="#" class="btn btn-text btn-sm">Xem tất cả {% include "components/icon.html" with name="chevron-right" %}</a>
+    </div>
+    <div class="at-inset">at-inset: vùng nền phụ bên trong panel (không viền).</div>
+    <div class="at-divider"></div>
+    <dl class="at-kv">
+      <dt>Nhãn</dt><dd>Giá trị (at-kv)</dd>
+      <dt>Giảng viên</dt><dd>Phạm Hoàng Cường</dd>
+    </dl>
+  </section>
+  <aside class="at-panel at-col-4">
+    <h3 class="at-mb-4">Cột phụ (at-col-4)</h3>
+    <div class="at-meta"><span>MSSV <strong>20230001</strong></span><span>GPA <strong>3,08</strong></span></div>
+    <div class="at-chips at-mt-4"><span class="at-tag">Thẻ phụ (at-tag)</span><span class="at-tag">Web</span></div>
+  </aside>
+</div>
+
+{# ===== 5. NÚT: primary (1 trang 1 hành động chính) · secondary · danger (chỉ hành động phá huỷ) · text. btn-sm = 36px ===== #}
+<section class="at-panel">
+  <h2 class="h3 at-mb-4">Nút</h2>
+  <div class="at-row">
+    <button class="btn btn-primary">{% include "components/icon.html" with name="check" %}Chính</button>
+    <button class="btn btn-secondary">Phụ</button>
+    <button class="btn btn-danger">Phá huỷ</button>
+    <button class="btn btn-text">Chỉ chữ</button>
+    <button class="btn btn-primary btn-sm">Nhỏ</button>
+    <button class="btn btn-secondary btn-icon btn-sm" aria-label="Sửa">{% include "components/icon.html" with name="square-pen" %}</button>
+    <button class="btn btn-primary" disabled>Bị khoá</button>
+  </div>
+  <p class="at-secondary at-mt-4">Form gửi lâu (chạy ILP, nhập Excel, lưu hồ sơ): thêm <code>data-at-busy</code> vào &lt;form&gt; → nút tự đổi “Đang xử lý…”.</p>
+</section>
+
+{# ===== 6. NHÃN TRẠNG THÁI · THỨ TỰ NV · CHIP LỌC · TAB ===== #}
+<section class="at-panel">
+  <h2 class="h3 at-mb-4">Nhãn, chip, tab</h2>
+  <div class="at-row">
+    {% include "components/status.html" with status="OPEN" label="Đang mở" %}
+    {% include "components/status.html" with status="PENDING" label="Chờ duyệt" %}
+    {% include "components/status.html" with status="ACCEPTED" label="Đồng ý" %}
+    {% include "components/status.html" with status="REJECTED" label="Từ chối" %}
+    {% include "components/status.html" with status="OPTIMIZED" label="Đã chạy phân công (nháp)" %}
+    {% include "components/status.html" with kind="ai" icon="brain" label="Điểm sơ bộ" %}
+    {% include "components/status.html" with kind="neutral" label="Trung tính" %}
+    <span class="at-rank">NV1</span>
+  </div>
+  <div class="at-chips at-mt-4">
+    <a href="#" class="at-chip active">Tất cả <span class="at-chip-count">100</span></a>
+    <a href="#" class="at-chip">Chưa xếp <span class="at-chip-count">57</span></a>
+    <a href="#" class="at-chip">Đã xếp <span class="at-chip-count">43</span></a>
+  </div>
+  <nav class="at-tabs at-mt-6" aria-label="Tab"><a href="#" class="at-tab active">Tab đang chọn</a><a href="#" class="at-tab">Tab khác</a></nav>
+</section>
+
+{# ===== 7. THANH CÔNG CỤ LỌC + BẢNG (≥768) + DANH SÁCH THẺ (<768) + PHÂN TRANG — cùng một page_obj ===== #}
+<section class="at-panel at-panel--flush">
+  <div class="at-panel-header"><div><h2 class="h3">Bảng dữ liệu</h2><p>Bảng: d-none d-md-table. Danh sách thẻ: d-md-none. Không bao giờ 3 nút xếp dọc trong một ô.</p></div></div>
+  <div class="at-panel-body">
+    <form class="at-toolbar" method="get">
+      <div class="at-search at-input-icon">{% include "components/icon.html" with name="search" %}<input class="form-control" type="search" name="q" placeholder="Tìm theo mã, tên…" aria-label="Tìm kiếm"></div>
+      <select class="form-select at-filter" name="rank" aria-label="Lọc nguyện vọng" data-at-autosubmit><option value="">Mọi nguyện vọng</option><option>NV1</option></select>
+      <div class="at-toolbar-end"><span class="at-count">Đang xem 1–20 trong 100</span><a href="#" class="btn btn-text btn-sm">Xoá bộ lọc</a></div>
+    </form>
+  </div>
+  <table class="at-table d-none d-md-table">
+    <thead><tr><th>Mã SV</th><th>Sinh viên</th><th>Đề tài</th><th class="at-th-num">Điểm</th><th>Trạng thái</th><th class="at-td-actions"><span class="visually-hidden">Thao tác</span></th></tr></thead>
+    <tbody>
+      <tr><td class="at-num">20230001</td><td class="at-td-main">Hoàng Quang Phúc<small>GPA 3,08</small></td><td>Ứng dụng di động quản lý sự kiện</td><td class="at-td-num">78,5</td><td>{% include "components/status.html" with status="ACCEPTED" label="Đã xếp" %}</td><td class="at-td-actions"><button class="btn btn-secondary btn-sm">Chi tiết</button></td></tr>
+      <tr class="is-selected"><td class="at-num">20230002</td><td class="at-td-main">Nguyễn Thu Hằng<small>GPA 2,51</small></td><td class="at-muted">Chưa xếp</td><td class="at-td-num at-muted">—</td><td>{% include "components/status.html" with status="PENDING" label="Chờ pha 2" %}</td><td class="at-td-actions"><button class="btn btn-secondary btn-sm">Chi tiết</button></td></tr>
+    </tbody>
+  </table>
+  <div class="at-list d-md-none" style="padding:0 16px 16px">
+    <article class="at-item">
+      <div class="at-row at-row--between at-row--top"><strong>Hoàng Quang Phúc</strong>{% include "components/status.html" with status="ACCEPTED" label="Đã xếp" %}</div>
+      <dl class="at-kv at-mt-3"><dt>MSSV</dt><dd class="at-num">20230001</dd><dt>Đề tài</dt><dd>Ứng dụng di động quản lý sự kiện</dd><dt>Điểm</dt><dd class="at-num">78,5</dd></dl>
+      <div class="at-form-actions at-mt-4"><button class="btn btn-secondary btn-sm">Chi tiết</button></div>
+    </article>
+  </div>
+  {# Phân trang thật: {% include "components/pagination.html" with page_obj=page_obj querystring=querystring unit="sinh viên" per_page=per_page per_page_choices=per_page_choices %} #}
+</section>
+
+{# ===== 8. ĐIỂM AI: điểm tổng = chữ số lớn; dải chứng cứ M1–M5; ghi chú giải thích. Nguồn: Recommendation (rec) ===== #}
+<section class="at-panel">
+  <h2 class="h3 at-mb-4">Điểm AI</h2>
+  <div class="at-row at-row--top" style="gap:32px">
+    {% include "components/score.html" with value=84.2 %}
+    {% include "components/score.html" with value=63.8 size="md" label="Điểm TB" %}
+    {% include "components/score.html" with value=71 size="sm" %}
+    {% include "components/score.html" with rec=None hint="Hồ sơ chưa có kỹ năng" %}
+  </div>
+  <p class="at-secondary at-mt-4"><code>{% templatetag openblock %} include "components/score.html" with rec=rec {% templatetag closeblock %}</code> — rec không có M5 tự ghi “Điểm sơ bộ M1–M4”. <code>{% templatetag openblock %} include "components/evidence.html" with rec=rec detail=True {% templatetag closeblock %}</code> — dải M1–M5 (detail=True thêm trọng số AHP {{ ahp.version }}).</p>
+  <div class="at-mt-6">{% include "components/note.html" with title="Vì sao đề tài này phù hợp?" text="Ghi chú giải thích lấy từ rec.reason. Không có lý do → câu mặc định “Chưa có giải thích cho kết quả này.”" %}</div>
+  <div class="at-mt-4">{% include "components/note.html" with kind="warning" icon="triangle-alert" title="Chưa đủ điều kiện" text="Kỹ năng Python: cần mức 4, hồ sơ mức 2." %}</div>
+  <p class="at-secondary at-mt-4">Trọng số AHP đang dùng (biến <code>ahp.criteria</code>):
+    {% for c in ahp.criteria %}{{ c.code }} {{ c.label }} {{ c.percent }}%{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+</section>
+
+{# ===== 9. HÀNH TRÌNH SINH VIÊN (biến journey từ view) · DANH SÁCH ĐIỀU KIỆN (eligibility) ===== #}
+<section class="at-panel">
+  <h2 class="h3 at-mb-4">Hành trình & điều kiện</h2>
+  <p class="at-secondary at-mb-4"><code>{% templatetag openblock %} include "components/journey.html" with journey=journey {% templatetag closeblock %}</code></p>
+  <ul class="at-steps">
+    <li data-state="done">{% include "components/icon.html" with name="check" size=14 %}GPA tối thiểu: cần 2.0, có 3.08</li>
+    <li data-state="todo">{% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}Kỹ năng Python: cần 4, có 2</li>
+  </ul>
+</section>
+
+{# ===== 10. FORM: nhãn trên ô, lỗi dưới ô, hành động cuối form ===== #}
+<form class="at-panel" onsubmit="return false">
+  <h2 class="h3 at-mb-4">Form</h2>
+  <div class="at-field"><label class="form-label at-required" for="sgA">Tên đề tài</label><input class="form-control" id="sgA" value="Hệ thống gợi ý học phần"><div class="form-text">Gợi ý dưới ô.</div></div>
+  <div class="at-field"><label class="form-label" for="sgB">Trường lỗi</label><input class="form-control is-invalid" id="sgB"><div class="at-error">Thông báo lỗi cụ thể.</div></div>
+  <div class="at-field"><label class="form-label" for="sgC">Chọn</label><select class="form-select" id="sgC"><option>Mức 3 — Thành thạo</option></select></div>
+  <div class="at-field"><label class="form-label" for="sgD">Đoạn văn</label><textarea class="form-control" id="sgD"></textarea></div>
+  <div class="at-field"><span class="form-label">Nhiều lựa chọn (CheckboxSelectMultiple → bọc trong at-check-grid)</span><div class="at-check-grid"><label><input type="checkbox" checked> Web</label><label><input type="checkbox"> Trí tuệ nhân tạo</label></div></div>
+  <div class="at-field"><span class="form-label">Dòng lặp (formset kỹ năng)</span>
+    <div class="at-repeat-row"><div><label class="form-label" for="sgE">Kỹ năng</label><select class="form-select" id="sgE"><option>Python</option></select></div><div><label class="form-label" for="sgF">Mức</label><select class="form-select" id="sgF"><option>3</option></select></div><button type="button" class="btn btn-secondary btn-icon" aria-label="Xoá dòng">{% include "components/icon.html" with name="trash-2" %}</button></div>
+  </div>
+  <div class="at-form-actions"><button type="button" class="btn btn-secondary">Huỷ</button><button type="submit" class="btn btn-primary">{% include "components/icon.html" with name="save" %}Lưu</button></div>
+</form>
+
+{# ===== 11. NGĂN KÉO (offcanvas phải 440px; điện thoại toàn màn hình) + HỘP XÁC NHẬN 2 BƯỚC ===== #}
+<section class="at-panel">
+  <h2 class="h3 at-mb-4">Ngăn kéo & hộp xác nhận</h2>
+  <div class="at-row">
+    <button class="btn btn-secondary" data-bs-toggle="offcanvas" data-bs-target="#sgDrawer">Mở ngăn kéo</button>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sgPublish">Chốt &amp; công bố</button>
+  </div>
+  <p class="at-secondary at-mt-4">Ngăn kéo tải dữ liệu riêng: nút mở có <code>data-at-drawer-url="…"</code> + <code>data-at-drawer-title="…"</code>. Ngăn kéo dữ liệu sẵn (vài dòng): đặt nội dung trong .offcanvas-body. Từ chối nguyện vọng: <code>components/reject_modal.html</code> (nút mở dùng <code>data-at-fill</code>).</p>
+</section>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="sgDrawer" aria-labelledby="sgDrawerTitle">
+  <div class="offcanvas-header"><h2 class="offcanvas-title" id="sgDrawerTitle">Chi tiết sinh viên</h2><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button></div>
+  <div class="offcanvas-body">Nội dung cuộn độc lập.</div>
+  <div class="at-drawer-footer"><button class="btn btn-secondary">Từ chối</button><button class="btn btn-primary">Đồng ý</button></div>
+</div>
+<div class="modal fade" id="sgPublish" tabindex="-1" aria-labelledby="sgPublishTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="post" onsubmit="return false" data-at-busy>
+      <div class="modal-header"><h2 class="modal-title" id="sgPublishTitle">Công bố kết quả phân công</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+      <div class="modal-body">
+        <p class="at-mb-0">Bước 1 — rà soát: 43 sinh viên đã xếp, 57 chưa xếp. Sau khi công bố, sinh viên thấy kết quả chính thức và không thể hoàn tác.</p>
+        <div><label class="form-label" for="sgConfirm">Bước 2 — gõ <strong>CÔNG BỐ</strong> để xác nhận</label><input class="form-control" id="sgConfirm" data-at-confirm-text="CÔNG BỐ" autocomplete="off"></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Quay lại</button><button type="submit" class="btn btn-primary" disabled>Công bố</button></div>
+    </form>
+  </div>
+</div>
+
+{# ===== 12. TRẠNG THÁI RỖNG (12 minh hoạ trong static/illus) · BIỂU ĐỒ ===== #}
+<div class="at-grid">
+  <section class="at-panel at-col-6">
+    {% include "components/empty.html" with illustration="empty-recommendation" title="Chưa có gợi ý vì hồ sơ chưa có kỹ năng" desc="Thêm ít nhất 1 kỹ năng để hệ thống tính mức phù hợp." primary_url="#" primary_label="Cập nhật hồ sơ" %}
+  </section>
+  <section class="at-panel at-col-6">
+    <div class="at-panel-header"><div><h2 class="h3">Biểu đồ</h2><p>Cấu hình JSON trong data-at-chart; màu dùng "var(--at-chart-1)"…</p></div></div>
+    <div class="at-chart at-chart--sm"><canvas aria-label="Kết quả phân công: 43 đã xếp, 57 chờ pha 2" role="img" data-at-chart='{"type":"bar","data":{"labels":["Đã xếp","Chờ pha 2"],"datasets":[{"label":"Số sinh viên","data":[43,57],"backgroundColor":["var(--at-chart-1)","var(--at-chart-3)"]}]},"options":{"plugins":{"legend":{"display":false}}}}'></canvas></div>
+  </section>
+</div>
+
+</div>
+{% endblock %}
+{% block extra_js %}{% load static %}<script src="{% static 'vendor/chart.umd.min.js' %}"></script>{% endblock %}

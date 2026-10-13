@@ -1,0 +1,7 @@
+{# Nhãn trạng thái. Cách 1: status=<mã> label=<chữ> (mã: OPEN PENDING ACCEPTED REJECTED DRAFT CLOSED OPTIMIZED PUBLISHED OFFICIAL). Cách 2: kind=success|warning|danger|info|ai|neutral label=<chữ>. Luôn có chữ, không chỉ màu. #}
+{% if status == "OPEN" or status == "ACCEPTED" or status == "PUBLISHED" or status == "OFFICIAL" %}<span class="at-badge at-badge--success">{% include "components/icon.html" with name="check" size=14 %}{{ label }}</span>
+{% elif status == "PENDING" or status == "CLOSED" %}<span class="at-badge at-badge--warning">{% include "components/icon.html" with name="circle-dot" size=14 %}{{ label }}</span>
+{% elif status == "REJECTED" %}<span class="at-badge at-badge--danger">{% include "components/icon.html" with name="user-x" size=14 %}{{ label }}</span>
+{% elif status == "OPTIMIZED" %}<span class="at-badge at-badge--info">{% include "components/icon.html" with name="route" size=14 %}{{ label }}</span>
+{% elif status %}<span class="at-badge">{{ label }}</span>
+{% else %}<span class="at-badge{% if kind and kind != 'neutral' %} at-badge--{{ kind }}{% endif %}">{% if icon %}{% include "components/icon.html" with name=icon size=14 %}{% endif %}{{ label }}</span>{% endif %}

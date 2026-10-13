@@ -1,0 +1,13 @@
+{% load static %}{# Trạng thái rỗng. Tham số: illustration (tên file trong static/illus, không .svg), title, desc, primary_url + primary_label, secondary_url + secondary_label, page=True cho trang lỗi. Tiêu đề phải nói đúng ngữ cảnh, không dùng "Không có dữ liệu" chung chung. #}
+<div class="at-empty{% if page %} at-empty--page{% endif %}">
+  <img class="at-illus--light" src="{% static 'illus/' %}{{ illustration|default:'empty-topics' }}.svg" alt="" width="160" height="107">
+  <img class="at-illus--dark" src="{% static 'illus/dark/' %}{{ illustration|default:'empty-topics' }}.svg" alt="" width="160" height="107">
+  <div class="at-empty-title">{{ title }}</div>
+  {% if desc %}<div class="at-empty-desc">{{ desc }}</div>{% endif %}
+  {% if primary_url or secondary_url %}
+    <div class="at-empty-actions">
+      {% if primary_url %}<a href="{{ primary_url }}" class="btn btn-primary">{{ primary_label }}</a>{% endif %}
+      {% if secondary_url %}<a href="{{ secondary_url }}" class="btn btn-text">{{ secondary_label }}</a>{% endif %}
+    </div>
+  {% endif %}
+</div>

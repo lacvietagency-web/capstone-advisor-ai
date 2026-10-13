@@ -1,0 +1,5 @@
+{# Dải thông tin có hiệu lực lâu dài (VD "Đợt đã đóng"). Tham số: kind = info (mặc định) | success | warning | danger | neutral; title; text. #}
+<div class="at-banner{% if kind and kind != 'info' %} at-banner--{{ kind }}{% endif %}" {% if kind == 'danger' %}role="alert"{% endif %}>
+  {% if kind == 'success' %}{% include "components/icon.html" with name="circle-check-big" %}{% elif kind == 'warning' or kind == 'danger' %}{% include "components/icon.html" with name="triangle-alert" %}{% else %}{% include "components/icon.html" with name="info" %}{% endif %}
+  <div>{% if title %}<div class="at-banner-title">{{ title }}</div>{% endif %}{{ text }}</div>
+</div>

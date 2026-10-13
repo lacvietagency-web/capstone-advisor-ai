@@ -1,0 +1,8 @@
+{# Ghi chú giải thích (Evidence Note). Tham số: title, text; kind = ai (mặc định) | warning | danger | success | neutral; icon (mặc định info). Không có text → câu "Chưa có giải thích". #}
+<div class="at-note{% if kind and kind != 'ai' %} at-note--{{ kind }}{% endif %}">
+  {% include "components/icon.html" with name=icon|default:"info" %}
+  <div>
+    {% if title %}<div class="at-note-title">{{ title }}</div>{% endif %}
+    <div class="at-pre">{{ text|default:"Chưa có giải thích cho kết quả này." }}</div>
+  </div>
+</div>

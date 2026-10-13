@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
   <title id="title">Chưa có đề tài</title>
   <style>
-    .p{stroke:var(--mz-teal-500,#0A9396);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-    .a{stroke:var(--mz-amber-500,#EE9B00);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-    .n{stroke:var(--border-strong,#B9C0BC);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .p{stroke:#305F52;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:#386D80;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:#69736C;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
   </style>
   <rect x="48" y="30" width="118" height="96" rx="10" class="p"/>
   <path d="M64 51h52M64 68h72M64 85h58M64 102h40" class="n"/>

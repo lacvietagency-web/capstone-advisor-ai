@@ -1,0 +1,12 @@
+{# Hành trình 4 mục của sinh viên. Tham số: journey (danh sách từ view: number, label, url_name, state = done|current|todo|missed, note). Trạng thái do backend quyết định. #}
+<ol class="at-journey" aria-label="Hành trình đăng ký đồ án">
+  {% for step in journey %}
+    <li>
+      <a class="at-journey-step" data-state="{{ step.state }}" href="{% url step.url_name %}">
+        <span class="at-journey-mark">{% if step.state == "done" %}{% include "components/icon.html" with name="check" size=14 %}{% elif step.state == "current" %}{% include "components/icon.html" with name="circle-dot" size=14 %}{% elif step.state == "missed" %}{% include "components/icon.html" with name="triangle-alert" size=14 %}{% endif %}</span>
+        <span class="at-journey-label">{{ step.label }}</span>
+        <span class="at-journey-note">{{ step.note }}</span>
+      </a>
+    </li>
+  {% endfor %}
+</ol>

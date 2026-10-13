@@ -1,0 +1,1 @@
+Tôi sẽ chỉ đọc bản thiết kế ATLAS và mã nguồn liên quan, rồi phản biện từng điểm đo được — không chạy lệnh và không sửa file.Thông số màu và luồng đã có. Tôi đối chiếu với view và template thật để chỉ lỗ hổng mà đặc tả bỏ sót.

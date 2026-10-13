@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Chưa có nguyện vọng</title>
+  <style>
+    .p{stroke:#8BB8A4;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:#8DBFD0;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:#A8B4AB;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  </style>
+  <rect x="44" y="34" width="152" height="88" rx="12" class="n"/>
+  <circle cx="72" cy="58" r="14" class="p"/>
+  <path d="M67 58l4 4 8-9" class="p"/>
+  <path d="M96 53h72M96 64h54" class="n"/>
+  <circle cx="72" cy="92" r="14" class="a"/>
+  <path d="M96 87h60M96 98h46" class="n"/>
+  <path d="M174 78v26M161 91h26" class="a"/>
+</svg>

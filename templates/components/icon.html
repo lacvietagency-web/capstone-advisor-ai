@@ -1,4 +1,1 @@
-{% load static %}{# Mosaic Icon Component: nạp SVG từ static/mosaic/icons/ #}
-<span class="mz-icon {{ class|default:'' }}" style="--icon-size: {{ size|default:'18' }}px;" {% if aria_label %}role="img" aria-label="{{ aria_label }}"{% else %}aria-hidden="{{ aria_hidden|default:'true' }}"{% endif %}>
-  <span class="mz-icon-mask" style="-webkit-mask-image: url('{% static 'mosaic/icons/' %}{{ name }}.svg'); mask-image: url('{% static 'mosaic/icons/' %}{{ name }}.svg');"></span>
-</span>
+{% load static %}<span class="at-icon{% if class %} {{ class }}{% endif %}" style="--i:url('{% static 'icons/' %}{{ name }}.svg');{% if size %}--s:{{ size }}px{% endif %}" {% if label %}role="img" aria-label="{{ label }}"{% else %}aria-hidden="true"{% endif %}></span>

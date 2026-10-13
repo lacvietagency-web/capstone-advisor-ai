@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Chưa có gợi ý AI</title>
+  <style>
+    .p{stroke:#8BB8A4;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .a{stroke:#8DBFD0;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .n{stroke:#A8B4AB;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  </style>
+  <rect x="52" y="32" width="100" height="92" rx="12" class="p"/>
+  <circle cx="84" cy="61" r="13" class="p"/>
+  <path d="M65 91c5-13 33-13 38 0" class="p"/>
+  <path d="M114 55h24M114 67h18M70 108h56" class="n"/>
+  <rect x="143" y="76" width="48" height="48" rx="12" class="a"/>
+  <path d="M167 86l3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Z" class="a"/>
+  <path d="M181 34c10 0 18 8 18 18" class="n"/>
+  <path d="M42 115c-9 0-16-7-16-16" class="n"/>
+</svg>

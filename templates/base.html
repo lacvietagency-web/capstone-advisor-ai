@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Mosaic AI — Hệ thống tư vấn và phân công đề tài tốt nghiệp{% endblock %}</title>
+  <title>{% block title %}Capstone AI — Hệ thống tư vấn và phân công đề tài tốt nghiệp{% endblock %}</title>
 
   <!-- Đặt theme trước khi vẽ trang để tránh nháy sáng/tối (FOUC) -->
   <script>
@@ -31,317 +31,102 @@
   <!-- Bootstrap 5.3 CSS via jsdelivr CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Mosaic AI Core Stylesheet (Tokens, Layout, Components) -->
+  <!-- Capstone AI Core Stylesheet (Tokens, Layout, Components) -->
   <link rel="stylesheet" href="{% static 'css/mosaic.css' %}">
 
   <!-- App Custom Styles (Legacy compatibility) -->
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 
+  <!-- Theme V2 "Nova": ghi đè token → đổi phong cách toàn hệ -->
+  <link rel="stylesheet" href="{% static 'css/theme-v2.css' %}">
+
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 {% block body %}
-  <div class="mz-app-shell">
-    {% if user.is_authenticated %}
-      <!-- ==================================================================
-           MENU TRÁI (SIDEBAR) THEO VAI TRÒ (SV / GV / KHOA)
-           Logo 5 ô chuẩn spec, active border-left 3px, icon Lucide
-           ================================================================== -->
-      <aside class="mz-sidebar" id="mzSidebar" aria-label="Menu điều hướng chính">
-        <!-- Logo Zone (64px) -->
-        <div class="mz-sidebar-header">
-          <a class="mz-brand-link" href="{% url 'home' %}">
-            <!-- Biểu tượng Mosaic 5 ô chuẩn SVG -->
-            <svg class="mz-brand-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Biểu tượng Mosaic AI">
-              <rect x="4" y="4" width="18" height="18" rx="4" fill="#005F73"/>
-              <rect x="26" y="4" width="18" height="12" rx="4" fill="#EE9B00"/>
-              <rect x="26" y="20" width="18" height="24" rx="4" fill="#0A9396"/>
-              <rect x="4" y="26" width="10" height="18" rx="4" fill="#7A7D2D"/>
-              <rect x="18" y="26" width="4" height="18" rx="2" fill="#9B2226"/>
+  <div class="nova-shell">
+    <header class="nova-topnav">
+      <div class="nova-topnav-inner">
+        <a class="nova-brand" href="{% url 'home' %}">
+            <svg class="nova-brand-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Capstone Advisor AI">
+              <rect x="5" y="5" width="16" height="16" rx="4" fill="#4f46e5"/>
+              <rect x="27" y="5" width="16" height="16" rx="4" fill="#7c3aed"/>
+              <rect x="5" y="27" width="16" height="16" rx="4" fill="#a855f7"/>
+              <rect x="27" y="27" width="16" height="16" rx="4" fill="#6366f1"/>
             </svg>
-            <div class="mz-brand-text">
-              <span class="mz-brand-title">Mosaic<span>AI</span></span>
-              <span class="mz-brand-tagline">Gợi ý đúng · Phân công tốt</span>
-            </div>
+            <span class="nova-brand-name">Capstone<span>AI</span></span>
           </a>
-        </div>
-
-        <!-- Danh sách điều hướng theo vai trò -->
-        <nav class="mz-sidebar-nav">
+        {% if user.is_authenticated %}
+          <button type="button" class="nova-nav-toggle d-lg-none" data-nova-toggle aria-label="Mở menu">{% include "components/icon.html" with name="layout-dashboard" size=20 %}</button>
+          <nav class="nova-mainnav" aria-label="Điều hướng chính">
           {% if user.is_student %}
-            <!-- MENU SINH VIÊN -->
-            <div class="mz-nav-section-label">Sinh viên</div>
-            <a class="mz-nav-item {% if request.resolver_match.url_name == 'home' or request.path == '/trang-chu/' %}active{% endif %}" href="{% url 'home' %}">
-              {% include "components/icon.html" with name="house" size=18 %}
-              <span>Tổng quan</span>
-            </a>
-            <a class="mz-nav-item {% if request.resolver_match.url_name == 'student_profile' or request.path == '/ho-so/' %}active{% endif %}" href="{% url 'student_profile' %}">
-              {% include "components/icon.html" with name="user-round" size=18 %}
-              <span>Hồ sơ năng lực</span>
-            </a>
-            <a class="mz-nav-item {% if request.resolver_match.url_name == 'student_preferences' or request.path == '/nguyen-vong/' %}active{% endif %}" href="{% url 'student_preferences' %}">
-              {% include "components/icon.html" with name="bookmark" size=18 %}
-              <span>Nguyện vọng NV1–NV3</span>
-            </a>
-            <a class="mz-nav-item {% if '/danh-sach-de-tai/' in request.path %}active{% endif %}" href="{% url 'topic_list' %}">
-              {% include "components/icon.html" with name="book-open" size=18 %}
-              <span>Danh sách đề tài</span>
-            </a>
-            <a class="mz-nav-item {% if '/ket-qua/' in request.path %}active{% endif %}" href="{% url 'student_allocation_result' %}">
-              {% include "components/icon.html" with name="graduation-cap" size=18 %}
-              <span>Kết quả phân công</span>
-            </a>
-
+            <a class="nova-nav-item {% if request.resolver_match.url_name == 'home' or request.path == '/trang-chu/' %}active{% endif %}" href="{% url 'home' %}">{% include "components/icon.html" with name="house" size=18 %}<span>Tổng quan</span></a>
+            <a class="nova-nav-item {% if request.resolver_match.url_name == 'student_profile' or request.path == '/ho-so/' %}active{% endif %}" href="{% url 'student_profile' %}">{% include "components/icon.html" with name="user-round" size=18 %}<span>Hồ sơ năng lực</span></a>
+            <a class="nova-nav-item {% if request.resolver_match.url_name == 'student_preferences' or request.path == '/nguyen-vong/' %}active{% endif %}" href="{% url 'student_preferences' %}">{% include "components/icon.html" with name="bookmark" size=18 %}<span>Nguyện vọng</span></a>
+            <a class="nova-nav-item {% if '/danh-sach-de-tai/' in request.path %}active{% endif %}" href="{% url 'topic_list' %}">{% include "components/icon.html" with name="book-open" size=18 %}<span>Đề tài</span></a>
+            <a class="nova-nav-item {% if '/ket-qua/' in request.path %}active{% endif %}" href="{% url 'student_allocation_result' %}">{% include "components/icon.html" with name="graduation-cap" size=18 %}<span>Kết quả</span></a>
           {% elif user.is_lecturer %}
-            <!-- MENU GIẢNG VIÊN -->
-            <div class="mz-nav-section-label">Giảng viên</div>
-            <a class="mz-nav-item {% if request.resolver_match.url_name == 'home' or request.path == '/trang-chu/' %}active{% endif %}" href="{% url 'home' %}">
-              {% include "components/icon.html" with name="house" size=18 %}
-              <span>Tổng quan</span>
-            </a>
-            <a class="mz-nav-item {% if request.resolver_match.url_name == 'lecturer_topics' or '/de-tai/' in request.path %}active{% endif %}" href="{% url 'lecturer_topics' %}">
-              {% include "components/icon.html" with name="file-text" size=18 %}
-              <span>Đề tài của tôi</span>
-            </a>
-            <a class="mz-nav-item {% if '/ho-so-giang-vien/' in request.path %}active{% endif %}" href="{% url 'lecturer_profile' %}">
-              {% include "components/icon.html" with name="user-round" size=18 %}
-              <span>Hồ sơ giảng viên</span>
-            </a>
-
+            <a class="nova-nav-item {% if request.resolver_match.url_name == 'home' or request.path == '/trang-chu/' %}active{% endif %}" href="{% url 'home' %}">{% include "components/icon.html" with name="house" size=18 %}<span>Tổng quan</span></a>
+            <a class="nova-nav-item {% if request.resolver_match.url_name == 'lecturer_topics' or '/de-tai/' in request.path %}active{% endif %}" href="{% url 'lecturer_topics' %}">{% include "components/icon.html" with name="file-text" size=18 %}<span>Đề tài của tôi</span></a>
+            <a class="nova-nav-item {% if '/ho-so-giang-vien/' in request.path %}active{% endif %}" href="{% url 'lecturer_profile' %}">{% include "components/icon.html" with name="user-round" size=18 %}<span>Hồ sơ</span></a>
           {% elif user.is_faculty_admin %}
-            <!-- MENU KHOA / QUẢN TRỊ -->
-            <div class="mz-nav-section-label">Ban chủ nhiệm khoa</div>
-            <a class="mz-nav-item {% if request.resolver_match.url_name == 'home' or request.path == '/trang-chu/' %}active{% endif %}" href="{% url 'home' %}">
-              {% include "components/icon.html" with name="layout-dashboard" size=18 %}
-              <span>Tổng quan đợt</span>
-            </a>
-            <a class="mz-nav-item {% if '/khoa/phan-cong/' in request.path %}active{% endif %}" href="{% url 'allocation_dashboard' %}">
-              {% include "components/icon.html" with name="route" size=18 %}
-              <span>Phân công đề tài</span>
-            </a>
-            <a class="mz-nav-item {% if '/khoa/thong-ke/' in request.path %}active{% endif %}" href="{% url 'faculty_statistics' %}">
-              {% include "components/icon.html" with name="chart-pie" size=18 %}
-              <span>Thống kê & Báo cáo</span>
-            </a>
-            <a class="mz-nav-item {% if '/khoa/nhap-excel/' in request.path %}active{% endif %}" href="{% url 'faculty_import' %}">
-              {% include "components/icon.html" with name="file-spreadsheet" size=18 %}
-              <span>Nhập Excel</span>
-            </a>
-            <a class="mz-nav-item {% if '/quan-tri/' in request.path %}active{% endif %}" href="/quan-tri/">
-              {% include "components/icon.html" with name="settings-2" size=18 %}
-              <span>Quản trị hệ thống</span>
-            </a>
+            <a class="nova-nav-item {% if request.resolver_match.url_name == 'home' or request.path == '/trang-chu/' %}active{% endif %}" href="{% url 'home' %}">{% include "components/icon.html" with name="layout-dashboard" size=18 %}<span>Tổng quan</span></a>
+            <a class="nova-nav-item {% if '/khoa/phan-cong/' in request.path %}active{% endif %}" href="{% url 'allocation_dashboard' %}">{% include "components/icon.html" with name="route" size=18 %}<span>Phân công</span></a>
+            <a class="nova-nav-item {% if '/khoa/thong-ke/' in request.path %}active{% endif %}" href="{% url 'faculty_statistics' %}">{% include "components/icon.html" with name="chart-pie" size=18 %}<span>Thống kê</span></a>
+            <a class="nova-nav-item {% if '/khoa/nhap-excel/' in request.path %}active{% endif %}" href="{% url 'faculty_import' %}">{% include "components/icon.html" with name="file-spreadsheet" size=18 %}<span>Nhập Excel</span></a>
+            <a class="nova-nav-item {% if '/quan-tri/' in request.path %}active{% endif %}" href="/quan-tri/">{% include "components/icon.html" with name="settings-2" size=18 %}<span>Quản trị</span></a>
           {% endif %}
-        </nav>
-
-        <!-- Sidebar footer: user compact info -->
-        <div class="mz-sidebar-footer">
-          <div class="d-flex align-items-center gap-2 p-1">
-            <div class="mz-avatar-initials" aria-hidden="true">
-              {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}
-            </div>
-            <div class="d-flex flex-column min-w-0">
-              <span class="fw-semibold text-strong text-truncate small" style="max-width: 140px;">
-                {{ user.get_full_name|default:user.username }}
-              </span>
-              <span class="mz-caption text-truncate" style="max-width: 140px;">
-                {{ user.get_role_display }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Backdrop cho drawer mobile -->
-      <div class="mz-drawer-backdrop" aria-hidden="true"></div>
-    {% endif %}
-
-    <!-- ==================================================================
-         WORKSPACE CHÍNH: TOPBAR + CONTENT + FOOTER
-         ================================================================== -->
-    <div class="mz-workspace {% if not user.is_authenticated %}ms-0{% endif %}">
-      <!-- TOPBAR (64px desktop / 56px mobile) -->
-      <header class="mz-topbar">
-        <div class="mz-topbar-left">
-          {% if user.is_authenticated %}
-            <!-- Nút toggle sidebar cho Mobile/Tablet -->
-            <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm d-xl-none px-2" data-mz-toggle="sidebar" aria-label="Mở menu điều hướng">
-              {% include "components/icon.html" with name="layout-dashboard" size=20 %}
-            </button>
-          {% else %}
-            <a class="mz-brand-link" href="{% url 'home' %}">
-              <svg class="mz-brand-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mosaic AI Logo">
-                <rect x="4" y="4" width="18" height="18" rx="4" fill="#005F73"/>
-                <rect x="26" y="4" width="18" height="12" rx="4" fill="#EE9B00"/>
-                <rect x="26" y="20" width="18" height="24" rx="4" fill="#0A9396"/>
-                <rect x="4" y="26" width="10" height="18" rx="4" fill="#7A7D2D"/>
-                <rect x="18" y="26" width="4" height="18" rx="2" fill="#9B2226"/>
-              </svg>
-              <div class="mz-brand-text">
-                <span class="mz-brand-title">Mosaic<span>AI</span></span>
-              </div>
-            </a>
-          {% endif %}
-
-          <!-- Breadcrumb / Context header -->
-          <nav aria-label="Breadcrumb" class="d-none d-md-block">
-            <div class="mz-breadcrumb">
-              {% block breadcrumb %}
-                {% if user.is_authenticated %}
-                  <span>
-                    {% if user.is_student %}Sinh viên{% elif user.is_lecturer %}Giảng viên{% elif user.is_faculty_admin %}Khoa CNTT{% else %}Hệ thống{% endif %}
-                  </span>
-                  <span>/</span>
-                  <span class="mz-breadcrumb-active">{% block page_title %}Trang chủ{% endblock %}</span>
-                {% else %}
-                  <span class="mz-breadcrumb-active">Hệ thống tư vấn và phân công đề tài tốt nghiệp</span>
-                {% endif %}
-              {% endblock breadcrumb %}
-            </div>
           </nav>
-        </div>
-
-        <div class="mz-topbar-right">
-          <!-- Công tắc chuyển chế độ Sáng/Tối (tactile bicolor switch) -->
-          <button
-            type="button"
-            class="mz-theme-toggle"
-            role="switch"
-            aria-checked="false"
-            aria-label="Chuyển chế độ sáng/tối"
-            title="Chuyển chế độ sáng/tối"
-          >
-            <span class="mz-theme-toggle-thumb" aria-hidden="true"></span>
-          </button>
-
+        {% endif %}
+        <div class="nova-topnav-right">
+          <button type="button" class="mz-theme-toggle" role="switch" aria-checked="false" aria-label="Chuyển chế độ sáng/tối" title="Sáng/tối"><span class="mz-theme-toggle-thumb" aria-hidden="true"></span></button>
           {% if user.is_authenticated %}
-            <!-- Chuông thông báo -->
-            <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm px-2" aria-label="Thông báo" title="Thông báo">
-              {% include "components/icon.html" with name="bell" size=18 %}
-            </button>
-
-            <!-- Menu người dùng (Avatar = chữ cái viết tắt, KHÔNG ẢNH NGƯỜI) -->
+            <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm px-2" aria-label="Thông báo" title="Thông báo">{% include "components/icon.html" with name="bell" size=18 %}</button>
             <div class="dropdown">
-              <button
-                class="btn p-0 border-0 d-flex align-items-center gap-2"
-                type="button"
-                id="userMenuDropdown"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                aria-label="Menu tài khoản"
-              >
-                <div class="mz-avatar-initials" aria-hidden="true">
-                  {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}
-                </div>
-                <div class="d-none d-lg-block text-start" style="line-height: 1.2;">
-                  <div class="fw-semibold text-strong small text-truncate" style="max-width: 130px;">
-                    {{ user.get_full_name|default:user.username }}
-                  </div>
-                  <div class="mz-caption text-truncate" style="max-width: 130px;">
-                    {{ user.get_role_display }}
-                  </div>
+              <button class="btn p-0 border-0 d-flex align-items-center gap-2" type="button" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu tài khoản">
+                <div class="mz-avatar-initials" aria-hidden="true">{{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}</div>
+                <div class="d-none d-lg-block text-start" style="line-height:1.2;">
+                  <div class="fw-semibold text-strong small text-truncate" style="max-width:130px;">{{ user.get_full_name|default:user.username }}</div>
+                  <div class="mz-caption text-truncate" style="max-width:130px;">{{ user.get_role_display }}</div>
                 </div>
                 {% include "components/icon.html" with name="chevron-down" size=14 class="text-muted d-none d-lg-block" %}
               </button>
-
-              <ul class="dropdown-menu dropdown-menu-end shadow-sm border" aria-labelledby="userMenuDropdown" style="min-width: 200px;">
-                <li class="px-3 py-2 border-bottom">
-                  <div class="fw-semibold text-strong">{{ user.get_full_name|default:user.username }}</div>
-                  <div class="mz-caption">{{ user.get_role_display }}</div>
-                </li>
-                {% if user.is_faculty_admin %}
-                  <li>
-                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="/quan-tri/">
-                      {% include "components/icon.html" with name="settings-2" size=16 %}
-                      <span>Trang quản trị</span>
-                    </a>
-                  </li>
-                {% endif %}
-                <li>
-                  <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'password_change' %}">
-                    {% include "components/icon.html" with name="lock-keyhole" size=16 %}
-                    <span>Đổi mật khẩu</span>
-                  </a>
-                </li>
+              <ul class="dropdown-menu dropdown-menu-end shadow border" aria-labelledby="userMenuDropdown" style="min-width:200px;">
+                <li class="px-3 py-2 border-bottom"><div class="fw-semibold text-strong">{{ user.get_full_name|default:user.username }}</div><div class="mz-caption">{{ user.get_role_display }}</div></li>
+                {% if user.is_faculty_admin %}<li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="/quan-tri/">{% include "components/icon.html" with name="settings-2" size=16 %}<span>Trang quản trị</span></a></li>{% endif %}
+                <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'password_change' %}">{% include "components/icon.html" with name="lock-keyhole" size=16 %}<span>Đổi mật khẩu</span></a></li>
                 <li><hr class="dropdown-divider my-1"></li>
-                <li>
-                  <form method="post" action="{% url 'logout' %}" class="m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="dropdown-item py-2 text-danger d-flex align-items-center gap-2 w-100">
-                      {% include "components/icon.html" with name="log-out" size=16 class="text-danger" %}
-                      <span>Đăng xuất</span>
-                    </button>
-                  </form>
-                </li>
+                <li><form method="post" action="{% url 'logout' %}" class="m-0">{% csrf_token %}<button type="submit" class="dropdown-item py-2 text-danger d-flex align-items-center gap-2 w-100">{% include "components/icon.html" with name="log-out" size=16 class="text-danger" %}<span>Đăng xuất</span></button></form></li>
               </ul>
             </div>
           {% else %}
-            <a href="{% url 'login' %}" class="mz-btn mz-btn-primary mz-btn-sm">
-              {% include "components/icon.html" with name="user" size=16 %}
-              <span>Đăng nhập</span>
-            </a>
+            <a href="{% url 'login' %}" class="mz-btn mz-btn-primary mz-btn-sm">{% include "components/icon.html" with name="user" size=16 %}<span>Đăng nhập</span></a>
           {% endif %}
         </div>
-      </header>
+      </div>
+    </header>
 
-      <!-- NỘI DUNG CHÍNH (CONTENT AREA) -->
-      <main class="mz-content" id="mainContent">
-        <div class="{% if user.is_faculty_admin %}mz-container-faculty{% else %}mz-container-default{% endif %}">
-          <!-- Hiển thị Django messages thông qua alert component -->
-          {% if messages %}
-            <div class="mb-4">
-              {% for message in messages %}
-                {% include "components/alert.html" with type=message.tags message=message dismissible=True %}
-              {% endfor %}
-            </div>
-          {% endif %}
+    <main class="nova-main" id="mainContent">
+      <div class="{% if user.is_faculty_admin %}nova-container-wide{% else %}nova-container{% endif %}">
+        {% if messages %}
+          <div class="mb-4">
+            {% for message in messages %}{% include "components/alert.html" with type=message.tags message=message dismissible=True %}{% endfor %}
+          </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </div>
+    </main>
 
-          {% block content %}{% endblock %}
-        </div>
-      </main>
-
-      <!-- FOOTER HỆ THỐNG -->
-      <footer class="mz-footer">
-        <div>Mosaic AI · Hệ thống tư vấn và phân công đề tài tốt nghiệp</div>
-        <div class="mz-caption">Mosaic AI</div>
-      </footer>
-    </div>
+    <footer class="nova-footer">
+      <div>Capstone Advisor AI · Hệ thống tư vấn và phân công đề tài tốt nghiệp</div>
+    </footer>
   </div>
-
-  <!-- ====================================================================
-       BOTTOM NAVIGATION (Mobile <768px dành riêng cho Sinh viên)
-       5 mục theo spec: Tổng quan, Hồ sơ, Nguyện vọng, Đề tài, Kết quả
-       ==================================================================== -->
-  {% if user.is_authenticated and user.is_student %}
-    <nav class="mz-bottom-nav" aria-label="Điều hướng nhanh trên điện thoại">
-      <a class="mz-bottom-nav-item {% if request.resolver_match.url_name == 'home' or request.path == '/trang-chu/' %}active{% endif %}" href="{% url 'home' %}">
-        {% include "components/icon.html" with name="house" size=20 %}
-        <span>Tổng quan</span>
-      </a>
-      <a class="mz-bottom-nav-item {% if request.resolver_match.url_name == 'student_profile' or request.path == '/ho-so/' %}active{% endif %}" href="{% url 'student_profile' %}">
-        {% include "components/icon.html" with name="user-round" size=20 %}
-        <span>Hồ sơ</span>
-      </a>
-      <a class="mz-bottom-nav-item {% if request.resolver_match.url_name == 'student_preferences' or request.path == '/nguyen-vong/' %}active{% endif %}" href="{% url 'student_preferences' %}">
-        {% include "components/icon.html" with name="bookmark" size=20 %}
-        <span>Nguyện vọng</span>
-      </a>
-      <a class="mz-bottom-nav-item {% if '/danh-sach-de-tai/' in request.path %}active{% endif %}" href="{% url 'topic_list' %}">
-        {% include "components/icon.html" with name="book-open" size=20 %}
-        <span>Đề tài</span>
-      </a>
-      <a class="mz-bottom-nav-item {% if '/ket-qua/' in request.path %}active{% endif %}" href="{% url 'student_allocation_result' %}">
-        {% include "components/icon.html" with name="graduation-cap" size=20 %}
-        <span>Kết quả</span>
-      </a>
-    </nav>
-  {% endif %}
 {% endblock body %}
 
   <!-- Bootstrap 5.3 JS Bundle via jsdelivr CDN -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Mosaic AI Core Interactions & Motion -->
+  <!-- Capstone AI Core Interactions & Motion -->
   <script src="{% static 'js/mosaic.js' %}"></script>
 
   <script>
@@ -351,6 +136,12 @@
       tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
       });
+      // Mở/đóng menu ngang trên điện thoại
+      var navToggle = document.querySelector('[data-nova-toggle]');
+      var mainNav = document.querySelector('.nova-mainnav');
+      if (navToggle && mainNav) {
+        navToggle.addEventListener('click', function () { mainNav.classList.toggle('open'); });
+      }
     });
   </script>
   {% block extra_js %}{% endblock %}

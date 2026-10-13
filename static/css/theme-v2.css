@@ -1,0 +1,221 @@
+/* ==========================================================================
+   Theme V2 — "Nova" · ngôn ngữ thiết kế mới cho Capstone Advisor AI
+   Nạp SAU mosaic.css + app.css: chỉ ghi đè TOKEN (màu/font/bo góc/bóng) nên
+   toàn bộ 18 màn hình đổi phong cách theo, không phải sửa template.
+   Hướng: indigo/tím hiện đại (khác hẳn xanh ngọc Mosaic), font geometric,
+   nền mát hơi xanh lạnh, bóng mềm khuếch tán, nút gradient.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+
+:root {
+  /* Typography — geometric display + Inter body */
+  --font-display: "Space Grotesk", "Sora", sans-serif;
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Brand palette — indigo/violet thay cho teal */
+  --accent: #4f46e5;              /* indigo-600 */
+  --accent-hover: #4338ca;        /* indigo-700 */
+  --accent-strong: #3730a3;       /* indigo-800 */
+  --accent-soft: #eef0ff;         /* indigo-50 nhạt */
+  --accent-2: #7c3aed;            /* violet-600 (gradient) */
+  --focus-ring: rgba(79, 70, 229, 0.30);
+
+  /* Nền mát hơi xanh lạnh */
+  --bg-canvas: #eef1f8;
+  --bg-page: #f6f8fc;
+  --bg-surface: #ffffff;
+  --bg-surface-subtle: #f3f5fb;
+  --bg-surface-raised: #ffffff;
+
+  /* Chữ — slate */
+  --text-strong: #0f172a;
+  --text-default: #334155;
+  --text-muted: #64748b;
+  --text-disabled: #94a3b8;
+  --text-on-accent: #ffffff;
+
+  /* Viền — slate lạnh */
+  --border-soft: #e7ebf3;
+  --border-default: #d7dde9;
+  --border-strong: #c0c9da;
+
+  /* Trạng thái */
+  --success: #059669;  --success-soft: #d9f5ea;
+  --warning: #d97706;  --warning-soft: #fdeecd;
+  --danger:  #e11d48;  --danger-soft:  #fde3ea;
+
+  /* Bo góc — mềm hơn Mosaic một chút */
+  --radius-xs: 7px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /* Bóng — mát, khuếch tán, ám indigo nhẹ */
+  --shadow-xs: 0 1px 2px rgba(30, 41, 59, 0.06);
+  --shadow-sm: 0 2px 8px rgba(30, 41, 59, 0.07);
+  --shadow-md: 0 8px 24px rgba(49, 46, 129, 0.10);
+  --shadow-lg: 0 18px 48px rgba(49, 46, 129, 0.16);
+}
+
+/* Nền trang có một lớp loang màu rất nhẹ cho đỡ phẳng */
+body {
+  background-color: var(--bg-page);
+  background-image:
+    radial-gradient(1100px 520px at 108% -8%, rgba(124, 58, 237, 0.07), transparent 60%),
+    radial-gradient(900px 460px at -6% 2%, rgba(79, 70, 229, 0.06), transparent 58%);
+  background-attachment: fixed;
+}
+
+/* Nút chính: gradient indigo→violet thay vì phẳng một màu */
+.btn-primary,
+.mz-btn-primary,
+.btn.btn-primary {
+  background-image: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  border: none;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.28);
+}
+.btn-primary:hover,
+.mz-btn-primary:hover,
+.btn.btn-primary:hover {
+  background-image: linear-gradient(135deg, var(--accent-hover) 0%, #6d28d9 100%);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.34);
+}
+
+/* Thẻ: viền mảnh + bóng mát, hover nhấc nhẹ */
+.mz-card,
+.card {
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.mz-card:hover,
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Dải nhấn indigo mảnh ở cạnh trái các thẻ số liệu / panel nổi bật */
+.mz-stat-card,
+.mz-panel-accent {
+  position: relative;
+  overflow: hidden;
+}
+.mz-stat-card::before,
+.mz-panel-accent::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+}
+
+/* Chip/nhãn trạng thái mềm hơn */
+.badge, .mz-chip, .mz-tag {
+  border-radius: var(--radius-pill, 999px);
+  font-weight: 600;
+  letter-spacing: .1px;
+}
+
+/* Thanh điều hướng trái: nền trắng sạch, mục đang chọn nền indigo nhạt + chữ indigo */
+.mz-sidebar .active,
+.mz-nav-link.active,
+.nav-link.active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+/* Logo/brand: cho nổi bằng gradient nếu là chữ */
+.mz-brand-name {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Tiêu đề lớn dùng font display mới, chữ đậm hơn chút */
+h1, .h1, .mz-page-title { font-family: var(--font-display); letter-spacing: -0.4px; }
+
+/* ==========================================================================
+   BỐ CỤC MỚI — TOP NAV (thay sidebar trái)
+   ========================================================================== */
+.nova-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* Thanh điều hướng ngang, dính đỉnh */
+.nova-topnav {
+  position: sticky; top: 0; z-index: 1030;
+  background: rgba(255,255,255,0.86);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--border-soft);
+  box-shadow: 0 1px 0 rgba(15,23,42,0.03), var(--shadow-xs);
+}
+.nova-topnav-inner {
+  max-width: 1320px; margin: 0 auto; padding: 0 24px;
+  height: 66px; display: flex; align-items: center; gap: 20px;
+}
+
+/* Thương hiệu */
+.nova-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+.nova-brand-logo { width: 34px; height: 34px; }
+.nova-brand-name {
+  font-family: var(--font-display); font-weight: 700; font-size: 1.12rem; letter-spacing: -0.3px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nova-brand-name span { color: var(--text-strong); -webkit-text-fill-color: var(--text-strong); margin-left: 2px; }
+
+/* Menu ngang */
+.nova-mainnav { display: flex; align-items: center; gap: 4px; margin-left: 8px; flex: 1 1 auto; }
+.nova-nav-item {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: var(--radius-pill, 999px);
+  color: var(--text-muted); font-weight: 500; font-size: 0.925rem; text-decoration: none;
+  white-space: nowrap; transition: background .15s ease, color .15s ease;
+}
+.nova-nav-item:hover { background: var(--bg-surface-subtle); color: var(--text-strong); }
+.nova-nav-item.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,0.28);
+}
+.nova-nav-item.active svg { color: #fff; }
+
+.nova-topnav-right { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-shrink: 0; }
+.nova-nav-toggle { background: none; border: none; color: var(--text-default); padding: 6px; border-radius: var(--radius-sm); }
+
+/* Nội dung trải rộng */
+.nova-main { flex: 1 1 auto; padding: 28px 0 56px; }
+.nova-container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.nova-container-wide { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
+
+.nova-footer {
+  border-top: 1px solid var(--border-soft); background: var(--bg-surface);
+  padding: 18px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;
+}
+
+/* Mobile: menu xổ xuống */
+@media (max-width: 991.98px) {
+  .nova-mainnav {
+    position: absolute; top: 66px; left: 0; right: 0;
+    flex-direction: column; align-items: stretch; gap: 2px;
+    background: var(--bg-surface); border-bottom: 1px solid var(--border-soft);
+    padding: 10px 16px; box-shadow: var(--shadow-md);
+    display: none;
+  }
+  .nova-mainnav.open { display: flex; }
+  .nova-nav-item { padding: 11px 14px; border-radius: var(--radius-sm); }
+}
+@media (min-width: 992px) { .nova-nav-toggle { display: none; } }
+
+/* Ẩn khung sidebar cũ nếu còn sót markup ở đâu đó */
+.mz-app-shell, .mz-sidebar, .mz-bottom-nav { }
+
+/* Màu biểu đồ theo bảng Nova (statistics.html đọc các biến này) */
+:root {
+  --chart-1: #4f46e5;  /* indigo */
+  --chart-2: #7c3aed;  /* violet */
+  --chart-3: #0ea5e9;  /* sky */
+  --chart-4: #f59e0b;  /* amber phụ */
+  --chart-success: #059669;
+}

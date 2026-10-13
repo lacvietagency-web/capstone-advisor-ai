@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Hồ sơ năng lực — Mosaic AI{% endblock %}
+{% block title %}Hồ sơ năng lực — Capstone AI{% endblock %}
 
 {% block content %}
 <div class="mz-profile-page">
@@ -9,7 +9,7 @@
     <div>
       <h1 class="mz-h2 mb-1">Hồ sơ năng lực</h1>
       <p class="mz-caption text-muted mb-0">
-        Cập nhật thông tin để hệ thống Mosaic AI hiểu năng lực và định hướng của bạn khi đề xuất đề tài tốt nghiệp.
+        Cập nhật thông tin để hệ thống Capstone AI hiểu năng lực và định hướng của bạn khi đề xuất đề tài tốt nghiệp.
       </p>
     </div>
     <a href="{% url 'home' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
@@ -119,7 +119,7 @@
           <div class="p-3 mb-3 rounded-2 bg-surface-subtle border text-center" id="skill-empty-hint">
             {% include "components/icon.html" with name="sparkles" size=24 class="text-primary d-block mx-auto mb-1" %}
             <div class="fw-semibold text-strong">Bạn chưa thêm kỹ năng nào</div>
-            <div class="mz-caption text-muted">Hãy bổ sung các công nghệ hoặc kỹ năng bạn đã học (Python, Java, SQL...) để Mosaic AI gợi ý đề tài chuẩn xác.</div>
+            <div class="mz-caption text-muted">Hãy bổ sung các công nghệ hoặc kỹ năng bạn đã học (Python, Java, SQL...) để Capstone AI gợi ý đề tài chuẩn xác.</div>
           </div>
         {% endif %}
 
@@ -679,7 +679,7 @@ document.addEventListener("DOMContentLoaded", function () {
     completenessBar.setAttribute("aria-valuenow", score);
 
     if (score >= 90) {
-      completenessTip.textContent = "Hồ sơ của bạn đã đầy đủ để hệ thống Mosaic AI phân tích đề tài tốt nghiệp tối ưu.";
+      completenessTip.textContent = "Hồ sơ của bạn đã đầy đủ để hệ thống Capstone AI phân tích đề tài tốt nghiệp tối ưu.";
     } else if (missingTips.length > 0) {
       completenessTip.textContent = "Còn thiếu: " + missingTips.join(". ") + ".";
     } else {

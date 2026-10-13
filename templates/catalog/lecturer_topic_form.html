@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %} — Mosaic AI{% endblock %}
+{% block title %}{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %} — Capstone AI{% endblock %}
 
 {% block content %}
 <div class="mz-topic-form-page" data-mz-reveal>
@@ -98,7 +98,7 @@
                 {% for err in form.fields.errors %}<div>{{ err }}</div>{% endfor %}
               </div>
             {% endif %}
-            <div class="mz-form-text">Chọn các lĩnh vực liên quan để Mosaic AI đối sánh độ phù hợp với sở thích sinh viên.</div>
+            <div class="mz-form-text">Chọn các lĩnh vực liên quan để Capstone AI đối sánh độ phù hợp với sở thích sinh viên.</div>
           </div>
 
           <!-- Hàng thông số: Độ khó, GPA tối thiểu, Sức chứa, Trạng thái -->
@@ -367,12 +367,12 @@
           </div>
         </div>
 
-        <!-- Khối Giải thích Mô hình đối sánh Mosaic AI -->
+        <!-- Khối Giải thích Mô hình đối sánh Capstone AI -->
         <div class="mz-card" data-mz-reveal>
           <div class="mz-card-header">
             <div>
               <h2 class="mz-card-title">Hệ thống tính điểm phù hợp</h2>
-              <div class="mz-caption text-muted">Mosaic AI đánh giá qua 5 mô hình:</div>
+              <div class="mz-caption text-muted">Capstone AI đánh giá qua 5 mô hình:</div>
             </div>
           </div>
 

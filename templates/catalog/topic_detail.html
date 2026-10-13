@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ topic.title }} — Mosaic AI{% endblock %}
+{% block title %}{{ topic.title }} — Capstone AI{% endblock %}
 
 {% block breadcrumb %}
   <span>Sinh viên</span>
@@ -78,7 +78,7 @@
     <div class="mz-card-header">
       <h2 class="mz-card-title">Mức độ phù hợp với hồ sơ của bạn</h2>
       {% if recommendation %}
-        <span class="mz-badge mz-badge-published">Mosaic AI</span>
+        <span class="mz-badge mz-badge-published">Capstone AI</span>
       {% else %}
         <span class="mz-badge mz-badge-neutral">Tham khảo tiêu chí M1–M5</span>
       {% endif %}
@@ -96,7 +96,7 @@
       {% endif %}
 
       <div class="mz-caption text-muted mt-3 pt-2 border-top">
-        Điểm phù hợp được tính toán tự động dựa trên 5 mô hình M1–M5 của hệ thống Mosaic AI.
+        Điểm phù hợp được tính toán tự động dựa trên 5 mô hình M1–M5 của hệ thống Capstone AI.
       </div>
 
       {% if not ineligible_reason %}

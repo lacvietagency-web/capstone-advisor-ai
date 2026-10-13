@@ -404,6 +404,15 @@ def _ineligible_reason(student, topic):
     return eligible(student._profile, topic)[1]
 
 
+def _skills_with_share(topic):
+    """Kỹ năng yêu cầu kèm .share = % tỉ trọng trong tổng trọng số (Topic.skill_weight_shares)."""
+    out = []
+    for ts, pct in topic.skill_weight_shares():
+        ts.share = pct
+        out.append(ts)
+    return out
+
+
 def topic_detail(request, pk=None, id=None):
     """Xem chi tiết một đề tài: mô tả, kỹ năng, môn tiên quyết, sức chứa, số người đăng ký NV1."""
     topic_id = pk or id
@@ -434,7 +443,7 @@ def topic_detail(request, pk=None, id=None):
         "is_student": is_student,
         "student": student,
         "recommendation": recommendation,
-        "skills": topic.skills.select_related("skill").all(),
+        "skills": _skills_with_share(topic),
         "prerequisites": topic.prerequisites.select_related("course").all(),
     }
     return render(request, "catalog/topic_detail.html", context)

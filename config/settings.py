@@ -97,7 +97,10 @@ if os.getenv("DB_ENGINE") == "mysql":
         }
     }
 else:
-    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
+    # SQLITE_PATH: chạy thử trên một bản CSDL khác (VD bản "đợt đang mở" để kiểm giao diện) mà không đụng dữ liệu demo
+    DATABASES = {
+        "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": os.getenv("SQLITE_PATH", BASE_DIR / "db.sqlite3")}
+    }
 
 
 # Password validation

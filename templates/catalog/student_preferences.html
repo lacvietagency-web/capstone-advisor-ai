@@ -231,7 +231,7 @@
     </header>
 
     <div class="at-stack">
-      {% include "components/banner.html" with kind="neutral" text="Đợt "|add:last_period.name|add:" đã đóng — nguyện vọng chỉ xem" %}
+      {% include "components/banner.html" with kind="neutral" text=last_period.name|add:" đã đóng — nguyện vọng chỉ xem" %}
 
       <div class="at-stack">
         {% for item in submitted %}

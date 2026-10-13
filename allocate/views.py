@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from catalog.models import AuditLog, Field, Lecturer, Preference, RegistrationPeriod, Student, Topic
+from recommend.services import ensure_recommendations
 
 from .models import Allocation
 from .services import (
@@ -230,6 +231,7 @@ def allocation_student_detail(request, period_id, student_id):
 
     period = get_object_or_404(RegistrationPeriod, pk=period_id)
     student = get_object_or_404(Student.objects.select_related("user", "major"), pk=student_id)
+    ensure_recommendations(student)
     alloc = Allocation.objects.filter(period=period, student=student).select_related("topic__lecturer__user").first()
     scores = {r.topic_id: r for r in Recommendation.objects.filter(student=student)}
     profile = Profile(student)

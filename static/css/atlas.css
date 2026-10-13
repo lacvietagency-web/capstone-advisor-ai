@@ -233,8 +233,8 @@ textarea.form-control { min-height: 112px; padding: 12px; line-height: 23px; }
 .at-check-grid ul, .at-check-grid > div { display: contents; list-style: none; margin: 0; padding: 0; }
 .at-check-grid label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; }
 .at-check-grid input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--at-brand); flex: none; }
-.at-repeat-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px 44px; gap: 12px; align-items: end; padding: 12px 0; border-bottom: 1px solid var(--at-line); }
-.at-repeat-row--wide { grid-template-columns: minmax(0, 1fr) 130px 110px 130px 44px; }
+.at-repeat-row { display: grid; grid-template-columns: minmax(0, 1fr) 220px 44px; gap: 12px; align-items: end; padding: 12px 0; border-bottom: 1px solid var(--at-line); }
+.at-repeat-row--wide { grid-template-columns: minmax(0, 1fr) 180px 110px 130px 44px; }
 @media (max-width: 767.98px) { .at-form-actions .btn { flex: 1 1 auto; } .at-repeat-row, .at-repeat-row--wide { grid-template-columns: 1fr 1fr; } .at-repeat-row > :first-child { grid-column: 1 / -1; } }
 
 /* 7. BỀ MẶT — phẳng, viền 1px, không bóng, không lồng quá một cấp ------------------- */
@@ -356,7 +356,7 @@ a.at-journey-step:hover .at-journey-label { color: var(--at-brand); text-decorat
 .at-score--md .at-score-value { font-size: 30px; line-height: 38px; } .at-score--sm .at-score-value { font-size: 19px; line-height: 28px; } .at-score--sm { min-width: 0; }
 .at-score--none .at-score-value { font-size: 14px; line-height: 22px; font-weight: 500; letter-spacing: 0; color: var(--at-ink-muted); }
 .at-evidence { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
-.at-evidence li { display: grid; grid-template-columns: 30px 110px minmax(60px, 1fr) 96px; align-items: center; gap: 8px 12px; font-size: 13px; line-height: 21px; }
+.at-evidence li { display: grid; grid-template-columns: 30px minmax(110px, max-content) minmax(60px, 1fr) auto; align-items: center; gap: 8px 12px; font-size: 13px; line-height: 21px; }
 .at-evidence-code { font-weight: 600; color: var(--at-ink-muted); } .at-evidence-value { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 .at-evidence-value--none { font-weight: 400; color: var(--at-ink-muted); }
 .at-evidence-weight { font-weight: 400; color: var(--at-ink-muted); }

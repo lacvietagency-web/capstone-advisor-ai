@@ -91,7 +91,7 @@
                   <ul>
                     {% for cond in t.eligibility %}
                       {% if not cond.ok %}
-                        <li>{{ cond.label }}: cần {{ cond.required|floatformat:2 }}, có {{ cond.actual|default:"0"|floatformat:2 }}</li>
+                        <li>{{ cond.label }}: cần {{ cond.required|floatformat:"-2" }}, có {% if cond.actual is None %}chưa có điểm{% else %}{{ cond.actual|floatformat:"-2" }}{% endif %}</li>
                       {% endif %}
                     {% empty %}
                       <li>{{ t.ineligible_reason }}</li>

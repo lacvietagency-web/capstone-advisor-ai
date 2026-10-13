@@ -58,6 +58,8 @@
   /* Modal: điền dữ liệu của dòng được bấm */
   document.addEventListener("show.bs.modal", function (e) {
     var src = e.relatedTarget, m = e.target;
+    /* Hộp thoại mở từ trong ngăn kéo: đóng ngăn kéo trước, tránh hai bẫy focus giành nhau */
+    document.querySelectorAll(".offcanvas.show").forEach(function (o) { bootstrap.Offcanvas.getOrCreateInstance(o).hide(); });
     if (!src || !src.dataset.atFill) return;
     var data = JSON.parse(src.dataset.atFill);
     Object.keys(data).forEach(function (k) {

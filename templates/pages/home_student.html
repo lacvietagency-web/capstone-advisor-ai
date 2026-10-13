@@ -3,314 +3,196 @@
 {% block title %}Trang chủ Sinh viên — Capstone AI{% endblock %}
 
 {% block content %}
-<!-- Greeting & Thông tin cá nhân Sinh viên (Chỉ thông tin cá nhân, KHÔNG dải số liệu Khoa theo Biên bản mục 3) -->
-<div class="mz-card mb-4" data-mz-reveal>
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-    <div>
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <h1 class="mz-h2 mb-0">Xin chào, {{ student.user.get_full_name|default:student.user.username }}</h1>
-      </div>
-      <div class="mz-caption text-muted">
-        MSSV: <strong class="text-strong">{{ student.student_code }}</strong> ·
-        Ngành: <strong class="text-strong">{{ student.major.name|default:student.major }}</strong> ·
-        GPA tích lũy: <strong class="text-strong">{{ student.gpa|floatformat:2 }}</strong> / 4.00
-      </div>
-    </div>
-    <div class="d-flex align-items-center gap-2 flex-shrink-0">
-      <a href="{% url 'student_profile' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-        {% include "components/icon.html" with name="user-round" size=16 %}
-        <span>Hồ sơ năng lực</span>
-      </a>
-      <span class="mz-badge mz-badge-success" title="Hồ sơ sinh viên đã được định danh">
-        {% include "components/icon.html" with name="badge-check" size=14 %}
-        <span>Đã xác thực</span>
-      </span>
+<header class="at-page-header">
+  <div>
+    <h1 class="h1">Xin chào, {{ student.user.get_full_name|default:student.user.username }}</h1>
+    <div class="at-meta at-mt-2">
+      <span>MSSV: <strong class="at-num">{{ student.student_code }}</strong></span>
+      <span>Ngành: <strong>{{ student.major.name|default:student.major }}</strong></span>
+      <span>GPA tích lũy: <strong class="at-num">{{ student.gpa|floatformat:2 }}</strong></span>
     </div>
   </div>
-
-  <!-- Tiến trình đăng ký đồ án (Journey: Hồ sơ -> Gợi ý -> Nguyện vọng -> Kết quả) -->
-  <div class="mz-journey mt-4 pt-3 border-top" aria-label="Tiến trình làm đồ án tốt nghiệp">
-    <div class="mz-journey-line" aria-hidden="true">
-      <div class="mz-journey-line-fill" style="width: 33%;"></div>
-    </div>
-
-    <!-- Bước 1: Hồ sơ -->
-    <a href="{% url 'student_profile' %}" class="mz-journey-step completed" title="Hồ sơ năng lực">
-      <div class="mz-journey-circle">
-        {% include "components/icon.html" with name="check" size=16 %}
-      </div>
-      <span>1. Hồ sơ</span>
-    </a>
-
-    <!-- Bước 2: Gợi ý (Hiện tại) -->
-    <div class="mz-journey-step active" title="Đề tài gợi ý">
-      <div class="mz-journey-circle">2</div>
-      <span>2. Gợi ý AI</span>
-    </div>
-
-    <!-- Bước 3: Nguyện vọng -->
-    <a href="{% url 'student_preferences' %}" class="mz-journey-step" title="Đăng ký nguyện vọng">
-      <div class="mz-journey-circle">3</div>
-      <span>3. Nguyện vọng</span>
-    </a>
-
-    <!-- Bước 4: Kết quả -->
-    <a href="{% url 'student_allocation_result' %}" class="mz-journey-step" title="Kết quả phân công">
-      <div class="mz-journey-circle">4</div>
-      <span>4. Kết quả</span>
+  <div class="at-page-actions">
+    <a href="{% url 'student_profile' %}" class="btn btn-secondary">
+      {% include "components/icon.html" with name="user-round" %}Hồ sơ năng lực
     </a>
   </div>
-</div>
+</header>
 
-<!-- =========================================================================
-     Khối Kết quả phân công đồ án (UC08)
-     ========================================================================= -->
-{% if allocation_result %}
+<div class="at-stack">
+  {% if allocation_result.period %}
+    {% include "components/period.html" with period=allocation_result.period %}
+  {% endif %}
+
+  <section class="at-panel">
+    <div class="at-section-title">
+      <h2 class="h3">Hành trình đăng ký</h2>
+    </div>
+    {% include "components/journey.html" with journey=journey %}
+  </section>
+
   {% if allocation_result.is_published %}
     {% if allocation_result.topic %}
-      <!-- Đợt đã PUBLISHED: Sinh viên được phân công đề tài -->
-      <div class="mz-card mb-4 border-success-subtle bg-surface" data-mz-reveal>
-        <div class="mz-card-header">
-          <div class="d-flex align-items-center gap-2">
-            {% include "components/status_badge.html" with status="published" label="Đã công bố chính thức" %}
-            <span class="text-muted small">Đợt đăng ký: <strong>{{ allocation_result.period.name }}</strong></span>
-          </div>
-          <a href="{% url 'student_allocation_result' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-            {% include "components/icon.html" with name="graduation-cap" size=14 %}
-            <span>Xem chi tiết tại /ket-qua/</span>
-          </a>
-        </div>
-
-        <div class="mz-alert mz-alert-success mb-3" role="status">
-          {% include "components/icon.html" with name="badge-check" size=18 class="text-success me-2" %}
+      <section class="at-panel">
+        <div class="at-panel-header">
           <div>
-            <strong>Chúc mừng bạn đã được phân công đề tài tốt nghiệp!</strong>
+            <h2 class="h3">Kết quả phân công đề tài</h2>
+            <p class="at-secondary">Đợt đăng ký: <strong>{{ allocation_result.period.name }}</strong></p>
+          </div>
+          {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
+        </div>
+        <div class="at-grid">
+          <div class="at-col-8">
+            <dl class="at-kv">
+              <dt>Đề tài được phân</dt>
+              <dd>
+                <a href="{% url 'topic_detail' allocation_result.topic.pk %}" class="at-title-link">
+                  {{ allocation_result.topic.title }}
+                </a>
+                {% if allocation_result.topic.fields.all %}
+                  <div class="at-chips at-mt-2">
+                    {% for f in allocation_result.topic.fields.all %}
+                      <span class="at-tag">{{ f.name }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </dd>
+              <dt>GVHD</dt>
+              <dd>
+                <strong>{{ allocation_result.lecturer.user.get_full_name|default:allocation_result.lecturer.user.username }}</strong>
+                {% if allocation_result.lecturer.department %}<span class="at-secondary"> · {{ allocation_result.lecturer.department }}</span>{% endif %}
+                {% if allocation_result.lecturer.user.email %}<span class="at-secondary"> ({{ allocation_result.lecturer.user.email }})</span>{% endif %}
+              </dd>
+              <dt>NV đạt</dt>
+              <dd>
+                {% if allocation_result.preference_rank %}
+                  <span class="at-rank">NV{{ allocation_result.preference_rank }}</span>
+                {% else %}
+                  <span class="at-badge">Xếp bổ sung</span>
+                {% endif %}
+              </dd>
+            </dl>
+          </div>
+          <div class="at-col-4 at-text-right">
+            <div class="at-secondary at-mb-1">Điểm phù hợp</div>
+            {% include "components/score.html" with value=allocation_result.match_score size="md" label="Điểm phù hợp" %}
           </div>
         </div>
-
-        <div class="row g-3 align-items-center">
-          <!-- Đề tài được phân -->
-          <div class="col-12 col-md-5">
-            <div class="mz-caption text-uppercase text-muted">Đề tài được phân</div>
-            <div class="fw-bold fs-5 mt-1">
-              <a href="{% url 'topic_detail' allocation_result.topic.pk %}" class="text-strong text-decoration-none text-break-word">
-                {{ allocation_result.topic.title }}
-              </a>
-            </div>
-            {% if allocation_result.topic.fields.all %}
-              <div class="d-flex flex-wrap gap-1 mt-2">
-                {% for f in allocation_result.topic.fields.all %}
-                  <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-
-          <!-- GVHD -->
-          <div class="col-12 col-sm-6 col-md-3">
-            <div class="mz-caption text-uppercase text-muted">GVHD</div>
-            <div class="fw-semibold text-strong mt-1 d-flex align-items-center gap-1">
-              {% include "components/icon.html" with name="user" size=16 class="text-primary" %}
-              <span>{{ allocation_result.lecturer.user.get_full_name|default:allocation_result.lecturer.user.username }}</span>
-            </div>
-            {% if allocation_result.lecturer.department %}
-              <div class="mz-caption text-muted">{{ allocation_result.lecturer.department }}</div>
-            {% endif %}
-            {% if allocation_result.lecturer.user.email %}
-              <div class="mz-caption text-muted">{{ allocation_result.lecturer.user.email }}</div>
-            {% endif %}
-          </div>
-
-          <!-- NV đạt -->
-          <div class="col-6 col-sm-3 col-md-2">
-            <div class="mz-caption text-uppercase text-muted">NV đạt</div>
-            <div class="mt-1">
-              {% if allocation_result.preference_rank %}
-                <span class="mz-pref-rank-badge">NV{{ allocation_result.preference_rank }}</span>
-              {% else %}
-                <span class="mz-badge mz-badge-neutral">Xếp bổ sung</span>
-              {% endif %}
-            </div>
-          </div>
-
-          <!-- Điểm phù hợp -->
-          <div class="col-6 col-sm-3 col-md-2">
-            <div class="mz-caption text-uppercase text-muted">Điểm phù hợp</div>
-            <div class="mt-1">
-              {% if allocation_result.match_score is not None %}
-                <span class="fw-bold fs-4 text-primary">{{ allocation_result.match_score|floatformat:1 }}</span>
-                <span class="mz-caption text-muted">/100</span>
-              {% else %}
-                <span class="text-muted">—</span>
-              {% endif %}
-            </div>
-          </div>
+        <div class="at-divider"></div>
+        <div class="at-row at-row--between">
+          <span class="at-secondary">Chúc mừng bạn đã được phân công đề tài tốt nghiệp!</span>
+          <a href="{% url 'student_allocation_result' %}" class="btn btn-secondary btn-sm">Xem chi tiết kết quả</a>
         </div>
-      </div>
+      </section>
     {% else %}
-      <!-- Đợt đã PUBLISHED nhưng sinh viên chưa được xếp (giữ nguyên câu text cho test) -->
-      <div class="mz-card mb-4 border-warning-subtle" data-mz-reveal>
-        <div class="mz-card-header">
-          <div class="d-flex align-items-center gap-2">
-            {% include "components/status_badge.html" with status="pending" label="Chưa phân công" %}
-            <span class="text-muted small">Đợt đăng ký: <strong>{{ allocation_result.period.name }}</strong> (Đã công bố)</span>
-          </div>
-          <a href="{% url 'student_allocation_result' %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-            <span>Xem chi tiết</span>
-          </a>
-        </div>
-        <p class="mb-0 text-muted">
-          Kết quả đợt <strong>{{ allocation_result.period.name }}</strong> đã công bố. Bạn hiện chưa được phân công đề tài. Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung trong Pha 2.
-        </p>
-      </div>
+      {% include "components/banner.html" with kind="warning" title="Chưa được phân công trong đợt này" text="Bạn hiện chưa được phân công đề tài trong đợt này. Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung trong Pha 2." %}
     {% endif %}
   {% elif allocation_result.period %}
-    <!-- Đợt CHƯA CÔNG BỐ: Hiện trạng thái chờ -->
-    <div class="mz-card mb-4 border-info-subtle" data-mz-reveal>
-      <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div class="d-flex align-items-start gap-3">
-          <div class="rounded-circle bg-info-subtle p-2 text-info d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-            {% include "components/icon.html" with name="sparkles" size=20 class="text-info" %}
-          </div>
-          <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-              {% include "components/status_badge.html" with status="open" label="Chờ công bố" %}
-              <h2 class="mz-card-title fs-5 mb-0">Hội đồng Khoa đang thẩm định phân công</h2>
-            </div>
-            <p class="mz-caption text-muted mb-0">
-              {{ allocation_result.period.name }} đang trong giai đoạn thẩm định và chạy thuật toán phân công tối ưu. Kết quả chính thức sẽ được công bố tại đây khi hoàn tất xét duyệt.
-            </p>
-          </div>
+    {% include "components/banner.html" with kind="neutral" title="Khoa đang xử lý phân công" text=allocation_result.status_text %}
+  {% endif %}
+
+  <div class="at-grid">
+    <section class="at-panel at-col-8">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Top 5 đề tài phù hợp</h2>
+          <p class="at-secondary">Được xếp hạng theo mức độ phù hợp với hồ sơ năng lực của bạn.</p>
         </div>
-        <a href="{% url 'student_allocation_result' %}" class="mz-btn mz-btn-secondary mz-btn-sm text-nowrap align-self-stretch align-self-sm-center">
-          {% include "components/icon.html" with name="eye" size=14 %}
-          <span>Xem trạng thái /ket-qua/</span>
+        <a href="{% url 'topic_list' %}" class="btn btn-text btn-sm">
+          Xem tất cả đề tài {% include "components/icon.html" with name="chevron-right" %}
         </a>
       </div>
-    </div>
-  {% endif %}
-{% endif %}
 
-<!-- =========================================================================
-     Bố cục chính: Cột trái (Top 5 gợi ý) + Cột phải (Nguyện vọng của bạn)
-     ========================================================================= -->
-<div class="row g-4">
-  <!-- Cột 1: Top 5 đề tài gợi ý -->
-  <div class="col-12 col-lg-8">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-      <div>
-        <h2 class="mz-h2 mb-1">Top 5 đề tài phù hợp</h2>
-        <p class="mz-caption text-muted mb-0">Được xếp hạng theo mức độ phù hợp với hồ sơ năng lực của bạn.</p>
-      </div>
-      <a href="{% url 'topic_list' %}" class="mz-btn mz-btn-ghost mz-btn-sm d-none d-sm-inline-flex">
-        <span>Xem tất cả đề tài</span>
-        {% include "components/icon.html" with name="chevron-right" size=14 %}
-      </a>
-    </div>
-
-    {% for r in recommendations %}
-      <div class="mz-card mb-3" data-mz-reveal>
-        <!-- Hàng đầu: Thứ hạng + Tên đề tài + GVHD -->
-        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-          <div class="d-flex align-items-start gap-2 flex-grow-1 min-w-0">
-            <span class="mz-rank-badge {% if r.rank == 1 %}mz-rank-badge-1{% endif %}">#{{ r.rank }}</span>
-            <div class="min-w-0">
-              <h3 class="mz-card-title mb-1 text-break-word">
-                <a href="{% url 'topic_detail' r.topic.pk %}" class="text-strong text-decoration-none">
-                  {{ r.topic.title }}
-                </a>
-              </h3>
-              <div class="d-flex flex-wrap align-items-center gap-2 mz-caption text-muted">
-                <span>GVHD: <strong>{{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer }}</strong></span>
-                {% if r.topic.fields.all %}
-                  <span>·</span>
-                  {% for f in r.topic.fields.all %}
-                    <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
-                  {% endfor %}
+      {% if recommendations %}
+        <div class="at-list">
+          {% for r in recommendations %}
+            <article class="at-item at-topic">
+              <div>
+                <div class="at-row at-row--top at-mb-2">
+                  <span class="at-rank">#{{ r.rank }}</span>
+                  <div class="at-grow">
+                    <a href="{% url 'topic_detail' r.topic.pk %}" class="at-topic-title">{{ r.topic.title }}</a>
+                    <div class="at-meta at-mt-1">
+                      <span>GVHD: <strong>{{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</strong></span>
+                      {% for f in r.topic.fields.all %}
+                        <span class="at-tag">{{ f.name }}</span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+                <div class="at-mt-3">
+                  {% include "components/evidence.html" with rec=r detail=False %}
+                </div>
+                {% if r.reason %}
+                  <div class="at-mt-3 at-clamp-3">
+                    {% include "components/note.html" with title="Lý do gợi ý" text=r.reason %}
+                  </div>
                 {% endif %}
               </div>
-            </div>
-          </div>
+              <div class="at-topic-side">
+                {% include "components/score.html" with rec=r size="md" %}
+              </div>
+              <div class="at-topic-foot">
+                <a href="{% url 'topic_detail' r.topic.pk %}" class="btn btn-secondary btn-sm">Chi tiết</a>
+                {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
+                  <a href="{% url 'student_preferences' %}?topic={{ r.topic.pk }}" class="btn btn-primary btn-sm">
+                    Thêm vào nguyện vọng
+                  </a>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
         </div>
+      {% else %}
+        {% url 'student_profile' as profile_url %}
+        {% include "components/empty.html" with illustration="empty-recommendation" title="Chưa có gợi ý vì hồ sơ chưa có kỹ năng" desc="Thêm ít nhất 1 kỹ năng để hệ thống tính mức độ phù hợp." primary_url=profile_url primary_label="Cập nhật hồ sơ" %}
+      {% endif %}
+    </section>
 
-        <!-- Khối điểm AI P0 (score_block) -->
-        {% include "components/score_block.html" with total_score=r.final_score|floatformat:0 m1=r.m1_skill|floatformat:0 m2=r.m2_academic|floatformat:0 m3=r.m3_field|floatformat:0 m4=r.m4_semantic|floatformat:0 m5=r.m5_llm|floatformat:0 score_id=r.topic.id details=r.reason %}
-
-        <!-- Khối lý do gợi ý P0 (reason_block) -->
-        {% if r.reason %}
-          <div class="mt-3">
-            {% include "components/reason_block.html" with reason_1=r.reason %}
-          </div>
-        {% endif %}
-
-        <!-- Hành động -->
-        <div class="d-flex align-items-center justify-content-between gap-2 mt-3 pt-3 border-top flex-wrap">
-          <a href="{% url 'topic_detail' r.topic.pk %}" class="mz-btn mz-btn-secondary mz-btn-sm">
-            {% include "components/icon.html" with name="eye" size=14 %}
-            <span>Xem chi tiết</span>
-          </a>
-          <a href="{% url 'student_preferences' %}?topic={{ r.topic.id }}" class="mz-btn mz-btn-primary mz-btn-sm">
-            {% include "components/icon.html" with name="bookmark" size=14 %}
-            <span>Thêm vào nguyện vọng</span>
-          </a>
-        </div>
-      </div>
-    {% empty %}
-      <div class="mz-card">
-        {% include "components/empty_state.html" with illustration="empty-recommendation" title="Chưa có đề tài gợi ý" description="Danh sách phù hợp sẽ xuất hiện khi Khoa mở đợt đăng ký và dữ liệu đề tài đã được cập nhật." primary_url="/ho-so/" primary_label="Cập nhật hồ sơ" %}
-      </div>
-    {% endfor %}
-
-    {% if recommendations %}
-      <p class="mz-caption text-muted mt-2">
-        * Kết quả gợi ý là thông tin hỗ trợ lựa chọn, không thay thế quyết định của sinh viên và Khoa.
-      </p>
-    {% endif %}
-  </div>
-
-  <!-- Cột 2: Nguyện vọng của bạn -->
-  <div class="col-12 col-lg-4">
-    <div class="mz-card" data-mz-reveal>
-      <div class="mz-card-header">
+    <aside class="at-panel at-col-4">
+      <div class="at-panel-header">
         <div>
-          <h2 class="mz-card-title">Nguyện vọng của bạn</h2>
-          <div class="mz-caption text-muted">Tối đa 3 đề tài theo thứ tự ưu tiên</div>
+          <h2 class="h3">Nguyện vọng đã nộp</h2>
+          <p class="at-secondary">Nguyện vọng của bạn trong đợt này (tối đa 3 đề tài).</p>
         </div>
-        <a href="{% url 'student_preferences' %}" class="mz-btn mz-btn-ghost mz-btn-sm p-1" title="Chỉnh sửa nguyện vọng">
-          {% include "components/icon.html" with name="square-pen" size=16 %}
-        </a>
+        {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
+          <a href="{% url 'student_preferences' %}" class="btn btn-text btn-sm" aria-label="Sửa nguyện vọng">
+            {% include "components/icon.html" with name="square-pen" %}
+          </a>
+        {% endif %}
       </div>
 
       {% if preferences %}
-        <div class="d-flex flex-column gap-2">
+        <div class="at-list">
           {% for p in preferences %}
-            <div class="p-3 rounded-2 border bg-surface-subtle">
-              <div class="d-flex align-items-center justify-content-between mb-1">
-                <span class="mz-pref-rank-badge">NV{{ p.rank }}</span>
-                {% if p.rank == 1 %}
-                  <span class="mz-badge mz-badge-info">Ưu tiên cao nhất</span>
-                {% endif %}
+            <div class="at-inset">
+              <div class="at-row at-row--between at-mb-2">
+                <span class="at-rank">NV{{ p.rank }}</span>
+                {% include "components/status.html" with status=p.status label=p.get_status_display %}
               </div>
-              <div class="fw-semibold text-strong text-break-word mt-2">{{ p.topic.title }}</div>
+              <a href="{% url 'topic_detail' p.topic.pk %}" class="at-title-link at-clamp-3">
+                {{ p.topic.title }}
+              </a>
               {% if p.topic.lecturer %}
-                <div class="mz-caption text-muted mt-1">
-                  GVHD: {{ p.topic.lecturer.user.get_full_name|default:p.topic.lecturer }}
+                <div class="at-secondary at-mt-1">
+                  GVHD: {{ p.topic.lecturer.user.get_full_name|default:p.topic.lecturer.user.username }}
                 </div>
               {% endif %}
             </div>
           {% endfor %}
         </div>
-
-        <div class="mt-3 pt-3 border-top text-center">
-          <a href="{% url 'student_preferences' %}" class="mz-btn mz-btn-secondary w-100">
-            {% include "components/icon.html" with name="bookmark" size=16 %}
-            <span>Chỉnh sửa nguyện vọng</span>
-          </a>
-        </div>
+        {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
+          <div class="at-mt-4">
+            <a href="{% url 'student_preferences' %}" class="btn btn-secondary w-100">
+              {% include "components/icon.html" with name="square-pen" %}Sửa nguyện vọng
+            </a>
+          </div>
+        {% endif %}
       {% else %}
-        {% include "components/empty_state.html" with illustration="empty-preferences" title="Bạn chưa chọn nguyện vọng" description="Hãy xem danh sách đề tài gợi ý và chọn tối đa 3 đề tài theo thứ tự ưu tiên." primary_url="/nguyen-vong/" primary_label="Chọn nguyện vọng" %}
+        {% url 'student_preferences' as pref_url %}
+        {% include "components/empty.html" with illustration="empty-preferences" title="Chưa đăng ký nguyện vọng" desc="Hãy chọn tối đa 3 đề tài theo thứ tự ưu tiên." primary_url=pref_url primary_label="Chọn nguyện vọng" %}
       {% endif %}
-    </div>
+    </aside>
   </div>
 </div>
 {% endblock %}

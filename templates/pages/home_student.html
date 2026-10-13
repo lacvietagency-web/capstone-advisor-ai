@@ -86,10 +86,8 @@
     {% else %}
       {% include "components/banner.html" with kind="warning" title="Chưa được phân công trong đợt này" text="Bạn hiện chưa được phân công đề tài trong đợt này. Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung trong Pha 2." %}
     {% endif %}
-  {% elif allocation_result.period.status == "OPEN" %}
-    {% include "components/banner.html" with kind="info" title="Đợt đang mở đăng ký" text="Kết quả phân công được công bố sau khi đợt đóng và Khoa chạy phân công. Bạn có thể sửa nguyện vọng tới khi đợt đóng." %}
   {% elif allocation_result.period %}
-    {% include "components/banner.html" with kind="neutral" title="Khoa đang xử lý phân công" text=allocation_result.status_text %}
+    {% include "components/banner.html" with kind="neutral" title="Kết quả phân công chưa công bố" text=allocation_result.status_text %}
   {% endif %}
 
   <div class="at-grid">

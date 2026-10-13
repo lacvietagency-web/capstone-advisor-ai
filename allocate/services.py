@@ -337,11 +337,17 @@ def get_student_allocation_result(student: Student, period_id: int | None = None
     periods = list(RegistrationPeriod.objects.order_by("-start_at"))
 
     if not period or period.status != RegistrationPeriod.Status.PUBLISHED:
+        if not period:
+            status_text = "Chưa có đợt đăng ký nào"
+        elif period.status == RegistrationPeriod.Status.OPEN and not period.allocations.exists():
+            status_text = "Đợt đang mở đăng ký — kết quả được công bố sau khi đợt đóng và Khoa chạy phân công"
+        else:
+            status_text = "Hội đồng Khoa đang thẩm định phân công"
         return {
             "period": period,
             "periods": periods,
             "is_published": False,
-            "status_text": "Hội đồng Khoa đang thẩm định phân công" if period else "Chưa có đợt đăng ký nào",
+            "status_text": status_text,
             "allocation": None,
             "topic": None,
             "lecturer": None,

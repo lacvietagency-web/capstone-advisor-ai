@@ -1,940 +1,375 @@
 {% extends "base.html" %}
-{% load static %}
 
-{% block title %}Đăng ký nguyện vọng — Capstone AI{% endblock %}
+{% block title %}Nguyện vọng — Capstone AI{% endblock %}
+{% block canvas_class %}at-canvas--read{% endblock %}
 
 {% block content %}
-<div class="mz-preferences-page">
-  {% if not period %}
-    <!-- Empty State: Không có đợt đăng ký nào mở -->
-    <div class="mz-card text-center py-5 my-4" data-mz-reveal>
-      {% include "components/empty_state.html" with illustration="empty-preferences" title="Hiện chưa có đợt đăng ký nào đang mở" description="Hệ thống hiện không tiếp nhận đăng ký nguyện vọng. Vui lòng quay lại sau khi Khoa công bố đợt đăng ký đồ án tốt nghiệp mới." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
+{% if period %}
+  {# Context A: Đang có đợt đăng ký mở #}
+  <header class="at-page-header">
+    <div>
+      <nav class="at-breadcrumb" aria-label="Vị trí"><a href="{% url 'home' %}">Trang chủ</a><span>Nguyện vọng</span></nav>
+      <h1>Nguyện vọng</h1>
+      <p class="at-page-desc">Chọn và sắp xếp thứ tự tối đa 3 đề tài tốt nghiệp phù hợp với định hướng của bạn.</p>
     </div>
-  {% else %}
-    <!-- Page Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4" data-mz-reveal>
-      <div>
-        <h1 class="mz-h2 mb-1">Đăng ký nguyện vọng</h1>
-        <p class="mz-caption text-muted mb-0">
-          Sắp xếp tối đa 3 đề tài theo thứ tự ưu tiên. NV1 là đề tài bạn mong muốn thực hiện nhất.
-        </p>
-      </div>
-      <div class="text-start text-md-end">
-        <div>
-          {% if period.status == 'OPEN' %}
-            {% include "components/status_badge.html" with status="open" label="Đợt đăng ký đang mở" %}
-          {% else %}
-            {% include "components/status_badge.html" with status="rejected" label="Đợt đăng ký đã đóng" %}
-          {% endif %}
-        </div>
-        <div class="mz-caption text-muted mt-1">
-          <strong>{{ period.name }}</strong>
-          {% if period.end_at %}
-            · Hạn cuối: {{ period.end_at|date:"d/m/Y H:i" }}
-          {% endif %}
-        </div>
-      </div>
+    <div class="at-page-actions">
+      <a href="{% url 'topic_list' %}" class="btn btn-secondary">
+        {% include "components/icon.html" with name="book-open" %}Danh sách đề tài
+      </a>
     </div>
+  </header>
 
-    <!-- Banner khi đợt CLOSED theo Quyết định 3 -->
-    {% if period.status != 'OPEN' %}
-      <div class="mz-alert mz-alert-warning mb-4" role="alert" data-mz-reveal>
-        {% include "components/icon.html" with name="triangle-alert" size=18 class="text-warning flex-shrink-0" %}
-        <div>
-          <strong>Đợt đăng ký đã đóng — nguyện vọng không thể chỉnh sửa.</strong> Bạn chỉ có thể xem lại các nguyện vọng đã đăng ký trước đó.
-        </div>
-      </div>
-    {% endif %}
+  <div class="at-stack">
+    {% include "components/period.html" with period=period text="Đợt đăng ký đang mở. Bạn có thể chỉnh sửa trước thời hạn đóng đợt." %}
 
-    <!-- Form Non-Field Errors (Bắt buộc chứa chữ "không được trùng" khi trùng NV) -->
-    {% if form.non_field_errors %}
-      <div class="mz-alert mz-alert-danger mb-4" role="alert" data-mz-reveal>
-        {% include "components/icon.html" with name="triangle-alert" size=18 class="text-danger flex-shrink-0" %}
-        <div>
-          {% for error in form.non_field_errors %}
-            <div>{{ error }}</div>
+    <form method="post" id="preferencesForm" data-at-busy novalidate>
+      {% csrf_token %}
+
+      {# Báo lỗi form không được trùng nguyện vọng #}
+      {% if form.non_field_errors %}
+        {% for err in form.non_field_errors %}
+          {% include "components/banner.html" with kind="danger" text=err %}
+        {% endfor %}
+      {% endif %}
+
+      <div class="at-stack">
+        {# Khối NV1 #}
+        <section class="at-panel" id="nvPanel1">
+          <div class="at-panel-header">
+            <div class="at-row">
+              <span class="at-rank">NV1</span>
+              <div>
+                <h2 class="h3 at-mb-0">Nguyện vọng 1</h2>
+                <span class="at-secondary">Ưu tiên cao nhất</span>
+              </div>
+            </div>
+            <div class="nv-score-container" id="nvScore1"></div>
+          </div>
+          <div class="at-field">
+            <label class="form-label" for="{{ form.nv1.id_for_label }}">Đề tài nguyện vọng 1</label>
+            {{ form.nv1 }}
+            {% if form.nv1.errors %}
+              <div class="at-error">{{ form.nv1.errors.0 }}</div>
+            {% endif %}
+          </div>
+          {% for pref in user.student.preferences.all %}
+            {% if pref.period_id == period.id and pref.rank == 1 %}
+              <div class="at-row at-mt-3">
+                {% include "components/status.html" with status=pref.status label=pref.get_status_display %}
+                {% if pref.status == 'REJECTED' and pref.reject_reason %}
+                  <div class="at-w-100 at-mt-2">
+                    {% include "components/note.html" with kind="danger" title="Lý do từ chối" text=pref.reject_reason %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
           {% endfor %}
-        </div>
-      </div>
-    {% endif %}
-
-    <!-- Client-side Alert Box -->
-    <div id="formJsAlert" class="mz-alert mz-alert-danger d-none mb-4" role="alert">
-      {% include "components/icon.html" with name="triangle-alert" size=18 class="text-danger flex-shrink-0" %}
-      <span id="formJsAlertMessage"></span>
-    </div>
-
-    <!-- Main Layout: Cột trái (Nguyện vọng) + Cột phải (Top 5 gợi ý) -->
-    <div class="row g-4">
-      <!-- Cột trái: Form 3 nguyện vọng -->
-      <div class="col-12 col-lg-7">
-        <section class="mz-card h-100" data-mz-reveal>
-          <div class="mz-card-header">
-            <div>
-              <h2 class="mz-card-title">Nguyện vọng của bạn</h2>
-              <div class="mz-caption text-muted">Chọn đủ 3 đề tài và sắp xếp theo mức độ ưu tiên</div>
-            </div>
-            <span id="preferenceCountBadge" class="mz-badge mz-badge-neutral">
-              Đã chọn 0/3
-            </span>
-          </div>
-
-          <form id="preferencesForm" method="post" novalidate>
-            {% csrf_token %}
-
-            <!-- NV1 Slot -->
-            <div class="mz-pref-slot" id="nvBlock1" data-rank="1" draggable="{% if period.status == 'OPEN' %}true{% else %}false{% endif %}">
-              <div class="mz-pref-header">
-                <div class="d-flex align-items-center gap-2">
-                  {% if period.status == 'OPEN' %}
-                    <span class="mz-pref-handle" title="Kéo thả để đổi thứ tự" aria-hidden="true">
-                      {% include "components/icon.html" with name="sliders-horizontal" size=16 %}
-                    </span>
-                  {% endif %}
-                  <span class="mz-pref-rank-badge">NV1</span>
-                  <label for="{{ form.nv1.id_for_label }}" class="fw-semibold text-strong mb-0 small">
-                    Ưu tiên cao nhất <span class="text-danger">*</span>
-                  </label>
-                </div>
-
-                <div class="d-flex align-items-center gap-2">
-                  <!-- Trạng thái duyệt của GV cho NV1 -->
-                  {% for pref in user.student.preferences.all %}
-                    {% if pref.period_id == period.id and pref.rank == 1 %}
-                      {% if pref.status == 'ACCEPTED' %}
-                        <span class="mz-badge mz-badge-success" title="Giảng viên đã đồng ý hướng dẫn">
-                          {% include "components/icon.html" with name="badge-check" size=12 %}
-                          <span>Đã GV duyệt</span>
-                        </span>
-                      {% elif pref.status == 'REJECTED' %}
-                        <span class="mz-badge mz-badge-danger" title="Giảng viên từ chối">
-                          {% include "components/icon.html" with name="user-x" size=12 %}
-                          <span>Từ chối</span>
-                        </span>
-                      {% else %}
-                        <span class="mz-badge mz-badge-warning" title="Đang chờ giảng viên xem xét">
-                          {% include "components/icon.html" with name="info" size=12 %}
-                          <span>Chờ duyệt</span>
-                        </span>
-                      {% endif %}
-                    {% endif %}
-                  {% endfor %}
-
-                  {% if period.status == 'OPEN' %}
-                    <div class="mz-pref-order-btns">
-                      <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm btn-move-down p-1" data-rank="1" title="Chuyển xuống NV2" aria-label="Chuyển NV1 xuống NV2">
-                        {% include "components/icon.html" with name="arrow-down" size=14 %}
-                      </button>
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Trường form NV1 -->
-              <div class="mb-2">
-                {{ form.nv1 }}
-                {% if form.nv1.errors %}
-                  <div class="mz-form-error text-danger small mt-1">
-                    {% for err in form.nv1.errors %}{{ err }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-
-              <!-- Lý do từ chối nếu có cho NV1 -->
-              {% for pref in user.student.preferences.all %}
-                {% if pref.period_id == period.id and pref.rank == 1 and pref.status == 'REJECTED' %}
-                  <div class="mz-alert mz-alert-danger py-2 mt-2 mb-2">
-                    <div class="small">
-                      <strong>Lý do từ chối từ GV:</strong> {{ pref.reject_reason|default:'Chưa đáp ứng tiêu chí hướng dẫn của giảng viên.' }}
-                    </div>
-                  </div>
-                {% endif %}
-              {% endfor %}
-
-              <!-- Preview điểm AI cho NV1 -->
-              <div class="js-compact-score" id="compactScore1" data-rank="1"></div>
-            </div>
-
-            <!-- NV2 Slot -->
-            <div class="mz-pref-slot" id="nvBlock2" data-rank="2" draggable="{% if period.status == 'OPEN' %}true{% else %}false{% endif %}">
-              <div class="mz-pref-header">
-                <div class="d-flex align-items-center gap-2">
-                  {% if period.status == 'OPEN' %}
-                    <span class="mz-pref-handle" title="Kéo thả để đổi thứ tự" aria-hidden="true">
-                      {% include "components/icon.html" with name="sliders-horizontal" size=16 %}
-                    </span>
-                  {% endif %}
-                  <span class="mz-pref-rank-badge">NV2</span>
-                  <label for="{{ form.nv2.id_for_label }}" class="fw-semibold text-strong mb-0 small">
-                    Ưu tiên thứ hai
-                  </label>
-                </div>
-
-                <div class="d-flex align-items-center gap-2">
-                  <!-- Trạng thái duyệt của GV cho NV2 -->
-                  {% for pref in user.student.preferences.all %}
-                    {% if pref.period_id == period.id and pref.rank == 2 %}
-                      {% if pref.status == 'ACCEPTED' %}
-                        <span class="mz-badge mz-badge-success" title="Giảng viên đã đồng ý hướng dẫn">
-                          {% include "components/icon.html" with name="badge-check" size=12 %}
-                          <span>Đã GV duyệt</span>
-                        </span>
-                      {% elif pref.status == 'REJECTED' %}
-                        <span class="mz-badge mz-badge-danger" title="Giảng viên từ chối">
-                          {% include "components/icon.html" with name="user-x" size=12 %}
-                          <span>Từ chối</span>
-                        </span>
-                      {% else %}
-                        <span class="mz-badge mz-badge-warning" title="Đang chờ giảng viên xem xét">
-                          {% include "components/icon.html" with name="info" size=12 %}
-                          <span>Chờ duyệt</span>
-                        </span>
-                      {% endif %}
-                    {% endif %}
-                  {% endfor %}
-
-                  {% if period.status == 'OPEN' %}
-                    <div class="mz-pref-order-btns">
-                      <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm btn-move-up p-1" data-rank="2" title="Chuyển lên NV1" aria-label="Chuyển NV2 lên NV1">
-                        {% include "components/icon.html" with name="arrow-up" size=14 %}
-                      </button>
-                      <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm btn-move-down p-1" data-rank="2" title="Chuyển xuống NV3" aria-label="Chuyển NV2 xuống NV3">
-                        {% include "components/icon.html" with name="arrow-down" size=14 %}
-                      </button>
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Trường form NV2 -->
-              <div class="mb-2">
-                {{ form.nv2 }}
-                {% if form.nv2.errors %}
-                  <div class="mz-form-error text-danger small mt-1">
-                    {% for err in form.nv2.errors %}{{ err }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-
-              <!-- Lý do từ chối nếu có cho NV2 -->
-              {% for pref in user.student.preferences.all %}
-                {% if pref.period_id == period.id and pref.rank == 2 and pref.status == 'REJECTED' %}
-                  <div class="mz-alert mz-alert-danger py-2 mt-2 mb-2">
-                    <div class="small">
-                      <strong>Lý do từ chối từ GV:</strong> {{ pref.reject_reason|default:'Chưa đáp ứng tiêu chí hướng dẫn của giảng viên.' }}
-                    </div>
-                  </div>
-                {% endif %}
-              {% endfor %}
-
-              <!-- Preview điểm AI cho NV2 -->
-              <div class="js-compact-score" id="compactScore2" data-rank="2"></div>
-            </div>
-
-            <!-- NV3 Slot -->
-            <div class="mz-pref-slot" id="nvBlock3" data-rank="3" draggable="{% if period.status == 'OPEN' %}true{% else %}false{% endif %}">
-              <div class="mz-pref-header">
-                <div class="d-flex align-items-center gap-2">
-                  {% if period.status == 'OPEN' %}
-                    <span class="mz-pref-handle" title="Kéo thả để đổi thứ tự" aria-hidden="true">
-                      {% include "components/icon.html" with name="sliders-horizontal" size=16 %}
-                    </span>
-                  {% endif %}
-                  <span class="mz-pref-rank-badge">NV3</span>
-                  <label for="{{ form.nv3.id_for_label }}" class="fw-semibold text-strong mb-0 small">
-                    Ưu tiên thứ ba
-                  </label>
-                </div>
-
-                <div class="d-flex align-items-center gap-2">
-                  <!-- Trạng thái duyệt của GV cho NV3 -->
-                  {% for pref in user.student.preferences.all %}
-                    {% if pref.period_id == period.id and pref.rank == 3 %}
-                      {% if pref.status == 'ACCEPTED' %}
-                        <span class="mz-badge mz-badge-success" title="Giảng viên đã đồng ý hướng dẫn">
-                          {% include "components/icon.html" with name="badge-check" size=12 %}
-                          <span>Đã GV duyệt</span>
-                        </span>
-                      {% elif pref.status == 'REJECTED' %}
-                        <span class="mz-badge mz-badge-danger" title="Giảng viên từ chối">
-                          {% include "components/icon.html" with name="user-x" size=12 %}
-                          <span>Từ chối</span>
-                        </span>
-                      {% else %}
-                        <span class="mz-badge mz-badge-warning" title="Đang chờ giảng viên xem xét">
-                          {% include "components/icon.html" with name="info" size=12 %}
-                          <span>Chờ duyệt</span>
-                        </span>
-                      {% endif %}
-                    {% endif %}
-                  {% endfor %}
-
-                  {% if period.status == 'OPEN' %}
-                    <div class="mz-pref-order-btns">
-                      <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm btn-move-up p-1" data-rank="3" title="Chuyển lên NV2" aria-label="Chuyển NV3 lên NV2">
-                        {% include "components/icon.html" with name="arrow-up" size=14 %}
-                      </button>
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Trường form NV3 -->
-              <div class="mb-2">
-                {{ form.nv3 }}
-                {% if form.nv3.errors %}
-                  <div class="mz-form-error text-danger small mt-1">
-                    {% for err in form.nv3.errors %}{{ err }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-
-              <!-- Lý do từ chối nếu có cho NV3 -->
-              {% for pref in user.student.preferences.all %}
-                {% if pref.period_id == period.id and pref.rank == 3 and pref.status == 'REJECTED' %}
-                  <div class="mz-alert mz-alert-danger py-2 mt-2 mb-2">
-                    <div class="small">
-                      <strong>Lý do từ chối từ GV:</strong> {{ pref.reject_reason|default:'Chưa đáp ứng tiêu chí hướng dẫn của giảng viên.' }}
-                    </div>
-                  </div>
-                {% endif %}
-              {% endfor %}
-
-              <!-- Preview điểm AI cho NV3 -->
-              <div class="js-compact-score" id="compactScore3" data-rank="3"></div>
-            </div>
-
-            <!-- Submit Action Bar -->
-            <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 pt-3 mt-4 border-top">
-              <div class="mz-caption text-muted">
-                {% include "components/icon.html" with name="info" size=14 class="me-1" %}
-                <span>Thứ tự nguyện vọng ảnh hưởng trực tiếp đến kết quả phân công.</span>
-              </div>
-              <button type="submit" id="btnSubmitPreferences" class="mz-btn mz-btn-primary px-4 w-100 w-sm-auto" {% if period.status != 'OPEN' %}disabled{% endif %}>
-                {% include "components/icon.html" with name="save" size=16 class="btn-icon" %}
-                <span class="btn-text">Lưu nguyện vọng</span>
-              </button>
-            </div>
-          </form>
         </section>
-      </div>
 
-      <!-- Cột phải: Top 5 Đề tài gợi ý -->
-      <div class="col-12 col-lg-5">
-        <section class="mz-card h-100" data-mz-reveal>
-          <div class="mz-card-header">
-            <div>
-              <h2 class="mz-card-title">Top 5 đề tài phù hợp</h2>
-              <div class="mz-caption text-muted">Gợi ý từ Capstone AI dựa trên hồ sơ của bạn</div>
+        {# Khối NV2 #}
+        <section class="at-panel" id="nvPanel2">
+          <div class="at-panel-header">
+            <div class="at-row">
+              <span class="at-rank">NV2</span>
+              <div>
+                <h2 class="h3 at-mb-0">Nguyện vọng 2</h2>
+                <span class="at-secondary">Ưu tiên thứ hai</span>
+              </div>
             </div>
+            <div class="nv-score-container" id="nvScore2"></div>
           </div>
-
-          <div class="d-flex flex-column gap-3">
-            {% for r in top5 %}
-              <div class="p-3 rounded-2 border bg-surface-subtle topic-recommendation" id="top5-topic-{{ r.topic.id }}" data-topic-id="{{ r.topic.id }}" data-topic-title="{{ r.topic.title|escapejs }}" data-final-score="{{ r.final_score|floatformat:0 }}">
-                <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
-                  <span class="mz-rank-badge {% if forloop.counter == 1 %}mz-rank-badge-1{% endif %}">#{{ forloop.counter }}</span>
-                  <span class="fw-bold fs-6 text-primary">{{ r.final_score|floatformat:0 }}<span class="mz-caption text-muted">/100</span></span>
-                </div>
-
-                <h3 class="mz-card-title fs-6 mb-1 text-break-word topic-title">
-                  {{ r.topic.title }}
-                </h3>
-
-                <div class="mz-caption text-muted mb-2">
-                  {% if r.topic.lecturer %}
-                    <span>GV: {{ r.topic.lecturer }}</span>
-                  {% endif %}
-                  {% if r.topic.fields.all %}
-                    ·
-                    {% for f in r.topic.fields.all %}
-                      <span class="mz-badge mz-badge-neutral">{{ f.name }}</span>
-                    {% endfor %}
-                  {% endif %}
-                </div>
-
-                {% if r.reason %}
-                  <div class="mz-caption text-muted p-2 rounded bg-surface border mb-3">
-                    {{ r.reason|truncatewords:20 }}
+          <div class="at-field">
+            <label class="form-label" for="{{ form.nv2.id_for_label }}">Đề tài nguyện vọng 2</label>
+            {{ form.nv2 }}
+            {% if form.nv2.errors %}
+              <div class="at-error">{{ form.nv2.errors.0 }}</div>
+            {% endif %}
+          </div>
+          {% for pref in user.student.preferences.all %}
+            {% if pref.period_id == period.id and pref.rank == 2 %}
+              <div class="at-row at-mt-3">
+                {% include "components/status.html" with status=pref.status label=pref.get_status_display %}
+                {% if pref.status == 'REJECTED' and pref.reject_reason %}
+                  <div class="at-w-100 at-mt-2">
+                    {% include "components/note.html" with kind="danger" title="Lý do từ chối" text=pref.reject_reason %}
                   </div>
                 {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </section>
 
-                <div class="d-flex align-items-center justify-content-between gap-2 pt-2 border-top">
-                  <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm js-show-score" data-topic-id="{{ r.topic.id }}">
-                    {% include "components/icon.html" with name="info" size=14 %}
-                    <span>Xem lý do</span>
-                  </button>
-                  <div class="quick-select-container" data-topic-id="{{ r.topic.id }}">
-                    <button type="button" class="mz-btn mz-btn-primary mz-btn-sm js-quick-select" data-topic-id="{{ r.topic.id }}" data-topic-title="{{ r.topic.title }}" {% if period.status != 'OPEN' %}disabled{% endif %}>
-                      {% include "components/icon.html" with name="plus" size=14 %}
-                      <span>Chọn làm NV</span>
-                    </button>
+        {# Khối NV3 #}
+        <section class="at-panel" id="nvPanel3">
+          <div class="at-panel-header">
+            <div class="at-row">
+              <span class="at-rank">NV3</span>
+              <div>
+                <h2 class="h3 at-mb-0">Nguyện vọng 3</h2>
+                <span class="at-secondary">Ưu tiên thứ ba</span>
+              </div>
+            </div>
+            <div class="nv-score-container" id="nvScore3"></div>
+          </div>
+          <div class="at-field">
+            <label class="form-label" for="{{ form.nv3.id_for_label }}">Đề tài nguyện vọng 3</label>
+            {{ form.nv3 }}
+            {% if form.nv3.errors %}
+              <div class="at-error">{{ form.nv3.errors.0 }}</div>
+            {% endif %}
+          </div>
+          {% for pref in user.student.preferences.all %}
+            {% if pref.period_id == period.id and pref.rank == 3 %}
+              <div class="at-row at-mt-3">
+                {% include "components/status.html" with status=pref.status label=pref.get_status_display %}
+                {% if pref.status == 'REJECTED' and pref.reject_reason %}
+                  <div class="at-w-100 at-mt-2">
+                    {% include "components/note.html" with kind="danger" title="Lý do từ chối" text=pref.reject_reason %}
                   </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </section>
+
+        {# Khối Gợi ý cho bạn từ top5 #}
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Gợi ý cho bạn</h2>
+              <p>Đề tài phù hợp nhất do AI phân tích từ hồ sơ năng lực của bạn.</p>
+            </div>
+          </div>
+          <div class="at-stack">
+            {% for r in top5 %}
+              <div class="at-item" id="top5-topic-{{ r.topic.id }}">
+                <div class="at-row at-row--between at-row--top">
+                  <div class="at-grow">
+                    <strong>{{ r.topic.title }}</strong>
+                    <div class="at-secondary at-mt-1">
+                      {% if r.topic.lecturer %}<span>GV: {{ r.topic.lecturer }}</span>{% endif %}
+                      {% if r.topic.fields.all %}
+                        <span class="at-chips at-mt-1">
+                          {% for f in r.topic.fields.all %}
+                            <span class="at-tag">{{ f.name }}</span>
+                          {% endfor %}
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div>
+                    {% include "components/score.html" with rec=r size="sm" %}
+                  </div>
+                </div>
+                {% if r.reason %}
+                  <div class="at-mt-2">
+                    {% include "components/note.html" with text=r.reason %}
+                  </div>
+                {% endif %}
+                <div class="at-mt-3 at-row at-row--between">
+                  <a href="{% url 'topic_detail' r.topic.id %}" class="btn btn-text btn-sm">
+                    Chi tiết đề tài {% include "components/icon.html" with name="chevron-right" %}
+                  </a>
+                  <a href="?topic={{ r.topic.id }}" class="btn btn-secondary btn-sm js-pick-topic" data-topic-id="{{ r.topic.id }}">
+                    {% include "components/icon.html" with name="plus" %}Chọn làm NV trống tiếp theo
+                  </a>
                 </div>
               </div>
             {% empty %}
-              {% include "components/empty_state.html" with illustration="empty-topics" title="Chưa có đề tài gợi ý" description="Hệ thống chưa tạo được gợi ý. Bạn có thể chọn trực tiếp từ danh sách đề tài." primary_url="/ho-so/" primary_label="Hoàn thiện hồ sơ" %}
+              {% url 'student_profile' as profile_url %}
+              {% include "components/empty.html" with illustration="empty-topics" title="Chưa có gợi ý đề tài" desc="Hoàn thiện hồ sơ năng lực để hệ thống gợi ý đề tài phù hợp với bạn." primary_url=profile_url primary_label="Cập nhật hồ sơ" %}
             {% endfor %}
           </div>
         </section>
       </div>
-    </div>
 
-    <!-- Khối giải thích điểm M1–M5 khi bấm Xem lý do -->
-    <section id="scoreDetail" class="mz-card mt-4" hidden data-mz-reveal>
-      <div class="mz-card-header">
-        <div>
-          <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="mz-badge mz-badge-published">Capstone AI</span>
-            <h2 class="mz-card-title">Vì sao đề tài này phù hợp với bạn?</h2>
-          </div>
-          <div class="mz-caption text-muted">
-            Đề tài: <strong id="scoreDetailTopicTitle" class="text-strong">—</strong>
-          </div>
-        </div>
-        <div class="d-flex align-items-center gap-3">
-          <span id="scoreDetailOverallBadge" class="fw-bold fs-5 text-primary">--/100</span>
-          <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm" id="btnCloseScoreDetail" aria-label="Đóng bảng giải thích">
-            {% include "components/icon.html" with name="log-out" size=16 %}
-          </button>
-        </div>
+      {# Nút lưu trên Desktop #}
+      <div class="at-form-actions d-none d-md-flex">
+        <a href="{% url 'home' %}" class="btn btn-secondary">Quay lại</a>
+        <button type="submit" class="btn btn-primary">
+          {% include "components/icon.html" with name="save" %}Lưu nguyện vọng
+        </button>
       </div>
 
-      <div class="row g-3 mb-3">
-        <!-- M1 -->
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="p-2 rounded bg-surface-subtle border text-center">
-            <div class="mz-caption text-muted">M1 Kỹ năng</div>
-            <div id="m1Value" class="fw-bold fs-5 text-primary">0%</div>
-          </div>
-        </div>
-        <!-- M2 -->
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="p-2 rounded bg-surface-subtle border text-center">
-            <div class="mz-caption text-muted">M2 Học lực</div>
-            <div id="m2Value" class="fw-bold fs-5 text-primary">0%</div>
-          </div>
-        </div>
-        <!-- M3 -->
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="p-2 rounded bg-surface-subtle border text-center">
-            <div class="mz-caption text-muted">M3 Lĩnh vực</div>
-            <div id="m3Value" class="fw-bold fs-5 text-primary">0%</div>
-          </div>
-        </div>
-        <!-- M4 -->
-        <div class="col-6 col-md-4 col-lg-3">
-          <div class="p-2 rounded bg-surface-subtle border text-center">
-            <div class="mz-caption text-muted">M4 Ngữ nghĩa</div>
-            <div id="m4Value" class="fw-bold fs-5 text-primary">0%</div>
-          </div>
-        </div>
-        <!-- M5 -->
-        <div class="col-6 col-md-4 col-lg-3">
-          <div class="p-2 rounded bg-surface-subtle border text-center">
-            <div class="mz-caption text-muted">M5 LLM</div>
-            <div id="m5Value" class="fw-bold fs-5 text-primary">0%</div>
-          </div>
-        </div>
+      {# Nút lưu trên Mobile (Action Bar thay Bottom Nav) #}
+      <div class="at-actionbar">
+        <button type="submit" class="btn btn-primary">
+          {% include "components/icon.html" with name="save" %}Lưu nguyện vọng
+        </button>
       </div>
+    </form>
+  </div>
 
-      <div id="scoreDetailReasonBox" class="mz-alert mz-alert-info d-none mb-3">
-        <div class="small" id="scoreDetailReasonText"></div>
+  {# Dữ liệu điểm để JS cập nhật hiển thị điểm khi chọn đề tài #}
+  <script id="topic-scores-data" type="application/json">
+  {
+    {% for topic_id, rec in scores.items %}
+      "{{ topic_id }}": {
+        "topic_id": {{ topic_id }},
+        "title": "{{ rec.topic.title|escapejs }}",
+        "final_score": "{{ rec.final_score|floatformat:1 }}",
+        "is_preliminary": {% if rec.m5_llm is None %}true{% else %}false{% endif %}
+      }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  }
+  </script>
+
+{% else %}
+  {# Context B: Không có đợt mở (period is None) #}
+  {% if last_period %}
+    <header class="at-page-header">
+      <div>
+        <nav class="at-breadcrumb" aria-label="Vị trí"><a href="{% url 'home' %}">Trang chủ</a><span>Nguyện vọng</span></nav>
+        <h1>Nguyện vọng</h1>
+        <p class="at-page-desc">Danh sách nguyện vọng bạn đã đăng ký trong đợt gần nhất.</p>
       </div>
-    </section>
+      <div class="at-page-actions">
+        <a href="{% url 'topic_list' %}" class="btn btn-secondary">
+          {% include "components/icon.html" with name="book-open" %}Danh sách đề tài
+        </a>
+      </div>
+    </header>
 
-    <!-- Modal thay thế nguyện vọng khi đã đầy 3 slot -->
-    <div class="modal fade" id="replaceModal" tabindex="-1" aria-labelledby="replaceModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content mz-card border-0 shadow">
-          <div class="modal-header border-bottom pb-3">
-            <h5 class="modal-title fw-bold" id="replaceModalLabel">
-              Thay thế nguyện vọng
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-          </div>
-          <div class="modal-body py-3">
-            <p class="mz-caption text-muted mb-3">
-              Cả 3 nguyện vọng của bạn đều đã được chọn. Bạn muốn thay thế nguyện vọng nào bằng đề tài dưới đây?
-            </p>
-            <div class="p-3 mb-3 bg-surface-subtle rounded border">
-              <div class="mz-caption text-muted mb-1">Đề tài muốn thêm:</div>
-              <strong id="replaceTopicTitle" class="text-primary d-block">—</strong>
+    <div class="at-stack">
+      {% include "components/banner.html" with kind="neutral" text="Đợt "|add:last_period.name|add:" đã đóng — nguyện vọng chỉ xem" %}
+
+      <div class="at-stack">
+        {% for item in submitted %}
+          <section class="at-panel">
+            <div class="at-panel-header">
+              <div class="at-row">
+                <span class="at-rank">NV{{ item.pref.rank }}</span>
+                <div>
+                  <h2 class="h3 at-mb-0">{{ item.pref.topic.title }}</h2>
+                  <span class="at-secondary">
+                    {% if item.pref.topic.lecturer %}GVHD: {{ item.pref.topic.lecturer }}{% endif %}
+                  </span>
+                </div>
+              </div>
+              <div class="at-row">
+                {% include "components/status.html" with status=item.pref.status label=item.pref.get_status_display %}
+                {% include "components/score.html" with rec=item.rec size="sm" %}
+              </div>
             </div>
-            <div class="d-grid gap-2">
-              <button type="button" class="mz-btn mz-btn-secondary text-start p-2 px-3 js-replace-choice" data-target-rank="1">
-                <span class="mz-pref-rank-badge me-2">NV1</span>
-                <span class="js-replace-current-nv" data-rank="1">Thay thế NV1</span>
-              </button>
-              <button type="button" class="mz-btn mz-btn-secondary text-start p-2 px-3 js-replace-choice" data-target-rank="2">
-                <span class="mz-pref-rank-badge me-2">NV2</span>
-                <span class="js-replace-current-nv" data-rank="2">Thay thế NV2</span>
-              </button>
-              <button type="button" class="mz-btn mz-btn-secondary text-start p-2 px-3 js-replace-choice" data-target-rank="3">
-                <span class="mz-pref-rank-badge me-2">NV3</span>
-                <span class="js-replace-current-nv" data-rank="3">Thay thế NV3</span>
-              </button>
-            </div>
-          </div>
-          <div class="modal-footer border-top pt-2">
-            <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm" data-bs-dismiss="modal">Hủy</button>
-          </div>
-        </div>
+            {% if item.pref.status == 'REJECTED' and item.pref.reject_reason %}
+              <div class="at-mt-3">
+                {% include "components/note.html" with kind="danger" title="Lý do từ chối" text=item.pref.reject_reason %}
+              </div>
+            {% endif %}
+            {% if item.pref.topic.description %}
+              <p class="at-secondary at-mt-3">{{ item.pref.topic.description|truncatewords:40 }}</p>
+            {% endif %}
+          </section>
+        {% empty %}
+          {% url 'topic_list' as topic_list_url %}
+          {% include "components/empty.html" with illustration="empty-preferences" title="Chưa có nguyện vọng nào được ghi nhận" desc="Bạn chưa đăng ký nguyện vọng trong đợt vừa qua." primary_url=topic_list_url primary_label="Xem danh sách đề tài" %}
+        {% endfor %}
       </div>
     </div>
+  {% else %}
+    <header class="at-page-header">
+      <div>
+        <nav class="at-breadcrumb" aria-label="Vị trí"><a href="{% url 'home' %}">Trang chủ</a><span>Nguyện vọng</span></nav>
+        <h1>Nguyện vọng</h1>
+        <p class="at-page-desc">Chưa có đợt đăng ký nào đang mở.</p>
+      </div>
+      <div class="at-page-actions">
+        <a href="{% url 'topic_list' %}" class="btn btn-secondary">
+          {% include "components/icon.html" with name="book-open" %}Danh sách đề tài
+        </a>
+      </div>
+    </header>
 
-    <!-- Serialized Scores Data for Client-Side JS -->
-    <script id="topic-scores-data" type="application/json">
-    {
-      {% for topic_id, rec in scores.items %}
-        "{{ topic_id }}": {
-          "topic_id": {{ topic_id }},
-          "title": "{{ rec.topic.title|escapejs }}",
-          "final_score": {{ rec.final_score|floatformat:0 }},
-          "m1": {{ rec.m1_skill|floatformat:0 }},
-          "m2": {{ rec.m2_academic|floatformat:0 }},
-          "m3": {{ rec.m3_field|floatformat:0 }},
-          "m4": {% if rec.m4_semantic is not None %}{{ rec.m4_semantic|floatformat:0 }}{% else %}null{% endif %},
-          "m5": {% if rec.m5_llm is not None %}{{ rec.m5_llm|floatformat:0 }}{% else %}null{% endif %},
-          "rank": {% if rec.rank %}{{ rec.rank }}{% else %}null{% endif %},
-          "reason": "{{ rec.reason|default:''|escapejs }}"
-        }{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    }
-    </script>
+    <div class="at-stack">
+      {% url 'topic_list' as topic_list_url %}
+      {% include "components/empty.html" with illustration="empty-preferences" title="Chưa có đợt đăng ký nào" desc="Khoa chưa mở đợt đăng ký đề tài tốt nghiệp. Vui lòng quay lại sau khi Khoa công bố đợt đăng ký mới." primary_url=topic_list_url primary_label="Xem danh sách đề tài" %}
+    </div>
   {% endif %}
-</div>
-<p class="mt-4"><a href="{% url 'topic_list' %}" class="mz-btn mz-btn-ghost mz-btn-sm">← Xem danh sách đề tài để tìm kiếm và tra cứu chi tiết</a></p>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 {% if period %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  // 1. Data Store
-  const scoresDataEl = document.getElementById("topic-scores-data");
-  let scoresMap = {};
+  var scoresDataEl = document.getElementById("topic-scores-data");
+  var scoresMap = {};
   if (scoresDataEl && scoresDataEl.textContent.trim()) {
     try {
       scoresMap = JSON.parse(scoresDataEl.textContent);
     } catch (e) {
-      console.error("Error parsing topic scores:", e);
+      console.error(e);
     }
   }
 
-  // 2. Select Elements
-  const form = document.getElementById("preferencesForm");
-  const nv1 = document.getElementById("id_nv1") || document.querySelector('[name="nv1"]');
-  const nv2 = document.getElementById("id_nv2") || document.querySelector('[name="nv2"]');
-  const nv3 = document.getElementById("id_nv3") || document.querySelector('[name="nv3"]');
-  const selects = { 1: nv1, 2: nv2, 3: nv3 };
+  var nv1 = document.getElementById("id_nv1");
+  var nv2 = document.getElementById("id_nv2");
+  var nv3 = document.getElementById("id_nv3");
+  var selects = { 1: nv1, 2: nv2, 3: nv3 };
 
   [nv1, nv2, nv3].forEach(function (sel) {
     if (sel) {
-      sel.classList.add("form-select", "mz-form-control");
-      {% if period.status != 'OPEN' %}
-        sel.disabled = true;
-      {% endif %}
+      sel.classList.add("form-select");
     }
   });
 
-  // 3. Compact Score Renderer below Select
-  function renderCompactScore(rank, topicId) {
-    const container = document.getElementById("compactScore" + rank);
-    if (!container) return;
-
+  function updateScoreSlot(rank) {
+    var slot = document.getElementById("nvScore" + rank);
+    var sel = selects[rank];
+    if (!slot || !sel) return;
+    var topicId = sel.value;
     if (!topicId) {
-      container.innerHTML = '<div class="mz-caption text-muted fst-italic mt-1">Chưa chọn đề tài</div>';
+      slot.innerHTML = "";
       return;
     }
-
-    const data = scoresMap[topicId];
-    if (!data) {
-      container.innerHTML = '<div class="mz-caption text-muted mt-1">Chưa có dữ liệu đánh giá gợi ý cho đề tài này.</div>';
-      return;
-    }
-
-    const score = Number(data.final_score) || 0;
-    container.innerHTML = `
-      <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top">
-        <div class="d-flex align-items-center gap-2">
-          <span class="mz-caption text-muted">Điểm phù hợp:</span>
-          <strong class="text-primary">${score}/100</strong>
-        </div>
-        <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm p-0 js-view-score-btn" data-topic-id="${topicId}">
-          <span>Xem chi tiết điểm</span>
-        </button>
-      </div>
-    `;
-
-    const viewBtn = container.querySelector(".js-view-score-btn");
-    if (viewBtn) {
-      viewBtn.addEventListener("click", function () {
-        showScoreDetail(topicId);
-      });
-    }
-  }
-
-  // 4. Score Detail Panel Display
-  const scoreDetailSection = document.getElementById("scoreDetail");
-  const detailTopicTitle = document.getElementById("scoreDetailTopicTitle");
-  const detailOverallBadge = document.getElementById("scoreDetailOverallBadge");
-  const m1Value = document.getElementById("m1Value");
-  const m2Value = document.getElementById("m2Value");
-  const m3Value = document.getElementById("m3Value");
-  const m4Value = document.getElementById("m4Value");
-  const m5Value = document.getElementById("m5Value");
-  const reasonBox = document.getElementById("scoreDetailReasonBox");
-  const reasonText = document.getElementById("scoreDetailReasonText");
-  const btnCloseDetail = document.getElementById("btnCloseScoreDetail");
-
-  if (btnCloseDetail) {
-    btnCloseDetail.addEventListener("click", function () {
-      if (scoreDetailSection) {
-        scoreDetailSection.hidden = true;
-      }
-    });
-  }
-
-  function showScoreDetail(topicId) {
-    if (!scoreDetailSection) return;
-    const data = scoresMap[topicId];
-    let topicName = "Đề tài #" + topicId;
-
-    if (data && data.title) {
-      topicName = data.title;
-    } else {
-      const opt = nv1 ? nv1.querySelector(`option[value="${topicId}"]`) : null;
-      if (opt) topicName = opt.textContent.trim();
-    }
-
-    detailTopicTitle.textContent = topicName;
-
+    var data = scoresMap[topicId];
     if (data) {
-      const finalScore = Number(data.final_score) || 0;
-      detailOverallBadge.textContent = finalScore + "/100 điểm";
-
-      m1Value.textContent = (data.m1 !== null ? data.m1 + "%" : "—");
-      m2Value.textContent = (data.m2 !== null ? data.m2 + "%" : "—");
-      m3Value.textContent = (data.m3 !== null ? data.m3 + "%" : "—");
-      m4Value.textContent = (data.m4 !== null ? data.m4 + "%" : "—");
-      m5Value.textContent = (data.m5 !== null ? data.m5 + "%" : "—");
-
-      if (data.reason && data.reason.trim()) {
-        reasonText.textContent = data.reason;
-        reasonBox.classList.remove("d-none");
-      } else {
-        reasonBox.classList.add("d-none");
-      }
+      var label = data.is_preliminary ? "Điểm sơ bộ M1–M4" : "Điểm phù hợp";
+      slot.innerHTML = '<div class="at-score at-score--sm">' +
+        '<span class="at-score-value">' + data.final_score + '<small> /100</small></span>' +
+        '<span class="at-score-label">' + label + '</span>' +
+        '</div>';
     } else {
-      detailOverallBadge.textContent = "Chưa có dữ liệu";
-      [m1Value, m2Value, m3Value, m4Value, m5Value].forEach(v => v.textContent = "—");
-      reasonBox.classList.add("d-none");
-    }
-
-    scoreDetailSection.hidden = false;
-    scoreDetailSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-
-  // 5. Update Duplicate Disabled Options
-  const formJsAlert = document.getElementById("formJsAlert");
-  const formJsAlertMessage = document.getElementById("formJsAlertMessage");
-
-  function updateDuplicateDisabledOptions() {
-    const chosen = {
-      1: nv1 ? nv1.value : "",
-      2: nv2 ? nv2.value : "",
-      3: nv3 ? nv3.value : ""
-    };
-
-    let hasDuplicate = false;
-    const chosenList = [chosen[1], chosen[2], chosen[3]].filter(v => Boolean(v));
-    if (new Set(chosenList).size !== chosenList.length) {
-      hasDuplicate = true;
-    }
-
-    if (hasDuplicate) {
-      if (formJsAlert && formJsAlertMessage) {
-        formJsAlertMessage.textContent = "Các nguyện vọng không được trùng đề tài.";
-        formJsAlert.classList.remove("d-none");
-      }
-    } else {
-      if (formJsAlert) {
-        formJsAlert.classList.add("d-none");
-      }
-    }
-
-    [1, 2, 3].forEach(function (rank) {
-      const sel = selects[rank];
-      if (!sel) return;
-      const otherValues = [1, 2, 3]
-        .filter(r => r !== rank)
-        .map(r => chosen[r])
-        .filter(v => Boolean(v));
-
-      Array.from(sel.options).forEach(function (opt) {
-        if (!opt.value) {
-          opt.disabled = false;
-          return;
-        }
-        if (otherValues.includes(opt.value)) {
-          opt.disabled = true;
-        } else {
-          opt.disabled = false;
-        }
-      });
-    });
-  }
-
-  // 6. Update Top 5 Badges
-  function updateTop5Badges() {
-    const chosenMap = {};
-    if (nv1 && nv1.value) chosenMap[nv1.value] = 1;
-    if (nv2 && nv2.value) chosenMap[nv2.value] = 2;
-    if (nv3 && nv3.value) chosenMap[nv3.value] = 3;
-
-    document.querySelectorAll(".quick-select-container").forEach(function (container) {
-      const topicId = container.dataset.topicId;
-      const assignedRank = chosenMap[topicId];
-
-      if (assignedRank) {
-        container.innerHTML = `
-          <span class="mz-badge mz-badge-success">
-            Đang là NV${assignedRank}
-          </span>
-        `;
-      } else {
-        const title = container.closest(".topic-recommendation")?.dataset.topicTitle || "";
-        container.innerHTML = `
-          <button type="button" class="mz-btn mz-btn-primary mz-btn-sm js-quick-select" data-topic-id="${topicId}" data-topic-title="${title}" {% if period.status != 'OPEN' %}disabled{% endif %}>
-            <span>Chọn làm NV</span>
-          </button>
-        `;
-      }
-    });
-
-    bindQuickSelectButtons();
-  }
-
-  // 7. Update Preference Count Badge
-  const countBadge = document.getElementById("preferenceCountBadge");
-  function updatePreferenceCount() {
-    if (!countBadge) return;
-    const count = [nv1?.value, nv2?.value, nv3?.value].filter(Boolean).length;
-    countBadge.textContent = `Đã chọn ${count}/3`;
-  }
-
-  // 8. Quick Select Logic
-  let pendingReplaceTopicId = null;
-  let pendingReplaceTopicTitle = "";
-  const replaceModalEl = document.getElementById("replaceModal");
-  let replaceModalInstance = null;
-  if (replaceModalEl && typeof bootstrap !== "undefined") {
-    replaceModalInstance = new bootstrap.Modal(replaceModalEl);
-  }
-
-  function handleQuickSelect(topicId, topicTitle) {
-    if (!nv1 || !nv2 || !nv3) return;
-
-    if (nv1.value === topicId || nv2.value === topicId || nv3.value === topicId) {
-      return;
-    }
-
-    if (!nv1.value) {
-      setSelectValue(nv1, topicId);
-      return;
-    }
-    if (!nv2.value) {
-      setSelectValue(nv2, topicId);
-      return;
-    }
-    if (!nv3.value) {
-      setSelectValue(nv3, topicId);
-      return;
-    }
-
-    pendingReplaceTopicId = topicId;
-    pendingReplaceTopicTitle = topicTitle;
-
-    const modalTitleEl = document.getElementById("replaceTopicTitle");
-    if (modalTitleEl) modalTitleEl.textContent = topicTitle;
-
-    [1, 2, 3].forEach(function (rank) {
-      const sel = selects[rank];
-      const span = document.querySelector(`.js-replace-current-nv[data-rank="${rank}"]`);
-      if (span && sel) {
-        const text = sel.options[sel.selectedIndex]?.text || `NV${rank}`;
-        span.textContent = `Thay thế NV${rank}: ${text}`;
-      }
-    });
-
-    if (replaceModalInstance) {
-      replaceModalInstance.show();
+      slot.innerHTML = '<div class="at-score at-score--none at-score--sm">' +
+        '<span class="at-score-value">Chưa có điểm</span>' +
+        '</div>';
     }
   }
 
-  function setSelectValue(sel, value) {
-    sel.value = value;
-    sel.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-
-  function bindQuickSelectButtons() {
-    document.querySelectorAll(".js-quick-select").forEach(function (btn) {
-      btn.onclick = function () {
-        const topicId = this.dataset.topicId;
-        const topicTitle = this.dataset.topicTitle || this.closest(".topic-recommendation")?.querySelector(".topic-title")?.textContent.trim();
-        handleQuickSelect(topicId, topicTitle);
-      };
-    });
-  }
-
-  document.querySelectorAll(".js-replace-choice").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      const targetRank = this.dataset.targetRank;
-      const targetSel = selects[targetRank];
-      if (targetSel && pendingReplaceTopicId) {
-        setSelectValue(targetSel, pendingReplaceTopicId);
-        if (replaceModalInstance) {
-          replaceModalInstance.hide();
-        }
-      }
-    });
-  });
-
-  document.querySelectorAll(".js-show-score").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      const topicId = this.dataset.topicId;
-      showScoreDetail(topicId);
-    });
-  });
-
-  // 9. Reorder Logic
-  function swapPreferences(rankA, rankB) {
-    const selA = selects[rankA];
-    const selB = selects[rankB];
-    if (!selA || !selB) return;
-
-    const valA = selA.value;
-    const valB = selB.value;
-
-    selA.value = valB;
-    selB.value = valA;
-
-    selA.dispatchEvent(new Event("change", { bubbles: true }));
-    selB.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-
-  document.querySelectorAll(".btn-move-down").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      const rank = Number(this.dataset.rank);
-      if (rank < 3) swapPreferences(rank, rank + 1);
-    });
-  });
-
-  document.querySelectorAll(".btn-move-up").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      const rank = Number(this.dataset.rank);
-      if (rank > 1) swapPreferences(rank, rank - 1);
-    });
-  });
-
-  // HTML5 Drag and Drop
-  const prefBlocks = document.querySelectorAll(".mz-pref-slot");
-  let draggedRank = null;
-
-  prefBlocks.forEach(function (block) {
-    block.addEventListener("dragstart", function (e) {
-      {% if period.status != 'OPEN' %}
-        e.preventDefault();
-        return;
-      {% endif %}
-      draggedRank = Number(this.dataset.rank);
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", draggedRank);
-    });
-
-    block.addEventListener("dragend", function () {
-      prefBlocks.forEach(b => b.classList.remove("drag-over"));
-    });
-
-    block.addEventListener("dragover", function (e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      this.classList.add("drag-over");
-    });
-
-    block.addEventListener("dragleave", function () {
-      this.classList.remove("drag-over");
-    });
-
-    block.addEventListener("drop", function (e) {
-      e.preventDefault();
-      this.classList.remove("drag-over");
-      const targetRank = Number(this.dataset.rank);
-      if (draggedRank && targetRank && draggedRank !== targetRank) {
-        swapPreferences(draggedRank, targetRank);
-      }
-    });
-  });
-
-  // 10. Change Listener on Form Selects
   [1, 2, 3].forEach(function (rank) {
-    const sel = selects[rank];
-    if (!sel) return;
-
-    sel.addEventListener("change", function () {
-      renderCompactScore(rank, this.value);
-      updateDuplicateDisabledOptions();
-      updateTop5Badges();
-      updatePreferenceCount();
-    });
-  });
-
-  // 11. Form Validation and Submit Handling
-  if (form) {
-    form.addEventListener("submit", function (e) {
-      if (!nv1 || !nv1.value) {
-        e.preventDefault();
-        if (formJsAlert && formJsAlertMessage) {
-          formJsAlertMessage.textContent = "Vui lòng chọn ít nhất Nguyện vọng 1 (ưu tiên cao nhất).";
-          formJsAlert.classList.remove("d-none");
-          formJsAlert.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-        if (nv1) nv1.focus();
-        return;
-      }
-
-      const chosen = [nv1.value, nv2 ? nv2.value : "", nv3 ? nv3.value : ""].filter(Boolean);
-      if (new Set(chosen).size !== chosen.length) {
-        e.preventDefault();
-        if (formJsAlert && formJsAlertMessage) {
-          formJsAlertMessage.textContent = "Các nguyện vọng không được trùng đề tài.";
-          formJsAlert.classList.remove("d-none");
-          formJsAlert.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-        return;
-      }
-
-      const submitBtn = document.getElementById("btnSubmitPreferences");
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        const text = submitBtn.querySelector(".btn-text");
-        if (text) text.textContent = "Đang lưu...";
-      }
-    });
-  }
-
-  // Initial call
-  [1, 2, 3].forEach(function (rank) {
-    const sel = selects[rank];
+    var sel = selects[rank];
     if (sel) {
-      renderCompactScore(rank, sel.value);
+      updateScoreSlot(rank);
+      sel.addEventListener("change", function () {
+        updateScoreSlot(rank);
+      });
     }
   });
 
-  updateDuplicateDisabledOptions();
-  updateTop5Badges();
-  updatePreferenceCount();
+  // Chọn làm NV trống tiếp theo
+  document.querySelectorAll(".js-pick-topic").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      var topicId = this.getAttribute("data-topic-id");
+      if (!topicId) return;
+
+      var allSelects = [nv1, nv2, nv3].filter(Boolean);
+      var already = allSelects.some(function (s) { return s.value === topicId; });
+      if (already) {
+        alert("Đề tài này đã được chọn trong nguyện vọng của bạn.");
+        e.preventDefault();
+        return;
+      }
+
+      var emptySel = allSelects.find(function (s) { return !s.value; });
+      if (emptySel) {
+        e.preventDefault();
+        emptySel.value = topicId;
+        emptySel.dispatchEvent(new Event("change", { bubbles: true }));
+        var panel = emptySel.closest(".at-panel");
+        if (panel) panel.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  });
 });
 </script>
 {% endif %}

@@ -1,0 +1,3 @@
+{% load static %}{# Chart.js: CDN trước, lỗi thì dùng bản trong dự án #}
+{% if assets_cdn %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script>window.Chart || document.write('<script src="{% static 'vendor/chart.umd.min.js' %}"><\/script>')</script>{% else %}<script src="{% static 'vendor/chart.umd.min.js' %}"></script>{% endif %}

@@ -199,4 +199,4 @@
 
 </div>
 {% endblock %}
-{% block extra_js %}{% load static %}<script src="{% static 'vendor/chart.umd.min.js' %}"></script>{% endblock %}
+{% block extra_js %}{% include "components/chartjs.html" %}{% endblock %}

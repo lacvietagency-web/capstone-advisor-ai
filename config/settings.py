@@ -73,6 +73,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "recommend.context.ahp",
                 "catalog.context.current_period",
+                "catalog.context.assets",
             ],
         },
     },
@@ -163,3 +164,7 @@ RECOMMEND_SEMANTIC = os.getenv("RECOMMEND_SEMANTIC", "1") == "1"
 
 # Tắt M5 LLM khi chạy kiểm thử khác: RECOMMEND_LLM=0
 RECOMMEND_LLM = os.getenv("RECOMMEND_LLM", "1") == "1"
+
+# Bootstrap/Chart.js: lấy từ CDN trước (đỡ tải qua đường hầm/LAN chậm), CDN lỗi thì dùng bản static/vendor.
+# ASSETS_FROM_CDN=0: chỉ dùng bản trong dự án (máy kiểm giao diện, máy không có Internet).
+ASSETS_FROM_CDN = os.getenv("ASSETS_FROM_CDN", "1") == "1"

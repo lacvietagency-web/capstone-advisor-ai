@@ -408,7 +408,7 @@
 
 {% block extra_js %}
   {% load static %}
-  <script src="{% static 'vendor/chart.umd.min.js' %}"></script><!-- cdn.jsdelivr.net/npm/chart.js compatibility -->
+  {% include "components/chartjs.html" %}
   <script>
   (function () {
     var raw = document.getElementById("atStats");

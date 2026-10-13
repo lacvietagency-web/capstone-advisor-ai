@@ -14,7 +14,7 @@
     })();
   </script>
   <link rel="icon" type="image/svg+xml" href="{% static 'brand/favicon.svg' %}">
-  <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
+  {% include "components/vendor_css.html" %}
   <link rel="stylesheet" href="{% static 'css/atlas.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
@@ -130,7 +130,7 @@
 {% endwith %}
 {% endblock body %}
 
-  <script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
+  {% include "components/vendor_js.html" %}
   <script src="{% static 'js/atlas.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>

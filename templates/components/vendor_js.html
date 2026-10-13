@@ -1,0 +1,3 @@
+{% load static %}{# Bootstrap JS: CDN trước, lỗi thì dùng bản trong dự án #}
+{% if assets_cdn %}<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script>window.bootstrap || document.write('<script src="{% static 'vendor/bootstrap.bundle.min.js' %}"><\/script>')</script>{% else %}<script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>{% endif %}

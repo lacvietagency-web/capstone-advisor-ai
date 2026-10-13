@@ -2,449 +2,220 @@
 
 {% block title %}{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %} — Capstone AI{% endblock %}
 
+{% block canvas_class %}at-canvas--read{% endblock %}
+
 {% block content %}
-<div class="mz-topic-form-page" data-mz-reveal>
-  <!-- Page Header -->
-  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
-    <div>
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <a href="{% url 'lecturer_topics' %}" class="mz-btn mz-btn-ghost mz-btn-sm p-1 text-muted" title="Quay lại">
-          {% include "components/icon.html" with name="arrow-left" size=16 %}
-        </a>
-        <h1 class="mz-h2 mb-0">{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %}</h1>
+<header class="at-page-header">
+  <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí">
+      <a href="{% url 'lecturer_topics' %}">Đề tài của tôi</a>
+      <span>{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %}</span>
+    </nav>
+    <h1>{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %}</h1>
+    <p class="at-page-desc">Cập nhật thông tin đề tài và các tiêu chí tuyển chọn sinh viên.</p>
+  </div>
+</header>
+
+<form method="post" novalidate id="topicForm" class="at-stack" data-at-busy>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="at-banner at-banner--danger" role="alert">
+      {% include "components/icon.html" with name="triangle-alert" %}
+      <div>
+        <div class="at-banner-title">Không thể lưu đề tài</div>
+        {% for err in form.non_field_errors %}{{ err }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
       </div>
-      <p class="mz-caption text-muted mb-0">Cập nhật thông tin đề tài và các tiêu chí tuyển chọn sinh viên.</p>
     </div>
-    <div class="d-flex align-items-center gap-2">
-      <a href="{% url 'lecturer_topics' %}" class="mz-btn mz-btn-secondary">
-        {% include "components/icon.html" with name="x" size=16 %}
-        <span>Hủy</span>
-      </a>
-      <button type="submit" form="topicForm" class="mz-btn mz-btn-primary">
-        {% include "components/icon.html" with name="save" size=16 %}
-        <span>Lưu đề tài</span>
+  {% endif %}
+
+  <!-- Panel thông tin đề tài -->
+  <section class="at-panel">
+    <div class="at-panel-header">
+      <div>
+        <h2 class="h3">Thông tin đề tài</h2>
+        <p>Mục tiêu, định hướng và phạm vi nghiên cứu của đề tài.</p>
+      </div>
+    </div>
+
+    <div class="at-field">
+      <label class="form-label at-required" for="{{ form.title.id_for_label }}">Tên đề tài</label>
+      {{ form.title }}
+      {% if form.title.errors %}
+        <div class="at-error">{% for err in form.title.errors %}{{ err }}{% endfor %}</div>
+      {% endif %}
+      <div class="form-text">Tên rõ ràng, bao quát được mục tiêu và giải pháp công nghệ chính.</div>
+    </div>
+
+    <div class="at-field">
+      <label class="form-label at-required" for="{{ form.description.id_for_label }}">Mô tả đề tài</label>
+      {{ form.description }}
+      {% if form.description.errors %}
+        <div class="at-error">{% for err in form.description.errors %}{{ err }}{% endfor %}</div>
+      {% endif %}
+      <div class="form-text">Mô tả ngắn gọn bối cảnh, nhiệm vụ, bài toán cần giải quyết và kết quả dự kiến.</div>
+    </div>
+
+    <div class="at-field">
+      <span class="form-label at-required">Lĩnh vực</span>
+      <div class="at-check-grid">
+        {% for checkbox in form.fields %}
+          <label>{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
+        {% endfor %}
+      </div>
+      {% if form.fields.errors %}
+        <div class="at-error">{% for err in form.fields.errors %}{{ err }}{% endfor %}</div>
+      {% endif %}
+      <div class="form-text">Chọn các lĩnh vực liên quan để hệ thống đối sánh độ phù hợp với sở thích sinh viên.</div>
+    </div>
+
+    <div class="at-grid">
+      <div class="at-col-6 at-field">
+        <label class="form-label at-required" for="{{ form.difficulty.id_for_label }}">Độ khó</label>
+        {{ form.difficulty }}
+        {% if form.difficulty.errors %}
+          <div class="at-error">{% for err in form.difficulty.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="at-col-6 at-field">
+        <label class="form-label at-required" for="{{ form.min_gpa.id_for_label }}">GPA tối thiểu</label>
+        {{ form.min_gpa }}
+        {% if form.min_gpa.errors %}
+          <div class="at-error">{% for err in form.min_gpa.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="at-col-6 at-field">
+        <label class="form-label at-required" for="{{ form.capacity.id_for_label }}">Sức chứa (SV)</label>
+        {{ form.capacity }}
+        {% if form.capacity.errors %}
+          <div class="at-error">{% for err in form.capacity.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="at-col-6 at-field">
+        <label class="form-label at-required" for="{{ form.status.id_for_label }}">Trạng thái</label>
+        {{ form.status }}
+        {% if form.status.errors %}
+          <div class="at-error">{% for err in form.status.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel Kỹ năng yêu cầu -->
+  <section class="at-panel">
+    <div class="at-panel-header">
+      <div>
+        <h2 class="h3">Kỹ năng yêu cầu</h2>
+        <p>Danh sách kỹ năng cần thiết hoặc được ưu tiên cho đề tài này.</p>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-add-skill">
+        {% include "components/icon.html" with name="plus" %}Thêm dòng
       </button>
     </div>
-  </div>
 
-  <form method="post" novalidate id="topicForm">
-    {% csrf_token %}
+    {{ skill_formset.management_form }}
 
-    {% if form.non_field_errors %}
-      <div class="mz-alert mz-alert-danger mb-4" role="alert">
-        {% include "components/icon.html" with name="triangle-alert" size=18 class="text-danger flex-shrink-0" %}
+    {% if skill_formset.non_form_errors %}
+      <div class="at-banner at-banner--danger at-mb-4" role="alert">
+        {% include "components/icon.html" with name="triangle-alert" %}
         <div>
-          <div class="fw-semibold">Không thể lưu đề tài</div>
-          {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+          {% for err in skill_formset.non_form_errors %}{{ err }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
         </div>
       </div>
     {% endif %}
 
-    <div class="row g-4">
-      <!-- Cột trái: Thông tin chính & Kỹ năng yêu cầu -->
-      <div class="col-12 col-lg-8">
-        <!-- Khối 1: Thông tin đề tài -->
-        <div class="mz-card mb-4" data-mz-reveal>
-          <div class="mz-card-header">
-            <div>
-              <h2 class="mz-card-title">Thông tin đề tài</h2>
-              <div class="mz-caption text-muted">Mục tiêu, định hướng và phạm vi nghiên cứu của đề tài.</div>
-            </div>
-          </div>
-
-          <!-- Tên đề tài -->
-          <div class="mb-3">
-            <label for="{{ form.title.id_for_label }}" class="mz-form-label">
-              Tên đề tài <span class="text-danger">*</span>
-            </label>
-            {{ form.title }}
-            {% if form.title.errors %}
-              <div class="mz-form-error text-danger small mt-1">
-                {% for err in form.title.errors %}<div>{{ err }}</div>{% endfor %}
-              </div>
+    <div id="skill-rows-container">
+      {% for f in skill_formset %}
+        <div class="at-repeat-row at-repeat-row--wide" data-skill-row>
+          {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+          <div class="at-field at-mb-0">
+            <label class="form-label" for="{{ f.skill.id_for_label }}">Kỹ năng</label>
+            {{ f.skill }}
+            {% if f.skill.errors %}
+              <div class="at-error">{% for err in f.skill.errors %}{{ err }}{% endfor %}</div>
             {% endif %}
-            <div class="mz-form-text">Tên rõ ràng, bao quát được mục tiêu và giải pháp công nghệ chính.</div>
           </div>
-
-          <!-- Mô tả đề tài -->
-          <div class="mb-3">
-            <label for="{{ form.description.id_for_label }}" class="mz-form-label">
-              Mô tả đề tài <span class="text-danger">*</span>
-            </label>
-            {{ form.description }}
-            {% if form.description.errors %}
-              <div class="mz-form-error text-danger small mt-1">
-                {% for err in form.description.errors %}<div>{{ err }}</div>{% endfor %}
-              </div>
+          <div class="at-field at-mb-0">
+            <label class="form-label" for="{{ f.required_level.id_for_label }}">Mức (1–5)</label>
+            {{ f.required_level }}
+            {% if f.required_level.errors %}
+              <div class="at-error">{% for err in f.required_level.errors %}{{ err }}{% endfor %}</div>
             {% endif %}
-            <div class="mz-form-text">Mô tả ngắn gọn bối cảnh, nhiệm vụ, bài toán cần giải quyết và kết quả dự kiến.</div>
           </div>
-
-          <!-- Lĩnh vực chuyên môn (dạng chip chọn) -->
-          <div class="mb-3">
-            <label class="mz-form-label">
-              Lĩnh vực chuyên môn <span class="text-danger">*</span>
-            </label>
-            <div class="mz-chip-group d-flex flex-wrap gap-2 mt-1" id="field-chips-container">
-              {% for checkbox in form.fields %}
-                <label class="mz-chip-item {% if checkbox.data.selected %}active{% endif %}" for="{{ checkbox.id_for_label }}">
-                  {{ checkbox.tag }}
-                  <span>{{ checkbox.choice_label }}</span>
-                </label>
-              {% endfor %}
-            </div>
-            {% if form.fields.errors %}
-              <div class="mz-form-error text-danger small mt-1">
-                {% for err in form.fields.errors %}<div>{{ err }}</div>{% endfor %}
-              </div>
+          <div class="at-field at-mb-0">
+            <label class="form-label" for="{{ f.weight.id_for_label }}">Trọng số</label>
+            {{ f.weight }}
+            {% if f.weight.errors %}
+              <div class="at-error">{% for err in f.weight.errors %}{{ err }}{% endfor %}</div>
             {% endif %}
-            <div class="mz-form-text">Chọn các lĩnh vực liên quan để Capstone AI đối sánh độ phù hợp với sở thích sinh viên.</div>
           </div>
-
-          <!-- Hàng thông số: Độ khó, GPA tối thiểu, Sức chứa, Trạng thái -->
-          <div class="row g-3">
-            <div class="col-12 col-sm-6 col-md-3">
-              <label for="{{ form.difficulty.id_for_label }}" class="mz-form-label">Độ khó <span class="text-danger">*</span></label>
-              {{ form.difficulty }}
-              {% if form.difficulty.errors %}
-                <div class="mz-form-error text-danger small mt-1">
-                  {% for err in form.difficulty.errors %}<div>{{ err }}</div>{% endfor %}
-                </div>
-              {% endif %}
-            </div>
-
-            <div class="col-12 col-sm-6 col-md-3">
-              <label for="{{ form.min_gpa.id_for_label }}" class="mz-form-label">GPA tối thiểu <span class="text-danger">*</span></label>
-              <div class="input-group">
-                {{ form.min_gpa }}
-                <span class="input-group-text bg-surface-subtle text-muted small">/ 4.0</span>
-              </div>
-              {% if form.min_gpa.errors %}
-                <div class="mz-form-error text-danger small mt-1">
-                  {% for err in form.min_gpa.errors %}<div>{{ err }}</div>{% endfor %}
-                </div>
-              {% endif %}
-            </div>
-
-            <div class="col-12 col-sm-6 col-md-3">
-              <label for="{{ form.capacity.id_for_label }}" class="mz-form-label">Sức chứa <span class="text-danger">*</span></label>
-              <div class="input-group">
-                {{ form.capacity }}
-                <span class="input-group-text bg-surface-subtle text-muted small">SV</span>
-              </div>
-              {% if form.capacity.errors %}
-                <div class="mz-form-error text-danger small mt-1">
-                  {% for err in form.capacity.errors %}<div>{{ err }}</div>{% endfor %}
-                </div>
-              {% endif %}
-            </div>
-
-            <div class="col-12 col-sm-6 col-md-3">
-              <label for="{{ form.status.id_for_label }}" class="mz-form-label">Trạng thái <span class="text-danger">*</span></label>
-              {{ form.status }}
-              {% if form.status.errors %}
-                <div class="mz-form-error text-danger small mt-1">
-                  {% for err in form.status.errors %}<div>{{ err }}</div>{% endfor %}
-                </div>
-              {% endif %}
-            </div>
+          <div class="at-field at-mb-0">
+            <span class="form-label">Bắt buộc</span>
+            <label class="at-row">
+              {{ f.is_mandatory }}
+              <span class="at-secondary">Điều kiện loại</span>
+            </label>
+            {% if f.is_mandatory.errors %}
+              <div class="at-error">{% for err in f.is_mandatory.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
           </div>
-        </div>
-
-        <!-- Khối 2: Kỹ năng yêu cầu (Dynamic Formset + Weight % Calculation) -->
-        <div class="mz-card mb-4" data-mz-reveal>
-          <div class="mz-card-header">
-            <div>
-              <h2 class="mz-card-title">Kỹ năng yêu cầu</h2>
-              <div class="mz-caption text-muted">Danh sách kỹ năng cần thiết hoặc được ưu tiên cho đề tài này.</div>
-            </div>
-            <button type="button" class="mz-btn mz-btn-secondary mz-btn-sm" id="btn-add-skill">
-              {% include "components/icon.html" with name="plus" size=14 %}
-              <span>Thêm kỹ năng</span>
+          <div class="at-field at-mb-0">
+            <div class="d-none">{{ f.DELETE }}</div>
+            <button type="button" class="btn btn-secondary btn-icon btn-delete-skill" aria-label="Xoá dòng">
+              {% include "components/icon.html" with name="trash-2" %}
             </button>
           </div>
-
-          {{ skill_formset.management_form }}
-
-          {% if skill_formset.non_form_errors %}
-            <div class="mz-alert mz-alert-danger mb-3 py-2" role="alert">
-              {% for err in skill_formset.non_form_errors %}
-                <div class="d-flex align-items-center gap-2">
-                  {% include "components/icon.html" with name="triangle-alert" size=14 class="text-danger flex-shrink-0" %}
-                  <span>{{ err }}</span>
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          <!-- Bảng Kỹ năng (Desktop & Tablet) -->
-          <div class="table-responsive">
-            <table class="table mz-table mb-0 align-middle" id="skill-table">
-              <thead>
-                <tr>
-                  <th scope="col" style="width: 44px;" class="text-center">#</th>
-                  <th scope="col" style="min-width: 200px;">Kỹ năng</th>
-                  <th scope="col" style="width: 140px;">Mức (1–5)</th>
-                  <th scope="col" style="width: 150px;">Trọng số</th>
-                  <th scope="col" style="width: 160px;">
-                    <div class="d-flex align-items-center gap-1">
-                      <span>Bắt buộc</span>
-                      {% include "components/icon.html" with name="info" size=14 class="text-muted" title="Là điều kiện loại: sinh viên không đạt sẽ không đủ điều kiện đăng ký" %}
-                    </div>
-                  </th>
-                  <th scope="col" style="width: 60px;" class="text-center">Xóa</th>
-                </tr>
-              </thead>
-              <tbody id="skill-rows-body">
-                {% for f in skill_formset %}
-                  <tr class="skill-form-row {% if f.errors %}border-danger{% endif %}" data-skill-row>
-                    <td class="text-center text-muted fw-semibold row-number">
-                      {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
-                      {{ forloop.counter }}
-                    </td>
-
-                    <!-- Skill select -->
-                    <td>
-                      {{ f.skill }}
-                      {% if f.skill.errors %}
-                        <div class="mz-form-error text-danger small mt-1">
-                          {% for err in f.skill.errors %}<div>{{ err }}</div>{% endfor %}
-                        </div>
-                      {% endif %}
-                    </td>
-
-                    <!-- Required Level -->
-                    <td>
-                      {{ f.required_level }}
-                      {% if f.required_level.errors %}
-                        <div class="mz-form-error text-danger small mt-1">
-                          {% for err in f.required_level.errors %}<div>{{ err }}</div>{% endfor %}
-                        </div>
-                      {% endif %}
-                    </td>
-
-                    <!-- Weight + Dynamic % Share -->
-                    <td>
-                      <div class="d-flex align-items-center gap-2">
-                        <div class="flex-grow-1">
-                          {{ f.weight }}
-                        </div>
-                        <span class="mz-badge mz-badge-neutral skill-weight-percent text-nowrap fw-semibold" style="min-width: 46px; text-align: center;">
-                          —
-                        </span>
-                      </div>
-                      {% if f.weight.errors %}
-                        <div class="mz-form-error text-danger small mt-1">
-                          {% for err in f.weight.errors %}<div>{{ err }}</div>{% endfor %}
-                        </div>
-                      {% endif %}
-                    </td>
-
-                    <!-- Mandatory Switch -->
-                    <td>
-                      <div class="d-flex flex-column">
-                        <label class="form-check form-switch m-0 d-inline-flex align-items-center gap-2 cursor-pointer">
-                          {{ f.is_mandatory }}
-                          <span class="mz-caption text-muted">Điều kiện loại</span>
-                        </label>
-                        {% if f.is_mandatory.errors %}
-                          <div class="mz-form-error text-danger small mt-1">
-                            {% for err in f.is_mandatory.errors %}<div>{{ err }}</div>{% endfor %}
-                          </div>
-                        {% endif %}
-                      </div>
-                    </td>
-
-                    <!-- Delete button -->
-                    <td class="text-center">
-                      <div class="d-none">
-                        {{ f.DELETE }}
-                      </div>
-                      <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm text-danger p-1 btn-delete-skill" title="Xóa kỹ năng này">
-                        {% include "components/icon.html" with name="trash-2" size=16 class="text-danger" %}
-                      </button>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Helper text theo quyết định nghiệp vụ đã chốt -->
-          <div class="p-3 bg-surface-subtle border-top mz-caption text-muted d-flex align-items-start gap-2">
-            {% include "components/icon.html" with name="info" size=16 class="text-primary flex-shrink-0 mt-0" %}
-            <div>
-              Trọng số thể hiện mức độ quan trọng tương đối của từng kỹ năng. <strong>Không yêu cầu tổng bằng 100%</strong>. Tỉ lệ % tương đối được tự động tính toán để hỗ trợ việc cân đối.
-            </div>
-          </div>
         </div>
-      </div>
-
-      <!-- Cột phải: Môn tiên quyết & Điều kiện áp dụng & Gợi ý rubric M1-M5 -->
-      <div class="col-12 col-lg-4">
-        <!-- Khối Môn tiên quyết -->
-        <div class="mz-card mb-4" data-mz-reveal>
-          <div class="mz-card-header">
-            <div>
-              <h2 class="mz-card-title">Môn tiên quyết</h2>
-              <div class="mz-caption text-muted">Môn học sinh viên cần hoàn thành trước khi đăng ký.</div>
-            </div>
-          </div>
-
-          {% if topic.pk and topic.prerequisites.exists %}
-            <div class="table-responsive">
-              <table class="table mz-table mb-0">
-                <thead>
-                  <tr>
-                    <th>Môn học</th>
-                    <th class="text-end">Điểm tối thiểu</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for p in topic.prerequisites.all %}
-                    <tr>
-                      <td>
-                        <div class="fw-semibold text-strong">{{ p.course.name }}</div>
-                        <div class="mz-caption text-muted font-monospace">{{ p.course.code }}</div>
-                      </td>
-                      <td class="text-end">
-                        <span class="mz-badge mz-badge-info">≥ {{ p.min_score|floatformat:1 }}</span>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <div class="p-3 text-center bg-surface-subtle rounded-2 border">
-              {% include "components/icon.html" with name="book-open" size=20 class="text-muted mb-1" %}
-              <div class="mz-caption text-muted">Đề tài hiện không đặt ràng buộc môn học tiên quyết.</div>
-            </div>
-          {% endif %}
-        </div>
-
-        <!-- Khối Tóm tắt Điều kiện áp dụng -->
-        <div class="mz-card mb-4" data-mz-reveal>
-          <div class="mz-card-header">
-            <div>
-              <h2 class="mz-card-title">Điều kiện áp dụng</h2>
-              <div class="mz-caption text-muted">Tóm tắt các tiêu chí xét tuyển sinh viên của đề tài.</div>
-            </div>
-          </div>
-
-          <div class="d-flex flex-column gap-3">
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center gap-2">
-                {% include "components/icon.html" with name="user" size=16 class="text-muted" %}
-                <span class="mz-caption">GPA tối thiểu</span>
-              </div>
-              <span class="fw-semibold text-strong" id="preview-gpa">{{ form.min_gpa.value|default:"0.0" }} / 4.0</span>
-            </div>
-
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center gap-2">
-                {% include "components/icon.html" with name="shield-check" size=16 class="text-muted" %}
-                <span class="mz-caption">Kỹ năng bắt buộc</span>
-              </div>
-              <span class="fw-semibold text-strong" id="preview-mandatory-skills">0 kỹ năng</span>
-            </div>
-
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center gap-2">
-                {% include "components/icon.html" with name="users" size=16 class="text-muted" %}
-                <span class="mz-caption">Sức chứa tối đa</span>
-              </div>
-              <span class="fw-semibold text-strong" id="preview-capacity">{{ form.capacity.value|default:"1" }} SV</span>
-            </div>
-
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center gap-2">
-                {% include "components/icon.html" with name="circle-dot" size=16 class="text-muted" %}
-                <span class="mz-caption">Trạng thái</span>
-              </div>
-              <span class="mz-badge mz-badge-published" id="preview-status">Đang mở</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Khối Giải thích Mô hình đối sánh Capstone AI -->
-        <div class="mz-card" data-mz-reveal>
-          <div class="mz-card-header">
-            <div>
-              <h2 class="mz-card-title">Hệ thống tính điểm phù hợp</h2>
-              <div class="mz-caption text-muted">Capstone AI đánh giá qua 5 mô hình:</div>
-            </div>
-          </div>
-
-          <div class="d-flex flex-column gap-2 small">
-            <div class="p-2 rounded bg-surface-subtle border d-flex align-items-center justify-content-between">
-              <span><strong>M1 · Kỹ năng:</strong> Đối sánh mức thành thạo và trọng số</span>
-              <span class="mz-badge mz-badge-neutral">M1</span>
-            </div>
-            <div class="p-2 rounded bg-surface-subtle border d-flex align-items-center justify-content-between">
-              <span><strong>M2 · Học lực:</strong> Điểm GPA và điểm các môn tiên quyết</span>
-              <span class="mz-badge mz-badge-neutral">M2</span>
-            </div>
-            <div class="p-2 rounded bg-surface-subtle border d-flex align-items-center justify-content-between">
-              <span><strong>M3 · Lĩnh vực:</strong> Mức độ trùng khớp định hướng</span>
-              <span class="mz-badge mz-badge-neutral">M3</span>
-            </div>
-            <div class="p-2 rounded bg-surface-subtle border d-flex align-items-center justify-content-between">
-              <span><strong>M4 · Ngữ nghĩa:</strong> Tương đồng nội dung đề tài và hồ sơ</span>
-              <span class="mz-badge mz-badge-neutral">M4</span>
-            </div>
-            <div class="p-2 rounded bg-surface-subtle border d-flex align-items-center justify-content-between">
-              <span><strong>M5 · Đánh giá LLM:</strong> Phân tích ngữ cảnh toàn diện</span>
-              <span class="mz-badge mz-badge-neutral">M5</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {% endfor %}
     </div>
-  </form>
 
-  <!-- Template hàng formset kỹ năng mẫu để thêm dòng mới động (empty_form with __prefix__) -->
-  <template id="empty-skill-form-template">
-    <tr class="skill-form-row" data-skill-row>
-      <td class="text-center text-muted fw-semibold row-number">
-        {% for hidden in skill_formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
-        __counter__
-      </td>
-      <td>
-        {{ skill_formset.empty_form.skill }}
-      </td>
-      <td>
-        {{ skill_formset.empty_form.required_level }}
-      </td>
-      <td>
-        <div class="d-flex align-items-center gap-2">
-          <div class="flex-grow-1">
-            {{ skill_formset.empty_form.weight }}
-          </div>
-          <span class="mz-badge mz-badge-neutral skill-weight-percent text-nowrap fw-semibold" style="min-width: 46px; text-align: center;">
-            —
-          </span>
-        </div>
-      </td>
-      <td>
-        <div class="d-flex flex-column">
-          <label class="form-check form-switch m-0 d-inline-flex align-items-center gap-2 cursor-pointer">
-            {{ skill_formset.empty_form.is_mandatory }}
-            <span class="mz-caption text-muted">Điều kiện loại</span>
-          </label>
-        </div>
-      </td>
-      <td class="text-center">
-        <div class="d-none">
-          {{ skill_formset.empty_form.DELETE }}
-        </div>
-        <button type="button" class="mz-btn mz-btn-ghost mz-btn-sm text-danger p-1 btn-delete-skill" title="Xóa kỹ năng này">
-          {% include "components/icon.html" with name="trash-2" size=16 class="text-danger" %}
-        </button>
-      </td>
-    </tr>
-  </template>
-</div>
+    <div class="at-inset at-mt-4">
+      <p class="at-secondary at-mb-0">Trọng số thể hiện mức độ quan trọng tương đối của từng kỹ năng. Không yêu cầu tổng bằng 100%.</p>
+    </div>
+  </section>
+
+  <!-- Form actions -->
+  <div class="at-form-actions">
+    <a href="{% url 'lecturer_topics' %}" class="btn btn-secondary">Huỷ</a>
+    <button type="submit" class="btn btn-primary">
+      {% include "components/icon.html" with name="save" %}Lưu đề tài
+    </button>
+  </div>
+</form>
+
+<template id="empty-skill-form-template">
+  <div class="at-repeat-row at-repeat-row--wide" data-skill-row>
+    {% for hidden in skill_formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+    <div class="at-field at-mb-0">
+      <label class="form-label" for="{{ skill_formset.empty_form.skill.id_for_label }}">Kỹ năng</label>
+      {{ skill_formset.empty_form.skill }}
+    </div>
+    <div class="at-field at-mb-0">
+      <label class="form-label" for="{{ skill_formset.empty_form.required_level.id_for_label }}">Mức (1–5)</label>
+      {{ skill_formset.empty_form.required_level }}
+    </div>
+    <div class="at-field at-mb-0">
+      <label class="form-label" for="{{ skill_formset.empty_form.weight.id_for_label }}">Trọng số</label>
+      {{ skill_formset.empty_form.weight }}
+    </div>
+    <div class="at-field at-mb-0">
+      <span class="form-label">Bắt buộc</span>
+      <label class="at-row">
+        {{ skill_formset.empty_form.is_mandatory }}
+        <span class="at-secondary">Điều kiện loại</span>
+      </label>
+    </div>
+    <div class="at-field at-mb-0">
+      <div class="d-none">{{ skill_formset.empty_form.DELETE }}</div>
+      <button type="button" class="btn btn-secondary btn-icon btn-delete-skill" aria-label="Xoá dòng">
+        {% include "components/icon.html" with name="trash-2" %}
+      </button>
+    </div>
+  </div>
+</template>
 {% endblock %}
 
 {% block extra_js %}
@@ -453,213 +224,53 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("topicForm");
   if (!form) return;
 
-  // 1. Tự động gắn các class điều khiển chuẩn Mosaic/Bootstrap vào input và select
-  form.querySelectorAll("input[type='text'], input[type='number'], textarea").forEach(function (el) {
-    if (!el.classList.contains("mz-form-control") && !el.classList.contains("form-control")) {
-      el.classList.add("mz-form-control");
-    }
-  });
-
-  form.querySelectorAll("select").forEach(function (el) {
-    if (!el.classList.contains("mz-form-select") && !el.classList.contains("form-select")) {
-      el.classList.add("mz-form-select");
-    }
-  });
-
-  // 2. Chip Lĩnh vực chuyên môn tương tác
-  const chipsContainer = document.getElementById("field-chips-container");
-  if (chipsContainer) {
-    function updateChipState(cb) {
-      const chip = cb.closest(".mz-chip-item");
-      if (chip) {
-        if (cb.checked) {
-          chip.classList.add("active");
-        } else {
-          chip.classList.remove("active");
-        }
-      }
-    }
-
-    chipsContainer.querySelectorAll("input[type='checkbox']").forEach(function (cb) {
-      updateChipState(cb);
-      cb.addEventListener("change", function () {
-        updateChipState(cb);
-      });
+  function ensureClasses(root) {
+    root.querySelectorAll("input[type='text'], input[type='number'], textarea").forEach(function (el) {
+      if (!el.classList.contains("form-control")) el.classList.add("form-control");
+    });
+    root.querySelectorAll("select").forEach(function (el) {
+      if (!el.classList.contains("form-select")) el.classList.add("form-select");
     });
   }
+  ensureClasses(form);
 
-  // 3. TÍNH TOÁN VÀ HIỂN THỊ TỈ LỆ % TRỌNG SỐ TỪNG KỸ NĂNG (BẮT BUỘC JS, KHÔNG ÉP TỔNG 100%)
-  function recalculateWeights() {
-    const rows = document.querySelectorAll("#skill-rows-body [data-skill-row]");
-    let sumWeight = 0;
-    const activeRows = [];
+  const container = document.getElementById("skill-rows-container");
+  const totalInput = document.getElementById("id_skills-TOTAL_FORMS");
+  const templateEl = document.getElementById("empty-skill-form-template");
+  const addBtn = document.getElementById("btn-add-skill");
 
-    rows.forEach(function (row) {
-      const delCheckbox = row.querySelector("input[name$='-DELETE']");
-      if (delCheckbox && delCheckbox.checked) {
-        row.style.display = "none";
-        return;
-      }
-      activeRows.push(row);
-      const weightInput = row.querySelector("input[name$='-weight']");
-      if (weightInput) {
-        const val = parseFloat(weightInput.value) || 0;
-        if (val > 0) sumWeight += val;
-      }
-    });
-
-    activeRows.forEach(function (row, idx) {
-      // Cập nhật số thứ tự hiển thị
-      const numCell = row.querySelector(".row-number");
-      if (numCell) {
-        const textNode = Array.from(numCell.childNodes).find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
-        if (textNode) {
-          textNode.textContent = (idx + 1).toString();
-        }
-      }
-
-      const weightInput = row.querySelector("input[name$='-weight']");
-      const percentBadge = row.querySelector(".skill-weight-percent");
-      if (!percentBadge) return;
-
-      if (!weightInput || sumWeight <= 0) {
-        percentBadge.textContent = "—";
-        return;
-      }
-
-      const val = parseFloat(weightInput.value) || 0;
-      if (val <= 0) {
-        percentBadge.textContent = "0%";
-      } else {
-        const share = Math.round((val / sumWeight) * 100);
-        percentBadge.textContent = share + "%";
-      }
-    });
-
-    // Cập nhật số kỹ năng bắt buộc preview
-    const mandatoryCount = Array.from(rows).filter(r => {
-      const delCb = r.querySelector("input[name$='-DELETE']");
-      if (delCb && delCb.checked) return false;
-      const mandCb = r.querySelector("input[name$='-is_mandatory']");
-      return mandCb && mandCb.checked;
-    }).length;
-
-    const mandPreview = document.getElementById("preview-mandatory-skills");
-    if (mandPreview) {
-      mandPreview.textContent = mandatoryCount + " kỹ năng";
-    }
-  }
-
-  // Lắng nghe thay đổi trọng số và bắt buộc trên toàn form
-  const skillBody = document.getElementById("skill-rows-body");
-  if (skillBody) {
-    skillBody.addEventListener("input", function (e) {
-      if (e.target && e.target.name && e.target.name.includes("-weight")) {
-        recalculateWeights();
-      }
-    });
-
-    skillBody.addEventListener("change", function (e) {
-      if (e.target && e.target.name && (e.target.name.includes("-weight") || e.target.name.includes("-is_mandatory"))) {
-        recalculateWeights();
-      }
-    });
-  }
-
-  // 4. Xóa dòng kỹ năng
-  function attachDeleteHandler(btn) {
+  function attachDelete(btn) {
     btn.addEventListener("click", function () {
       const row = btn.closest("[data-skill-row]");
       if (!row) return;
-
       const delCheckbox = row.querySelector("input[name$='-DELETE']");
       const idInput = row.querySelector("input[name$='-id']");
-
       if (delCheckbox) {
         delCheckbox.checked = true;
         row.style.display = "none";
       } else if (!idInput || !idInput.value) {
-        // Dòng mới chưa lưu DB, xoá hẳn khỏi DOM
         row.remove();
       } else {
         row.style.display = "none";
       }
-
-      recalculateWeights();
     });
   }
+  form.querySelectorAll(".btn-delete-skill").forEach(attachDelete);
 
-  document.querySelectorAll(".btn-delete-skill").forEach(attachDeleteHandler);
-
-  // 5. Thêm dòng kỹ năng động (Sử dụng Django empty_form với __prefix__)
-  const addSkillBtn = document.getElementById("btn-add-skill");
-  const totalFormsInput = document.getElementById("id_skills-TOTAL_FORMS");
-  const templateEl = document.getElementById("empty-skill-form-template");
-
-  if (addSkillBtn && totalFormsInput && templateEl && skillBody) {
-    addSkillBtn.addEventListener("click", function () {
-      const currentCount = parseInt(totalFormsInput.value, 10) || 0;
-      const templateHtml = templateEl.innerHTML;
-
-      // Thay thế __prefix__ bằng currentCount
-      let newRowHtml = templateHtml.replace(/__prefix__/g, currentCount.toString());
-      newRowHtml = newRowHtml.replace(/__counter__/g, (currentCount + 1).toString());
-
-      // Tạo phần tử tr từ html
-      const tempTbody = document.createElement("tbody");
-      tempTbody.innerHTML = newRowHtml.trim();
-      const newRow = tempTbody.firstElementChild;
-
-      // Chuẩn hoá class cho input & select mới tạo
-      newRow.querySelectorAll("input[type='text'], input[type='number']").forEach(function (el) {
-        if (!el.classList.contains("mz-form-control")) el.classList.add("mz-form-control");
-      });
-      newRow.querySelectorAll("select").forEach(function (el) {
-        if (!el.classList.contains("mz-form-select")) el.classList.add("mz-form-select");
-      });
-
-      // Gắn delete listener
-      const deleteBtn = newRow.querySelector(".btn-delete-skill");
-      if (deleteBtn) attachDeleteHandler(deleteBtn);
-
-      skillBody.appendChild(newRow);
-      totalFormsInput.value = (currentCount + 1).toString();
-
-      recalculateWeights();
+  if (addBtn && totalInput && templateEl && container) {
+    addBtn.addEventListener("click", function () {
+      const idx = parseInt(totalInput.value, 10) || 0;
+      const html = templateEl.innerHTML.replace(/__prefix__/g, idx.toString());
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = html.trim();
+      const newRow = wrapper.firstElementChild;
+      ensureClasses(newRow);
+      const delBtn = newRow.querySelector(".btn-delete-skill");
+      if (delBtn) attachDelete(delBtn);
+      container.appendChild(newRow);
+      totalInput.value = (idx + 1).toString();
     });
   }
-
-  // 6. Cập nhật preview tóm tắt khi thay đổi GPA, Sức chứa, Trạng thái
-  const gpaInput = document.getElementById("{{ form.min_gpa.id_for_label }}");
-  const capInput = document.getElementById("{{ form.capacity.id_for_label }}");
-  const statusInput = document.getElementById("{{ form.status.id_for_label }}");
-
-  if (gpaInput) {
-    gpaInput.addEventListener("input", function () {
-      const gpaP = document.getElementById("preview-gpa");
-      if (gpaP) gpaP.textContent = (gpaInput.value || "0.0") + " / 4.0";
-    });
-  }
-
-  if (capInput) {
-    capInput.addEventListener("input", function () {
-      const capP = document.getElementById("preview-capacity");
-      if (capP) capP.textContent = (capInput.value || "1") + " SV";
-    });
-  }
-
-  if (statusInput) {
-    statusInput.addEventListener("change", function () {
-      const stP = document.getElementById("preview-status");
-      if (stP) {
-        const text = statusInput.options[statusInput.selectedIndex] ? statusInput.options[statusInput.selectedIndex].text : "";
-        stP.textContent = text;
-      }
-    });
-  }
-
-  // Chạy tính toán ban đầu
-  recalculateWeights();
 });
 </script>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Thống kê & Báo cáo — Capstone AI{% endblock %}
+{% block title %}Thống kê & Báo cáo Khoa — Capstone AI{% endblock %}
 
 {% block content %}
 <header class="at-page-header">
@@ -10,7 +10,7 @@
       <span>Thống kê &amp; Báo cáo</span>
     </nav>
     <h1>Thống kê &amp; Báo cáo Khoa</h1>
-    <p class="at-page-desc">Tổng hợp số liệu thống kê về đăng ký đề tài và kết quả phân công của sinh viên theo từng đợt.</p>
+    <p class="at-page-desc">Tổng hợp số liệu thống kê về đăng ký đề tài và phân công hướng dẫn trong đợt hiện tại của khoa.</p>
   </div>
   <div class="at-page-actions">
     {# Bộ chọn đợt autosubmit #}
@@ -35,7 +35,7 @@
 <div class="at-stack">
   {# Dải trạng thái đợt #}
   {% if period %}
-    {% include "components/period.html" with period=period text="Đợt thống kê hiện tại" %}
+    {% include "components/period.html" with period=period text="Dữ liệu được cập nhật từ đợt đăng ký hiện tại, bao gồm thông tin sinh viên, đề tài và kết quả phân công hướng dẫn." %}
   {% endif %}
 
   {# Dải số liệu Metric Ledger: tình hình đăng ký và chỉ số tối ưu #}
@@ -46,33 +46,33 @@
       <div class="at-ledger-note">trong hệ thống</div>
     </div>
     <div class="at-ledger-item">
-      <div class="at-ledger-label">Đã đăng ký NV</div>
-      <div class="at-ledger-value">{{ reg_stats.registered_students }}</div>
-      <div class="at-ledger-note">{{ reg_stats.registered_rate }}% sinh viên</div>
+      <div class="at-ledger-label">Đề tài</div>
+      <div class="at-ledger-value">{{ topic_nv1_list|length }}</div>
+      <div class="at-ledger-note">đợt hiện tại</div>
     </div>
-    <div class="at-ledger-item{% if reg_stats.unregistered_students > 0 %} at-ledger-item--warn{% endif %}">
-      <div class="at-ledger-label">Chưa đăng ký NV</div>
-      <div class="at-ledger-value">{{ reg_stats.unregistered_students }}</div>
-      <div class="at-ledger-note">{{ reg_stats.unregistered_rate }}% sinh viên</div>
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Đã xếp</div>
+      <div class="at-ledger-value">{{ comparison.ilp.assigned_pct }}<small> %</small></div>
+      <div class="at-ledger-note">mô hình ILP</div>
+    </div>
+    <div class="at-ledger-item{% if comparison.ilp.unassigned_count > 0 %} at-ledger-item--warn{% endif %}">
+      <div class="at-ledger-label">Chờ pha 2</div>
+      <div class="at-ledger-value">{{ comparison.ilp.unassigned_count }}</div>
+      <div class="at-ledger-note">cần xếp tay</div>
+    </div>
+    <div class="at-ledger-item">
+      <div class="at-ledger-label">Giảng viên</div>
+      <div class="at-ledger-value">{{ lecturer_load|length }}</div>
+      <div class="at-ledger-note">tham gia hướng dẫn</div>
     </div>
     <div class="at-ledger-item at-ledger-item--ai">
-      <div class="at-ledger-label">Tối ưu đạt NV1</div>
+      <div class="at-ledger-label">Đạt NV1</div>
       <div class="at-ledger-value">{{ comparison.ilp.nv1_pct }}<small> %</small></div>
       <div class="at-ledger-note">mô hình ILP</div>
     </div>
-    <div class="at-ledger-item">
-      <div class="at-ledger-label">Đạt Top 3 NV</div>
-      <div class="at-ledger-value">{{ comparison.ilp.top3_pct }}<small> %</small></div>
-      <div class="at-ledger-note">mô hình ILP</div>
-    </div>
-    <div class="at-ledger-item">
-      <div class="at-ledger-label">Tỉ lệ xếp xong</div>
-      <div class="at-ledger-value">{{ comparison.ilp.assigned_pct }}<small> %</small></div>
-      <div class="at-ledger-note">ILP vs {{ comparison.greedy.assigned_pct }}% Greedy</div>
-    </div>
   </section>
 
-  {# Hàng 1: Lưới 7:5 — Biểu đồ kết quả theo NV (7/12) và Phân bố lĩnh vực (5/12) kèm bảng kiểm chứng #}
+  {# Hàng 1: Lưới 7:5 — Biểu đồ đề tài NV1 (7/12) và Phân bố lĩnh vực (5/12) kèm bảng kiểm chứng #}
   <div class="at-grid">
     {# Cột 7: Đề tài nhận nhiều NV1 nhất #}
     <section class="at-panel at-panel--flush at-col-7">
@@ -309,7 +309,7 @@
               <td class="at-td-num">+{{ comparison.delta.assigned_pct }}%</td>
             </tr>
             <tr>
-              <td class="at-td-main">Điểm phù hợp AI trung bình</td>
+              <td class="at-td-main">Điểm TB (thang 100)</td>
               <td class="at-td-num">{{ comparison.ilp.avg_match }}</td>
               <td class="at-td-num">{{ comparison.greedy.avg_match }}</td>
               <td class="at-td-num">+{{ comparison.delta.avg_match }}</td>
@@ -354,6 +354,13 @@
               <dt>Greedy</dt><dd class="at-num">{{ comparison.greedy.assigned_pct }}%</dd>
             </dl>
           </article>
+          <article class="at-item">
+            <strong>Điểm TB (thang 100)</strong>
+            <dl class="at-kv at-mt-3">
+              <dt>ILP</dt><dd class="at-num">{{ comparison.ilp.avg_match }}</dd>
+              <dt>Greedy</dt><dd class="at-num">{{ comparison.greedy.avg_match }}</dd>
+            </dl>
+          </article>
         </div>
       </div>
     </section>
@@ -370,6 +377,41 @@
   {% include "components/chartjs.html" %}
   <script>
   (function () {
+    // Plugin nội tuyến Chart.js vẽ nhãn số trên đầu/cuối cột
+    var topLabelsPlugin = {
+      id: "topLabels",
+      afterDatasetsDraw: function (chart) {
+        if (chart.config.type !== "bar") return;
+        var ctx = chart.ctx;
+        var isHorizontal = chart.config.options && chart.config.options.indexAxis === "y";
+        chart.data.datasets.forEach(function (dataset, i) {
+          var meta = chart.getDatasetMeta(i);
+          if (meta.hidden) return;
+          meta.data.forEach(function (bar, index) {
+            var val = dataset.data[index];
+            if (val === undefined || val === null) return;
+            ctx.save();
+            var ink = getComputedStyle(document.documentElement).getPropertyValue("--at-ink").trim() || "#212529";
+            ctx.fillStyle = ink;
+            ctx.font = '600 12px "Be Vietnam Pro", sans-serif';
+            if (isHorizontal) {
+              ctx.textAlign = "left";
+              ctx.textBaseline = "middle";
+              ctx.fillText(val, bar.x + 6, bar.y);
+            } else {
+              ctx.textAlign = "center";
+              ctx.textBaseline = "bottom";
+              ctx.fillText(val, bar.x, bar.y - 4);
+            }
+            ctx.restore();
+          });
+        });
+      }
+    };
+    if (window.Chart) {
+      Chart.register(topLabelsPlugin);
+    }
+
     var raw = document.getElementById("atStats");
     if (!raw) return;
     var data;
@@ -397,12 +439,18 @@
           ]
         },
         options: {
-          scales: { y: { beginAtZero: true } }
+          scales: {
+            y: {
+              beginAtZero: true,
+              grace: "12%",
+              ticks: { precision: 0 }
+            }
+          }
         }
       });
     }
 
-    // 2. Biểu đồ lĩnh vực
+    // 2. Biểu đồ phân bố lĩnh vực (dạng thanh ngang theo spec-khoa V3.5)
     var cField = document.getElementById("chartField");
     if (cField && data.fields) {
       var fieldColors = [
@@ -410,16 +458,25 @@
         "var(--at-chart-4)", "var(--at-chart-5)", "var(--at-chart-6)"
       ];
       cField.dataset.atChart = JSON.stringify({
-        type: "doughnut",
+        type: "bar",
         data: {
           labels: data.fields.labels,
           datasets: [{
+            label: "Số NV1",
             data: data.fields.counts,
             backgroundColor: fieldColors.slice(0, data.fields.labels.length)
           }]
         },
         options: {
-          plugins: { legend: { position: "bottom" } }
+          indexAxis: "y",
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grace: "15%",
+              ticks: { precision: 0 }
+            }
+          }
         }
       });
     }
@@ -445,7 +502,13 @@
           ]
         },
         options: {
-          scales: { y: { beginAtZero: true } }
+          scales: {
+            y: {
+              beginAtZero: true,
+              grace: "12%",
+              ticks: { precision: 0 }
+            }
+          }
         }
       });
     }
@@ -471,7 +534,13 @@
           ]
         },
         options: {
-          scales: { y: { beginAtZero: true, max: 100 } }
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              grace: "10%"
+            }
+          }
         }
       });
     }

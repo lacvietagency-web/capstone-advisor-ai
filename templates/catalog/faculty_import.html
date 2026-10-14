@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Nhập dữ liệu Excel — Capstone AI{% endblock %}
+{% block title %}Nhập dữ liệu từ Excel — Capstone AI{% endblock %}
 
 {% block canvas_class %}at-canvas--read{% endblock %}
 
@@ -11,8 +11,8 @@
       <a href="{% url 'home' %}">Khoa</a>
       <span>Nhập Excel</span>
     </nav>
-    <h1>Nhập danh sách từ Excel</h1>
-    <p class="at-page-desc">Tải lên tệp .xlsx chứa thông tin sinh viên, giảng viên, đề tài và kỹ năng vào hệ thống.</p>
+    <h1>Nhập dữ liệu từ Excel</h1>
+    <p class="at-page-desc">Nhận dữ liệu sinh viên, giảng viên, đề tài từ tệp Excel để phục vụ quản lý đợt đăng ký.</p>
   </div>
   <div class="at-page-actions">
     <a href="{% url 'faculty_import_sample' %}" class="btn btn-secondary">
@@ -22,43 +22,61 @@
 </header>
 
 <div class="at-stack">
-  {# Bước 1: Hướng dẫn định dạng & tải mẫu #}
-  <section class="at-panel">
-    <div class="at-panel-header">
-      <div>
-        <h2>Bước 1 — Hướng dẫn và tải tệp mẫu</h2>
-        <p>Sử dụng tệp mẫu chuẩn của Khoa để đảm bảo đúng định dạng và thứ tự cột.</p>
+  {# Hướng dẫn và Tải mẫu (8/12 và 4/12) #}
+  <div class="at-grid">
+    {# Cột 8: Hướng dẫn #}
+    <section class="at-panel at-col-8">
+      <div class="at-panel-header">
+        <div>
+          <h2>Hướng dẫn</h2>
+          <p>Các bước thực hiện để nhập dữ liệu vào hệ thống.</p>
+        </div>
       </div>
-      <a href="{% url 'faculty_import_sample' %}" class="btn btn-secondary btn-sm">
-        {% include "components/icon.html" with name="file-spreadsheet" %}Tải mẫu .xlsx
-      </a>
-    </div>
+      <div class="at-inset">
+        <dl class="at-kv">
+          <dt>Bước 1</dt>
+          <dd>Tải tệp mẫu Excel chuẩn (.xlsx) gồm 4 sheet: <strong>SinhVien</strong>, <strong>GiangVien</strong>, <strong>DeTai</strong>, <strong>KyNang</strong>.</dd>
+          <dt>Bước 2</dt>
+          <dd>Điền đầy đủ thông tin theo đúng định dạng và thứ tự cột trong tệp mẫu.</dd>
+          <dt>Bước 3</dt>
+          <dd>Tải lên tệp Excel và hệ thống sẽ tự động kiểm tra dữ liệu trước khi ghi.</dd>
+          <dt>Bước 4</dt>
+          <dd>Xem kết quả kiểm tra, sửa các lỗi (nếu có) và xác nhận nhập dữ liệu.</dd>
+          <dt>Định dạng</dt>
+          <dd>Microsoft Excel (<strong>.xlsx</strong>), dung lượng tối đa <strong>{{ max_mb }} MB</strong>.</dd>
+        </dl>
+      </div>
+    </section>
 
-    <div class="at-inset">
-      <dl class="at-kv">
-        <dt>Định dạng</dt>
-        <dd>Microsoft Excel (<strong>.xlsx</strong>)</dd>
-        <dt>4 sheet chuẩn</dt>
-        <dd><strong>SinhVien</strong>, <strong>GiangVien</strong>, <strong>DeTai</strong>, <strong>KyNang</strong></dd>
-        <dt>Dung lượng</dt>
-        <dd>Tối đa <strong>{{ max_mb }} MB</strong></dd>
-        <dt>Chính sách</dt>
-        <dd>Kiểm tra toàn bộ (All-or-nothing): Nếu phát hiện lỗi ở bất kỳ dòng nào, hệ thống sẽ dừng và không lưu bản ghi nào.</dd>
-      </dl>
-    </div>
-  </section>
+    {# Cột 4: Tải mẫu #}
+    <section class="at-panel at-col-4">
+      <div class="at-panel-header">
+        <div>
+          <h2>Tải mẫu</h2>
+          <p>Tải tệp mẫu chuẩn của Khoa.</p>
+        </div>
+      </div>
+      <p class="at-secondary">Tệp mẫu gồm 4 sheet (SinhVien, GiangVien, DeTai, KyNang) đã được định dạng sẵn cấu trúc và dữ liệu mẫu.</p>
+      <div class="at-mt-4">
+        <a href="{% url 'faculty_import_sample' %}" class="btn btn-secondary at-w-100">
+          {% include "components/icon.html" with name="file-spreadsheet" %}Tải tệp mẫu (.xlsx)
+        </a>
+      </div>
+    </section>
+  </div>
 
-  {# Bước 2: Tải lên tệp dữ liệu #}
+  {# Tải lên tệp dữ liệu #}
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
-        <h2>Bước 2 — Tải lên tệp dữ liệu</h2>
-        <p>Chọn tệp .xlsx từ máy tính để hệ thống kiểm tra cấu trúc và ghi vào cơ sở dữ liệu.</p>
+        <h2>Tải lên</h2>
+        <p>Chọn tệp .xlsx từ máy tính để hệ thống kiểm tra trước khi ghi dữ liệu.</p>
       </div>
     </div>
 
     <form method="post" enctype="multipart/form-data" data-at-busy>
       {% csrf_token %}
+      <input type="hidden" name="action" value="check">
       <div class="at-field">
         <label class="form-label at-required" for="atFileInput">Tệp dữ liệu Excel</label>
         <input class="form-control" type="file" id="atFileInput" name="file" accept=".xlsx" required>
@@ -67,25 +85,44 @@
 
       <div class="at-form-actions">
         <button type="submit" class="btn btn-primary">
-          {% include "components/icon.html" with name="upload" %}Tải lên và nhập dữ liệu
+          {% include "components/icon.html" with name="upload" %}Tải lên &amp; kiểm tra
         </button>
       </div>
     </form>
   </section>
 
-  {# Bước 3: Kết quả kiểm tra và nhập dữ liệu #}
+  {# Kết quả kiểm tra và Xác nhận nhập #}
   {% if result %}
     <section class="at-panel at-panel--flush">
       <div class="at-panel-header">
         <div>
-          <h2>Bước 3 — Kết quả kiểm tra</h2>
+          <h2>Kết quả kiểm tra</h2>
           <p>Tệp xử lý: <strong>{{ result.filename }}</strong></p>
         </div>
       </div>
 
-      {% if result.ok %}
+      {% if result.pending %}
         <div class="at-panel-body">
-          {% include "components/banner.html" with kind="success" title="Nhập dữ liệu thành công" text="Toàn bộ thông tin trong tệp đã được kiểm tra hợp lệ và ghi nhận vào cơ sở dữ liệu hệ thống." %}
+          {% include "components/banner.html" with kind="info" title="Kiểm tra thành công — Sẵn sàng nhập" text="Tệp dữ liệu hợp lệ và không phát hiện lỗi. Vui lòng rà soát số lượng bản ghi bên dưới và bấm Xác nhận nhập." %}
+        </div>
+
+        {# Dải số liệu kết quả kiểm tra #}
+        <div class="at-ledger at-mb-4" style="margin: 0 16px 16px;">
+          <div class="at-ledger-item">
+            <div class="at-ledger-label">Đối tượng dữ liệu</div>
+            <div class="at-ledger-value">{{ result.rows|length }}</div>
+            <div class="at-ledger-note">danh mục sheet</div>
+          </div>
+          <div class="at-ledger-item">
+            <div class="at-ledger-label">Trạng thái tệp</div>
+            <div class="at-ledger-value" style="color:var(--at-success)">Hợp lệ</div>
+            <div class="at-ledger-note">sạch lỗi</div>
+          </div>
+          <div class="at-ledger-item">
+            <div class="at-ledger-label">Số dòng lỗi</div>
+            <div class="at-ledger-value">0</div>
+            <div class="at-ledger-note">0 lỗi phát hiện</div>
+          </div>
         </div>
 
         <div class="at-table-wrap">
@@ -93,7 +130,7 @@
             <thead>
               <tr>
                 <th>Đối tượng dữ liệu</th>
-                <th class="at-th-num">Số lượng đã nhập</th>
+                <th class="at-th-num">Số lượng</th>
                 <th>Trạng thái</th>
               </tr>
             </thead>
@@ -125,6 +162,63 @@
             {% endfor %}
           </div>
         </div>
+
+        {# Khối Xác nhận nhập: Form POST action=confirm kèm nút Huỷ #}
+        <div class="at-panel-body" style="border-top: 1px solid var(--at-line); margin-top: 16px; padding-top: 16px;">
+          <form method="post" class="at-row at-row--between" data-at-busy>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="confirm">
+            <p class="at-secondary at-mb-0">Dữ liệu hợp lệ sẽ được ghi vào cơ sở dữ liệu hệ thống. Vui lòng kiểm tra kỹ trước khi xác nhận.</p>
+            <div class="at-row">
+              <a href="{% url 'faculty_import' %}" class="btn btn-secondary">Huỷ</a>
+              <button type="submit" class="btn btn-primary">
+                {% include "components/icon.html" with name="check" %}Xác nhận nhập
+              </button>
+            </div>
+          </form>
+        </div>
+      {% elif result.ok %}
+        <div class="at-panel-body">
+          {% include "components/banner.html" with kind="success" title="Nhập dữ liệu thành công" text="Toàn bộ thông tin trong tệp đã được kiểm tra hợp lệ và ghi nhận vào cơ sở dữ liệu hệ thống." %}
+        </div>
+
+        <div class="at-table-wrap">
+          <table class="at-table d-none d-md-table">
+            <thead>
+              <tr>
+                <th>Đối tượng dữ liệu</th>
+                <th class="at-th-num">Số lượng đã nhập</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for label, count in result.rows %}
+                <tr>
+                  <td class="at-td-main">{{ label }}</td>
+                  <td class="at-td-num">{{ count }}</td>
+                  <td>{% include "components/status.html" with status="ACCEPTED" label="Đã lưu" %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="at-panel-body d-md-none">
+          <div class="at-list">
+            {% for label, count in result.rows %}
+              <article class="at-item">
+                <div class="at-row at-row--between at-row--top">
+                  <strong>{{ label }}</strong>
+                  {% include "components/status.html" with status="ACCEPTED" label="Đã lưu" %}
+                </div>
+                <dl class="at-kv at-mt-3">
+                  <dt>Số lượng</dt>
+                  <dd class="at-num">{{ count }}</dd>
+                </dl>
+              </article>
+            {% endfor %}
+          </div>
+        </div>
       {% else %}
         <div class="at-panel-body">
           {% include "components/banner.html" with kind="danger" title="Không thể nhập dữ liệu" text="Phát hiện lỗi trong quá trình kiểm tra. Dữ liệu chưa được ghi vào hệ thống. Vui lòng sửa lại các dòng bên dưới và tải lên lại." %}
@@ -134,17 +228,17 @@
           <table class="at-table d-none d-md-table">
             <thead>
               <tr>
-                <th style="width:72px">STT</th>
-                <th>Chi tiết thông báo lỗi</th>
-                <th style="width:140px">Phân loại</th>
+                <th style="width:80px">Dòng</th>
+                <th>Lỗi</th>
+                <th style="width:140px">Trạng thái</th>
               </tr>
             </thead>
             <tbody>
               {% for err in result.errors %}
                 <tr>
-                  <td class="at-num">{{ forloop.counter }}</td>
+                  <td class="at-num">#{{ forloop.counter }}</td>
                   <td>{{ err }}</td>
-                  <td>{% include "components/status.html" with status="REJECTED" label="Lỗi dòng" %}</td>
+                  <td>{% include "components/status.html" with status="REJECTED" label="Có lỗi" %}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -169,11 +263,11 @@
     <section class="at-panel">
       <div class="at-panel-header">
         <div>
-          <h2>Bước 3 — Kết quả kiểm tra</h2>
+          <h2>Kết quả kiểm tra</h2>
           <p>Trạng thái kết quả sau khi tải lên và phân tích tệp dữ liệu.</p>
         </div>
       </div>
-      {% include "components/empty.html" with illustration="empty-topics" title="Chưa có dữ liệu kiểm tra" desc="Vui lòng chọn tệp .xlsx ở bước 2 và bấm 'Tải lên và nhập dữ liệu' để bắt đầu kiểm tra và nhập." %}
+      {% include "components/empty.html" with illustration="empty-topics" title="Chưa có dữ liệu kiểm tra" desc="Vui lòng chọn tệp .xlsx ở bước tải lên và bấm 'Tải lên & kiểm tra' để bắt đầu." %}
     </section>
   {% endif %}
 </div>

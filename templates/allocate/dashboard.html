@@ -10,7 +10,7 @@
       <span>Phân công đề tài</span>
     </nav>
     <h1>Phân công đề tài</h1>
-    <p class="at-page-desc">Tối ưu hoá phân công sinh viên – đề tài – giảng viên bằng mô hình ILP và so sánh đối chiếu.</p>
+    <p class="at-page-desc">Phân công đề tài cho sinh viên trong đợt đăng ký hiện tại, hỗ trợ tối ưu và cân bằng theo nguyện vọng.</p>
   </div>
   <div class="at-page-actions">
     {# Bộ chọn đợt autosubmit #}
@@ -32,16 +32,16 @@
       {# Nút chạy thuật toán #}
       <form method="post" data-at-busy>
         {% csrf_token %}
-        <input type="hidden" name="action" value="run_ilp">
-        <button type="submit" class="btn btn-primary btn-sm">
-          {% include "components/icon.html" with name="play" %}Chạy tối ưu ILP
+        <input type="hidden" name="action" value="run_greedy">
+        <button type="submit" class="btn btn-secondary btn-sm">
+          {% include "components/icon.html" with name="git-compare" %}Chạy Greedy
         </button>
       </form>
       <form method="post" data-at-busy>
         {% csrf_token %}
-        <input type="hidden" name="action" value="run_greedy">
-        <button type="submit" class="btn btn-secondary btn-sm">
-          {% include "components/icon.html" with name="git-compare" %}Chạy Greedy
+        <input type="hidden" name="action" value="run_ilp">
+        <button type="submit" class="btn btn-primary btn-sm">
+          {% include "components/icon.html" with name="play" %}Chạy tối ưu ILP
         </button>
       </form>
     {% endif %}
@@ -51,7 +51,7 @@
 <div class="at-stack">
   {# Dải trạng thái đợt #}
   {% if period %}
-    {% include "components/period.html" with period=period text="Đợt phân công hiện tại" %}
+    {% include "components/period.html" with period=period text="Đây là đợt đăng ký hiện tại. Hệ thống hỗ trợ tối ưu phân công dựa trên nguyện vọng và các ràng buộc." %}
   {% endif %}
 
   {# Banner thông báo trạng thái đợt #}
@@ -75,9 +75,9 @@
         <div class="at-ledger-note">trong đợt</div>
       </div>
       <div class="at-ledger-item">
-        <div class="at-ledger-label">Tỉ lệ phân công</div>
+        <div class="at-ledger-label">Đã xếp</div>
         <div class="at-ledger-value">{% if metrics %}{% widthratio metrics.assigned_rate 1 100 %}<small> %</small>{% else %}—{% endif %}</div>
-        <div class="at-ledger-note">được gán đề tài</div>
+        <div class="at-ledger-note">Tỉ lệ phân công</div>
       </div>
       <div class="at-ledger-item">
         <div class="at-ledger-label">Đạt NV1</div>
@@ -85,7 +85,7 @@
         <div class="at-ledger-note">nguyện vọng 1</div>
       </div>
       <div class="at-ledger-item">
-        <div class="at-ledger-label">Đạt Top 3</div>
+        <div class="at-ledger-label">Top 3</div>
         <div class="at-ledger-value">{% if metrics %}{% widthratio metrics.top3_rate 1 100 %}<small> %</small>{% else %}—{% endif %}</div>
         <div class="at-ledger-note">từ NV1 đến NV3</div>
       </div>
@@ -101,71 +101,50 @@
       </div>
     </section>
 
-    {# Panel biểu đồ: Kết quả theo nguyện vọng #}
-    <section class="at-panel">
-      <div class="at-panel-header">
-        <div>
-          <h2>Kết quả theo nguyện vọng</h2>
-          <p>Số lượng sinh viên được phân công theo từng mức nguyện vọng và chưa xếp.</p>
+    {# Lưới: Biểu đồ (8/12) + Ô Chốt & công bố (4/12) đặt cạnh nhau theo thiết kế ảnh 19 #}
+    <div class="at-grid">
+      {# Panel biểu đồ: Kết quả theo nguyện vọng #}
+      <section class="at-panel at-col-8">
+        <div class="at-panel-header">
+          <div>
+            <h2>Kết quả theo nguyện vọng</h2>
+            <p>Số lượng sinh viên được phân công theo từng mức nguyện vọng và chưa xếp.</p>
+          </div>
         </div>
-      </div>
-      <div class="at-chart at-chart--sm">
-        <canvas id="atAllocChart" aria-label="Biểu đồ phân bố nguyện vọng phân công" role="img"></canvas>
-      </div>
-      <script>
-        (function () {
-          var nv1 = 0, nv2 = 0, nv3 = 0, other = 0, unassigned = 0;
-          {% for a in allocations %}
-            {% if not a.topic %}
-              unassigned++;
-            {% elif a.preference_rank == 1 %}
-              nv1++;
-            {% elif a.preference_rank == 2 %}
-              nv2++;
-            {% elif a.preference_rank == 3 %}
-              nv3++;
-            {% else %}
-              other++;
-            {% endif %}
-          {% endfor %}
-          var el = document.getElementById("atAllocChart");
-          if (el) {
-            el.dataset.atChart = JSON.stringify({
-              type: "bar",
-              data: {
-                labels: ["NV1", "NV2", "NV3", "Ngoài NV", "Chưa xếp"],
-                datasets: [{
-                  label: "Số sinh viên",
-                  data: [nv1, nv2, nv3, other, unassigned],
-                  backgroundColor: [
-                    "var(--at-chart-1)",
-                    "var(--at-chart-2)",
-                    "var(--at-chart-3)",
-                    "var(--at-chart-4)",
-                    "var(--at-chart-5)"
-                  ]
-                }]
-              },
-              options: {
-                plugins: {
-                  legend: { display: false }
-                },
-                scales: {
-                  y: { beginAtZero: true }
-                }
-              }
-            });
-          }
-        })();
-      </script>
-    </section>
+        <div class="at-chart at-chart--sm">
+          <canvas id="atAllocChart" aria-label="Biểu đồ phân bố nguyện vọng phân công" role="img"></canvas>
+        </div>
+      </section>
+
+      {# Panel Chốt & công bố đặt cạnh biểu đồ #}
+      <section class="at-panel at-col-4">
+        <div class="at-panel-header">
+          <div>
+            <h2>Chốt &amp; công bố</h2>
+            <p>Công bố kết quả chính thức cho sinh viên và giảng viên.</p>
+          </div>
+        </div>
+        <p class="at-secondary">Sau khi kiểm tra và xác nhận, kết quả phân công sẽ được chốt và công bố đến sinh viên trong đợt đăng ký hiện tại.</p>
+        <div class="at-row at-mt-4">
+          {% if period and period.status != 'PUBLISHED' and allocations %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#atPublishModal">
+              {% include "components/icon.html" with name="circle-check-big" %}Chốt &amp; công bố
+            </button>
+          {% elif period and period.status == 'PUBLISHED' %}
+            {% include "components/status.html" with status="ACCEPTED" label="Đã công bố chính thức" %}
+          {% else %}
+            <button type="button" class="btn btn-primary" disabled>Chốt &amp; công bố</button>
+          {% endif %}
+        </div>
+      </section>
+    </div>
 
     {# Panel bảng phân công với Chip lọc & Toolbar #}
     <section class="at-panel at-panel--flush">
       <div class="at-panel-header">
         <div>
-          <h2>Danh sách phân công</h2>
-          <p>Chi tiết kết quả phân công từng sinh viên, bấm "Chi tiết" để xem hồ sơ và xếp tay pha 2.</p>
+          <h2>Danh sách sinh viên</h2>
+          <p>Chi tiết phân công từng sinh viên. Bấm Xem hoặc Xếp tay để mở ngăn kéo chi tiết.</p>
         </div>
       </div>
 
@@ -183,7 +162,7 @@
           </a>
         </div>
 
-        {# Thanh công cụ tìm kiếm và lọc: 1 hàng ở ≥1200px #}
+        {# Thanh công cụ tìm kiếm và lọc: giữ MỌI bộ lọc hiện có (q, status, rank, lecturer, field, score_min, sort, per_page) #}
         <form class="at-toolbar" method="get">
           <input type="hidden" name="period_id" value="{{ period.pk }}">
           {% if status and status != 'all' %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
@@ -241,14 +220,15 @@
         <table class="at-table d-none d-md-table">
           <thead>
             <tr>
-              <th>Mã SV</th>
-              <th>Sinh viên</th>
-              <th>Đề tài &amp; GVHD</th>
-              <th class="at-text-center">NV</th>
-              <th class="at-th-num">Điểm</th>
-              <th class="at-text-center">Nguồn</th>
-              <th>Trạng thái</th>
-              <th class="at-td-actions" aria-label="Thao tác"></th>
+              <th style="width:9%">Mã SV</th>
+              <th style="width:13%">Họ và tên</th>
+              <th style="width:25%">Đề tài phân công</th>
+              <th style="width:14%">Giảng viên</th>
+              <th style="width:7%" class="at-text-center">NV đạt</th>
+              <th style="width:8%" class="at-td-num">Điểm tổng</th>
+              <th style="width:8%" class="at-text-center">Nguồn</th>
+              <th style="width:9%">Trạng thái</th>
+              <th style="width:7%" class="at-td-actions" aria-label="Thao tác"></th>
             </tr>
           </thead>
           <tbody>
@@ -262,9 +242,15 @@
                 <td>
                   {% if a.topic %}
                     {{ a.topic.title }}
-                    <small class="d-block at-secondary">GVHD: {{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}</small>
                   {% else %}
                     <span class="at-muted">Chưa xếp</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if a.topic %}
+                    {{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}
+                  {% else %}
+                    <span class="at-muted">—</span>
                   {% endif %}
                 </td>
                 <td class="at-text-center">
@@ -304,14 +290,20 @@
                   {% endif %}
                 </td>
                 <td class="at-td-actions">
-                  <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
-                    Chi tiết
-                  </button>
+                  {% if a.topic %}
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
+                      Xem
+                    </button>
+                  {% else %}
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
+                      Xếp tay
+                    </button>
+                  {% endif %}
                 </td>
               </tr>
             {% empty %}
               <tr>
-                <td colspan="8" class="at-text-center at-muted py-4">Không tìm thấy sinh viên nào khớp với bộ lọc.</td>
+                <td colspan="9" class="at-text-center at-muted py-4">Không tìm thấy sinh viên nào khớp với bộ lọc.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -367,9 +359,15 @@
                 </dd>
               </dl>
               <div class="at-form-actions at-mt-4">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
-                  Chi tiết
-                </button>
+                {% if a.topic %}
+                  <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
+                    Xem
+                  </button>
+                {% else %}
+                  <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
+                    Xếp tay
+                  </button>
+                {% endif %}
               </div>
             </article>
           {% empty %}
@@ -384,21 +382,6 @@
       {# Phân trang #}
       {% include "components/pagination.html" with page_obj=page_obj querystring=querystring unit="sinh viên" per_page=per_page per_page_choices=per_page_choices %}
     </section>
-
-    {# Panel Chốt và công bố (chỉ khi period.status != PUBLISHED và có kết quả) #}
-    {% if period and period.status != 'PUBLISHED' and allocations %}
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2>Chốt và công bố</h2>
-            <p>Rà soát số lượng sinh viên đã phân công và công bố kết quả chính thức cho sinh viên, giảng viên.</p>
-          </div>
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#atPublishModal">
-            {% include "components/icon.html" with name="circle-check-big" %}Công bố kết quả
-          </button>
-        </div>
-      </section>
-    {% endif %}
   {% endif %}
 </div>
 
@@ -446,4 +429,83 @@
 {% block extra_js %}
   {% load static %}
   {% include "components/chartjs.html" %}
+  <script>
+    (function () {
+      // Plugin nội tuyến Chart.js vẽ nhãn số trên đầu cột
+      var topLabelsPlugin = {
+        id: "topLabels",
+        afterDatasetsDraw: function (chart) {
+          if (chart.config.type !== "bar") return;
+          var ctx = chart.ctx;
+          chart.data.datasets.forEach(function (dataset, i) {
+            var meta = chart.getDatasetMeta(i);
+            if (meta.hidden) return;
+            meta.data.forEach(function (bar, index) {
+              var val = dataset.data[index];
+              if (val === undefined || val === null) return;
+              ctx.save();
+              var ink = getComputedStyle(document.documentElement).getPropertyValue("--at-ink").trim() || "#212529";
+              ctx.fillStyle = ink;
+              ctx.font = '600 12px "Be Vietnam Pro", sans-serif';
+              ctx.textAlign = "center";
+              ctx.textBaseline = "bottom";
+              ctx.fillText(val, bar.x, bar.y - 4);
+              ctx.restore();
+            });
+          });
+        }
+      };
+      if (window.Chart) {
+        Chart.register(topLabelsPlugin);
+      }
+
+      var nv1 = 0, nv2 = 0, nv3 = 0, other = 0, unassigned = 0;
+      {% for a in allocations %}
+        {% if not a.topic %}
+          unassigned++;
+        {% elif a.preference_rank == 1 %}
+          nv1++;
+        {% elif a.preference_rank == 2 %}
+          nv2++;
+        {% elif a.preference_rank == 3 %}
+          nv3++;
+        {% else %}
+          other++;
+        {% endif %}
+      {% endfor %}
+
+      var el = document.getElementById("atAllocChart");
+      if (el) {
+        el.dataset.atChart = JSON.stringify({
+          type: "bar",
+          data: {
+            labels: ["NV1", "NV2", "NV3", "Ngoài NV", "Chưa xếp"],
+            datasets: [{
+              label: "Số sinh viên",
+              data: [nv1, nv2, nv3, other, unassigned],
+              backgroundColor: [
+                "var(--at-chart-1)",
+                "var(--at-chart-2)",
+                "var(--at-chart-3)",
+                "var(--at-chart-4)",
+                "var(--at-chart-5)"
+              ]
+            }]
+          },
+          options: {
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grace: "12%",
+                ticks: { precision: 0 }
+              }
+            }
+          }
+        });
+      }
+    })();
+  </script>
 {% endblock %}

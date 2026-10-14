@@ -265,7 +265,7 @@
     {% else %}
       <div class="at-panel-body">
         {% url 'topic_list' as clear_filter_url %}
-        {% include "components/empty.html" with illustration="empty-topics" title="Không tìm thấy đề tài phù hợp" desc="Hãy thử thay đổi tiêu chí lọc hoặc từ khoá tìm kiếm để xem các đề tài khác." primary_url=clear_filter_url primary_label="Xoá bộ lọc" %}
+        {% include "components/empty.html" with illustration="empty-search" title="Không tìm thấy đề tài phù hợp" desc="Hãy thử thay đổi tiêu chí lọc hoặc từ khoá tìm kiếm để xem các đề tài khác." primary_url=clear_filter_url primary_label="Xoá bộ lọc" %}
       </div>
     {% endif %}
   </section>

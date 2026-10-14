@@ -1,6 +1,6 @@
 /* ==========================================================================
    ATLAS V3.7 — CSS Nhóm auth (Màn 01: Đăng nhập — .pg-01)
-   Thông số kỹ thuật: .webby/v3/v37/diff-01-dang-nhap.md
+   Thông số kỹ thuật: .webby/v3/v37/diff-01-dang-nhap.md & review-01-dang-nhap.md
    Mọi selector đều bắt đầu bằng .pg-01 hoặc biến thể tối của .pg-01.
    Cỡ chữ tối thiểu: 12px (theo luật f).
    ========================================================================== */
@@ -16,8 +16,14 @@
 .pg-01 .at-auth {
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 41.667% 58.333%;
+  grid-template-columns: 5fr 7fr;
   background-color: #FAFCFF;
+}
+
+@media (min-width: 1200px) {
+  .pg-01 .at-auth {
+    grid-template-columns: 600px 1fr;
+  }
 }
 
 /* 2. CỘT TRÁI: KHỐI NHẬN DIỆN THƯƠNG HIỆU & GIỚI THIỆU */
@@ -80,11 +86,11 @@
   margin-top: 2px;
 }
 
-/* Khối giới thiệu chính tại khoảng 31–35% viewport (top: 280px, left: 48px, width: 490px) */
+/* Khối giới thiệu chính nâng lên khoảng 40–50px (top: 232px thay vì 280px) */
 .pg-01 .pg-01-intro {
   position: relative;
   z-index: 2;
-  margin-top: 208px; /* 32px padding + 40px logo + 208px margin = đúng 280px từ đỉnh */
+  margin-top: 160px;
   width: 100%;
   max-width: 490px;
 }
@@ -104,17 +110,17 @@
   line-height: 24px;
   color: #C3D1E3;
   max-width: 490px;
-  margin: 0 0 36px 0;
+  margin: 0 0 32px 0;
 }
 
-/* Danh sách 3 lợi ích */
+/* Danh sách 3 lợi ích: khoảng cách 24px, icon tile 48×48px */
 .pg-01 .pg-01-features {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
   width: 100%;
 }
 
@@ -122,13 +128,12 @@
   display: flex;
   align-items: flex-start;
   gap: 18px;
-  min-height: 58px;
 }
 
 .pg-01 .pg-01-feature-icon {
   flex: none;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -145,7 +150,7 @@
 
 .pg-01 .pg-01-feature-body {
   flex: 1 1 auto;
-  width: calc(100% - 56px - 18px);
+  width: calc(100% - 48px - 18px);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -167,35 +172,35 @@
   margin: 0;
 }
 
-/* Asset hoạ tiết chân trang góc dưới trái (cao 240px) */
+/* Asset hoạ tiết chân trang góc dưới trái: width 480px, bottom 0, left 0, opacity 0.5 */
 .pg-01 .pg-01-decor-bottom {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 100%;
-  height: 240px;
+  width: 480px;
+  max-width: 100%;
+  height: 360px;
   pointer-events: none;
   z-index: 1;
   overflow: hidden;
-  opacity: 0.45;
+  opacity: 0.5;
 }
 
 .pg-01 .pg-01-decor-img {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 100%;
-  height: 240px;
-  object-fit: cover;
-  object-position: bottom left;
+  width: 480px;
+  height: 360px;
   display: block;
+  pointer-events: none;
 }
 
 /* 3. CỘT PHẢI: KHUNG ĐĂNG NHẬP & TÀI KHOẢN DEMO */
 .pg-01 .at-auth-form {
   position: relative;
   background-color: #FAFCFF;
-  padding: 0 24px 48px 24px;
+  padding: 0 24px 32px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -203,15 +208,16 @@
   min-height: 100dvh;
 }
 
+/* Wrapper cả hai panel: nâng lên 45px (margin-top: 120px thay vì 165px), gap: 12px */
 .pg-01 .pg-01-forms-wrapper {
   width: 400px;
   max-width: 100%;
-  margin-top: 165px; /* Bắt đầu khoảng top: 165px ở viewport 900px */
-  margin-bottom: 48px;
+  margin-top: 120px;
+  margin-bottom: 32px;
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   position: relative;
   z-index: 2;
 }
@@ -245,7 +251,7 @@
   color: #596579;
 }
 
-/* Card cấu trúc cho panel login & demo */
+/* Card cấu trúc cho panel login & demo: width 400px */
 .pg-01 .pg-01-card {
   width: 400px;
   max-width: 100%;
@@ -255,9 +261,9 @@
   box-shadow: 0 4px 18px rgba(20, 43, 75, 0.05);
 }
 
-/* Panel 1: Đăng nhập */
+/* Panel 1: Đăng nhập (padding 28px) */
 .pg-01 .pg-01-card--login {
-  padding: 28px 30px 26px;
+  padding: 28px;
 }
 
 .pg-01 .pg-01-card-title {
@@ -271,14 +277,14 @@
 .pg-01 .pg-01-card-desc {
   font-size: 13px;
   font-weight: 400;
-  line-height: 21px;
+  line-height: 20px;
   color: #596579;
-  margin: 0 0 24px 0;
+  margin: 0 0 20px 0;
 }
 
 /* Nhóm trường nhập liệu */
 .pg-01 .pg-01-field {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .pg-01 .pg-01-label {
@@ -287,7 +293,7 @@
   font-weight: 600;
   line-height: 18px;
   color: #101C43;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .pg-01 .pg-01-input-wrap {
@@ -317,9 +323,10 @@
   color: #8C9BAE;
 }
 
+/* Ô nhập liệu: height 40px */
 .pg-01 .pg-01-input {
   width: 100%;
-  height: 44px;
+  height: 40px;
   padding: 0 14px 0 42px;
   font-family: inherit;
   font-size: 14px;
@@ -350,18 +357,18 @@
 }
 
 .pg-01 .pg-01-input-wrap--password .pg-01-input {
-  padding-right: 44px;
+  padding-right: 42px;
 }
 
-/* Nút hiện/ẩn mật khẩu */
+/* Nút hiện/ẩn mật khẩu: 40×40px */
 .pg-01 .pg-01-toggle-pw {
   position: absolute;
   right: 0;
   top: 0;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -388,16 +395,16 @@
 
 /* Banner lỗi */
 .pg-01 .pg-01-error-banner {
-  margin-top: 16px;
-  margin-bottom: 8px;
+  margin-top: 14px;
+  margin-bottom: 6px;
 }
 
-/* Nút submit chính */
+/* Nút Đăng nhập: height 40px, width 100% */
 .pg-01 .pg-01-submit-btn {
   width: 100%;
-  height: 44px;
-  min-height: 44px;
-  margin-top: 24px;
+  height: 40px;
+  min-height: 40px;
+  margin-top: 20px;
   border-radius: 5px;
   background-color: #2454B8;
   border: 1px solid #2454B8;
@@ -423,7 +430,7 @@
   outline-offset: 2px;
 }
 
-/* Panel 2: Tài khoản demo */
+/* Panel 2: Tài khoản demo (ba hàng rõ ràng, cao 48px, gap 6px, padding 8–12px, nút cao 30px) */
 .pg-01 .pg-01-card--demo {
   padding: 0;
 }
@@ -444,7 +451,7 @@
 .pg-01 .pg-01-demo-desc {
   font-size: 12px;
   font-weight: 400;
-  line-height: 19px;
+  line-height: 18px;
   color: #596579;
   margin: 2px 0 0 0;
 }
@@ -452,20 +459,22 @@
 .pg-01 .pg-01-demo-list {
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px 14px 16px;
 }
 
 .pg-01 .pg-01-demo-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 52px;
-  padding: 8px 16px;
-  gap: 12px;
-  border-bottom: 1px solid #E6EBF3;
-}
-
-.pg-01 .pg-01-demo-row:last-child {
-  border-bottom: none;
+  height: 48px;
+  min-height: 48px;
+  padding: 8px 12px;
+  gap: 10px;
+  border: 1px solid #E6EBF3;
+  border-radius: 6px;
+  background-color: #FFFFFF;
+  box-sizing: border-box;
 }
 
 .pg-01 .pg-01-demo-identity {
@@ -478,7 +487,7 @@
   flex: none;
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -525,6 +534,7 @@
 
 .pg-01 .pg-01-demo-btn {
   height: 30px;
+  min-height: 30px;
   min-width: 72px;
   padding: 0 12px;
   border-radius: 4px;
@@ -539,6 +549,7 @@
   align-items: center;
   justify-content: center;
   white-space: nowrap;
+  box-sizing: border-box;
   transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
@@ -636,7 +647,26 @@
 
 :root[data-theme="dark"] .pg-01 .pg-01-demo-row,
 :root[data-bs-theme="dark"] .pg-01 .pg-01-demo-row {
-  border-bottom-color: #344564;
+  background-color: #1E2F4D;
+  border-color: #344564;
+}
+
+:root[data-theme="dark"] .pg-01 .pg-01-demo-avatar--student,
+:root[data-bs-theme="dark"] .pg-01 .pg-01-demo-avatar--student {
+  background-color: #064E3B;
+  color: #34D399;
+}
+
+:root[data-theme="dark"] .pg-01 .pg-01-demo-avatar--lecturer,
+:root[data-bs-theme="dark"] .pg-01 .pg-01-demo-avatar--lecturer {
+  background-color: #1E3A8A;
+  color: #60A5FA;
+}
+
+:root[data-theme="dark"] .pg-01 .pg-01-demo-avatar--faculty,
+:root[data-bs-theme="dark"] .pg-01 .pg-01-demo-avatar--faculty {
+  background-color: #4C1D95;
+  color: #C084FC;
 }
 
 :root[data-theme="dark"] .pg-01 .pg-01-demo-code,
@@ -714,7 +744,20 @@
     color: #CAD4E4;
   }
   :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-01 .pg-01-demo-row {
-    border-bottom-color: #344564;
+    background-color: #1E2F4D;
+    border-color: #344564;
+  }
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-01 .pg-01-demo-avatar--student {
+    background-color: #064E3B;
+    color: #34D399;
+  }
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-01 .pg-01-demo-avatar--lecturer {
+    background-color: #1E3A8A;
+    color: #60A5FA;
+  }
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-01 .pg-01-demo-avatar--faculty {
+    background-color: #4C1D95;
+    color: #C084FC;
   }
   :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-01 .pg-01-demo-code {
     color: #EAF1FF;
@@ -737,13 +780,19 @@
 @media (min-width: 768px) {
   .pg-01 .at-auth {
     display: grid !important;
-    grid-template-columns: 41.667% 58.333% !important;
+    grid-template-columns: 5fr 7fr !important;
   }
   .pg-01 .at-auth-brand {
     display: flex !important;
   }
   .pg-01 .pg-01-mobile-brand {
     display: none !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .pg-01 .at-auth {
+    grid-template-columns: 600px 1fr !important;
   }
 }
 
@@ -773,5 +822,23 @@
   }
   .pg-01 .pg-01-card--login {
     padding: 24px 20px !important;
+  }
+  .pg-01 .pg-01-input {
+    height: 44px !important;
+  }
+  .pg-01 .pg-01-toggle-pw {
+    height: 44px !important;
+    width: 44px !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  .pg-01 .pg-01-submit-btn {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+  .pg-01 .pg-01-demo-btn {
+    min-height: 36px !important;
+    height: 36px !important;
+    line-height: 34px !important;
   }
 }

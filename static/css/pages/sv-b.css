@@ -616,8 +616,7 @@
 /* ==========================================================================
    09: NGUYỆN VỌNG ĐĂNG KÝ ĐỀ TÀI (.pg-09)
    ========================================================================== */
-.at-period-aside,
-.pg-09 .at-period-aside {
+.pg-09 .at-period-aside { /* Claude: bỏ selector toàn cục — lõi đã có lề phải */
   padding-right: 16px;
 }
 .pg-09 {

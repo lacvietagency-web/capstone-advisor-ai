@@ -225,7 +225,7 @@ class AllocationFlowTests(TestCase):
         """Pha 2: Gợi ý đề tài cho SV chưa xếp và Khoa chỉnh tay (source=MANUAL)."""
         from allocate.models import Allocation
         from allocate.services import run_allocation
-        from catalog.models import AuditLog, Topic
+        from catalog.models import AuditLog
 
         run_allocation(self.period, algorithm="ILP")
 
@@ -245,8 +245,9 @@ class AllocationFlowTests(TestCase):
         if len(suggestions) > 1:
             self.assertGreaterEqual(suggestions[0]["score"], suggestions[1]["score"])
 
-        # Khoa chọn tay đề tài
-        chosen_topic = Topic.objects.filter(status=Topic.Status.OPEN).first()
+        # Khoa chọn tay một đề tài CÒN CHỖ (máy chủ chặn đề tài đã đủ sức chứa / GV đủ chỉ tiêu)
+        self.assertTrue(suggestions, "cần ít nhất một đề tài còn chỗ cho pha 2")
+        chosen_topic = suggestions[0]["topic"]
         post_res = self.client.post(
             "/khoa/phan-cong/",
             {

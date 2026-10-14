@@ -38,7 +38,7 @@
     {% include "components/period.html" with period=period text="Đợt thống kê hiện tại" %}
   {% endif %}
 
-  {# Dải số liệu Metric Ledger #}
+  {# Dải số liệu Metric Ledger: tình hình đăng ký và chỉ số tối ưu #}
   <section class="at-ledger" aria-label="Chỉ số đăng ký và phân công">
     <div class="at-ledger-item">
       <div class="at-ledger-label">Sinh viên</div>
@@ -72,148 +72,49 @@
     </div>
   </section>
 
-  {# Lưới biểu đồ và bảng số liệu kiểm chứng #}
+  {# Hàng 1: Lưới 7:5 — Biểu đồ kết quả theo NV (7/12) và Phân bố lĩnh vực (5/12) kèm bảng kiểm chứng #}
   <div class="at-grid">
-    {# Biểu đồ 1: Tình hình đăng ký (at-col-6) #}
-    <section class="at-panel at-panel--flush at-col-6">
+    {# Cột 7: Đề tài nhận nhiều NV1 nhất #}
+    <section class="at-panel at-panel--flush at-col-7">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Tình hình đăng ký nguyện vọng</h2>
-          <p>Tỷ lệ sinh viên đã nộp ít nhất 1 nguyện vọng so với chưa đăng ký.</p>
-        </div>
-      </div>
-      <div class="at-panel-body">
-        <div class="at-chart at-chart--sm">
-          <canvas id="chartReg" aria-label="Biểu đồ tỷ lệ đăng ký nguyện vọng" role="img"></canvas>
-        </div>
-      </div>
-      <table class="at-table d-none d-md-table">
-        <thead>
-          <tr>
-            <th>Tình trạng</th>
-            <th class="at-th-num">Số sinh viên</th>
-            <th class="at-th-num">Tỷ lệ</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="at-td-main">Đã đăng ký nguyện vọng</td>
-            <td class="at-td-num">{{ reg_stats.registered_students }}</td>
-            <td class="at-td-num">{{ reg_stats.registered_rate }}%</td>
-          </tr>
-          <tr>
-            <td class="at-td-main">Chưa đăng ký nguyện vọng</td>
-            <td class="at-td-num">{{ reg_stats.unregistered_students }}</td>
-            <td class="at-td-num">{{ reg_stats.unregistered_rate }}%</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="at-panel-body d-md-none">
-        <div class="at-list">
-          <article class="at-item">
-            <div class="at-row at-row--between">
-              <strong>Đã đăng ký</strong>
-              <span class="at-num">{{ reg_stats.registered_students }} ({{ reg_stats.registered_rate }}%)</span>
-            </div>
-          </article>
-          <article class="at-item">
-            <div class="at-row at-row--between">
-              <strong>Chưa đăng ký</strong>
-              <span class="at-num">{{ reg_stats.unregistered_students }} ({{ reg_stats.unregistered_rate }}%)</span>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    {# Biểu đồ 2: Phân bố theo lĩnh vực (at-col-6) #}
-    <section class="at-panel at-panel--flush at-col-6">
-      <div class="at-panel-header">
-        <div>
-          <h2 class="h3">Phân bố theo lĩnh vực</h2>
-          <p>Số lượng nguyện vọng 1 đăng ký theo từng chuyên môn/lĩnh vực.</p>
-        </div>
-      </div>
-      <div class="at-panel-body">
-        <div class="at-chart at-chart--sm">
-          <canvas id="chartField" aria-label="Biểu đồ phân bố lĩnh vực" role="img"></canvas>
-        </div>
-      </div>
-      <table class="at-table d-none d-md-table">
-        <thead>
-          <tr>
-            <th>Lĩnh vực</th>
-            <th class="at-th-num">Số NV1</th>
-            <th class="at-th-num">Tỷ lệ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for f in field_list %}
-            <tr>
-              <td class="at-td-main">{{ f.field_name }}</td>
-              <td class="at-td-num">{{ f.count }}</td>
-              <td class="at-td-num">{{ f.percentage }}%</td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="3" class="at-muted at-text-center">Chưa có dữ liệu lĩnh vực</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <div class="at-panel-body d-md-none">
-        <div class="at-list">
-          {% for f in field_list %}
-            <article class="at-item">
-              <div class="at-row at-row--between">
-                <strong>{{ f.field_name }}</strong>
-                <span class="at-num">{{ f.count }} NV1 ({{ f.percentage }}%)</span>
-              </div>
-            </article>
-          {% empty %}
-            <div class="at-empty"><div class="at-empty-title">Chưa có dữ liệu lĩnh vực</div></div>
-          {% endfor %}
-        </div>
-      </div>
-    </section>
-
-    {# Biểu đồ 3: Đề tài NV1 nhiều nhất (at-col-12) #}
-    <section class="at-panel at-panel--flush at-col-12">
-      <div class="at-panel-header">
-        <div>
-          <h2 class="h3">Đề tài nhận nhiều NV1 nhất</h2>
+          <h2>Đề tài nhận nhiều NV1 nhất</h2>
           <p>Xếp hạng các đề tài có số lượng sinh viên chọn làm nguyện vọng 1 cao nhất.</p>
         </div>
       </div>
       <div class="at-panel-body">
-        <div class="at-chart">
+        <div class="at-chart at-chart--sm">
           <canvas id="chartTopic" aria-label="Biểu đồ đề tài NV1 nhiều nhất" role="img"></canvas>
         </div>
       </div>
-      <table class="at-table d-none d-md-table">
-        <thead>
-          <tr>
-            <th>Tên đề tài</th>
-            <th>Giảng viên</th>
-            <th class="at-th-num">Sức chứa</th>
-            <th class="at-th-num">Số NV1</th>
-            <th class="at-th-num">Tỷ lệ cạnh tranh</th>
-            <th class="at-th-num">Tỷ lệ %</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t in topic_nv1_list %}
+      <div class="at-table-wrap">
+        <table class="at-table d-none d-md-table">
+          <thead>
             <tr>
-              <td class="at-td-main">{{ t.title }}</td>
-              <td>{{ t.lecturer_name }}</td>
-              <td class="at-td-num">{{ t.capacity }}</td>
-              <td class="at-td-num">{{ t.nv1_count }}</td>
-              <td class="at-td-num">{{ t.competition_rate }}</td>
-              <td class="at-td-num">{{ t.percentage }}%</td>
+              <th>Tên đề tài</th>
+              <th>Giảng viên</th>
+              <th class="at-th-num">Sức chứa</th>
+              <th class="at-th-num">Số NV1</th>
+              <th class="at-th-num">Cạnh tranh</th>
+              <th class="at-th-num">Tỷ lệ</th>
             </tr>
-          {% empty %}
-            <tr><td colspan="6" class="at-muted at-text-center py-4">Chưa có lượt đăng ký NV1 nào</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for t in topic_nv1_list %}
+              <tr>
+                <td class="at-td-main">{{ t.title }}</td>
+                <td>{{ t.lecturer_name }}</td>
+                <td class="at-td-num">{{ t.capacity }}</td>
+                <td class="at-td-num">{{ t.nv1_count }}</td>
+                <td class="at-td-num">{{ t.competition_rate }}</td>
+                <td class="at-td-num">{{ t.percentage }}%</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="at-muted at-text-center py-4">Chưa có lượt đăng ký NV1 nào</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
       <div class="at-panel-body d-md-none">
         <div class="at-list">
           {% for t in topic_nv1_list %}
@@ -234,53 +135,109 @@
       </div>
     </section>
 
-    {# Biểu đồ 4: Tải giảng viên so chỉ tiêu (at-col-12) #}
-    <section class="at-panel at-panel--flush at-col-12">
+    {# Cột 5: Phân bố theo lĩnh vực #}
+    <section class="at-panel at-panel--flush at-col-5">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Tải giảng viên so với chỉ tiêu</h2>
+          <h2>Phân bố theo lĩnh vực</h2>
+          <p>Số lượng nguyện vọng 1 đăng ký theo từng chuyên môn/lĩnh vực.</p>
+        </div>
+      </div>
+      <div class="at-panel-body">
+        <div class="at-chart at-chart--sm">
+          <canvas id="chartField" aria-label="Biểu đồ phân bố lĩnh vực" role="img"></canvas>
+        </div>
+      </div>
+      <div class="at-table-wrap">
+        <table class="at-table d-none d-md-table">
+          <thead>
+            <tr>
+              <th>Lĩnh vực</th>
+              <th class="at-th-num">Số NV1</th>
+              <th class="at-th-num">Tỷ lệ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in field_list %}
+              <tr>
+                <td class="at-td-main">{{ f.field_name }}</td>
+                <td class="at-td-num">{{ f.count }}</td>
+                <td class="at-td-num">{{ f.percentage }}%</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="at-muted at-text-center py-4">Chưa có dữ liệu lĩnh vực</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="at-panel-body d-md-none">
+        <div class="at-list">
+          {% for f in field_list %}
+            <article class="at-item">
+              <div class="at-row at-row--between">
+                <strong>{{ f.field_name }}</strong>
+                <span class="at-num">{{ f.count }} NV1 ({{ f.percentage }}%)</span>
+              </div>
+            </article>
+          {% empty %}
+            <div class="at-empty"><div class="at-empty-title">Chưa có dữ liệu lĩnh vực</div></div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  {# Hàng 2: Lưới 6:6 — Tải giảng viên (6/12) và So sánh ILP vs Greedy (6/12) kèm bảng kiểm chứng #}
+  <div class="at-grid">
+    {# Cột 6: Tải giảng viên so với chỉ tiêu #}
+    <section class="at-panel at-panel--flush at-col-6">
+      <div class="at-panel-header">
+        <div>
+          <h2>Tải giảng viên so với chỉ tiêu</h2>
           <p>Nguồn số liệu: <strong>{{ load_source }}</strong>.</p>
         </div>
       </div>
       <div class="at-panel-body">
-        <div class="at-chart">
+        <div class="at-chart at-chart--sm">
           <canvas id="chartLec" aria-label="Biểu đồ tải giảng viên" role="img"></canvas>
         </div>
       </div>
-      <table class="at-table d-none d-md-table">
-        <thead>
-          <tr>
-            <th>Giảng viên</th>
-            <th class="at-th-num">Đã phân công</th>
-            <th class="at-th-num">Chỉ tiêu tối đa</th>
-            <th class="at-th-num">Tỷ lệ tải</th>
-            <th>Trạng thái</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for l in lecturer_load %}
+      <div class="at-table-wrap">
+        <table class="at-table d-none d-md-table">
+          <thead>
             <tr>
-              <td class="at-td-main">{{ l.name }}</td>
-              <td class="at-td-num">{{ l.assigned_count }}</td>
-              <td class="at-td-num">{{ l.capacity }}</td>
-              <td class="at-td-num">{{ l.load_rate }}%</td>
-              <td>
-                {% if l.status == "Quá tải" %}
-                  {% include "components/status.html" with kind="danger" label=l.status %}
-                {% elif l.status == "Đầy chỉ tiêu" %}
-                  {% include "components/status.html" with kind="success" label=l.status %}
-                {% elif l.status == "Đang nhận" %}
-                  {% include "components/status.html" with kind="info" label=l.status %}
-                {% else %}
-                  {% include "components/status.html" with kind="neutral" label=l.status %}
-                {% endif %}
-              </td>
+              <th>Giảng viên</th>
+              <th class="at-th-num">Đã phân</th>
+              <th class="at-th-num">Chỉ tiêu</th>
+              <th class="at-th-num">Tỷ lệ tải</th>
+              <th>Trạng thái</th>
             </tr>
-          {% empty %}
-            <tr><td colspan="5" class="at-muted at-text-center py-4">Chưa có dữ liệu giảng viên</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for l in lecturer_load %}
+              <tr>
+                <td class="at-td-main">{{ l.name }}</td>
+                <td class="at-td-num">{{ l.assigned_count }}</td>
+                <td class="at-td-num">{{ l.capacity }}</td>
+                <td class="at-td-num">{{ l.load_rate }}%</td>
+                <td>
+                  {% if l.status == "Quá tải" %}
+                    {% include "components/status.html" with kind="danger" label=l.status %}
+                  {% elif l.status == "Đầy chỉ tiêu" %}
+                    {% include "components/status.html" with kind="success" label=l.status %}
+                  {% elif l.status == "Đang nhận" %}
+                    {% include "components/status.html" with kind="info" label=l.status %}
+                  {% else %}
+                    {% include "components/status.html" with kind="neutral" label=l.status %}
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="at-muted at-text-center py-4">Chưa có dữ liệu giảng viên</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
       <div class="at-panel-body d-md-none">
         <div class="at-list">
           {% for l in lecturer_load %}
@@ -309,67 +266,69 @@
       </div>
     </section>
 
-    {# Biểu đồ 5: So sánh ILP vs Greedy (at-col-12) #}
-    <section class="at-panel at-panel--flush at-col-12">
+    {# Cột 6: So sánh thuật toán ILP và Greedy #}
+    <section class="at-panel at-panel--flush at-col-6">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">So sánh thuật toán ILP và Greedy</h2>
+          <h2>So sánh thuật toán ILP và Greedy</h2>
           <p>Mô phỏng hiệu năng giữa mô hình tối ưu toàn cục (ILP) và thuật toán tham lam (Greedy).</p>
         </div>
       </div>
       <div class="at-panel-body">
-        <div class="at-chart">
+        <div class="at-chart at-chart--sm">
           <canvas id="chartComp" aria-label="Biểu đồ so sánh ILP và Greedy" role="img"></canvas>
         </div>
       </div>
-      <table class="at-table d-none d-md-table">
-        <thead>
-          <tr>
-            <th>Chỉ số so sánh</th>
-            <th class="at-th-num">Mô hình ILP</th>
-            <th class="at-th-num">Thuật toán Greedy</th>
-            <th class="at-th-num">Chênh lệch (&Delta;)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="at-td-main">Đạt Nguyện vọng 1</td>
-            <td class="at-td-num">{{ comparison.ilp.nv1_pct }}%</td>
-            <td class="at-td-num">{{ comparison.greedy.nv1_pct }}%</td>
-            <td class="at-td-num">+{{ comparison.delta.nv1_pct }}%</td>
-          </tr>
-          <tr>
-            <td class="at-td-main">Đạt Top 3 nguyện vọng</td>
-            <td class="at-td-num">{{ comparison.ilp.top3_pct }}%</td>
-            <td class="at-td-num">{{ comparison.greedy.top3_pct }}%</td>
-            <td class="at-td-num">+{{ comparison.delta.top3_pct }}%</td>
-          </tr>
-          <tr>
-            <td class="at-td-main">Tỷ lệ phân công thành công</td>
-            <td class="at-td-num">{{ comparison.ilp.assigned_pct }}%</td>
-            <td class="at-td-num">{{ comparison.greedy.assigned_pct }}%</td>
-            <td class="at-td-num">+{{ comparison.delta.assigned_pct }}%</td>
-          </tr>
-          <tr>
-            <td class="at-td-main">Điểm phù hợp AI trung bình</td>
-            <td class="at-td-num">{{ comparison.ilp.avg_match }}</td>
-            <td class="at-td-num">{{ comparison.greedy.avg_match }}</td>
-            <td class="at-td-num">+{{ comparison.delta.avg_match }}</td>
-          </tr>
-          <tr>
-            <td class="at-td-main">Số sinh viên chưa xếp</td>
-            <td class="at-td-num">{{ comparison.ilp.unassigned_count }}</td>
-            <td class="at-td-num">{{ comparison.greedy.unassigned_count }}</td>
-            <td class="at-td-num">{{ comparison.delta.unassigned_count }}</td>
-          </tr>
-          <tr>
-            <td class="at-td-main">Thời gian tính toán</td>
-            <td class="at-td-num">{{ comparison.ilp.elapsed_time }} s</td>
-            <td class="at-td-num">{{ comparison.greedy.elapsed_time }} s</td>
-            <td class="at-td-num">—</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="at-table-wrap">
+        <table class="at-table d-none d-md-table">
+          <thead>
+            <tr>
+              <th>Chỉ số so sánh</th>
+              <th class="at-th-num">Mô hình ILP</th>
+              <th class="at-th-num">Thuật toán Greedy</th>
+              <th class="at-th-num">Chênh lệch (&Delta;)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="at-td-main">Đạt Nguyện vọng 1</td>
+              <td class="at-td-num">{{ comparison.ilp.nv1_pct }}%</td>
+              <td class="at-td-num">{{ comparison.greedy.nv1_pct }}%</td>
+              <td class="at-td-num">+{{ comparison.delta.nv1_pct }}%</td>
+            </tr>
+            <tr>
+              <td class="at-td-main">Đạt Top 3 nguyện vọng</td>
+              <td class="at-td-num">{{ comparison.ilp.top3_pct }}%</td>
+              <td class="at-td-num">{{ comparison.greedy.top3_pct }}%</td>
+              <td class="at-td-num">+{{ comparison.delta.top3_pct }}%</td>
+            </tr>
+            <tr>
+              <td class="at-td-main">Tỷ lệ phân công thành công</td>
+              <td class="at-td-num">{{ comparison.ilp.assigned_pct }}%</td>
+              <td class="at-td-num">{{ comparison.greedy.assigned_pct }}%</td>
+              <td class="at-td-num">+{{ comparison.delta.assigned_pct }}%</td>
+            </tr>
+            <tr>
+              <td class="at-td-main">Điểm phù hợp AI trung bình</td>
+              <td class="at-td-num">{{ comparison.ilp.avg_match }}</td>
+              <td class="at-td-num">{{ comparison.greedy.avg_match }}</td>
+              <td class="at-td-num">+{{ comparison.delta.avg_match }}</td>
+            </tr>
+            <tr>
+              <td class="at-td-main">Số sinh viên chưa xếp</td>
+              <td class="at-td-num">{{ comparison.ilp.unassigned_count }}</td>
+              <td class="at-td-num">{{ comparison.greedy.unassigned_count }}</td>
+              <td class="at-td-num">{{ comparison.delta.unassigned_count }}</td>
+            </tr>
+            <tr>
+              <td class="at-td-main">Thời gian tính toán</td>
+              <td class="at-td-num">{{ comparison.ilp.elapsed_time }} s</td>
+              <td class="at-td-num">{{ comparison.greedy.elapsed_time }} s</td>
+              <td class="at-td-num">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div class="at-panel-body d-md-none">
         <div class="at-list">
           <article class="at-item">
@@ -401,7 +360,7 @@
   </div>
 </div>
 
-{# Dữ liệu JSON cho biểu đồ #}
+{# Dữ liệu JSON cho biểu đồ (giữ stats-data cho bài kiểm tra) #}
 {{ chart_data|json_script:"atStats" }}
 {{ chart_data|json_script:"stats-data" }}
 {% endblock %}
@@ -417,20 +376,28 @@
     try { data = JSON.parse(raw.textContent); } catch (e) { return; }
     if (!data) return;
 
-    // 1. Biểu đồ đăng ký
-    var cReg = document.getElementById("chartReg");
-    if (cReg && data.registration) {
-      cReg.dataset.atChart = JSON.stringify({
-        type: "doughnut",
+    // 1. Biểu đồ đề tài NV1
+    var cTopic = document.getElementById("chartTopic");
+    if (cTopic && data.topics) {
+      cTopic.dataset.atChart = JSON.stringify({
+        type: "bar",
         data: {
-          labels: data.registration.labels,
-          datasets: [{
-            data: data.registration.data,
-            backgroundColor: ["var(--at-chart-1)", "var(--at-chart-3)"]
-          }]
+          labels: data.topics.labels,
+          datasets: [
+            {
+              label: "Số sinh viên chọn NV1",
+              data: data.topics.counts,
+              backgroundColor: "var(--at-chart-1)"
+            },
+            {
+              label: "Sức chứa đề tài",
+              data: data.topics.capacities,
+              backgroundColor: "var(--at-chart-4)"
+            }
+          ]
         },
         options: {
-          plugins: { legend: { position: "bottom" } }
+          scales: { y: { beginAtZero: true } }
         }
       });
     }
@@ -457,33 +424,7 @@
       });
     }
 
-    // 3. Biểu đồ đề tài NV1
-    var cTopic = document.getElementById("chartTopic");
-    if (cTopic && data.topics) {
-      cTopic.dataset.atChart = JSON.stringify({
-        type: "bar",
-        data: {
-          labels: data.topics.labels,
-          datasets: [
-            {
-              label: "Số sinh viên chọn NV1",
-              data: data.topics.counts,
-              backgroundColor: "var(--at-chart-1)"
-            },
-            {
-              label: "Sức chứa đề tài",
-              data: data.topics.capacities,
-              backgroundColor: "var(--at-chart-4)"
-            }
-          ]
-        },
-        options: {
-          scales: { y: { beginAtZero: true } }
-        }
-      });
-    }
-
-    // 4. Biểu đồ tải giảng viên
+    // 3. Biểu đồ tải giảng viên
     var cLec = document.getElementById("chartLec");
     if (cLec && data.lecturers) {
       cLec.dataset.atChart = JSON.stringify({
@@ -509,7 +450,7 @@
       });
     }
 
-    // 5. Biểu đồ so sánh ILP vs Greedy
+    // 4. Biểu đồ so sánh ILP vs Greedy
     var cComp = document.getElementById("chartComp");
     if (cComp && data.comparison) {
       cComp.dataset.atChart = JSON.stringify({

@@ -51,43 +51,43 @@
     </div>
   </section>
 
-  {# Bố cục 2 cột: Bảng các đợt đăng ký và Lối tắt thao tác #}
+  {# Bố cục 2 cột: Bảng các đợt đăng ký (7/12) và Tác vụ (5/12) #}
   <div class="at-grid">
-    {# Cột 8: Danh sách các đợt đăng ký #}
-    <section class="at-panel at-panel--flush at-col-8">
+    {# Cột 7: Danh sách các đợt đăng ký #}
+    <section class="at-panel at-panel--flush at-col-7">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Các đợt đăng ký</h2>
+          <h2>Các đợt đăng ký</h2>
           <p>Danh sách các đợt mở đăng ký và tiếp nhận nguyện vọng của sinh viên.</p>
         </div>
       </div>
 
       {% if periods %}
         <div class="at-table-wrap">
-        <table class="at-table d-none d-md-table">
-          <thead>
-            <tr>
-              <th>Đợt đăng ký</th>
-              <th>Thời gian</th>
-              <th class="at-th-num">Sinh viên</th>
-              <th>Trạng thái</th>
-              <th class="at-td-actions"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in periods %}
+          <table class="at-table d-none d-md-table">
+            <thead>
               <tr>
-                <td class="at-td-main">{{ p.name }}</td>
-                <td><span class="at-num">{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}</span></td>
-                <td class="at-td-num">{{ p.student_count|default:"0" }}</td>
-                <td>{% include "components/status.html" with status=p.status label=p.get_status_display %}</td>
-                <td class="at-td-actions">
-                  <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="btn btn-secondary btn-sm">Phân công</a>
-                </td>
+                <th>Đợt đăng ký</th>
+                <th>Thời gian</th>
+                <th class="at-th-num">Sinh viên</th>
+                <th>Trạng thái</th>
+                <th class="at-td-actions" aria-label="Thao tác"></th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for p in periods %}
+                <tr>
+                  <td class="at-td-main">{{ p.name }}</td>
+                  <td><span class="at-num">{{ p.start_at|date:"d/m/Y" }} – {{ p.end_at|date:"d/m/Y" }}</span></td>
+                  <td class="at-td-num">{{ p.student_count|default:"0" }}</td>
+                  <td>{% include "components/status.html" with status=p.status label=p.get_status_display %}</td>
+                  <td class="at-td-actions">
+                    <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="btn btn-secondary btn-sm">Phân công</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
 
         <div class="at-panel-body d-md-none">
@@ -112,13 +112,20 @@
           </div>
         </div>
       {% else %}
-        {% include "components/empty.html" with illustration="empty-topics" title="Chưa có đợt đăng ký" desc="Khoa chưa mở đợt đăng ký đồ án nào trong năm học này." %}
+        <div class="at-panel-body">
+          {% include "components/empty.html" with illustration="empty-topics" title="Chưa có đợt đăng ký" desc="Khoa chưa mở đợt đăng ký đồ án nào trong năm học này." %}
+        </div>
       {% endif %}
     </section>
 
-    {# Cột 4: Lối tắt thao tác #}
-    <aside class="at-panel at-col-4">
-      <h2 class="h3 at-mb-4">Lối tắt thao tác</h2>
+    {# Cột 5: Tác vụ liên kết #}
+    <section class="at-panel at-col-5">
+      <div class="at-panel-header">
+        <div>
+          <h2>Tác vụ</h2>
+          <p>Lối tắt thao tác nhanh cho Giáo vụ Khoa.</p>
+        </div>
+      </div>
       <div class="at-list">
         <a href="{% url 'allocation_dashboard' %}" class="at-item">
           <div class="at-row at-row--between">
@@ -160,7 +167,7 @@
           <p class="at-secondary at-mt-2">Trang Django admin quản lý cơ sở dữ liệu</p>
         </a>
       </div>
-    </aside>
+    </section>
   </div>
 </div>
 {% endblock %}

@@ -837,13 +837,12 @@
 }
 
 /* Action buttons */
-.pg-14 .at-td-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+.pg-14 .at-td-actions { /* Claude: <td> giữ table-cell (display:flex trên td làm nút trượt sang cột Trạng thái) */
+  text-align: center;
+  white-space: nowrap;
   padding: 4px 0;
 }
+.pg-14 .at-td-actions > * + * { margin-left: 8px; }
 .pg-14 .at-td-actions .btn {
   height: 32px;
   width: 44px;

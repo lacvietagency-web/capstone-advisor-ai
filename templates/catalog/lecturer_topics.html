@@ -6,13 +6,13 @@
 <div class="pg-14">
   <header class="at-page-header">
     <div>
-      <nav class="at-breadcrumb" aria-label="Vị trí">
+      <nav class="at-breadcrumb d-none" aria-label="Vị trí">
         <a href="{% url 'home' %}">Tổng quan</a>
         <span>Đề tài của tôi</span>
       </nav>
       <h1>Đề tài của tôi</h1>
       <p class="at-page-desc">
-        GVHD: {% if lecturer.academic_title %}{{ lecturer.academic_title }} {% endif %}{{ lecturer.user.get_full_name|default:lecturer.user.username }} &nbsp;|&nbsp; Bộ môn: {{ lecturer.department|default:"Công nghệ phần mềm" }} &nbsp;|&nbsp; Khoa CNTT
+        GVHD: {% if lecturer.academic_title %}{{ lecturer.academic_title }} {% endif %}{{ lecturer.user.get_full_name|default:lecturer.user.username }}<span class="at-meta-sep">|</span>Bộ môn: {{ lecturer.department|default:"Công nghệ phần mềm" }}<span class="at-meta-sep">|</span>Khoa CNTT
       </p>
     </div>
   </header>
@@ -22,35 +22,33 @@
       {% include "components/period.html" with period=current_period text="Trong thời gian này, giảng viên có thể thêm, chỉnh sửa, quản lý các đề tài hướng dẫn và theo dõi số lượng sinh viên đăng ký." %}
     {% endif %}
 
-    <section class="at-panel at-panel--flush">
+    <section class="at-panel">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Danh sách đề tài hướng dẫn</h2>
+          <h2>Danh sách đề tài hướng dẫn</h2>
         </div>
       </div>
 
       {% if topics %}
-        <div class="at-panel-body">
-          <form class="at-toolbar" id="topicFilterForm" onsubmit="return false">
-            <div class="at-search at-input-icon">
-              {% include "components/icon.html" with name="search" size=16 %}
-              <input class="form-control" type="search" id="searchTopics" placeholder="Tìm theo tên đề tài…" aria-label="Tìm theo tên đề tài">
-            </div>
-            <div class="at-filter-select">
-              <select class="form-select at-filter" id="filterStatus" aria-label="Lọc trạng thái">
-                <option value="">Tất cả trạng thái</option>
-                <option value="OPEN">Đang mở</option>
-                <option value="DRAFT">Nháp</option>
-                <option value="CLOSED">Đã đóng</option>
-              </select>
-            </div>
-            <div class="at-toolbar-action">
-              <a href="{% url 'lecturer_topic_new' %}" class="btn btn-primary btn-sm">
-                {% include "components/icon.html" with name="plus" size=15 %}Thêm đề tài
-              </a>
-            </div>
-          </form>
-        </div>
+        <form class="at-toolbar" id="topicFilterForm" onsubmit="return false">
+          <div class="at-search at-input-icon">
+            {% include "components/icon.html" with name="search" size=16 %}
+            <input class="form-control" type="search" id="searchTopics" placeholder="Tìm theo tên đề tài…" aria-label="Tìm theo tên đề tài">
+          </div>
+          <div class="at-filter-select">
+            <select class="form-select at-filter" id="filterStatus" aria-label="Lọc trạng thái">
+              <option value="">Tất cả trạng thái</option>
+              <option value="OPEN">Đang mở</option>
+              <option value="DRAFT">Nháp</option>
+              <option value="CLOSED">Đã đóng</option>
+            </select>
+          </div>
+          <div class="at-toolbar-action">
+            <a href="{% url 'lecturer_topic_new' %}" class="btn btn-primary">
+              {% include "components/icon.html" with name="plus" size=14 %}Thêm đề tài
+            </a>
+          </div>
+        </form>
 
         <div class="at-table-wrap">
           <table class="at-table d-none d-md-table" id="topicsTable">
@@ -61,8 +59,8 @@
                 <th>Lĩnh vực</th>
                 <th class="text-center">Chỉ tiêu</th>
                 <th class="text-center">SV đăng ký</th>
-                <th>Trạng thái</th>
-                <th class="text-end"><span class="visually-hidden">Thao tác</span></th>
+                <th class="text-center">Trạng thái</th>
+                <th class="text-center">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -70,10 +68,10 @@
                 <tr data-topic-row data-title="{{ t.title|lower }}" data-status="{{ t.status }}">
                   <td class="at-num text-center">{{ forloop.counter }}</td>
                   <td class="at-td-main">
-                    <span class="at-topic-title">{{ t.title }}</span>
+                    <span class="at-topic-title" title="{{ t.title }}">{{ t.title }}</span>
                   </td>
                   <td>
-                    <span class="at-field-text">
+                    <span class="at-field-text" title="{% for f in t.fields.all %}{{ f.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">
                       {% for f in t.fields.all %}
                         {{ f.name }}{% if not forloop.last %}, {% endif %}
                       {% empty %}
@@ -83,23 +81,34 @@
                   </td>
                   <td class="at-num text-center">{{ t.capacity }}</td>
                   <td class="at-num text-center">{{ t.preference_set.count }}</td>
-                  <td>
+                  <td class="text-center">
                     {% if t.status == 'OPEN' %}
                       <span class="at-badge at-badge--success">{% include "components/icon.html" with name="circle-dot" size=12 %} Đang mở</span>
                     {% elif t.status == 'CLOSED' %}
-                      <span class="at-badge at-badge--warning">{% include "components/icon.html" with name="clock" size=12 %} Tạm khóa</span>
+                      <span class="at-badge at-badge--danger">{% include "components/icon.html" with name="circle-dot" size=12 %} Đã đóng</span>
                     {% elif t.status == 'DRAFT' %}
                       <span class="at-badge at-badge--neutral">Nháp</span>
                     {% else %}
                       {% include "components/status.html" with status=t.status label=t.get_status_display %}
                     {% endif %}
                   </td>
-                  <td class="at-td-actions text-end">
-                    <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-secondary btn-sm">Xem</a>
+                  <td class="at-td-actions">
+                    <a href="{% url 'topic_detail' t.pk %}" class="btn btn-secondary btn-sm">Xem</a>
                     <a href="{% url 'lecturer_topic_edit' t.pk %}" class="btn btn-secondary btn-sm">Sửa</a>
+                    <div class="dropdown d-inline-block">
+                      <button type="button" class="btn btn-secondary btn-sm at-btn-more" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Thao tác khác">
+                        {% include "components/icon.html" with name="more-vertical" size=16 %}
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'lecturer_registrations' t.pk %}">Xem sinh viên đăng ký</a></li>
+                      </ul>
+                    </div>
                   </td>
                 </tr>
               {% endfor %}
+              <tr id="emptySearchRow" style="display: none;">
+                <td colspan="7" class="text-center py-4 text-muted">Không tìm thấy đề tài phù hợp với điều kiện lọc.</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -115,7 +124,7 @@
                   {% if t.status == 'OPEN' %}
                     <span class="at-badge at-badge--success">{% include "components/icon.html" with name="circle-dot" size=12 %} Đang mở</span>
                   {% elif t.status == 'CLOSED' %}
-                    <span class="at-badge at-badge--warning">{% include "components/icon.html" with name="clock" size=12 %} Tạm khóa</span>
+                    <span class="at-badge at-badge--danger">{% include "components/icon.html" with name="circle-dot" size=12 %} Đã đóng</span>
                   {% elif t.status == 'DRAFT' %}
                     <span class="at-badge at-badge--neutral">Nháp</span>
                   {% else %}
@@ -132,20 +141,22 @@
                 </div>
               {% endif %}
               <dl class="at-kv at-mt-2">
-                <dt>Chỉ tiêu</dt><dd class="at-num">{{ t.capacity }} SV</dd>
+                <dt>Chỉ tiêu</dt><dd class="at-num">{{ t.capacity }}</dd>
                 <dt>SV đăng ký</dt><dd class="at-num">{{ t.preference_set.count }}</dd>
               </dl>
               <div class="at-form-actions at-mt-3">
-                <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-secondary btn-sm">Xem</a>
+                <a href="{% url 'topic_detail' t.pk %}" class="btn btn-secondary btn-sm">Xem</a>
                 <a href="{% url 'lecturer_topic_edit' t.pk %}" class="btn btn-secondary btn-sm">Sửa</a>
+                <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-secondary btn-sm">SV đăng ký</a>
               </div>
             </article>
           {% endfor %}
+          <div id="emptySearchMobile" style="display: none;" class="text-center py-4 text-muted">Không tìm thấy đề tài phù hợp với điều kiện lọc.</div>
         </div>
 
         <div class="at-pagination-footer">
           <span class="at-count" id="topicsCount">Hiển thị 1–{{ topics|length }} / {{ topics|length }} đề tài</span>
-          <div class="at-pagination-nav">
+          <div class="at-pagination-nav" id="topicsPaginationNav">
             <button type="button" class="btn" disabled aria-label="Trang trước">
               {% include "components/icon.html" with name="chevron-left" size=14 %}
             </button>
@@ -172,37 +183,153 @@ document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("searchTopics");
   const statusSelect = document.getElementById("filterStatus");
   const countEl = document.getElementById("topicsCount");
-  const allRows = document.querySelectorAll("[data-topic-row]");
-  const total = {{ topics|length|default:0 }};
+  const paginationNav = document.getElementById("topicsPaginationNav");
+  const tableRows = Array.from(document.querySelectorAll("#topicsTable tbody tr[data-topic-row]"));
+  const mobileItems = Array.from(document.querySelectorAll("#topicsMobileList article[data-topic-row]"));
+  const emptySearchRow = document.getElementById("emptySearchRow");
+  const emptySearchMobile = document.getElementById("emptySearchMobile");
+  const total = tableRows.length;
+  const pageSize = 10;
+  let currentPage = 1;
+  let debounceTimer = null;
 
-  if (!searchInput || !statusSelect || allRows.length === 0) return;
+  if (total === 0) return;
 
-  function filterTopics() {
-    const query = (searchInput.value || "").trim().toLowerCase();
-    const status = statusSelect.value;
-    let visibleCount = 0;
-
-    allRows.forEach(function (row) {
+  function getMatchingRows() {
+    const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
+    const status = statusSelect ? statusSelect.value : "";
+    return tableRows.filter(function (row) {
       const title = row.getAttribute("data-title") || "";
       const rowStatus = row.getAttribute("data-status") || "";
       const matchQuery = !query || title.includes(query);
       const matchStatus = !status || rowStatus === status;
+      return matchQuery && matchStatus;
+    });
+  }
 
-      if (matchQuery && matchStatus) {
-        row.style.display = "";
-        if (row.tagName === "TR") visibleCount++;
-      } else {
-        row.style.display = "none";
-      }
+  function updateView() {
+    const matching = getMatchingRows();
+    const matchingCount = matching.length;
+    const totalPages = Math.max(1, Math.ceil(matchingCount / pageSize));
+
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = matchingCount === 0 ? 0 : (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, matchingCount);
+
+    tableRows.forEach(function (row) {
+      row.style.display = "none";
     });
 
+    for (let i = startIndex; i < endIndex; i++) {
+      matching[i].style.display = "";
+    }
+
+    const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
+    const status = statusSelect ? statusSelect.value : "";
+    mobileItems.forEach(function (item) {
+      const title = item.getAttribute("data-title") || "";
+      const itemStatus = item.getAttribute("data-status") || "";
+      const matchQuery = !query || title.includes(query);
+      const matchStatus = !status || itemStatus === status;
+      item.style.display = (matchQuery && matchStatus) ? "" : "none";
+    });
+
+    if (emptySearchRow) {
+      emptySearchRow.style.display = matchingCount === 0 ? "" : "none";
+    }
+    if (emptySearchMobile) {
+      emptySearchMobile.style.display = matchingCount === 0 ? "" : "none";
+    }
+
     if (countEl) {
-      countEl.textContent = "Hiển thị 1–" + visibleCount + " / " + total + " đề tài";
+      if (matchingCount === 0) {
+        countEl.textContent = "Hiển thị 0 / " + total + " đề tài";
+      } else {
+        countEl.textContent = "Hiển thị " + (startIndex + 1) + "–" + endIndex + " / " + total + " đề tài";
+      }
+    }
+
+    if (paginationNav) {
+      renderPagination(totalPages);
     }
   }
 
-  searchInput.addEventListener("input", filterTopics);
-  statusSelect.addEventListener("change", filterTopics);
+  function renderPagination(totalPages) {
+    paginationNav.innerHTML = "";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.type = "button";
+    prevBtn.className = "btn";
+    prevBtn.setAttribute("aria-label", "Trang trước");
+    prevBtn.innerHTML = '<svg class="lucide lucide-chevron-left" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+    if (currentPage <= 1) {
+      prevBtn.disabled = true;
+    } else {
+      prevBtn.addEventListener("click", function () {
+        currentPage--;
+        updateView();
+      });
+    }
+    paginationNav.appendChild(prevBtn);
+
+    for (let p = 1; p <= totalPages; p++) {
+      const pageBtn = document.createElement("button");
+      pageBtn.type = "button";
+      pageBtn.className = "btn" + (p === currentPage ? " active" : "");
+      if (p === currentPage) pageBtn.setAttribute("aria-current", "page");
+      pageBtn.textContent = p;
+      pageBtn.addEventListener("click", (function (page) {
+        return function () {
+          currentPage = page;
+          updateView();
+        };
+      })(p));
+      paginationNav.appendChild(pageBtn);
+    }
+
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "btn";
+    nextBtn.setAttribute("aria-label", "Trang sau");
+    nextBtn.innerHTML = '<svg class="lucide lucide-chevron-right" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+    if (currentPage >= totalPages) {
+      nextBtn.disabled = true;
+    } else {
+      nextBtn.addEventListener("click", function () {
+        currentPage++;
+        updateView();
+      });
+    }
+    paginationNav.appendChild(nextBtn);
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener("input", function () {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function () {
+        currentPage = 1;
+        updateView();
+      }, 250);
+    });
+    searchInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        clearTimeout(debounceTimer);
+        currentPage = 1;
+        updateView();
+      }
+    });
+  }
+
+  if (statusSelect) {
+    statusSelect.addEventListener("change", function () {
+      currentPage = 1;
+      updateView();
+    });
+  }
+
+  updateView();
 });
 </script>
 {% endblock %}

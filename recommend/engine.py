@@ -209,7 +209,8 @@ def m1_skill(p: Profile, topic: Topic):
         return 100.0, []
     num = sum(ts.weight * min(p.skills.get(ts.skill_id, 0) / ts.required_level, 1) for ts in req)
     missing = [ts.skill.name for ts in req if p.skills.get(ts.skill_id, 0) < ts.required_level]
-    return 100 * num / sum(ts.weight for ts in req), missing
+    total_w = sum(ts.weight for ts in req)
+    return (100 * num / total_w if total_w > 0 else 100.0), missing
 
 
 # ---------------------------------------------------------------- M2: học lực

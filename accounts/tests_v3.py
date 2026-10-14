@@ -388,3 +388,45 @@ class V37CoreTests(TestCase):
             self.client.login(username=user, password="123456")
             for url in urls:
                 self.assertIn(self.client.get(url).status_code, (200, 302, 404), url)
+
+    def test_manual_assign_respects_capacity_and_quota(self):
+        from allocate.models import Allocation
+        from allocate.services import manual_assign
+        from catalog.models import Student, Topic
+
+        period = RegistrationPeriod.objects.get()
+        topic = Topic.objects.order_by("pk")[0]
+        topic.capacity = 1
+        topic.save()
+        a, b = Student.objects.order_by("pk")[:2]
+        manual_assign(period, a, topic)
+        with self.assertRaisesMessage(ValueError, "đã đủ"):
+            manual_assign(period, b, topic)
+        self.assertFalse(Allocation.objects.filter(period=period, student=b, topic=topic).exists())
+        manual_assign(period, a, topic)  # xếp lại chính SV đó không bị tính là vượt chỗ
+
+    def test_topic_form_rejects_bad_gpa_capacity_weight(self):
+        from catalog.forms import TopicForm, TopicSkillFormSet
+        from catalog.models import Topic
+
+        form = TopicForm(
+            data={"title": "Đề tài thử", "description": "x", "difficulty": 2, "min_gpa": "5", "capacity": 0}
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("min_gpa", form.errors)
+        self.assertIn("capacity", form.errors)
+        topic = Topic.objects.order_by("pk")[0]
+        ts = topic.skills.first()
+        data = {
+            "skills-TOTAL_FORMS": "1",
+            "skills-INITIAL_FORMS": "1",
+            "skills-MIN_NUM_FORMS": "0",
+            "skills-MAX_NUM_FORMS": "1000",
+            "skills-0-id": ts.pk,
+            "skills-0-topic": topic.pk,
+            "skills-0-skill": ts.skill_id,
+            "skills-0-required_level": 3,
+            "skills-0-weight": "0",
+        }
+        fs = TopicSkillFormSet(data, instance=topic, prefix="skills")
+        self.assertFalse(fs.is_valid())

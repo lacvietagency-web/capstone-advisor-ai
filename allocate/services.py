@@ -225,8 +225,17 @@ def get_phase2_suggestions(period: RegistrationPeriod, student: Student) -> list
 
 
 def manual_assign(period: RegistrationPeriod, student: Student, topic: Topic | None, user=None) -> Allocation:
-    """Khoa gán thủ công một đề tài cho sinh viên (Pha 2), nguồn là MANUAL."""
+    """Khoa gán thủ công một đề tài cho sinh viên (Pha 2), nguồn là MANUAL.
+
+    Chặn ở máy chủ (không chỉ giao diện): đề tài đã đủ sức chứa hoặc GV đã đủ chỉ tiêu trong đợt → ValueError."""
     _ensure_not_published(period)
+    if topic:
+        others = Allocation.objects.filter(period=period).exclude(student=student)
+        if others.filter(topic=topic).count() >= topic.capacity:
+            raise ValueError(f"Đề tài '{topic.title}' đã đủ {topic.capacity} sinh viên — chọn đề tài còn chỗ.")
+        lec = topic.lecturer
+        if others.filter(topic__lecturer=lec).count() >= lec.max_students:
+            raise ValueError(f"Giảng viên {lec} đã đủ chỉ tiêu {lec.max_students} sinh viên trong đợt.")
     score_val = None
     rank_val = None
     if topic:

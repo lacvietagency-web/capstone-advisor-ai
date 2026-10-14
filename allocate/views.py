@@ -14,7 +14,6 @@ from recommend.services import ensure_recommendations
 
 from .models import Allocation
 from .services import (
-    PublishedPeriodError,
     calculate_period_metrics,
     get_phase2_suggestions,
     get_student_allocation_result,
@@ -182,7 +181,7 @@ def allocation_dashboard(request):
                 return _handle_run(request, period, "GREEDY")
             if action == "manual_assign":
                 return _handle_manual(request, period)
-        except PublishedPeriodError as e:
+        except ValueError as e:  # PublishedPeriodError, đề tài/GV đã đủ chỗ khi xếp tay
             messages.error(request, str(e))
             return redirect(f"/khoa/phan-cong/?period_id={period.pk}")
         if action == "publish":

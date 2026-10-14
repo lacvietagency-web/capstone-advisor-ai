@@ -156,8 +156,14 @@ class Topic(models.Model):
     review_note = models.TextField("Ghi chú xét duyệt", blank=True)  # lưu ý của GV khi xét SV đăng ký
     fields = models.ManyToManyField(Field, verbose_name="Lĩnh vực")
     difficulty = models.PositiveSmallIntegerField("Độ khó", choices=Difficulty.choices, default=Difficulty.MEDIUM)
-    min_gpa = models.DecimalField("GPA tối thiểu", max_digits=3, decimal_places=2, default=0)
-    capacity = models.PositiveSmallIntegerField("Số sinh viên tối đa", default=1)
+    min_gpa = models.DecimalField(
+        "GPA tối thiểu",
+        max_digits=3,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+    )
+    capacity = models.PositiveSmallIntegerField("Số sinh viên tối đa", default=1, validators=[MinValueValidator(1)])
     status = models.CharField("Trạng thái", max_length=10, choices=Status.choices, default=Status.OPEN)
     version = models.PositiveIntegerField(default=1, editable=False)
 
@@ -185,7 +191,7 @@ class TopicSkill(models.Model):
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name="skills")
     skill = models.ForeignKey(Skill, on_delete=models.PROTECT)
     required_level = models.PositiveSmallIntegerField("Mức yêu cầu (1–5)", validators=LEVEL_1_5)
-    weight = models.FloatField("Trọng số", default=1.0)
+    weight = models.FloatField("Trọng số", default=1.0, validators=[MinValueValidator(0.01)])  # 0 → chia cho 0 ở M1
     is_mandatory = models.BooleanField("Bắt buộc", default=False)
 
     class Meta:

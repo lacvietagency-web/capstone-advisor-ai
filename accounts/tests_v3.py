@@ -52,6 +52,8 @@ class V3CoreTests(TestCase):
         self.assertEqual([a.student.student_code for a in one["allocations"]], ["20230001"])
         assigned = self.client.get("/khoa/phan-cong/?status=assigned").context["allocations"]
         self.assertTrue(all(a.topic_id for a in assigned))
+        high = self.client.get("/khoa/phan-cong/?score_min=50").context["allocations"]
+        self.assertTrue(all(a.match_score >= 50 for a in high))
 
 
 @override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)

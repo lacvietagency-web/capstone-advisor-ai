@@ -113,23 +113,18 @@ def _per_page(request):
     return n if n in PER_PAGE_CHOICES else ALLOCATIONS_PER_PAGE
 
 
-def _get_allocations_and_suggestions(period, request):
-    """Lấy danh sách phân công nháp và danh sách gợi ý Pha 2 nếu có yêu cầu."""
-    if not period:
-        return [], None, None, []
-
+def _filter_allocations(alloc_qs, request):
+    """Bộ lọc bảng phân công từ tham số GET: status, rank, lecturer, field, score_min/score_max, q."""
     status = _status_filter(request)
-    alloc_qs = (
-        Allocation.objects.filter(period=period)
-        .select_related("student__user", "topic__lecturer__user")
-        .order_by(SORTS.get(request.GET.get("sort"), "student__student_code"), "student__student_code")
-    )
     if status in ("unassigned", "assigned"):
         alloc_qs = alloc_qs.filter(topic__isnull=status == "unassigned")
     if request.GET.get("rank") in ("1", "2", "3"):
         alloc_qs = alloc_qs.filter(preference_rank=request.GET["rank"])
     if (request.GET.get("lecturer") or "").isdigit():
         alloc_qs = alloc_qs.filter(topic__lecturer_id=request.GET["lecturer"])
+    for key, lookup in (("score_min", "match_score__gte"), ("score_max", "match_score__lt")):
+        if (request.GET.get(key) or "").isdigit():  # lọc theo điểm phù hợp (thang 0–100)
+            alloc_qs = alloc_qs.filter(**{lookup: int(request.GET[key])})
     if (request.GET.get("field") or "").isdigit():
         alloc_qs = alloc_qs.filter(topic__fields__id=request.GET["field"]).distinct()
     query = (request.GET.get("q") or "").strip()
@@ -140,6 +135,20 @@ def _get_allocations_and_suggestions(period, request):
             | Q(student__user__last_name__icontains=query)
             | Q(topic__title__icontains=query)
         )
+    return alloc_qs
+
+
+def _get_allocations_and_suggestions(period, request):
+    """Lấy danh sách phân công nháp và danh sách gợi ý Pha 2 nếu có yêu cầu."""
+    if not period:
+        return [], None, None, []
+
+    alloc_qs = _filter_allocations(
+        Allocation.objects.filter(period=period)
+        .select_related("student__user", "topic__lecturer__user")
+        .order_by(SORTS.get(request.GET.get("sort"), "student__student_code"), "student__student_code"),
+        request,
+    )
     allocations = list(alloc_qs)
 
     suggest_student = None
@@ -210,6 +219,7 @@ def allocation_dashboard(request):
             "fields": Field.objects.order_by("name"),
             "lecturer_id": request.GET.get("lecturer") or "",
             "field_id": request.GET.get("field") or "",
+            "score_min": request.GET.get("score_min") or "",
             "metrics": metrics_data,
             "unassigned_only": _status_filter(request) == "unassigned",
             "suggest_student": suggest_student,

@@ -218,6 +218,13 @@
             {% endfor %}
           </select>
 
+          <select class="form-select at-filter" name="score_min" aria-label="Lọc theo điểm phù hợp" data-at-autosubmit>
+            <option value="">Mọi mức điểm</option>
+            <option value="50"{% if score_min == "50" %} selected{% endif %}>Điểm từ 50</option>
+            <option value="70"{% if score_min == "70" %} selected{% endif %}>Điểm từ 70</option>
+            <option value="80"{% if score_min == "80" %} selected{% endif %}>Điểm từ 80</option>
+          </select>
+
           <select class="form-select at-filter" name="sort" aria-label="Sắp xếp" data-at-autosubmit>
             <option value="code"{% if sort == "code" %} selected{% endif %}>Mã SV</option>
             <option value="gpa"{% if sort == "gpa" %} selected{% endif %}>GPA giảm dần</option>

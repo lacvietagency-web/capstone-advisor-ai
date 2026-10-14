@@ -371,3 +371,20 @@ class V37CoreTests(TestCase):
         self.assertEqual(period.status, RegistrationPeriod.Status.PUBLISHED)
         after = list(Allocation.objects.filter(period=period).values_list("student_id", "topic_id", "status"))
         self.assertEqual(before, after)
+
+    def test_bad_query_params_never_500(self):
+        cases = {
+            "sv001": [
+                "/danh-sach-de-tai/?per_page=xyz&field=x&lecturer=y&difficulty=z&page=abc",
+                "/ket-qua/?period_id=abc",
+            ],
+            "khoa01": [
+                "/khoa/phan-cong/?period_id=abc&page=x&per_page=y&score_min=z",
+                "/khoa/thong-ke/?period_id=abc",
+                "/ho-so-giang-vien/?lecturer_id=abc",
+            ],
+        }
+        for user, urls in cases.items():
+            self.client.login(username=user, password="123456")
+            for url in urls:
+                self.assertIn(self.client.get(url).status_code, (200, 302, 404), url)

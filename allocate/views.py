@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.views import student_journey
 from catalog.models import AuditLog, Field, Lecturer, Preference, RegistrationPeriod, Student, Topic
+from catalog.services import int_param
 from recommend.services import ensure_recommendations
 
 from .models import Allocation
@@ -74,7 +75,7 @@ def _handle_publish(request, period):
 
 def _get_selected_period(request):
     """Lấy đợt đăng ký được chọn từ query params hoặc đợt mới nhất."""
-    period_id = request.GET.get("period_id")
+    period_id = int_param(request.GET.get("period_id"))
     if period_id:
         return get_object_or_404(RegistrationPeriod, pk=period_id)
     period = (
@@ -291,7 +292,7 @@ def student_allocation_result(request):
     Khi chưa công bố: hiển thị trạng thái chờ 'Hội đồng Khoa đang thẩm định phân công'.
     """
     student = _check_student(request.user)
-    period_id = request.GET.get("period_id")
+    period_id = int_param(request.GET.get("period_id"))
     result_data = get_student_allocation_result(student, period_id=period_id)
     period = result_data["period"]
     prefs = (

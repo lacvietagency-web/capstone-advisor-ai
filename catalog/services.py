@@ -229,7 +229,7 @@ def get_target_lecturer(user, pk=None, lecturer_id_param=None):
         - Cán bộ Khoa (is_faculty_admin): Được phép xem và sửa hồ sơ của bất kỳ giảng viên nào.
     """
     if getattr(user, "is_faculty_admin", False):
-        target_id = pk or lecturer_id_param
+        target_id = pk or int_param(lecturer_id_param)  # ?lecturer_id=abc → bỏ qua, không lỗi 500
         if target_id:
             return get_object_or_404(Lecturer, pk=target_id)
         if hasattr(user, "lecturer"):
@@ -283,3 +283,16 @@ def remaining_capacity(topic, period=None):
     if period is not None:
         qs = qs.filter(period=period)
     return max(topic.capacity - qs.count(), 0)
+
+
+def int_param(value, default=None, lo=None, hi=None):
+    """Tham số số nguyên từ URL (?period_id=…): không phải số → default (tránh lỗi 500); kẹp [lo, hi] nếu có."""
+    try:
+        n = int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+    if lo is not None:
+        n = max(lo, n)
+    if hi is not None:
+        n = min(hi, n)
+    return n

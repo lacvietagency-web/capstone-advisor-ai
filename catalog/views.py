@@ -34,6 +34,7 @@ from .services import (
     get_target_lecturer,
     get_topic_nv1_count,
     get_visible_topics,
+    int_param,
     is_quota_locked,
     paginate_topics,
     remaining_capacity,
@@ -432,9 +433,9 @@ def lecturer_profile(request, pk=None):
 # ---------------------------------------------------------------- tra cứu đề tài
 def topic_list(request):
     """Xem danh sách đề tài tốt nghiệp có bộ lọc (lĩnh vực, giảng viên, độ khó, tìm kiếm tên) và phân trang."""
-    field_id = request.GET.get("field") or request.GET.get("field_id") or request.GET.get("linh_vuc")
-    lecturer_id = request.GET.get("lecturer") or request.GET.get("lecturer_id") or request.GET.get("gv")
-    difficulty = request.GET.get("difficulty") or request.GET.get("do_kho")
+    field_id = int_param(request.GET.get("field") or request.GET.get("field_id") or request.GET.get("linh_vuc"))
+    lecturer_id = int_param(request.GET.get("lecturer") or request.GET.get("lecturer_id") or request.GET.get("gv"))
+    difficulty = int_param(request.GET.get("difficulty") or request.GET.get("do_kho"))
     query = (
         request.GET.get("q")
         or request.GET.get("search")
@@ -443,8 +444,8 @@ def topic_list(request):
         or request.GET.get("ten")
         or request.GET.get("title")
     )
-    page_num = request.GET.get("page") or request.GET.get("p") or 1
-    per_page = request.GET.get("per_page") or 10
+    page_num = request.GET.get("page") or request.GET.get("p") or 1  # Paginator.get_page tự xử lý giá trị bậy
+    per_page = int_param(request.GET.get("per_page"), 10, lo=1, hi=50)
 
     visible_qs = get_visible_topics()
     filtered_qs = filter_topics(

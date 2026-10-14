@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, render
 
 from allocate.models import Allocation
 from catalog.models import RegistrationPeriod
+from catalog.services import int_param
 
 from .services import (
     compare_algorithms,
@@ -28,7 +29,7 @@ def _check_faculty_admin(user):
 
 def _get_selected_period(request):
     """Lấy đợt đăng ký theo tham số GET hoặc mặc định đợt đang mở / mới nhất."""
-    period_id = request.GET.get("period_id")
+    period_id = int_param(request.GET.get("period_id"))
     if period_id:
         return get_object_or_404(RegistrationPeriod, pk=period_id)
 

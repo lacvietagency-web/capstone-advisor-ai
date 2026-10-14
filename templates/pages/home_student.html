@@ -25,8 +25,11 @@
   {% endif %}
 
   <section class="at-panel">
-    <div class="at-section-title">
-      <h2 class="h3">Hành trình đăng ký</h2>
+    <div class="at-panel-header">
+      <div>
+        <h2 class="h3">Hành trình đăng ký</h2>
+        <p class="at-secondary">Tiến độ thực hiện các bước trong đợt đăng ký đồ án</p>
+      </div>
     </div>
     {% include "components/journey.html" with journey=journey %}
   </section>
@@ -94,7 +97,7 @@
     <section class="at-panel at-col-8">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Top 5 đề tài phù hợp</h2>
+          <h2 class="h3">Đề tài phù hợp nhất</h2>
           <p class="at-secondary">Được xếp hạng theo mức độ phù hợp với hồ sơ năng lực của bạn.</p>
         </div>
         <a href="{% url 'topic_list' %}" class="btn btn-text btn-sm">
@@ -103,8 +106,8 @@
       </div>
 
       {% if recommendations %}
-        <div class="at-list">
-          {% for r in recommendations %}
+        {% for r in recommendations %}
+          {% if forloop.first %}
             <article class="at-item at-topic">
               <div>
                 <div class="at-row at-row--top at-mb-2">
@@ -123,13 +126,13 @@
                   {% include "components/evidence.html" with rec=r detail=False %}
                 </div>
                 {% if r.reason %}
-                  <div class="at-mt-3 at-clamp-3">
+                  <div class="at-mt-3">
                     {% include "components/note.html" with title="Lý do gợi ý" text=r.reason %}
                   </div>
                 {% endif %}
               </div>
               <div class="at-topic-side">
-                {% include "components/score.html" with rec=r size="md" %}
+                {% include "components/score.html" with rec=r size="lg" %}
               </div>
               <div class="at-topic-foot">
                 <a href="{% url 'topic_detail' r.topic.pk %}" class="btn btn-secondary btn-sm">Chi tiết</a>
@@ -140,8 +143,33 @@
                 {% endif %}
               </div>
             </article>
-          {% endfor %}
-        </div>
+            {% if not forloop.last %}
+              <div class="at-list at-mt-3">
+            {% endif %}
+          {% else %}
+            <article class="at-item at-row at-row--between">
+              <div class="at-row at-grow">
+                <span class="at-rank">#{{ r.rank }}</span>
+                <div class="at-grow">
+                  <a href="{% url 'topic_detail' r.topic.pk %}" class="at-title-link">{{ r.topic.title }}</a>
+                  <div class="at-meta at-mt-1">
+                    <span>GVHD: <strong>{{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</strong></span>
+                    {% for f in r.topic.fields.all %}
+                      <span class="at-tag">{{ f.name }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+              <div class="at-row">
+                {% include "components/score.html" with rec=r size="sm" %}
+                <a href="{% url 'topic_detail' r.topic.pk %}" class="btn btn-secondary btn-sm">Chi tiết</a>
+              </div>
+            </article>
+            {% if forloop.last %}
+              </div>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
       {% else %}
         {% url 'student_profile' as profile_url %}
         {% include "components/empty.html" with illustration="empty-recommendation" title="Chưa có gợi ý vì hồ sơ chưa có kỹ năng" desc="Thêm ít nhất 1 kỹ năng để hệ thống tính mức độ phù hợp." primary_url=profile_url primary_label="Cập nhật hồ sơ" %}

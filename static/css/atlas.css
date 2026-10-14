@@ -494,7 +494,8 @@ a.at-journey-step:hover .at-journey-label { color: var(--at-brand); text-decorat
 .at-rec-row { display: grid; grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr) auto 18px; gap: 12px; align-items: center; min-height: 48px; padding: 8px 14px; color: var(--at-ink); text-decoration: none; border-top: 1px solid var(--at-line); }
 .at-rec-row:first-child { border-top: 0; } .at-rec-row:hover { background: var(--at-surface-hover); color: var(--at-ink); }
 .at-rec-title { font-weight: 600; } .at-rec-score strong { font-size: 17px; color: var(--at-ai); } .at-rec-score { color: var(--at-ink-muted); font-size: 12px; white-space: nowrap; }
-@media (max-width: 1199.98px) { .at-best { grid-template-columns: 150px minmax(0, 1fr); } .at-best-evidence { grid-column: 1 / -1; } }
+@media (max-width: 1399.98px) { .at-best { grid-template-columns: 150px minmax(0, 1fr); } .at-best-evidence { grid-column: 1 / -1; } }
 @media (max-width: 767.98px) { .at-best { grid-template-columns: 1fr; } .at-rec-row { grid-template-columns: auto minmax(0, 1fr) auto; } .at-rec-gv, .at-rec-row > .at-icon { display: none; } }
 .at-evidence-value { white-space: nowrap; }
+.at-best-evidence .at-evidence-value--none { white-space: normal; text-align: right; }
 .at-best-evidence .at-evidence li { grid-template-columns: 26px minmax(70px, max-content) minmax(40px, 1fr) auto; gap: 6px 10px; }

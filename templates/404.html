@@ -1,5 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Không tìm thấy trang — Capstone AI{% endblock %}
 {% block content %}
-{% include "components/empty.html" with page=True illustration="error-404" title="Không tìm thấy trang" desc="Đường dẫn không tồn tại, hoặc nội dung đã bị gỡ hay chưa được mở." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
+{% include "components/error_page.html" with code="404" icon="file-search" title="Không tìm thấy trang" desc="Trang bạn tìm kiếm không tồn tại hoặc đã được chuyển. Kiểm tra lại đường dẫn hoặc quay về trang chủ." %}
 {% endblock %}

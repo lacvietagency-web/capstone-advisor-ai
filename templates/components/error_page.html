@@ -1,0 +1,16 @@
+{# Trang lỗi V3.5 (spec-chung 04–06). Tham số: code, icon, badge (icon nhỏ góc, tuỳ chọn), title, desc, retry=True (thêm nút Thử lại) #}
+<div class="at-error-layout">
+  <section class="at-panel at-error-panel" aria-labelledby="atErrTitle">
+    <div class="at-error-illustration" aria-hidden="true">
+      {% include "components/icon.html" with name=icon size=48 %}
+      {% if badge %}<span class="at-error-badge">{% include "components/icon.html" with name=badge size=22 %}</span>{% endif %}
+    </div>
+    <div class="at-error-code at-num">{{ code }}</div>
+    <h1 class="h2" id="atErrTitle">{{ title }}</h1>
+    <p class="at-error-copy">{{ desc }}</p>
+    <div class="at-row" style="justify-content:center">
+      {% if retry %}<a href="" class="btn btn-secondary">Thử lại</a>{% endif %}
+      <a href="/trang-chu/" class="btn btn-primary">Quay về trang chủ</a>
+    </div>
+  </section>
+</div>

@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 
 from allocate.services import get_student_allocation_result
 from catalog.models import Preference, RegistrationPeriod, Student, Topic
+from catalog.views import profile_completeness
 from recommend.services import ensure_recommendations
 
 
@@ -142,6 +143,7 @@ def home(request):
             "student": student,
             "preferences": preferences,
             "journey": student_journey(student, bool(preferences), allocation_result["period"]),
+            **profile_completeness(student),
             "recommendations": student.recommendations.filter(rank__isnull=False)
             .select_related("topic")
             .order_by("rank")[:5],

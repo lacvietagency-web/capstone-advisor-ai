@@ -1,0 +1,21 @@
+{# Hồ sơ năng lực chưa hoàn tất (ảnh 03 đã duyệt, spec-chung 03). Tham số: completeness_items [(nhãn, đã có?)], period (tuỳ chọn), can_edit (mặc định True) #}
+<div class="at-grid">
+  <section class="at-panel at-col-8">
+    <div class="at-panel-header"><div><h2>Thông tin còn thiếu</h2><p>Bổ sung các mục dưới đây để hệ thống đánh giá và gợi ý đề tài phù hợp.</p></div></div>
+    <div class="at-list">
+      {% for label, ok in completeness_items %}{% if not ok %}
+        <div class="at-missing-item">{% include "components/icon.html" with name="circle-alert" class="at-warning-ink" %}<div class="at-grow"><strong>{{ label }}</strong></div>{% include "components/status.html" with kind="warning" label="Chưa có" %}</div>
+      {% endif %}{% endfor %}
+    </div>
+  </section>
+  <section class="at-panel at-col-4">
+    <div class="at-panel-header"><div><h2>Việc cần làm tiếp theo</h2></div></div>
+    <ol class="at-next-steps">
+      <li><span class="at-next-step-number">1</span><div><strong>Hoàn thiện hồ sơ năng lực</strong><span class="at-secondary d-block">Bổ sung các mục còn thiếu.</span></div></li>
+      <li><span class="at-next-step-number">2</span><div><strong>Nhận gợi ý đề tài từ AI</strong><span class="at-secondary d-block">Hệ thống tính mức phù hợp M1–M5.</span></div></li>
+      <li><span class="at-next-step-number">3</span><div><strong>Nộp nguyện vọng</strong><span class="at-secondary d-block">Chọn tối đa 3 đề tài trước hạn.</span></div></li>
+    </ol>
+    {% if can_edit|default_if_none:True %}<a href="{% url 'student_profile' %}" class="btn btn-primary at-w-100 at-mt-4">{% include "components/icon.html" with name="arrow-right" %}Đi đến Hồ sơ năng lực</a>{% endif %}
+  </section>
+  <div class="at-col-12">{% include "components/note.html" with title="Lưu ý về đánh giá và gợi ý đề tài" text="Sau khi hồ sơ đủ, hệ thống chấm mức phù hợp với từng đề tài theo 5 tiêu chí: M1 Kỹ năng (25%), M2 Học lực (20%), M3 Lĩnh vực (15%), M4 Ngữ nghĩa (20%), M5 Đánh giá LLM (20%), trọng số theo phương pháp AHP." %}</div>
+</div>

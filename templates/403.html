@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Bạn không có quyền xem trang này — Capstone AI{% endblock %}
+{% block title %}Không có quyền truy cập — Capstone AI{% endblock %}
 {% block content %}
-{% include "components/empty.html" with page=True illustration="error-403" title="Bạn không có quyền xem trang này" desc="Trang này dành cho vai trò khác. Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ Văn phòng Khoa." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
+{% include "components/error_page.html" with code="403" icon="lock-keyhole" badge="circle-x" title="Bạn không có quyền xem trang này." desc="Trang này dành cho vai trò khác. Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ Văn phòng Khoa." %}
 {% endblock %}

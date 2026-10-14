@@ -11,15 +11,20 @@
 </head>
 <body>
   <main class="at-canvas" id="main">
-    <div class="at-empty at-empty--page">
-      <img class="at-illus--light" src="{% static 'illus/error-500.svg' %}" alt="" width="240" height="160">
-      <img class="at-illus--dark" src="{% static 'illus/dark/error-500.svg' %}" alt="" width="240" height="160">
-      <div class="at-empty-title">Hệ thống gặp lỗi</div>
-      <div class="at-empty-desc">Yêu cầu của bạn chưa được xử lý. Dữ liệu đã lưu trước đó không bị ảnh hưởng. Thử tải lại trang; nếu vẫn lỗi, báo cho Văn phòng Khoa.</div>
-      <div class="at-empty-actions">
-        <a href="" class="btn btn-primary">Tải lại trang</a>
-        <a href="/trang-chu/" class="btn btn-text">Về trang chủ</a>
-      </div>
+    <div class="at-error-layout">
+      <section class="at-panel at-error-panel" aria-labelledby="atErrTitle">
+        <div class="at-error-illustration" aria-hidden="true">
+          <span class="at-icon" style="--i:url('{% static 'icons/settings.svg' %}');--s:48px"></span>
+          <span class="at-error-badge"><span class="at-icon" style="--i:url('{% static 'icons/triangle-alert.svg' %}');--s:22px"></span></span>
+        </div>
+        <div class="at-error-code at-num">500</div>
+        <h1 class="h2" id="atErrTitle">Đã xảy ra lỗi khi xử lý yêu cầu.</h1>
+        <p class="at-error-copy">Dữ liệu đã lưu trước đó không bị ảnh hưởng. Thử lại sau ít phút; nếu vẫn lỗi, báo cho Văn phòng Khoa.</p>
+        <div class="at-row" style="justify-content:center">
+          <a href="" class="btn btn-secondary">Thử lại</a>
+          <a href="/trang-chu/" class="btn btn-primary">Quay về trang chủ</a>
+        </div>
+      </section>
     </div>
   </main>
 </body>

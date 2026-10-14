@@ -22,7 +22,7 @@
   <div class="at-stack">
     {% include "components/period.html" with period=period text="Đợt đăng ký đang mở. Bạn có thể chỉnh sửa trước thời hạn đóng đợt." %}
 
-    <form method="post" id="preferencesForm" data-at-busy novalidate>
+    <form method="post" id="preferencesForm" class="at-stack" data-at-busy novalidate>
       {% csrf_token %}
 
       {# Báo lỗi form không được trùng nguyện vọng #}
@@ -36,100 +36,64 @@
         {# Khối NV1 #}
         <section class="at-panel" id="nvPanel1">
           <div class="at-panel-header">
-            <div class="at-row">
-              <span class="at-rank">NV1</span>
-              <div>
-                <h2 class="h3 at-mb-0">Nguyện vọng 1</h2>
-                <span class="at-secondary">Ưu tiên cao nhất</span>
-              </div>
+            <div>
+              <h2 class="h3">Nguyện vọng 1</h2>
+              <p>Ưu tiên cao nhất</p>
             </div>
-            <div class="nv-score-container" id="nvScore1"></div>
+            <span class="at-rank">NV1</span>
           </div>
           <div class="at-field">
-            <label class="form-label" for="{{ form.nv1.id_for_label }}">Đề tài nguyện vọng 1</label>
+            <label class="form-label at-required" for="{{ form.nv1.id_for_label }}">Chọn đề tài</label>
             {{ form.nv1 }}
             {% if form.nv1.errors %}
               <div class="at-error">{{ form.nv1.errors.0 }}</div>
             {% endif %}
           </div>
-          {% for pref in user.student.preferences.all %}
-            {% if pref.period_id == period.id and pref.rank == 1 %}
-              <div class="at-row at-mt-3">
-                {% include "components/status.html" with status=pref.status label=pref.get_status_display %}
-                {% if pref.status == 'REJECTED' and pref.reject_reason %}
-                  <div class="at-w-100 at-mt-2">
-                    {% include "components/note.html" with kind="danger" title="Lý do từ chối" text=pref.reject_reason %}
-                  </div>
-                {% endif %}
-              </div>
-            {% endif %}
-          {% endfor %}
+          <div class="nv-detail at-inset at-mt-3" id="nvDetail1" data-rank="1">
+            <div class="at-secondary">Chưa chọn đề tài cho nguyện vọng này.</div>
+          </div>
         </section>
 
         {# Khối NV2 #}
         <section class="at-panel" id="nvPanel2">
           <div class="at-panel-header">
-            <div class="at-row">
-              <span class="at-rank">NV2</span>
-              <div>
-                <h2 class="h3 at-mb-0">Nguyện vọng 2</h2>
-                <span class="at-secondary">Ưu tiên thứ hai</span>
-              </div>
+            <div>
+              <h2 class="h3">Nguyện vọng 2</h2>
+              <p>Ưu tiên thứ hai</p>
             </div>
-            <div class="nv-score-container" id="nvScore2"></div>
+            <span class="at-rank">NV2</span>
           </div>
           <div class="at-field">
-            <label class="form-label" for="{{ form.nv2.id_for_label }}">Đề tài nguyện vọng 2</label>
+            <label class="form-label" for="{{ form.nv2.id_for_label }}">Chọn đề tài</label>
             {{ form.nv2 }}
             {% if form.nv2.errors %}
               <div class="at-error">{{ form.nv2.errors.0 }}</div>
             {% endif %}
           </div>
-          {% for pref in user.student.preferences.all %}
-            {% if pref.period_id == period.id and pref.rank == 2 %}
-              <div class="at-row at-mt-3">
-                {% include "components/status.html" with status=pref.status label=pref.get_status_display %}
-                {% if pref.status == 'REJECTED' and pref.reject_reason %}
-                  <div class="at-w-100 at-mt-2">
-                    {% include "components/note.html" with kind="danger" title="Lý do từ chối" text=pref.reject_reason %}
-                  </div>
-                {% endif %}
-              </div>
-            {% endif %}
-          {% endfor %}
+          <div class="nv-detail at-inset at-mt-3" id="nvDetail2" data-rank="2">
+            <div class="at-secondary">Chưa chọn đề tài cho nguyện vọng này.</div>
+          </div>
         </section>
 
         {# Khối NV3 #}
         <section class="at-panel" id="nvPanel3">
           <div class="at-panel-header">
-            <div class="at-row">
-              <span class="at-rank">NV3</span>
-              <div>
-                <h2 class="h3 at-mb-0">Nguyện vọng 3</h2>
-                <span class="at-secondary">Ưu tiên thứ ba</span>
-              </div>
+            <div>
+              <h2 class="h3">Nguyện vọng 3</h2>
+              <p>Ưu tiên thứ ba</p>
             </div>
-            <div class="nv-score-container" id="nvScore3"></div>
+            <span class="at-rank">NV3</span>
           </div>
           <div class="at-field">
-            <label class="form-label" for="{{ form.nv3.id_for_label }}">Đề tài nguyện vọng 3</label>
+            <label class="form-label" for="{{ form.nv3.id_for_label }}">Chọn đề tài</label>
             {{ form.nv3 }}
             {% if form.nv3.errors %}
               <div class="at-error">{{ form.nv3.errors.0 }}</div>
             {% endif %}
           </div>
-          {% for pref in user.student.preferences.all %}
-            {% if pref.period_id == period.id and pref.rank == 3 %}
-              <div class="at-row at-mt-3">
-                {% include "components/status.html" with status=pref.status label=pref.get_status_display %}
-                {% if pref.status == 'REJECTED' and pref.reject_reason %}
-                  <div class="at-w-100 at-mt-2">
-                    {% include "components/note.html" with kind="danger" title="Lý do từ chối" text=pref.reject_reason %}
-                  </div>
-                {% endif %}
-              </div>
-            {% endif %}
-          {% endfor %}
+          <div class="nv-detail at-inset at-mt-3" id="nvDetail3" data-rank="3">
+            <div class="at-secondary">Chưa chọn đề tài cho nguyện vọng này.</div>
+          </div>
         </section>
 
         {# Khối Gợi ý cho bạn từ top5 #}
@@ -193,6 +157,7 @@
 
       {# Nút lưu trên Mobile (Action Bar thay Bottom Nav) #}
       <div class="at-actionbar">
+        <a href="{% url 'home' %}" class="btn btn-secondary">Quay lại</a>
         <button type="submit" class="btn btn-primary">
           {% include "components/icon.html" with name="save" %}Lưu nguyện vọng
         </button>
@@ -200,19 +165,60 @@
     </form>
   </div>
 
-  {# Dữ liệu điểm để JS cập nhật hiển thị điểm khi chọn đề tài #}
+  {# Dữ liệu đề tài và điểm để JS hiển thị chi tiết khi chọn đề tài #}
   <script id="topic-scores-data" type="application/json">
   {
     {% for topic_id, rec in scores.items %}
       "{{ topic_id }}": {
         "topic_id": {{ topic_id }},
         "title": "{{ rec.topic.title|escapejs }}",
+        "lecturer": "{{ rec.topic.lecturer|default:''|escapejs }}",
+        "min_gpa": "{{ rec.topic.min_gpa|floatformat:2 }}",
         "final_score": "{{ rec.final_score|floatformat:1 }}",
         "is_preliminary": {% if rec.m5_llm is None %}true{% else %}false{% endif %}
       }{% if not forloop.last %},{% endif %}
     {% endfor %}
   }
   </script>
+
+  {# Dữ liệu nguyện vọng đã lưu trong CSDL của đợt này #}
+  <script id="saved-preferences-data" type="application/json">
+  {
+    {% for pref in user.student.preferences.all %}
+      {% if pref.period_id == period.id %}
+        "{{ pref.rank }}": {
+          "topic_id": {{ pref.topic.id }},
+          "status": "{{ pref.status }}",
+          "status_display": "{{ pref.get_status_display|escapejs }}",
+          "reject_reason": "{{ pref.reject_reason|default:''|escapejs }}"
+        }{% if not forloop.last %},{% endif %}
+      {% endif %}
+    {% endfor %}
+  }
+  </script>
+
+  {# Mẫu HTML dùng cho JS (tái sử dụng component chuẩn ATLAS) #}
+  <template id="tmpl-status-accepted">
+    {% include "components/status.html" with status="ACCEPTED" label="Đồng ý" %}
+  </template>
+  <template id="tmpl-status-rejected">
+    {% include "components/status.html" with status="REJECTED" label="Từ chối" %}
+  </template>
+  <template id="tmpl-status-pending">
+    {% include "components/status.html" with status="PENDING" label="Chờ duyệt" %}
+  </template>
+  <template id="tmpl-status-unsaved">
+    <span class="at-badge">{% include "components/icon.html" with name="circle-dot" size=14 %}Chưa lưu</span>
+  </template>
+  <template id="tmpl-badge-eligible">
+    <span class="at-badge at-badge--success">{% include "components/icon.html" with name="check" size=14 %}Đủ điều kiện đăng ký</span>
+  </template>
+  <template id="tmpl-note-rejected">
+    <div class="at-mt-3">
+      {% include "components/note.html" with kind="danger" icon="triangle-alert" title="Lý do từ chối" text="__REASON__" %}
+    </div>
+  </template>
+
 
 {% else %}
   {# Context B: Không có đợt mở (period is None) #}
@@ -237,16 +243,12 @@
         {% for item in submitted %}
           <section class="at-panel">
             <div class="at-panel-header">
-              <div class="at-row">
-                <span class="at-rank">NV{{ item.pref.rank }}</span>
-                <div>
-                  <h2 class="h3 at-mb-0">{{ item.pref.topic.title }}</h2>
-                  <span class="at-secondary">
-                    {% if item.pref.topic.lecturer %}GVHD: {{ item.pref.topic.lecturer }}{% endif %}
-                  </span>
-                </div>
+              <div>
+                <h2 class="h3">{{ item.pref.topic.title }}</h2>
+                <p>{% if item.pref.topic.lecturer %}GVHD: {{ item.pref.topic.lecturer }}{% endif %}</p>
               </div>
               <div class="at-row">
+                <span class="at-rank">NV{{ item.pref.rank }}</span>
                 {% include "components/status.html" with status=item.pref.status label=item.pref.get_status_display %}
                 {% include "components/score.html" with rec=item.rec size="sm" %}
               </div>
@@ -302,6 +304,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  var savedPrefsEl = document.getElementById("saved-preferences-data");
+  var savedPrefsMap = {};
+  if (savedPrefsEl && savedPrefsEl.textContent.trim()) {
+    try {
+      savedPrefsMap = JSON.parse(savedPrefsEl.textContent);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   var nv1 = document.getElementById("id_nv1");
   var nv2 = document.getElementById("id_nv2");
   var nv3 = document.getElementById("id_nv3");
@@ -313,35 +325,118 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  function updateScoreSlot(rank) {
-    var slot = document.getElementById("nvScore" + rank);
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function getTemplateHtml(id) {
+    var tmpl = document.getElementById(id);
+    return tmpl ? tmpl.innerHTML.trim() : "";
+  }
+
+  function updateNvDetail(rank) {
+    var slot = document.getElementById("nvDetail" + rank);
     var sel = selects[rank];
     if (!slot || !sel) return;
     var topicId = sel.value;
     if (!topicId) {
-      slot.innerHTML = "";
+      slot.innerHTML = '<div class="at-secondary">Chưa chọn đề tài cho nguyện vọng này.</div>';
       return;
     }
+
     var data = scoresMap[topicId];
-    if (data) {
+    var saved = savedPrefsMap[rank];
+    var isSavedMatch = (saved && String(saved.topic_id) === String(topicId));
+
+    var title = data ? data.title : (sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "");
+    var lecturer = (data && data.lecturer) ? data.lecturer : "";
+    var minGpa = (data && data.min_gpa) ? data.min_gpa : "";
+
+    // Điểm phù hợp (score sm)
+    var scoreHtml = "";
+    if (data && data.final_score) {
       var label = data.is_preliminary ? "Điểm sơ bộ M1–M4" : "Điểm phù hợp";
-      slot.innerHTML = '<div class="at-score at-score--sm">' +
+      scoreHtml = '<div class="at-score at-score--sm">' +
         '<span class="at-score-value">' + data.final_score + '<small> /100</small></span>' +
         '<span class="at-score-label">' + label + '</span>' +
         '</div>';
     } else {
-      slot.innerHTML = '<div class="at-score at-score--none at-score--sm">' +
+      scoreHtml = '<div class="at-score at-score--none at-score--sm">' +
         '<span class="at-score-value">Chưa có điểm</span>' +
         '</div>';
     }
+
+    // Trạng thái duyệt
+    var statusHtml = "";
+    var rejectNoteHtml = "";
+    if (isSavedMatch) {
+      if (saved.status === "ACCEPTED") {
+        statusHtml = getTemplateHtml("tmpl-status-accepted");
+        if (saved.status_display && saved.status_display !== "Đồng ý") {
+          statusHtml = statusHtml.replace("Đồng ý", escapeHtml(saved.status_display));
+        }
+      } else if (saved.status === "REJECTED") {
+        statusHtml = getTemplateHtml("tmpl-status-rejected");
+        if (saved.status_display && saved.status_display !== "Từ chối") {
+          statusHtml = statusHtml.replace("Từ chối", escapeHtml(saved.status_display));
+        }
+        if (saved.reject_reason) {
+          rejectNoteHtml = getTemplateHtml("tmpl-note-rejected").replace("__REASON__", escapeHtml(saved.reject_reason));
+        }
+      } else {
+        statusHtml = getTemplateHtml("tmpl-status-pending");
+        if (saved.status_display && saved.status_display !== "Chờ duyệt") {
+          statusHtml = statusHtml.replace("Chờ duyệt", escapeHtml(saved.status_display));
+        }
+      }
+    } else {
+      statusHtml = getTemplateHtml("tmpl-status-unsaved");
+    }
+
+    // Điều kiện đăng ký
+    var eligHtml = '<div class="at-meta">' +
+      getTemplateHtml("tmpl-badge-eligible");
+    if (minGpa && parseFloat(minGpa) > 0) {
+      eligHtml += '<span>GPA tối thiểu: <strong>' + minGpa + '</strong></span>';
+    }
+    eligHtml += '</div>';
+
+    slot.innerHTML =
+      '<div class="at-row at-row--between at-row--top">' +
+        '<div class="at-grow">' +
+          '<strong class="d-block">' + escapeHtml(title) + '</strong>' +
+          (lecturer ? '<div class="at-secondary at-mt-1">GVHD: <strong>' + escapeHtml(lecturer) + '</strong></div>' : '') +
+        '</div>' +
+        scoreHtml +
+      '</div>' +
+      '<div class="at-topic-foot at-mt-3">' +
+        eligHtml +
+        statusHtml +
+      '</div>' +
+      rejectNoteHtml;
   }
+
 
   [1, 2, 3].forEach(function (rank) {
     var sel = selects[rank];
     if (sel) {
-      updateScoreSlot(rank);
+      updateNvDetail(rank);
       sel.addEventListener("change", function () {
-        updateScoreSlot(rank);
+        var val = this.value;
+        if (val) {
+          [1, 2, 3].forEach(function (otherRank) {
+            if (otherRank !== rank && selects[otherRank] && selects[otherRank].value === val) {
+              alert("Đề tài này đã được chọn ở Nguyện vọng " + otherRank + ". Vui lòng chọn đề tài khác.");
+            }
+          });
+        }
+        updateNvDetail(rank);
       });
     }
   });

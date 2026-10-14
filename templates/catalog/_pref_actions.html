@@ -9,7 +9,7 @@
   {% endif %}
 
   {% if row.pref.status != "ACCEPTED" %}
-    <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" class="m-0 d-inline-block">
+    <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" class="d-inline" data-at-busy>
       {% csrf_token %}
       <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
       <input type="hidden" name="action" value="accept">
@@ -21,7 +21,7 @@
   {% endif %}
 
   {% if row.pref.status != "REJECTED" %}
-    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal_{{ row.pref.pk }}" title="Từ chối yêu cầu (bắt buộc nhập lý do)">
+    <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal_{{ row.pref.pk }}" title="Từ chối yêu cầu (bắt buộc nhập lý do)">
       {% include "components/icon.html" with name="user-x" %}
       <span>Từ chối</span>
     </button>

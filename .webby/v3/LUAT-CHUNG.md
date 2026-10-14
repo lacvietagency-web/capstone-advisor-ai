@@ -1,4 +1,8 @@
 LUẬT CHUNG ĐỘI GIAO DIỆN — ATLAS V3.4 (máy kiểm sẽ chặn mọi vi phạm)
+0. ĐỢT V3.6 (chủ duyệt 14/10): làm ĐÚNG ẢNH ĐÃ DUYỆT .webby/v3/v36/renders/<mã>.jpg (CHỈ để nhìn bố cục — KHÔNG đo pixel)
+   theo HỢP ĐỒNG CÀI ĐẶT .webby/v3/v36/spec-<nhóm>.md (số liệu lấy ở đây), kèm sửa trong .webby/v3/v36/GHI-CHU-CLAUDE.md
+   (bỏ chuông, bỏ nút/điều khiển chưa có chức năng, M5 = "Đánh giá LLM", năm 2026, dữ liệu lấy từ biến context — không gõ số mẫu trong ảnh).
+   Logo là chữ M: chỉ dùng {% include "components/logo.html" %}. Icon: chỉ file có trong static/icons/.
 1. Thông số có hiệu lực (mới nhất thắng): .webby/v3/truong/g4-chot.md (V3.5, học bố cục web trường) > .webby/v3/b2-chot.md (V3.4) > .webby/v3/a2-thong-so.md (V3.3).
    Ảnh web trường để học bố cục: .webby/v3/truong/truong-sheet.jpg (KHÔNG chép logo/tên trường, không chép code). Ảnh .webby/v3/renders/*.png chỉ để nhìn bố cục;
    số liệu trong ảnh là ví dụ — KHÔNG gõ cứng vào template, mọi con số lấy từ biến context.

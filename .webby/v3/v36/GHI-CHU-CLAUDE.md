@@ -1,0 +1,26 @@
+# Ghi chú của Claude khi soát ảnh (sửa trước khi đưa chủ duyệt)
+- 00a-thanh-phan-sang: M5 ghi "Mức phù hợp" → phải là "Đánh giá LLM"; tiêu đề lộ mã "00a-thành phần".
+- 00b-thanh-phan-toi: cùng lỗi M5 + tiêu đề lộ mã.
+- 01-dang-nhap: có link "Quên mật khẩu?" — hệ thống CHƯA có chức năng này → bỏ (không tạo điều khiển giả). Logo vẽ hình chữ "M", không phải Open Path → code dùng SVG Open Path thật.
+- Chung: ChatGPT vẽ logo "M" ở mọi ảnh — hỏi chủ giữ Open Path hay đổi sang logo chữ M.
+- 07-sv-trang-chu: RẤT TỐT — dùng làm mẫu. Sửa: bỏ chuông thông báo (không có chức năng), M5 "Mức phù hợp" → "Đánh giá LLM", năm 2025 → 2026 (dữ liệu thật lấy từ CSDL khi code).
+- 08-sv-ho-so: đẹp. Cần chủ chọn: Email/SĐT/Lớp/GV cố vấn — CSDL chưa có (bỏ hay thêm backend); "Lưu nháp" chưa có chức năng (bỏ); Lĩnh vực vẽ ô tích nhưng M3 cần mức 1–3 (giữ mức 1–3, vẽ dạng chọn mức). "Mức độ hoàn thiện" → làm được từ dữ liệu thật. Kỹ năng chọn mức bằng nút tròn có nhãn: làm theo.
+- 09-sv-nguyen-vong: tốt. Cần chủ chọn: "Lưu nháp" + "Nộp nguyện vọng" (2 bước) — hệ thống hiện 1 bước (lưu = nộp, sửa được tới khi đợt đóng); thêm bước nộp chính thức = thêm backend. "Chỉ tiêu còn chỗ" tính được (sức chứa − số đã đồng ý). Bỏ chuông.
+- 10-sv-danh-sach-de-tai: rất tốt. Backend thêm: tab Đủ/Chưa đủ điều kiện có số đếm, sắp xếp theo cột. Sửa: nút "Đăng ký" phải khoá ở đề tài chưa đủ điều kiện. Bỏ chuông.
+- 11-sv-chi-tiet-de-tai: RẤT TỐT, đúng thông số. Nhỏ: dòng "Có thể làm việc nhóm" không phải điều kiện có trong hệ thống (bỏ). Bỏ chuông.
+- 12-sv-ket-qua (vẽ lại kèm ảnh mẫu): ĐÚNG. Nhỏ: nút "Tải biên bản" chưa có chức năng → bỏ. (Bản lệch cũ: v35-renders/lech/)
+- 13-gv-tong-quan (vẽ lại kèm ảnh mẫu): ĐÚNG. "Hạn duyệt GV" → dùng ngày kết thúc đợt (không có trường riêng). Mã "GVHD: 015" không có → bỏ.
+- 14-gv-de-tai (vẽ lại kèm ảnh mẫu): ĐÚNG. Trạng thái "Đủ chỉ tiêu/Tạm khoá" → ánh xạ Nháp/Đang mở/Đã đóng (+ nhãn "Đủ chỉ tiêu" tính được khi số đồng ý = sức chứa).
+- 15-gv-form-de-tai: đẹp. Trường CSDL CHƯA có: Mã đề tài, Mục tiêu, Công nghệ gợi ý, Ghi chú xét duyệt, "Nhận đăng ký NV1", "Cho phép chỉnh sửa sau công bố", "Lưu nháp" → chủ chọn bỏ/thêm. Môn tiên quyết: CSDL ĐÃ CÓ (TopicPrerequisite) nhưng form chưa cho chọn → NÊN thêm.
+- 16-gv-duyet-sv: RẤT TỐT. "Nhận xét giảng viên" chưa có trường (chỉ có lý do từ chối) → chủ chọn.
+- 17-gv-ho-so: bố cục tốt. Hệ thống chỉ có 1 chỉ tiêu (max_students) — 4 ô chỉ tiêu: giữ 1 ô sửa được + 2 ô tính (số đề tài hiện tại, SV đang hướng dẫn). Thống kê theo lĩnh vực: tính được. Học hàm/SĐT/giới thiệu/từ khoá: CSDL chưa có → chủ chọn. Email: đã có.
+- 18-khoa-tong-quan: ĐÚNG, dữ liệu đều có. Nhỏ: số liệu mỗi số một màu (tím cho "Đợt đăng ký") → thống nhất màu chữ, chỉ tô màu khi có ý nghĩa trạng thái.
+- 19-khoa-phan-cong: RẤT TỐT — mẫu cho trang Khoa (ô Chốt & công bố cạnh biểu đồ, số trên đầu cột, link "Xếp tay" trên dòng chờ pha 2). Sửa: góc phải ghi vai "Giảng viên" → "Khoa"; năm 2025.
+- 20-khoa-thong-ke: ĐÚNG phán quyết (7:5, 6:6, bảng dưới biểu đồ). Sửa: "Điểm TB (thang 10)" → thang 100.
+- 21-khoa-nhap-excel: rõ ràng. Khác hệ thống: 1 file mẫu 4 sheet (ảnh vẽ 3 file), chỉ .xlsx ≤5MB (ảnh: CSV, 10MB), nhập 1 bước all-or-nothing (ảnh: kiểm tra → xác nhận 2 bước = cần backend giữ file chờ) → chủ chọn.
+- 02-doi-mat-khau: dùng được. Bỏ "Mật khẩu cập nhật lần cuối" (không lưu). Luật mật khẩu ghi đúng luật Django: ≥8 ký tự, không quá giống tên đăng nhập, không phổ biến, không toàn số (ảnh ghi chữ hoa/thường/số — sai).
+- 03-thieu-ho-so: ChatGPT vẽ "hồ sơ năng lực chưa hoàn tất" (khác trang "tài khoản chưa có hồ sơ") — ý hay hơn → dùng làm trạng thái SV chưa khai kỹ năng. Bỏ mục "Mục tiêu đề tài", "Học phần liên quan" (không có).
+- 04-06-trang-loi: tốt; minh hoạ 403/404/500 kiểu mới → đưa vào danh sách tài nguyên GĐ3 (ChatGPT tạo bản SVG/PNG chất lượng cao). Bỏ link "Liên hệ cán bộ hỗ trợ".
+- m07-sv-trang-chu: tốt, đúng (thanh đáy 4 mục, M1–M5 dọc).
+- m09/m10/m11/m19: tốt. m09 đúng: thanh hành động thay thanh đáy.
+- m16-gv-duyet-sv: thanh Từ chối/Đồng ý CHỒNG lên thanh điều hướng đáy (trái thông số: không hiện 2 thanh cùng lúc) → khi code ẩn thanh đáy trong ngăn kéo.

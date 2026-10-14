@@ -6,12 +6,12 @@
   <section class="at-auth-brand" aria-label="Giới thiệu hệ thống">
     <span class="at-brand">{% include "components/logo.html" %}<span>Capstone AI</span></span>
     <div>
-      <h1>Chọn đề tài tốt nghiệp có căn cứ, phân công minh bạch.</h1>
-      <p class="at-mt-4">Hệ thống chấm mức phù hợp giữa sinh viên và đề tài bằng 5 tiêu chí M1–M5 có trọng số AHP, rồi phân công tối ưu bằng ILP.</p>
-      <ul class="at-auth-points at-mt-6">
-        <li>{% include "components/icon.html" with name="check" %}<span>Sinh viên: xem Top 5 đề tài phù hợp kèm lý do, đăng ký 3 nguyện vọng.</span></li>
-        <li>{% include "components/icon.html" with name="check" %}<span>Giảng viên: duyệt sinh viên đăng ký với điểm phân tích từng tiêu chí.</span></li>
-        <li>{% include "components/icon.html" with name="check" %}<span>Khoa: chạy phân công, xếp tay pha 2, chốt và công bố kết quả.</span></li>
+      <h1>Hệ thống tư vấn và phân công đề tài tốt nghiệp bằng AI</h1>
+      <p class="at-mt-4">Gợi ý đúng năng lực, phân công minh bạch.</p>
+      <ul class="at-auth-points at-mt-8">
+        <li><span class="at-auth-tile">{% include "components/icon.html" with name="file-search" size=22 %}</span><div><strong>Gợi ý phù hợp hồ sơ</strong><span>Top 5 đề tài theo kỹ năng, học lực và định hướng của sinh viên.</span></div></li>
+        <li><span class="at-auth-tile">{% include "components/icon.html" with name="chart-no-axes-column" size=22 %}</span><div><strong>Giải thích bằng 5 mô hình AI</strong><span>Điểm M1–M5 có trọng số AHP và lý do cho từng đề tài.</span></div></li>
+        <li><span class="at-auth-tile">{% include "components/icon.html" with name="route" size=22 %}</span><div><strong>Phân công tối ưu bằng ILP</strong><span>Khoa phân công theo nguyện vọng, sức chứa và chỉ tiêu giảng viên.</span></div></li>
       </ul>
     </div>
     <span class="at-auth-foot">Capstone Advisor AI · Hệ thống hỗ trợ tư vấn và phân công đề tài tốt nghiệp</span>
@@ -20,33 +20,46 @@
   <section class="at-auth-form">
     <div>
       <span class="at-brand at-auth-mobile-brand">{% include "components/logo.html" %}<span>Capstone AI</span></span>
-      <h2>Đăng nhập</h2>
-      <p class="at-secondary at-mt-2 at-mb-6">Dùng tài khoản do Khoa cấp.</p>
-      {% if form.errors %}
-        <div class="at-mb-6">{% include "components/banner.html" with kind="danger" text="Thông tin đăng nhập không chính xác. Kiểm tra lại tên đăng nhập và mật khẩu." %}</div>
-      {% endif %}
-      <form method="post" action="{% url 'login' %}" data-at-busy novalidate>
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ next }}">
-        <div class="at-field">
-          <label class="form-label" for="id_username">Tên đăng nhập</label>
-          <input class="form-control{% if form.errors %} is-invalid{% endif %}" type="text" name="username" id="id_username" value="{{ form.username.value|default:'' }}" autocomplete="username" autocapitalize="none" required autofocus>
+      <div class="at-panel">
+        <h2 class="h1">Đăng nhập</h2>
+        <p class="at-secondary at-mt-2 at-mb-6">Truy cập hệ thống Capstone AI bằng tài khoản do Khoa cấp.</p>
+        <form method="post" action="{% url 'login' %}" data-at-busy novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+          <div class="at-field">
+            <label class="form-label" for="id_username">Tên đăng nhập</label>
+            <div class="at-input-icon">{% include "components/icon.html" with name="user-round" %}<input class="form-control{% if form.errors %} is-invalid{% endif %}" type="text" name="username" id="id_username" value="{{ form.username.value|default:'' }}" placeholder="Nhập tên đăng nhập" autocomplete="username" autocapitalize="none" required autofocus></div>
+          </div>
+          <div class="at-field">
+            <label class="form-label" for="id_password">Mật khẩu</label>
+            <div class="at-input-icon">{% include "components/icon.html" with name="lock-keyhole" %}<input class="form-control{% if form.errors %} is-invalid{% endif %}" type="password" name="password" id="id_password" placeholder="Nhập mật khẩu" autocomplete="current-password" required></div>
+          </div>
+          {% if form.errors %}
+            <div class="at-mb-4">{% include "components/banner.html" with kind="danger" text="Thông tin đăng nhập không chính xác. Kiểm tra lại tên đăng nhập và mật khẩu." %}</div>
+          {% endif %}
+          <button type="submit" class="btn btn-primary at-w-100">Đăng nhập</button>
+        </form>
+      </div>
+      <div class="at-panel at-mt-6">
+        <div class="at-panel-header"><div><h2>Tài khoản dùng thử</h2><p>Bấm "Sử dụng" để điền tên đăng nhập.</p></div></div>
+        <div class="at-list">
+          <div class="at-row at-row--between"><span class="at-row"><span class="at-avatar">{% include "components/icon.html" with name="graduation-cap" size=16 %}</span><span><strong>sv001</strong><span class="at-secondary d-block">Sinh viên</span></span></span><button type="button" class="btn btn-secondary btn-sm" data-at-demo="sv001">Sử dụng</button></div>
+          <div class="at-row at-row--between"><span class="at-row"><span class="at-avatar">{% include "components/icon.html" with name="user-round" size=16 %}</span><span><strong>gv001</strong><span class="at-secondary d-block">Giảng viên</span></span></span><button type="button" class="btn btn-secondary btn-sm" data-at-demo="gv001">Sử dụng</button></div>
+          <div class="at-row at-row--between"><span class="at-row"><span class="at-avatar">{% include "components/icon.html" with name="building-2" size=16 %}</span><span><strong>khoa01</strong><span class="at-secondary d-block">Cán bộ Khoa</span></span></span><button type="button" class="btn btn-secondary btn-sm" data-at-demo="khoa01">Sử dụng</button></div>
         </div>
-        <div class="at-field">
-          <label class="form-label" for="id_password">Mật khẩu</label>
-          <input class="form-control{% if form.errors %} is-invalid{% endif %}" type="password" name="password" id="id_password" autocomplete="current-password" required>
-        </div>
-        <button type="submit" class="btn btn-primary at-w-100 at-mt-2">Đăng nhập</button>
-      </form>
-      <div class="at-inset at-mt-8">
-        <div class="at-label at-mb-2">Tài khoản dùng thử (mật khẩu 123456)</div>
-        <dl class="at-kv">
-          <dt>Sinh viên</dt><dd><code>sv001</code></dd>
-          <dt>Giảng viên</dt><dd><code>gv001</code></dd>
-          <dt>Khoa</dt><dd><code>khoa01</code></dd>
-        </dl>
       </div>
     </div>
   </section>
 </main>
 {% endblock body %}
+{% block extra_js %}
+<script>
+  /* "Sử dụng": điền tên đăng nhập demo và đưa con trỏ sang ô mật khẩu */
+  document.querySelectorAll("[data-at-demo]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.getElementById("id_username").value = b.getAttribute("data-at-demo");
+      document.getElementById("id_password").focus();
+    });
+  });
+</script>
+{% endblock %}

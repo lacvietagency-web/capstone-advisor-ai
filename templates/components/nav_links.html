@@ -1,21 +1,21 @@
 {# Mục điều hướng theo vai trò — dùng cho rail (máy tính) và ngăn kéo menu (máy tính bảng/điện thoại). Tham số: link_class, size #}
 {% with nav=request.resolver_match.url_name %}
 {% if user.is_student %}
-  <a class="{{ link_class }}{% if nav == 'home' %} active{% endif %}" href="{% url 'home' %}">{% include "components/icon.html" with name="house" %}<span>Trang chủ</span></a>
-  <a class="{{ link_class }}{% if nav == 'student_profile' %} active{% endif %}" href="{% url 'student_profile' %}">{% include "components/icon.html" with name="user-round" %}<span>Hồ sơ</span></a>
-  <a class="{{ link_class }}{% if nav == 'topic_list' or nav == 'topic_detail' %} active{% endif %}" href="{% url 'topic_list' %}">{% include "components/icon.html" with name="book-open" %}<span>Đề tài</span></a>
-  <a class="{{ link_class }}{% if nav == 'student_preferences' %} active{% endif %}" href="{% url 'student_preferences' %}">{% include "components/icon.html" with name="bookmark" %}<span>Nguyện vọng</span></a>
-  <a class="{{ link_class }}{% if nav == 'student_allocation_result' %} active{% endif %}" href="{% url 'student_allocation_result' %}">{% include "components/icon.html" with name="file-check-2" %}<span>Kết quả</span></a>
+  <a class="{{ link_class }}{% if nav == 'home' %} active{% endif %}" href="{% url 'home' %}" title="Trang chủ">{% include "components/icon.html" with name="house" %}<span>Trang chủ</span></a>
+  <a class="{{ link_class }}{% if nav == 'student_profile' %} active{% endif %}" href="{% url 'student_profile' %}" title="Hồ sơ">{% include "components/icon.html" with name="user-round" %}<span>Hồ sơ</span></a>
+  <a class="{{ link_class }}{% if nav == 'topic_list' or nav == 'topic_detail' %} active{% endif %}" href="{% url 'topic_list' %}" title="Đề tài">{% include "components/icon.html" with name="book-open" %}<span>Đề tài</span></a>
+  <a class="{{ link_class }}{% if nav == 'student_preferences' %} active{% endif %}" href="{% url 'student_preferences' %}" title="Nguyện vọng">{% include "components/icon.html" with name="bookmark" %}<span>Nguyện vọng</span></a>
+  <a class="{{ link_class }}{% if nav == 'student_allocation_result' %} active{% endif %}" href="{% url 'student_allocation_result' %}" title="Kết quả">{% include "components/icon.html" with name="file-check-2" %}<span>Kết quả</span></a>
 {% elif user.is_lecturer %}
-  <a class="{{ link_class }}{% if nav == 'home' %} active{% endif %}" href="{% url 'home' %}">{% include "components/icon.html" with name="house" %}<span>Tổng quan</span></a>
-  <a class="{{ link_class }}{% if nav == 'lecturer_topics' or nav == 'lecturer_topic_new' or nav == 'lecturer_topic_edit' or nav == 'lecturer_registrations' %} active{% endif %}" href="{% url 'lecturer_topics' %}">{% include "components/icon.html" with name="book-open" %}<span>Đề tài</span></a>
-  <a class="{{ link_class }}{% if nav == 'lecturer_profile' %} active{% endif %}" href="{% url 'lecturer_profile' %}">{% include "components/icon.html" with name="user-round" %}<span>Hồ sơ</span></a>
+  <a class="{{ link_class }}{% if nav == 'home' %} active{% endif %}" href="{% url 'home' %}" title="Tổng quan">{% include "components/icon.html" with name="house" %}<span>Tổng quan</span></a>
+  <a class="{{ link_class }}{% if nav == 'lecturer_topics' or nav == 'lecturer_topic_new' or nav == 'lecturer_topic_edit' or nav == 'lecturer_registrations' %} active{% endif %}" href="{% url 'lecturer_topics' %}" title="Đề tài">{% include "components/icon.html" with name="book-open" %}<span>Đề tài</span></a>
+  <a class="{{ link_class }}{% if nav == 'lecturer_profile' %} active{% endif %}" href="{% url 'lecturer_profile' %}" title="Hồ sơ">{% include "components/icon.html" with name="user-round" %}<span>Hồ sơ</span></a>
 {% elif user.is_faculty_admin %}
-  <a class="{{ link_class }}{% if nav == 'home' %} active{% endif %}" href="{% url 'home' %}">{% include "components/icon.html" with name="layout-dashboard" %}<span>Tổng quan</span></a>
-  <a class="{{ link_class }}{% if nav == 'allocation_dashboard' %} active{% endif %}" href="{% url 'allocation_dashboard' %}">{% include "components/icon.html" with name="route" %}<span>Phân công</span></a>
-  <a class="{{ link_class }}{% if nav == 'faculty_statistics' %} active{% endif %}" href="{% url 'faculty_statistics' %}">{% include "components/icon.html" with name="chart-line" %}<span>Thống kê</span></a>
-  <a class="{{ link_class }}{% if nav == 'faculty_import' %} active{% endif %}" href="{% url 'faculty_import' %}">{% include "components/icon.html" with name="file-spreadsheet" %}<span>Nhập Excel</span></a>
-  <a class="{{ link_class }}{% if nav == 'lecturer_profile' or nav == 'lecturer_profile_detail' %} active{% endif %}" href="{% url 'lecturer_profile' %}">{% include "components/icon.html" with name="users-round" %}<span>Giảng viên</span></a>
-  <a class="{{ link_class }}" href="/quan-tri/">{% include "components/icon.html" with name="settings-2" %}<span>Quản trị</span></a>
+  <a class="{{ link_class }}{% if nav == 'home' %} active{% endif %}" href="{% url 'home' %}" title="Tổng quan">{% include "components/icon.html" with name="layout-dashboard" %}<span>Tổng quan</span></a>
+  <a class="{{ link_class }}{% if nav == 'allocation_dashboard' %} active{% endif %}" href="{% url 'allocation_dashboard' %}" title="Phân công">{% include "components/icon.html" with name="route" %}<span>Phân công</span></a>
+  <a class="{{ link_class }}{% if nav == 'faculty_statistics' %} active{% endif %}" href="{% url 'faculty_statistics' %}" title="Thống kê">{% include "components/icon.html" with name="chart-line" %}<span>Thống kê</span></a>
+  <a class="{{ link_class }}{% if nav == 'faculty_import' %} active{% endif %}" href="{% url 'faculty_import' %}" title="Nhập Excel">{% include "components/icon.html" with name="file-spreadsheet" %}<span>Nhập Excel</span></a>
+  <a class="{{ link_class }}{% if nav == 'lecturer_profile' or nav == 'lecturer_profile_detail' %} active{% endif %}" href="{% url 'lecturer_profile' %}" title="Giảng viên">{% include "components/icon.html" with name="users-round" %}<span>Giảng viên</span></a>
+  <a class="{{ link_class }}" href="/quan-tri/" title="Quản trị">{% include "components/icon.html" with name="settings-2" %}<span>Quản trị</span></a>
 {% endif %}
 {% endwith %}

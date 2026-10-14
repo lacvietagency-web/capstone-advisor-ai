@@ -465,8 +465,10 @@
   font-weight: 400;
   color: var(--at-ink-muted, #596579);
   white-space: nowrap;
-  grid-column: 4;
+  grid-column: 3 / 5; /* Claude: chiếm chỗ thanh rỗng + cột điểm → không đè cột Trọng số */
+  text-align: right;
 }
+.pg-11 .pg-11-evidence-list li:has(.pg-11-m-val--none) .pg-11-m-track { display: none; }
 
 .pg-11 .pg-11-m-weight {
   font-size: 12px;
@@ -919,7 +921,10 @@
   font-weight: 400;
   color: var(--at-ink-muted, #596579);
   white-space: nowrap;
+  grid-column: 3 / 5; /* Claude: như .pg-11 — không tràn sang cột Nhận xét */
+  text-align: right;
 }
+.pg-12 .pg-12-evidence-list li:has(.pg-12-m-val--none) .pg-12-m-track { display: none; }
 
 .pg-12 .pg-12-ahp-note {
   font-size: 12px;

@@ -211,6 +211,7 @@ def allocation_dashboard(request):
         {
             "periods": periods,
             "period": period,
+            "period_locked": bool(period and period.status == RegistrationPeriod.Status.PUBLISHED),  # chỉ xem
             "allocations": allocations,
             "page_obj": Paginator(allocations, _per_page(request)).get_page(request.GET.get("page")),
             "status": _status_filter(request),

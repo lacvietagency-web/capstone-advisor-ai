@@ -268,6 +268,8 @@ class Command(BaseCommand):
             about=f"Em thích {focus[0].lower()} và {focus[1].lower()}, muốn làm "
             f"{rnd.choice(CAREERS)}. Đã làm đồ án môn về {rnd.choice(OBJECTS)}.",
         )
+        st.user.email = f"{st.student_code}@sv.capstone.edu.vn"  # email demo theo MSSV, không rút thêm số ngẫu nhiên
+        st.user.save(update_fields=["email"])
         for f in focus:
             StudentInterest.objects.create(student=st, field=self.fields[f], level=rnd.randint(2, 3))
             for s in rnd.sample(FIELDS[f], min(3, len(FIELDS[f]))):
@@ -284,7 +286,7 @@ class Command(BaseCommand):
             chosen.append(t)
             pool = [(x, h) for x, h in pool if x != t]
         for rank, t in enumerate(chosen, 1):
-            Preference.objects.create(student=st, topic=t, period=period, rank=rank)
+            Preference.objects.create(student=st, topic=t, period=period, rank=rank, submitted_at=timezone.now())
 
 
 TITLES = ["ThS.", "ThS.", "TS.", "TS.", "PGS.TS."]

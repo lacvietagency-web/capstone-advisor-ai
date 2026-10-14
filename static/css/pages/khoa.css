@@ -913,14 +913,10 @@
   line-height: 18px;
 }
 
-.pg-19 .pg19-td-topic {
+.pg-19 .pg19-td-topic { /* Claude: không đổi display của <td> (vỡ bảng) — tên dài tự xuống dòng */
   font-size: 12px;
   line-height: 18px;
   max-width: 280px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .pg-19 .pg19-td-lecturer {

@@ -3,295 +3,372 @@
 {% block title %}Phân công đề tài — Capstone AI{% endblock %}
 
 {% block content %}
-<header class="at-page-header">
-  <div>
-    <nav class="at-breadcrumb" aria-label="Vị trí">
-      <a href="{% url 'home' %}">Khoa</a>
-      <span>Phân công đề tài</span>
-    </nav>
-    <h1>Phân công đề tài</h1>
-    <p class="at-page-desc">Phân công đề tài cho sinh viên trong đợt đăng ký hiện tại, hỗ trợ tối ưu và cân bằng theo nguyện vọng.</p>
-  </div>
-  <div class="at-page-actions">
-    {# Bộ chọn đợt autosubmit #}
-    <form method="get" class="at-row">
-      <label for="atPeriodSelect" class="visually-hidden">Đợt đăng ký</label>
-      <select id="atPeriodSelect" name="period_id" class="form-select form-select-sm" data-at-autosubmit>
-        {% for p in periods %}
-          <option value="{{ p.pk }}"{% if period and period.pk == p.pk %} selected{% endif %}>
-            {{ p.name }} ({{ p.get_status_display }})
-          </option>
-        {% empty %}
-          <option value="">Chưa có đợt</option>
-        {% endfor %}
-      </select>
-      {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
-    </form>
-
-    {% if period %}
-      {# Nút chạy thuật toán #}
-      <form method="post" data-at-busy>
-        {% csrf_token %}
-        <input type="hidden" name="action" value="run_greedy">
-        <button type="submit" class="btn btn-secondary btn-sm">
-          {% include "components/icon.html" with name="git-compare" %}Chạy Greedy
-        </button>
-      </form>
-      <form method="post" data-at-busy>
-        {% csrf_token %}
-        <input type="hidden" name="action" value="run_ilp">
-        <button type="submit" class="btn btn-primary btn-sm">
-          {% include "components/icon.html" with name="play" %}Chạy tối ưu ILP
-        </button>
-      </form>
-    {% endif %}
-  </div>
-</header>
-
-<div class="at-stack">
-  {# Dải trạng thái đợt #}
-  {% if period %}
-    {% include "components/period.html" with period=period text="Đây là đợt đăng ký hiện tại. Hệ thống hỗ trợ tối ưu phân công dựa trên nguyện vọng và các ràng buộc." %}
-  {% endif %}
-
-  {# Banner thông báo trạng thái đợt #}
-  {% if period and period.status == 'PUBLISHED' %}
-    {% include "components/banner.html" with kind="success" title="Kết quả đã công bố" text="Sinh viên và giảng viên đã có thể tra cứu kết quả phân công chính thức của đợt này." %}
-  {% elif period and period.status != 'PUBLISHED' and allocations %}
-    {% include "components/banner.html" with kind="warning" title="Bản phân công nháp" text="Kết quả phân công chưa được công bố. Sinh viên chưa nhìn thấy đề tài được gán." %}
-  {% endif %}
-
-  {% if not allocations %}
-    {# Chưa có kết quả phân công #}
-    <section class="at-panel">
-      {% include "components/empty.html" with illustration="empty-result" title="Chưa chạy phân công cho đợt này" desc="Bấm 'Chạy tối ưu ILP' ở đầu trang để hệ thống tự động ghép sinh viên với đề tài phù hợp." %}
-    </section>
-  {% else %}
-    {# Dải số liệu Metric Ledger: đúng 6 chỉ số #}
-    <section class="at-ledger" aria-label="Chỉ số phân công">
-      <div class="at-ledger-item">
-        <div class="at-ledger-label">Sinh viên</div>
-        <div class="at-ledger-value">{{ total_count }}</div>
-        <div class="at-ledger-note">trong đợt</div>
-      </div>
-      <div class="at-ledger-item">
-        <div class="at-ledger-label">Đã xếp</div>
-        <div class="at-ledger-value">{% if metrics %}{% widthratio metrics.assigned_rate 1 100 %}<small> %</small>{% else %}—{% endif %}</div>
-        <div class="at-ledger-note">Tỉ lệ phân công</div>
-      </div>
-      <div class="at-ledger-item">
-        <div class="at-ledger-label">Đạt NV1</div>
-        <div class="at-ledger-value">{% if metrics %}{% widthratio metrics.nv1_rate 1 100 %}<small> %</small>{% else %}—{% endif %}</div>
-        <div class="at-ledger-note">nguyện vọng 1</div>
-      </div>
-      <div class="at-ledger-item">
-        <div class="at-ledger-label">Top 3</div>
-        <div class="at-ledger-value">{% if metrics %}{% widthratio metrics.top3_rate 1 100 %}<small> %</small>{% else %}—{% endif %}</div>
-        <div class="at-ledger-note">từ NV1 đến NV3</div>
-      </div>
-      <div class="at-ledger-item at-ledger-item--ai">
-        <div class="at-ledger-label">Điểm TB</div>
-        <div class="at-ledger-value">{% if metrics and metrics.avg_match is not None %}{{ metrics.avg_match|floatformat:1 }}{% else %}—{% endif %}</div>
-        <div class="at-ledger-note">điểm phù hợp AI</div>
-      </div>
-      <div class="at-ledger-item{% if metrics and metrics.unassigned_count > 0 %} at-ledger-item--warn{% endif %}">
-        <div class="at-ledger-label">Chờ pha 2</div>
-        <div class="at-ledger-value">{% if metrics %}{{ metrics.unassigned_count }}{% else %}0{% endif %}</div>
-        <div class="at-ledger-note">cần xếp thủ công</div>
-      </div>
-    </section>
-
-    {# Lưới: Biểu đồ (8/12) + Ô Chốt & công bố (4/12) đặt cạnh nhau theo thiết kế ảnh 19 #}
-    <div class="at-grid">
-      {# Panel biểu đồ: Kết quả theo nguyện vọng #}
-      <section class="at-panel at-col-8">
-        <div class="at-panel-header">
-          <div>
-            <h2>Kết quả theo nguyện vọng</h2>
-            <p>Số lượng sinh viên được phân công theo từng mức nguyện vọng và chưa xếp.</p>
-          </div>
-        </div>
-        <div class="at-chart at-chart--sm">
-          <canvas id="atAllocChart" aria-label="Biểu đồ phân bố nguyện vọng phân công" role="img"></canvas>
-        </div>
-      </section>
-
-      {# Panel Chốt & công bố đặt cạnh biểu đồ #}
-      <section class="at-panel at-col-4">
-        <div class="at-panel-header">
-          <div>
-            <h2>Chốt &amp; công bố</h2>
-            <p>Công bố kết quả chính thức cho sinh viên và giảng viên.</p>
-          </div>
-        </div>
-        <p class="at-secondary">Sau khi kiểm tra và xác nhận, kết quả phân công sẽ được chốt và công bố đến sinh viên trong đợt đăng ký hiện tại.</p>
-        <div class="at-row at-mt-4">
-          {% if period and period.status != 'PUBLISHED' and allocations %}
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#atPublishModal">
-              {% include "components/icon.html" with name="circle-check-big" %}Chốt &amp; công bố
-            </button>
-          {% elif period and period.status == 'PUBLISHED' %}
-            {% include "components/status.html" with status="ACCEPTED" label="Đã công bố chính thức" %}
-          {% else %}
-            <button type="button" class="btn btn-primary" disabled>Chốt &amp; công bố</button>
-          {% endif %}
-        </div>
-      </section>
+<div class="pg-19">
+  <header class="at-page-header">
+    <div>
+      <nav class="at-breadcrumb" aria-label="Vị trí">
+        <a href="{% url 'home' %}">Khoa</a>
+        <span>Phân công đề tài</span>
+      </nav>
+      <h1>Phân công đề tài</h1>
+      <p class="at-page-desc">Phân công đề tài cho sinh viên trong đợt đăng ký hiện tại, hỗ trợ tối ưu và cân bằng theo nguyện vọng.</p>
     </div>
+    <div class="at-page-actions pg19-actions">
+      {# Bộ chọn đợt autosubmit #}
+      <form method="get" class="pg19-period-form">
+        <label for="atPeriodSelect" class="visually-hidden">Đợt đăng ký</label>
+        <select id="atPeriodSelect" name="period_id" class="form-select form-select-sm pg19-select-period" data-at-autosubmit>
+          {% for p in periods %}
+            <option value="{{ p.pk }}"{% if period and period.pk == p.pk %} selected{% endif %}>
+              {{ p.name }}
+            </option>
+          {% empty %}
+            <option value="">Chưa có đợt</option>
+          {% endfor %}
+        </select>
+        {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+      </form>
 
-    {# Panel bảng phân công với Chip lọc & Toolbar #}
-    <section class="at-panel at-panel--flush">
-      <div class="at-panel-header">
-        <div>
-          <h2>Danh sách sinh viên</h2>
-          <p>Chi tiết phân công từng sinh viên. Bấm Xem hoặc Xếp tay để mở ngăn kéo chi tiết.</p>
-        </div>
-      </div>
-
-      <div class="at-panel-body">
-        {# Chip status: Tất cả / Chưa xếp / Đã xếp #}
-        <div class="at-chips at-mb-4">
-          <a href="?period_id={{ period.pk }}{% if rank %}&amp;rank={{ rank }}{% endif %}{% if lecturer_id %}&amp;lecturer={{ lecturer_id }}{% endif %}{% if field_id %}&amp;field={{ field_id }}{% endif %}{% if score_min %}&amp;score_min={{ score_min }}{% endif %}{% if sort %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q }}{% endif %}&amp;status=all" class="at-chip{% if status == 'all' or not status %} active{% endif %}">
-            Tất cả <span class="at-chip-count">{{ total_count }}</span>
-          </a>
-          <a href="?period_id={{ period.pk }}{% if rank %}&amp;rank={{ rank }}{% endif %}{% if lecturer_id %}&amp;lecturer={{ lecturer_id }}{% endif %}{% if field_id %}&amp;field={{ field_id }}{% endif %}{% if score_min %}&amp;score_min={{ score_min }}{% endif %}{% if sort %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q }}{% endif %}&amp;status=unassigned" class="at-chip{% if status == 'unassigned' %} active{% endif %}">
-            Chưa xếp
-          </a>
-          <a href="?period_id={{ period.pk }}{% if rank %}&amp;rank={{ rank }}{% endif %}{% if lecturer_id %}&amp;lecturer={{ lecturer_id }}{% endif %}{% if field_id %}&amp;field={{ field_id }}{% endif %}{% if score_min %}&amp;score_min={{ score_min }}{% endif %}{% if sort %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q }}{% endif %}&amp;status=assigned" class="at-chip{% if status == 'assigned' %} active{% endif %}">
-            Đã xếp
-          </a>
-        </div>
-
-        {# Thanh công cụ tìm kiếm và lọc: giữ MỌI bộ lọc hiện có (q, status, rank, lecturer, field, score_min, sort, per_page) #}
-        <form class="at-toolbar" method="get">
-          <input type="hidden" name="period_id" value="{{ period.pk }}">
-          {% if status and status != 'all' %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
-          {% if per_page %}<input type="hidden" name="per_page" value="{{ per_page }}">{% endif %}
-
-          <div class="at-search at-input-icon">
-            {% include "components/icon.html" with name="search" %}
-            <input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Tìm theo mã, tên, đề tài…" aria-label="Tìm kiếm">
-          </div>
-
-          <select class="form-select at-filter" name="rank" aria-label="Lọc nguyện vọng" data-at-autosubmit>
-            <option value="">Mọi nguyện vọng</option>
-            <option value="1"{% if rank == "1" %} selected{% endif %}>NV1</option>
-            <option value="2"{% if rank == "2" %} selected{% endif %}>NV2</option>
-            <option value="3"{% if rank == "3" %} selected{% endif %}>NV3</option>
-          </select>
-
-          <select class="form-select at-filter" name="lecturer" aria-label="Lọc giảng viên" data-at-autosubmit>
-            <option value="">Mọi giảng viên</option>
-            {% for l in lecturers %}
-              <option value="{{ l.pk }}"{% if lecturer_id == l.pk|stringformat:"s" %} selected{% endif %}>{{ l.user.get_full_name|default:l.user.username }}</option>
-            {% endfor %}
-          </select>
-
-          <select class="form-select at-filter" name="field" aria-label="Lọc lĩnh vực" data-at-autosubmit>
-            <option value="">Mọi lĩnh vực</option>
-            {% for f in fields %}
-              <option value="{{ f.pk }}"{% if field_id == f.pk|stringformat:"s" %} selected{% endif %}>{{ f.name }}</option>
-            {% endfor %}
-          </select>
-
-          <select class="form-select at-filter" name="score_min" aria-label="Lọc theo điểm phù hợp" data-at-autosubmit>
-            <option value="">Mọi mức điểm</option>
-            <option value="50"{% if score_min == "50" %} selected{% endif %}>Điểm từ 50</option>
-            <option value="70"{% if score_min == "70" %} selected{% endif %}>Điểm từ 70</option>
-            <option value="80"{% if score_min == "80" %} selected{% endif %}>Điểm từ 80</option>
-          </select>
-
-          <select class="form-select at-filter" name="sort" aria-label="Sắp xếp" data-at-autosubmit>
-            <option value="code"{% if sort == "code" %} selected{% endif %}>Mã SV</option>
-            <option value="gpa"{% if sort == "gpa" %} selected{% endif %}>GPA giảm dần</option>
-            <option value="score"{% if sort == "score" %} selected{% endif %}>Điểm phù hợp</option>
-            <option value="rank"{% if sort == "rank" %} selected{% endif %}>Thứ tự NV</option>
-          </select>
-
-          <div class="at-toolbar-end">
-            <span class="at-count">Đang xem {{ page_obj.start_index }}–{{ page_obj.end_index }} trong {{ page_obj.paginator.count }}</span>
-            <a href="?period_id={{ period.pk }}" class="btn btn-text btn-sm">Xoá bộ lọc</a>
-          </div>
+      {% if period %}
+        {# Nút chạy thuật toán #}
+        <form method="post" data-at-busy class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="run_greedy">
+          <button type="submit" class="btn btn-secondary btn-sm pg19-btn-greedy"{% if period.status == 'PUBLISHED' %} disabled title="Đợt đã công bố kết quả"{% endif %}>
+            Chạy Greedy
+          </button>
         </form>
+        <form method="post" data-at-busy class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="run_ilp">
+          <button type="submit" class="btn btn-primary btn-sm pg19-btn-ilp"{% if period.status == 'PUBLISHED' %} disabled title="Đợt đã công bố kết quả"{% endif %}>
+            Chạy tối ưu ILP
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="at-stack">
+    {# Dải trạng thái đợt tích hợp thông báo kết quả (không banner riêng) #}
+    {% if period %}
+      {% if period.status == 'PUBLISHED' %}
+        {% include "components/period.html" with period=period text="Kết quả đã công bố: Sinh viên và giảng viên đã có thể tra cứu kết quả phân công chính thức của đợt này." %}
+      {% else %}
+        {% include "components/period.html" with period=period text="Đây là đợt đăng ký hiện tại. Hệ thống đang chuẩn bị kết quả phân công dựa trên nguyện vọng và các ràng buộc." %}
+      {% endif %}
+    {% endif %}
+
+    {% if not allocations %}
+      {# Chưa có kết quả phân công #}
+      <section class="at-panel">
+        {% include "components/empty.html" with illustration="empty-result" title="Chưa chạy phân công cho đợt này" desc="Bấm 'Chạy tối ưu ILP' ở đầu trang để hệ thống tự động ghép sinh viên với đề tài phù hợp." %}
+      </section>
+    {% else %}
+      {# Dải số liệu Metric Ledger: đúng 6 chỉ số gọn gàng #}
+      <section class="at-ledger pg19-ledger" aria-label="Chỉ số phân công">
+        <div class="at-ledger-item pg19-metric-total">
+          <div class="at-ledger-label">Sinh viên</div>
+          <div class="at-ledger-value">{{ total_count }}</div>
+        </div>
+        <div class="at-ledger-item pg19-metric-assigned">
+          <div class="at-ledger-label">Đã xếp</div>
+          <div class="at-ledger-value">{% if metrics %}{% widthratio metrics.assigned_rate 1 100 %}%{% else %}—{% endif %}</div>
+          <span class="visually-hidden">Tỉ lệ phân công</span>
+        </div>
+        <div class="at-ledger-item pg19-metric-nv1">
+          <div class="at-ledger-label">Đạt NV1</div>
+          <div class="at-ledger-value">{% if metrics %}{% widthratio metrics.nv1_rate 1 100 %}%{% else %}—{% endif %}</div>
+        </div>
+        <div class="at-ledger-item pg19-metric-top3">
+          <div class="at-ledger-label">Top 3</div>
+          <div class="at-ledger-value">{% if metrics %}{% widthratio metrics.top3_rate 1 100 %}%{% else %}—{% endif %}</div>
+        </div>
+        <div class="at-ledger-item pg19-metric-score">
+          <div class="at-ledger-label">Điểm TB</div>
+          <div class="at-ledger-value">{% if metrics and metrics.avg_match is not None %}{{ metrics.avg_match|floatformat:1 }}{% else %}—{% endif %}</div>
+        </div>
+        <div class="at-ledger-item pg19-metric-unassigned">
+          <div class="at-ledger-label">Chờ pha 2</div>
+          <div class="at-ledger-value">{% if metrics %}{{ metrics.unassigned_count }}{% else %}0{% endif %}</div>
+        </div>
+      </section>
+
+      {# Lưới: Biểu đồ (8/12) + Ô Chốt & công bố (4/12) đặt cạnh nhau theo thiết kế ảnh 19 #}
+      <div class="at-grid pg19-mid-row">
+        {# Panel biểu đồ: Kết quả theo nguyện vọng #}
+        <section class="at-panel at-panel--flush at-col-8 pg19-chart-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2>Kết quả theo nguyện vọng</h2>
+            </div>
+          </div>
+          <div class="pg19-chart-container">
+            <canvas id="atAllocChart" aria-label="Biểu đồ phân bố nguyện vọng phân công" role="img"></canvas>
+          </div>
+        </section>
+
+        {# Panel Chốt & công bố đặt cạnh biểu đồ #}
+        <section class="at-panel at-panel--flush at-col-4 pg19-publish-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2>Chốt &amp; công bố</h2>
+            </div>
+          </div>
+          <div class="pg19-publish-body">
+            <p class="at-secondary">Sau khi kiểm tra và xác nhận, kết quả phân công sẽ được chốt và công bố đến sinh viên trong đợt đăng ký hiện tại.</p>
+            <div class="pg19-publish-actions">
+              {% if period and period.status == 'PUBLISHED' %}
+                {% include "components/status.html" with status="ACCEPTED" label="Đã công bố chính thức" %}
+              {% elif period and period.status != 'PUBLISHED' and allocations %}
+                <button type="button" class="btn btn-primary pg19-btn-publish" data-bs-toggle="modal" data-bs-target="#atPublishModal">
+                  {% include "components/icon.html" with name="send" size=15 %}Chốt &amp; công bố
+                </button>
+              {% else %}
+                <button type="button" class="btn btn-primary pg19-btn-publish" disabled>Chốt &amp; công bố</button>
+              {% endif %}
+            </div>
+          </div>
+        </section>
       </div>
 
-      {# Bảng Desktop (≥768px) #}
-      <div class="at-table-wrap">
-        <table class="at-table d-none d-md-table">
-          <thead>
-            <tr>
-              <th style="width:9%">Mã SV</th>
-              <th style="width:13%">Họ và tên</th>
-              <th style="width:25%">Đề tài phân công</th>
-              <th style="width:14%">Giảng viên</th>
-              <th style="width:7%" class="at-text-center">NV đạt</th>
-              <th style="width:8%" class="at-td-num">Điểm tổng</th>
-              <th style="width:8%" class="at-text-center">Nguồn</th>
-              <th style="width:9%">Trạng thái</th>
-              <th style="width:7%" class="at-td-actions" aria-label="Thao tác"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for a in page_obj %}
+      {# Panel bảng phân công với Toolbar gọn có nhãn theo ảnh duyệt #}
+      <section class="at-panel at-panel--flush pg19-students-panel">
+        <div class="pg19-table-header-bar">
+          <h2 class="pg19-table-title">Danh sách sinh viên</h2>
+
+          {# Thanh công cụ tìm kiếm và lọc: giữ NGUYÊN mọi param GET (q, status, rank, lecturer, field, score_min, sort, per_page) #}
+          <form class="pg19-toolbar" method="get">
+            <input type="hidden" name="period_id" value="{{ period.pk }}">
+            {% if per_page %}<input type="hidden" name="per_page" value="{{ per_page }}">{% endif %}
+
+            <div class="pg19-search at-input-icon">
+              {% include "components/icon.html" with name="search" size=14 %}
+              <input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Tìm mã SV, họ tên…" aria-label="Tìm kiếm">
+            </div>
+
+            <div class="pg19-filter-group">
+              <label for="atFilterStatus" class="pg19-filter-label">Trạng thái</label>
+              <select id="atFilterStatus" class="form-select form-select-sm pg19-filter-select pg19-select-status" name="status" data-at-autosubmit>
+                <option value="all"{% if status == 'all' or not status %} selected{% endif %}>Tất cả</option>
+                <option value="assigned"{% if status == 'assigned' %} selected{% endif %}>Đã xếp</option>
+                <option value="unassigned"{% if status == 'unassigned' %} selected{% endif %}>Chưa xếp</option>
+              </select>
+            </div>
+
+            <div class="pg19-filter-group">
+              <label for="atFilterRank" class="pg19-filter-label">Nguyện vọng</label>
+              <select id="atFilterRank" class="form-select form-select-sm pg19-filter-select pg19-select-rank" name="rank" data-at-autosubmit>
+                <option value="">Tất cả</option>
+                <option value="1"{% if rank == "1" %} selected{% endif %}>NV1</option>
+                <option value="2"{% if rank == "2" %} selected{% endif %}>NV2</option>
+                <option value="3"{% if rank == "3" %} selected{% endif %}>NV3</option>
+              </select>
+            </div>
+
+            <div class="pg19-filter-group">
+              <label for="atFilterLecturer" class="pg19-filter-label">Giảng viên</label>
+              <select id="atFilterLecturer" class="form-select form-select-sm pg19-filter-select pg19-select-lecturer" name="lecturer" data-at-autosubmit>
+                <option value="">Tất cả</option>
+                {% for l in lecturers %}
+                  <option value="{{ l.pk }}"{% if lecturer_id == l.pk|stringformat:"s" %} selected{% endif %}>{{ l.user.get_full_name|default:l.user.username }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            {# Các bộ lọc bổ sung giữ nguyên chức năng #}
+            <div class="pg19-filter-group d-none d-xl-inline-flex">
+              <label for="atFilterField" class="pg19-filter-label">Lĩnh vực</label>
+              <select id="atFilterField" class="form-select form-select-sm pg19-filter-select pg19-select-extra" name="field" data-at-autosubmit>
+                <option value="">Tất cả</option>
+                {% for f in fields %}
+                  <option value="{{ f.pk }}"{% if field_id == f.pk|stringformat:"s" %} selected{% endif %}>{{ f.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="pg19-filter-group d-none d-xl-inline-flex">
+              <label for="atFilterScore" class="pg19-filter-label">Điểm</label>
+              <select id="atFilterScore" class="form-select form-select-sm pg19-filter-select pg19-select-extra" name="score_min" data-at-autosubmit>
+                <option value="">Mọi mức</option>
+                <option value="50"{% if score_min == "50" %} selected{% endif %}>Từ 50</option>
+                <option value="70"{% if score_min == "70" %} selected{% endif %}>Từ 70</option>
+                <option value="80"{% if score_min == "80" %} selected{% endif %}>Từ 80</option>
+              </select>
+            </div>
+
+            <div class="pg19-filter-group d-none d-xl-inline-flex">
+              <label for="atFilterSort" class="pg19-filter-label">Sắp xếp</label>
+              <select id="atFilterSort" class="form-select form-select-sm pg19-filter-select pg19-select-extra" name="sort" data-at-autosubmit>
+                <option value="code"{% if sort == "code" %} selected{% endif %}>Mã SV</option>
+                <option value="gpa"{% if sort == "gpa" %} selected{% endif %}>GPA</option>
+                <option value="score"{% if sort == "score" %} selected{% endif %}>Điểm</option>
+                <option value="rank"{% if sort == "rank" %} selected{% endif %}>Thứ tự NV</option>
+              </select>
+            </div>
+
+            <div class="pg19-toolbar-end">
+              <span class="pg19-count">{{ page_obj.paginator.count }} sinh viên</span>
+              {% if q or rank or lecturer_id or field_id or score_min or status != 'all' and status %}
+                <a href="?period_id={{ period.pk }}" class="btn btn-text btn-sm pg19-reset-filter" title="Xoá bộ lọc">Xoá lọc</a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+
+        {# Bảng Desktop (≥768px) 9 cột chuẩn theo ảnh duyệt #}
+        <div class="at-table-wrap">
+          <table class="at-table d-none d-md-table pg19-table">
+            <thead>
               <tr>
-                <td class="at-num">{{ a.student.student_code }}</td>
-                <td class="at-td-main">
-                  {{ a.student.user.get_full_name|default:a.student.user.username }}
-                  <small>GPA {{ a.student.gpa }}</small>
-                </td>
-                <td>
+                <th style="width:9%">Mã SV</th>
+                <th style="width:13%">Họ và tên</th>
+                <th style="width:24%">Đề tài phân công</th>
+                <th style="width:15%">Giảng viên</th>
+                <th style="width:7%" class="at-text-center">NV đạt</th>
+                <th style="width:8%" class="at-text-center">Điểm tổng</th>
+                <th style="width:7%" class="at-text-center">Nguồn</th>
+                <th style="width:10%">Trạng thái</th>
+                <th style="width:7%" class="at-text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in page_obj %}
+                <tr>
+                  <td class="at-num pg19-td-code">{{ a.student.student_code }}</td>
+                  <td class="at-td-main pg19-td-name">
+                    {{ a.student.user.get_full_name|default:a.student.user.username }}
+                  </td>
+                  <td class="pg19-td-topic">
+                    {% if a.topic %}
+                      {{ a.topic.title }}
+                    {% else %}
+                      <span class="at-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="pg19-td-lecturer">
+                    {% if a.topic and a.topic.lecturer %}
+                      {{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}
+                    {% else %}
+                      <span class="at-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="at-text-center pg19-td-rank">
+                    {% if a.preference_rank %}
+                      <span class="pg19-chip-rank pg19-chip-rank--{{ a.preference_rank }}">NV{{ a.preference_rank }}</span>
+                    {% elif a.topic %}
+                      <span class="pg19-chip-rank pg19-chip-rank--other">Ngoài NV</span>
+                    {% else %}
+                      <span class="at-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="at-text-center pg19-td-score">
+                    {% if a.match_score is not None %}
+                      <span class="pg19-score-val">{{ a.match_score|floatformat:1 }}</span>
+                    {% else %}
+                      <span class="at-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="at-text-center pg19-td-source">
+                    {% if not a.topic %}
+                      <span class="at-muted">—</span>
+                    {% elif a.source == 'ILP' %}
+                      ILP
+                    {% elif a.source == 'GREEDY' %}
+                      Greedy
+                    {% elif a.source == 'MANUAL' %}
+                      Khoa xếp
+                    {% elif a.source %}
+                      {{ a.get_source_display }}
+                    {% else %}
+                      <span class="at-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="pg19-td-status">
+                    {% if a.topic %}
+                      <span class="at-badge at-badge--success pg19-status-badge">
+                        {% include "components/icon.html" with name="circle-check" size=12 %}Đã xếp
+                      </span>
+                    {% else %}
+                      <span class="at-badge at-badge--warning pg19-status-badge">
+                        {% include "components/icon.html" with name="clock" size=12 %}Chờ pha 2
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td class="at-text-center pg19-td-actions">
+                    {% if a.topic %}
+                      <button type="button" class="btn btn-text btn-sm pg19-btn-link" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
+                        Xem
+                      </button>
+                    {% else %}
+                      <button type="button" class="btn btn-text btn-sm pg19-btn-link" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
+                        Xếp tay
+                      </button>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="9" class="at-text-center at-muted py-4">Không tìm thấy sinh viên nào khớp với bộ lọc.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {# Danh sách Thẻ Mobile (<768px) #}
+        <div class="at-panel-body d-md-none">
+          <div class="at-list">
+            {% for a in page_obj %}
+              <article class="at-item">
+                <div class="at-row at-row--between at-row--top">
+                  <div>
+                    <strong>{{ a.student.user.get_full_name|default:a.student.user.username }}</strong>
+                    <div class="at-meta at-mt-2">
+                      <span>MSSV <strong class="at-num">{{ a.student.student_code }}</strong></span>
+                      <span>GPA <strong class="at-num">{{ a.student.gpa }}</strong></span>
+                    </div>
+                  </div>
                   {% if a.topic %}
-                    {{ a.topic.title }}
+                    <span class="at-badge at-badge--success pg19-status-badge">
+                      {% include "components/icon.html" with name="circle-check" size=12 %}Đã xếp
+                    </span>
                   {% else %}
-                    <span class="at-muted">Chưa xếp</span>
+                    <span class="at-badge at-badge--warning pg19-status-badge">
+                      {% include "components/icon.html" with name="clock" size=12 %}Chờ pha 2
+                    </span>
                   {% endif %}
-                </td>
-                <td>
-                  {% if a.topic %}
-                    {{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}
-                  {% else %}
-                    <span class="at-muted">—</span>
-                  {% endif %}
-                </td>
-                <td class="at-text-center">
-                  {% if a.preference_rank %}
-                    <span class="at-rank">NV{{ a.preference_rank }}</span>
-                  {% elif a.topic %}
-                    <span class="at-tag">Ngoài NV</span>
-                  {% else %}
-                    <span class="at-muted">—</span>
-                  {% endif %}
-                </td>
-                <td class="at-td-num">
-                  {% if a.match_score is not None %}
-                    {{ a.match_score|floatformat:1 }}
-                  {% else %}
-                    <span class="at-muted">Chưa đánh giá</span>
-                  {% endif %}
-                </td>
-                <td class="at-text-center">
-                  {% if not a.topic %}
-                    <span class="at-muted">—</span>
-                  {% elif a.source == 'ILP' %}
-                    <span class="at-tag">ILP</span>
-                  {% elif a.source == 'GREEDY' %}
-                    <span class="at-tag">Greedy</span>
-                  {% elif a.source == 'MANUAL' %}
-                    <span class="at-tag">Khoa xếp</span>
-                  {% elif a.source %}
-                    <span class="at-tag">{{ a.get_source_display }}</span>
-                  {% else %}
-                    <span class="at-muted">—</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if a.topic %}
-                    {% include "components/status.html" with status=a.status label=a.get_status_display %}
-                  {% else %}
-                    {% include "components/status.html" with kind="warning" label="Chờ pha 2" %}
-                  {% endif %}
-                </td>
-                <td class="at-td-actions">
+                </div>
+                <dl class="at-kv at-mt-3">
+                  <dt>Đề tài</dt>
+                  <dd>
+                    {% if a.topic %}
+                      {{ a.topic.title }}
+                      <div class="at-secondary">GVHD: {{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}</div>
+                    {% else %}
+                      <span class="at-muted">Chưa xếp</span>
+                    {% endif %}
+                  </dd>
+                  <dt>Nguyện vọng</dt>
+                  <dd>
+                    {% if a.preference_rank %}
+                      <span class="pg19-chip-rank pg19-chip-rank--{{ a.preference_rank }}">NV{{ a.preference_rank }}</span>
+                    {% elif a.topic %}
+                      <span class="pg19-chip-rank pg19-chip-rank--other">Ngoài NV</span>
+                    {% else %}
+                      —
+                    {% endif %}
+                  </dd>
+                  <dt>Điểm phù hợp</dt>
+                  <dd class="at-num">
+                    {% if a.match_score is not None %}
+                      <span class="pg19-score-val">{{ a.match_score|floatformat:1 }}</span>
+                    {% else %}
+                      <span class="at-muted">—</span>
+                    {% endif %}
+                  </dd>
+                </dl>
+                <div class="at-form-actions at-mt-4">
                   {% if a.topic %}
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
                       Xem
@@ -301,90 +378,24 @@
                       Xếp tay
                     </button>
                   {% endif %}
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="9" class="at-text-center at-muted py-4">Không tìm thấy sinh viên nào khớp với bộ lọc.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      {# Danh sách Thẻ Mobile (<768px) #}
-      <div class="at-panel-body d-md-none">
-        <div class="at-list">
-          {% for a in page_obj %}
-            <article class="at-item">
-              <div class="at-row at-row--between at-row--top">
-                <div>
-                  <strong>{{ a.student.user.get_full_name|default:a.student.user.username }}</strong>
-                  <div class="at-meta at-mt-2">
-                    <span>MSSV <strong class="at-num">{{ a.student.student_code }}</strong></span>
-                    <span>GPA <strong class="at-num">{{ a.student.gpa }}</strong></span>
-                  </div>
                 </div>
-                {% if a.topic %}
-                  {% include "components/status.html" with status=a.status label=a.get_status_display %}
-                {% else %}
-                  {% include "components/status.html" with kind="warning" label="Chờ pha 2" %}
-                {% endif %}
+              </article>
+            {% empty %}
+              <div class="at-empty">
+                <div class="at-empty-title">Không tìm thấy sinh viên</div>
+                <div class="at-empty-desc">Không có kết quả nào khớp với điều kiện tìm kiếm và bộ lọc.</div>
               </div>
-              <dl class="at-kv at-mt-3">
-                <dt>Đề tài</dt>
-                <dd>
-                  {% if a.topic %}
-                    {{ a.topic.title }}
-                    <div class="at-secondary">GVHD: {{ a.topic.lecturer.user.get_full_name|default:a.topic.lecturer.user.username }}</div>
-                  {% else %}
-                    <span class="at-muted">Chưa xếp</span>
-                  {% endif %}
-                </dd>
-                <dt>Nguyện vọng</dt>
-                <dd>
-                  {% if a.preference_rank %}
-                    <span class="at-rank">NV{{ a.preference_rank }}</span>
-                  {% elif a.topic %}
-                    <span class="at-tag">Ngoài NV</span>
-                  {% else %}
-                    —
-                  {% endif %}
-                </dd>
-                <dt>Điểm phù hợp</dt>
-                <dd class="at-num">
-                  {% if a.match_score is not None %}
-                    {{ a.match_score|floatformat:1 }}
-                  {% else %}
-                    <span class="at-muted">Chưa đánh giá</span>
-                  {% endif %}
-                </dd>
-              </dl>
-              <div class="at-form-actions at-mt-4">
-                {% if a.topic %}
-                  <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
-                    Xem
-                  </button>
-                {% else %}
-                  <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
-                    Xếp tay
-                  </button>
-                {% endif %}
-              </div>
-            </article>
-          {% empty %}
-            <div class="at-empty">
-              <div class="at-empty-title">Không tìm thấy sinh viên</div>
-              <div class="at-empty-desc">Không có kết quả nào khớp với điều kiện tìm kiếm và bộ lọc.</div>
-            </div>
-          {% endfor %}
+            {% endfor %}
+          </div>
         </div>
-      </div>
 
-      {# Phân trang #}
-      {% include "components/pagination.html" with page_obj=page_obj querystring=querystring unit="sinh viên" per_page=per_page per_page_choices=per_page_choices %}
-    </section>
-  {% endif %}
+        {# Phân trang #}
+        <div class="pg19-pagination-wrap">
+          {% include "components/pagination.html" with page_obj=page_obj querystring=querystring unit="sinh viên" per_page=per_page per_page_choices=per_page_choices %}
+        </div>
+      </section>
+    {% endif %}
+  </div>
 </div>
 
 {# Ngăn kéo Chi tiết sinh viên chung (Offcanvas phải 440px) #}
@@ -476,6 +487,9 @@
         {% endif %}
       {% endfor %}
 
+      var maxVal = Math.max(nv1, nv2, nv3, other, unassigned, 10);
+      var suggestedMax = Math.ceil((maxVal + 8) / 10) * 10;
+
       var el = document.getElementById("atAllocChart");
       if (el) {
         el.dataset.atChart = JSON.stringify({
@@ -486,23 +500,34 @@
               label: "Số sinh viên",
               data: [nv1, nv2, nv3, other, unassigned],
               backgroundColor: [
-                "var(--at-chart-1)",
-                "var(--at-chart-2)",
-                "var(--at-chart-3)",
-                "var(--at-chart-4)",
-                "var(--at-chart-5)"
-              ]
+                "var(--pg19-nv1)",
+                "var(--pg19-nv2)",
+                "var(--pg19-nv3)",
+                "var(--pg19-ngoai-nv)",
+                "var(--pg19-chua-xep)"
+              ],
+              borderRadius: 4,
+              maxBarThickness: 42,
+              categoryPercentage: 0.72,
+              barPercentage: 0.8
             }]
           },
           options: {
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: { display: false }
             },
             scales: {
+              x: {
+                grid: { display: false },
+                ticks: { font: { size: 12 } }
+              },
               y: {
                 beginAtZero: true,
-                grace: "12%",
-                ticks: { precision: 0 }
+                suggestedMax: suggestedMax,
+                grid: { color: "#DDE4EF" },
+                ticks: { precision: 0, font: { size: 12 } }
               }
             }
           }

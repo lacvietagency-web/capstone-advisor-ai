@@ -1,1 +1,1073 @@
 /* V3.7 — CSS riêng nhóm khoa. Chỉ selector gắn với trang của nhóm (tiền tố .pg-<trang>), dùng biến --at-* của atlas.css. */
+
+/* Biến màu biểu đồ trang 19 trên :root */
+:root {
+  --pg19-nv1: #176BBD;
+  --pg19-nv2: #55A1EB;
+  --pg19-nv3: #7EB8F2;
+  --pg19-ngoai-nv: #A67AE8;
+  --pg19-chua-xep: #F59B4A;
+}
+
+:root[data-theme="dark"],
+:root[data-bs-theme="dark"] {
+  --pg19-nv1: #4C9AFF;
+  --pg19-nv2: #79B8FF;
+  --pg19-nv3: #A5D0FF;
+  --pg19-ngoai-nv: #B990FF;
+  --pg19-chua-xep: #FFAB5E;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) {
+    --pg19-nv1: #4C9AFF;
+    --pg19-nv2: #79B8FF;
+    --pg19-nv3: #A5D0FF;
+    --pg19-ngoai-nv: #B990FF;
+    --pg19-chua-xep: #FFAB5E;
+  }
+}
+
+/* ==========================================================================
+   MÀN 18 — BẢNG ĐIỀU KHIỂN KHOA (.pg-18)
+   ========================================================================== */
+
+/* Page Header */
+.pg-18 .at-page-header {
+  min-height: 64px;
+  margin-bottom: 12px;
+}
+
+.pg-18 .at-breadcrumb {
+  font-size: 12px;
+  line-height: 18px;
+  margin-bottom: 4px;
+}
+
+.pg-18 .at-page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  margin: 0 0 4px;
+}
+
+.pg-18 .at-page-desc {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+  color: #596579;
+  margin: 0;
+}
+
+.pg-18 .pg18-btn-open {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #2454B8;
+  background: #FFFFFF;
+  color: #2454B8;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: background 160ms ease;
+}
+
+.pg-18 .pg18-btn-open:hover {
+  background: #F5F9FF;
+  color: #2454B8;
+}
+
+/* Dải Period */
+.pg-18 .at-period {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  min-height: 72px;
+  padding: 10px 14px;
+  gap: 12px;
+  background: #FFFFFF;
+  border: 1px solid #DDE4EF;
+  border-radius: 6px;
+  align-items: center;
+}
+
+.pg-18 .at-period-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pg-18 .at-period-tile {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #EAF2FF;
+  color: #2454B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pg-18 .at-period-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-18 .at-period-name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 19px;
+  color: #172649;
+}
+
+.pg-18 .at-period-time {
+  font-size: 12px;
+  line-height: 18px;
+  color: #596579;
+  margin-top: 3px;
+}
+
+.pg-18 .at-period-aside {
+  margin: 0;
+  padding-left: 16px;
+  border-left: 1px solid #DDE4EF;
+  font-size: 12px;
+  line-height: 19px;
+  color: #344563;
+  align-self: center;
+}
+
+/* Panel chung màn 18 */
+.pg-18 .at-panel {
+  border: 1px solid #DDE4EF;
+  border-radius: 6px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(20, 43, 75, 0.04);
+}
+
+.pg-18 .at-panel-header {
+  height: 42px;
+  min-height: 42px;
+  background: #EAF4FF;
+  border-bottom: 1px solid #DDE4EF;
+  padding: 0 16px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  border-radius: 5px 5px 0 0;
+}
+
+.pg-18 .at-panel-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #172649;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-18 .at-panel-header h2::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  background: #176BFF;
+}
+
+/* Panel Tổng quan số liệu (Metric Ledger) */
+.pg-18 .pg18-ledger {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  min-height: 82px;
+  background: #FFFFFF;
+  border: none;
+  border-radius: 0 0 5px 5px;
+  overflow: hidden;
+}
+
+.pg-18 .pg18-ledger .at-ledger-item {
+  padding: 12px 8px;
+  border-right: 1px solid #DDE4EF;
+  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.pg-18 .pg18-ledger .at-ledger-item:last-child {
+  border-right: none;
+}
+
+.pg-18 .pg18-ledger .at-ledger-label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #596579;
+}
+
+.pg-18 .pg18-ledger .at-ledger-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pg-18 .pg18-metric-students .at-ledger-value { color: #2454B8; }
+.pg-18 .pg18-metric-topics .at-ledger-value { color: #176B60; }
+.pg-18 .pg18-metric-periods .at-ledger-value { color: #713CC0; }
+.pg-18 .pg18-metric-pref .at-ledger-value { color: #176BFF; }
+.pg-18 .pg18-metric-lecturers .at-ledger-value { color: #344563; }
+
+/* Bố cục hàng cuối 2 cột */
+.pg-18 .at-grid {
+  gap: 12px;
+  align-items: stretch;
+}
+
+.pg-18 .pg18-periods-panel,
+.pg-18 .pg18-shortcuts-panel {
+  min-height: 310px;
+}
+
+/* Bảng Các đợt đăng ký */
+.pg-18 .pg18-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pg-18 .pg18-table thead th {
+  background: #EDF5FE;
+  border-bottom: 1px solid #DDE4EF;
+  color: #344563;
+  font-size: 12px;
+  font-weight: 600;
+  height: 34px;
+  padding: 6px 10px;
+  vertical-align: middle;
+}
+
+.pg-18 .pg18-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #DDE4EF;
+  vertical-align: middle;
+  height: 44px;
+}
+
+.pg-18 .pg18-period-name {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 19px;
+  color: #172649;
+}
+
+.pg-18 .pg18-period-dates {
+  font-size: 12px;
+  line-height: 18px;
+  color: #596579;
+}
+
+.pg-18 .pg18-period-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #172649;
+}
+
+.pg-18 .pg18-btn-assign {
+  white-space: nowrap;
+  min-width: 72px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #2454B8;
+  color: #2454B8;
+  background: #FFFFFF;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background 160ms ease;
+}
+
+.pg-18 .pg18-btn-assign:hover {
+  background: #F5F9FF;
+  color: #2454B8;
+}
+
+/* Lối tắt thao tác phẳng 4 mục */
+.pg-18 .pg18-shortcuts-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.pg-18 .pg18-shortcut-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 16px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  min-height: 64px;
+  border-bottom: 1px solid #DDE4EF;
+  text-decoration: none;
+  background: #FFFFFF;
+  transition: background 160ms ease;
+}
+
+.pg-18 .pg18-shortcut-item:last-child {
+  border-bottom: none;
+}
+
+.pg-18 .pg18-shortcut-item:hover {
+  background: #F5F9FF;
+}
+
+.pg-18 .pg18-shortcut-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: #EAF2FF;
+  color: #2454B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pg-18 .pg18-shortcut-content strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 19px;
+  color: #172649;
+}
+
+.pg-18 .pg18-shortcut-content p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: #596579;
+}
+
+.pg-18 .pg18-shortcut-chevron {
+  color: #8C9BAE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ==========================================================================
+   MÀN 19 — PHÂN CÔNG ĐỀ TÀI (.pg-19)
+   ========================================================================== */
+
+/* Page Header & Actions */
+.pg-19 .at-page-header {
+  min-height: 64px;
+  margin-bottom: 10px;
+}
+
+.pg-19 .at-breadcrumb {
+  font-size: 12px;
+  line-height: 18px;
+  margin-bottom: 4px;
+}
+
+.pg-19 .at-page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  margin: 0 0 4px;
+}
+
+.pg-19 .at-page-desc {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+  color: #596579;
+  margin: 0;
+}
+
+.pg-19 .pg19-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-19 .pg19-select-period {
+  width: 240px;
+  height: 34px;
+  font-size: 12px;
+  border: 1px solid #B7C5D8;
+  border-radius: 4px;
+}
+
+.pg-19 .pg19-btn-greedy {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #2454B8;
+  background: #FFFFFF;
+  color: #2454B8;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  transition: background 160ms ease;
+}
+
+.pg-19 .pg19-btn-greedy:hover:not(:disabled) {
+  background: #F5F9FF;
+  color: #2454B8;
+}
+
+.pg-19 .pg19-btn-ilp {
+  height: 34px;
+  padding: 0 14px;
+  background: #2454B8;
+  border: 1px solid #2454B8;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  transition: background 160ms ease;
+}
+
+.pg-19 .pg19-btn-ilp:hover:not(:disabled) {
+  background: #1B449A;
+  border-color: #1B449A;
+  color: #FFFFFF;
+}
+
+/* Dải Period màn 19 */
+.pg-19 .at-period {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  min-height: 64px;
+  padding: 8px 12px;
+  gap: 12px;
+  background: #FFFFFF;
+  border: 1px solid #DDE4EF;
+  border-radius: 6px;
+  align-items: center;
+}
+
+.pg-19 .at-period-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pg-19 .at-period-tile {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #EAF2FF;
+  color: #2454B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pg-19 .at-period-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-19 .at-period-name {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #172649;
+}
+
+.pg-19 .at-period-time {
+  font-size: 12px;
+  line-height: 17px;
+  color: #596579;
+  margin-top: 2px;
+}
+
+.pg-19 .at-period-aside {
+  margin: 0;
+  padding-left: 16px;
+  border-left: 1px solid #DDE4EF;
+  font-size: 12px;
+  line-height: 18px;
+  color: #596579;
+  align-self: center;
+}
+
+/* Metric Ledger 6 ô */
+.pg-19 .pg19-ledger {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  min-height: 58px;
+  background: #FFFFFF;
+  border: 1px solid #DDE4EF;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.pg-19 .pg19-ledger .at-ledger-item {
+  padding: 8px 6px;
+  text-align: center;
+  border-right: 1px solid #DDE4EF;
+  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.pg-19 .pg19-ledger .at-ledger-item:last-child {
+  border-right: none;
+}
+
+.pg-19 .pg19-ledger .at-ledger-label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 17px;
+  color: #596579;
+}
+
+.pg-19 .pg19-ledger .at-ledger-value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 30px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pg-19 .pg19-metric-total .at-ledger-value { color: #2454B8; }
+.pg-19 .pg19-metric-assigned .at-ledger-value { color: #176B60; }
+.pg-19 .pg19-metric-nv1 .at-ledger-value { color: #2454B8; }
+.pg-19 .pg19-metric-top3 .at-ledger-value { color: #2454B8; }
+.pg-19 .pg19-metric-score .at-ledger-value { color: #176B60; }
+.pg-19 .pg19-metric-unassigned .at-ledger-value { color: #C47B11; }
+
+/* Hàng giữa: Biểu đồ (8/12) + Chốt & công bố (4/12) */
+.pg-19 .pg19-mid-row {
+  gap: 12px;
+  align-items: stretch;
+}
+
+.pg-19 .pg19-chart-panel,
+.pg-19 .pg19-publish-panel {
+  border: 1px solid #DDE4EF;
+  border-radius: 6px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(20, 43, 75, 0.04);
+}
+
+.pg-19 .pg19-chart-panel .at-panel-header,
+.pg-19 .pg19-publish-panel .at-panel-header {
+  height: 38px;
+  min-height: 38px;
+  background: #EAF4FF;
+  border-bottom: 1px solid #DDE4EF;
+  padding: 0 14px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  border-radius: 5px 5px 0 0;
+}
+
+.pg-19 .pg19-chart-panel .at-panel-header h2,
+.pg-19 .pg19-publish-panel .at-panel-header h2 {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #172649;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-19 .pg19-chart-panel .at-panel-header h2::before,
+.pg-19 .pg19-publish-panel .at-panel-header h2::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: #176BFF;
+}
+
+.pg-19 .pg19-chart-container {
+  height: 135px;
+  position: relative;
+  padding: 4px 12px 6px;
+}
+
+.pg-19 .pg19-publish-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.pg-19 .pg19-publish-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.pg-19 .pg19-publish-body p {
+  font-size: 12px;
+  line-height: 18px;
+  color: #596579;
+  margin: 0;
+}
+
+.pg-19 .pg19-publish-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pg-19 .pg19-btn-publish {
+  height: 34px;
+  padding: 0 14px;
+  background: #2454B8;
+  border: 1px solid #2454B8;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Panel Danh sách sinh viên */
+.pg-19 .pg19-students-panel {
+  border: 1px solid #DDE4EF;
+  border-radius: 6px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(20, 43, 75, 0.04);
+}
+
+.pg-19 .pg19-table-header-bar {
+  padding: 8px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid #DDE4EF;
+}
+
+.pg-19 .pg19-table-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #172649;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-19 .pg19-table-title::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: #176BFF;
+}
+
+/* Toolbar bộ lọc gọn */
+.pg-19 .pg19-toolbar {
+  display: flex;
+  flex-wrap: wrap; /* Claude: 7 bộ lọc không vừa 1 hàng ở 1440px → xuống hàng thay vì tràn mép */
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.pg-19 .pg19-search {
+  position: relative;
+  width: 190px;
+}
+
+.pg-19 .pg19-search input {
+  height: 32px;
+  font-size: 12px;
+  padding-left: 28px;
+  border: 1px solid #B7C5D8;
+  border-radius: 4px;
+}
+
+.pg-19 .pg19-search .at-icon {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8C9BAE;
+  pointer-events: none;
+}
+
+.pg-19 .pg19-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pg-19 .pg19-filter-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #596579;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.pg-19 .pg19-filter-select {
+  height: 32px;
+  font-size: 12px;
+  padding: 2px 24px 2px 8px;
+  border: 1px solid #B7C5D8;
+  border-radius: 4px;
+}
+
+.pg-19 .pg19-select-status { width: 95px; }
+.pg-19 .pg19-select-rank { width: 100px; }
+.pg-19 .pg19-select-lecturer { width: 110px; }
+.pg-19 .pg19-select-extra { width: 95px; }
+
+.pg-19 .pg19-toolbar-end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.pg-19 .pg19-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: #596579;
+}
+
+.pg-19 .pg19-reset-filter {
+  font-size: 12px;
+  padding: 0;
+  color: #2454B8;
+  text-decoration: underline;
+}
+
+/* Bảng phân công gọn */
+.pg-19 .pg19-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pg-19 .pg19-table thead th {
+  background: #EDF5FE;
+  border-bottom: 1px solid #DDE4EF;
+  color: #344563;
+  font-size: 12px;
+  font-weight: 600;
+  height: 30px;
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.pg-19 .pg19-table tbody td {
+  padding: 5px 6px;
+  border-bottom: 1px solid #DDE4EF;
+  vertical-align: middle;
+  height: 32px;
+  font-size: 12px;
+}
+
+.pg-19 .pg19-td-name {
+  font-weight: 500;
+  color: #172649;
+}
+
+.pg-19 .pg19-td-topic {
+  line-height: 17px;
+  max-width: 260px;
+}
+
+.pg-19 .pg19-td-lecturer {
+  line-height: 17px;
+  color: #344563;
+}
+
+.pg-19 .pg19-chip-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pg-19 .pg19-chip-rank--1 { background: #E4F0FF; color: #176BBD; }
+.pg-19 .pg19-chip-rank--2 { background: #E5F5EC; color: #176B60; }
+.pg-19 .pg19-chip-rank--3 { background: #F1F4F9; color: #344563; }
+.pg-19 .pg19-chip-rank--other { background: #F1F4F9; color: #596579; font-weight: normal; }
+
+.pg-19 .pg19-score-val {
+  font-weight: 600;
+  color: #176B60;
+  font-variant-numeric: tabular-nums;
+}
+
+.pg-19 .pg19-td-source {
+  color: #344563;
+  font-size: 12px;
+}
+
+.pg-19 .pg19-status-badge {
+  height: 22px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pg-19 .pg19-btn-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2454B8;
+  padding: 2px 6px;
+  height: 26px;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+}
+
+.pg-19 .pg19-btn-link:hover {
+  text-decoration: underline;
+  color: #1B449A;
+}
+
+/* Phân trang bảng phân công */
+.pg-19 .pg19-pagination-wrap {
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #DDE4EF;
+  min-height: 40px;
+}
+
+.pg-19 .pg19-pagination-wrap .at-pagination {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+
+/* ==========================================================================
+   BIẾN THỂ TỐI (DARK THEME) THEO LUẬT CHUNG 0.b
+   ========================================================================== */
+
+:root[data-theme="dark"] .pg-18,
+:root[data-bs-theme="dark"] .pg-18,
+:root[data-theme="dark"] .pg-19,
+:root[data-bs-theme="dark"] .pg-19 {
+  --pg-bg-surface: var(--at-surface, #1E293B);
+  --pg-border: var(--at-line, #334155);
+}
+
+:root[data-theme="dark"] .pg-18 .at-period,
+:root[data-bs-theme="dark"] .pg-18 .at-period,
+:root[data-theme="dark"] .pg-19 .at-period,
+:root[data-bs-theme="dark"] .pg-19 .at-period,
+:root[data-theme="dark"] .pg-18 .at-panel,
+:root[data-bs-theme="dark"] .pg-18 .at-panel,
+:root[data-theme="dark"] .pg-19 .pg19-chart-panel,
+:root[data-bs-theme="dark"] .pg-19 .pg19-chart-panel,
+:root[data-theme="dark"] .pg-19 .pg19-publish-panel,
+:root[data-bs-theme="dark"] .pg-19 .pg19-publish-panel,
+:root[data-theme="dark"] .pg-19 .pg19-students-panel,
+:root[data-bs-theme="dark"] .pg-19 .pg19-students-panel,
+:root[data-theme="dark"] .pg-18 .pg18-ledger,
+:root[data-bs-theme="dark"] .pg-18 .pg18-ledger,
+:root[data-theme="dark"] .pg-19 .pg19-ledger,
+:root[data-bs-theme="dark"] .pg-19 .pg19-ledger {
+  background: var(--at-surface, #1E293B);
+  border-color: var(--at-line, #334155);
+}
+
+:root[data-theme="dark"] .pg-18 .at-panel-header,
+:root[data-bs-theme="dark"] .pg-18 .at-panel-header,
+:root[data-theme="dark"] .pg-19 .at-panel-header,
+:root[data-bs-theme="dark"] .pg-19 .at-panel-header {
+  background: var(--at-surface-2, #26354A);
+  border-color: var(--at-line, #334155);
+}
+
+:root[data-theme="dark"] .pg-18 .at-panel-header h2,
+:root[data-bs-theme="dark"] .pg-18 .at-panel-header h2,
+:root[data-theme="dark"] .pg-19 .at-panel-header h2,
+:root[data-bs-theme="dark"] .pg-19 .at-panel-header h2,
+:root[data-theme="dark"] .pg-19 .pg19-table-title,
+:root[data-bs-theme="dark"] .pg-19 .pg19-table-title {
+  color: var(--at-ink, #F1F5F9);
+}
+
+:root[data-theme="dark"] .pg-18 .pg18-shortcut-item,
+:root[data-bs-theme="dark"] .pg-18 .pg18-shortcut-item {
+  background: var(--at-surface, #1E293B);
+  border-color: var(--at-line, #334155);
+}
+
+:root[data-theme="dark"] .pg-18 .pg18-shortcut-item:hover,
+:root[data-bs-theme="dark"] .pg-18 .pg18-shortcut-item:hover {
+  background: var(--at-surface-2, #26354A);
+}
+
+:root[data-theme="dark"] .pg-18 .pg18-shortcut-content strong,
+:root[data-bs-theme="dark"] .pg-18 .pg18-shortcut-content strong,
+:root[data-theme="dark"] .pg-18 .at-period-name,
+:root[data-bs-theme="dark"] .pg-18 .at-period-name,
+:root[data-theme="dark"] .pg-19 .at-period-name,
+:root[data-bs-theme="dark"] .pg-19 .at-period-name,
+:root[data-theme="dark"] .pg-19 .pg19-td-name,
+:root[data-bs-theme="dark"] .pg-19 .pg19-td-name {
+  color: var(--at-ink, #F1F5F9);
+}
+
+:root[data-theme="dark"] .pg-18 .pg18-table thead th,
+:root[data-bs-theme="dark"] .pg-18 .pg18-table thead th,
+:root[data-theme="dark"] .pg-19 .pg19-table thead th,
+:root[data-bs-theme="dark"] .pg-19 .pg19-table thead th {
+  background: var(--at-surface-2, #26354A);
+  border-color: var(--at-line, #334155);
+  color: var(--at-ink, #F1F5F9);
+}
+
+:root[data-theme="dark"] .pg-18 .pg18-table tbody td,
+:root[data-bs-theme="dark"] .pg-18 .pg18-table tbody td,
+:root[data-theme="dark"] .pg-19 .pg19-table tbody td,
+:root[data-bs-theme="dark"] .pg-19 .pg19-table tbody td,
+:root[data-theme="dark"] .pg-18 .pg18-ledger .at-ledger-item,
+:root[data-bs-theme="dark"] .pg-18 .pg18-ledger .at-ledger-item,
+:root[data-theme="dark"] .pg-19 .pg19-ledger .at-ledger-item,
+:root[data-bs-theme="dark"] .pg-19 .pg19-ledger .at-ledger-item,
+:root[data-theme="dark"] .pg-18 .at-period-aside,
+:root[data-bs-theme="dark"] .pg-18 .at-period-aside,
+:root[data-theme="dark"] .pg-19 .at-period-aside,
+:root[data-bs-theme="dark"] .pg-19 .at-period-aside,
+:root[data-theme="dark"] .pg-19 .pg19-table-header-bar,
+:root[data-bs-theme="dark"] .pg-19 .pg19-table-header-bar,
+:root[data-theme="dark"] .pg-19 .pg19-pagination-wrap,
+:root[data-bs-theme="dark"] .pg-19 .pg19-pagination-wrap {
+  border-color: var(--at-line, #334155);
+}
+
+:root[data-theme="dark"] .pg-18 .pg18-btn-open,
+:root[data-bs-theme="dark"] .pg-18 .pg18-btn-open,
+:root[data-theme="dark"] .pg-18 .pg18-btn-assign,
+:root[data-bs-theme="dark"] .pg-18 .pg18-btn-assign,
+:root[data-theme="dark"] .pg-19 .pg19-btn-greedy,
+:root[data-bs-theme="dark"] .pg-19 .pg19-btn-greedy {
+  background: transparent;
+  color: #8AB4FF;
+  border-color: #8AB4FF;
+}
+
+:root[data-theme="dark"] .pg-18 .pg18-metric-lecturers .at-ledger-value,
+:root[data-bs-theme="dark"] .pg-18 .pg18-metric-lecturers .at-ledger-value {
+  color: #CBD5E1;
+}
+
+:root[data-theme="dark"] .pg-18 .pg18-period-tile,
+:root[data-bs-theme="dark"] .pg-18 .pg18-period-tile,
+:root[data-theme="dark"] .pg-18 .pg18-shortcut-icon,
+:root[data-bs-theme="dark"] .pg-18 .pg18-shortcut-icon,
+:root[data-theme="dark"] .pg-19 .at-period-tile,
+:root[data-bs-theme="dark"] .pg-19 .at-period-tile {
+  background: rgba(36, 84, 184, 0.2);
+  color: #8AB4FF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-18 .at-period,
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-19 .at-period,
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-18 .at-panel,
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-19 .pg19-chart-panel,
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-19 .pg19-publish-panel,
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-19 .pg19-students-panel,
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-18 .pg18-ledger,
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-19 .pg19-ledger {
+    background: var(--at-surface, #1E293B);
+    border-color: var(--at-line, #334155);
+  }
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-18 .at-panel-header,
+  :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-19 .at-panel-header {
+    background: var(--at-surface-2, #26354A);
+    border-color: var(--at-line, #334155);
+  }
+}
+
+/* Responsive Mobile (< 768px) */
+@media (max-width: 767.98px) {
+  .pg-18 .at-period,
+  .pg-19 .at-period {
+    grid-template-columns: 1fr;
+    padding: 10px 12px;
+  }
+  .pg-18 .at-period-aside,
+  .pg-19 .at-period-aside {
+    border-left: none;
+    border-top: 1px solid #DDE4EF;
+    padding-left: 0;
+    padding-top: 8px;
+  }
+  .pg-18 .pg18-ledger {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pg-18 .pg18-ledger .at-ledger-item:nth-child(2n) {
+    border-right: none;
+  }
+  .pg-18 .pg18-ledger .at-ledger-item:last-child {
+    grid-column: span 2;
+    border-right: none;
+  }
+  .pg-19 .pg19-ledger {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pg-19 .pg19-ledger .at-ledger-item:nth-child(2n) {
+    border-right: none;
+  }
+  .pg-19 .pg19-toolbar {
+    flex-wrap: wrap;
+  }
+  .pg-19 .pg19-search {
+    width: 100%;
+  }
+}

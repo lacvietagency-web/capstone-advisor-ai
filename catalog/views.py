@@ -209,6 +209,7 @@ def _preference_rows(student, period, scores):
             "rec": scores.get(p.topic_id),
             "eligibility": _eligibility(student, p.topic),
             "remaining": remaining_capacity(p.topic, period),
+            "checklist": _checklist(student, p.topic, remaining_capacity(p.topic, period)),
         }
         for p in prefs
     ]
@@ -360,7 +361,16 @@ def lecturer_registrations(request, pk):
     for p in prefs:
         ensure_recommendations(p.student)
     scores = {r.student_id: r for r in Recommendation.objects.filter(topic=topic)}
-    rows = [{"pref": p, "rec": scores.get(p.student_id), "eligibility": _eligibility(p.student, topic)} for p in prefs]
+    left = remaining_capacity(topic, _open_period())
+    rows = [
+        {
+            "pref": p,
+            "rec": scores.get(p.student_id),
+            "eligibility": _eligibility(p.student, topic),
+            "checklist": _checklist(p.student, topic, left),
+        }
+        for p in prefs
+    ]
     return render(request, "catalog/lecturer_registrations.html", {"topic": topic, "rows": rows})
 
 
@@ -533,6 +543,17 @@ def _eligibility(student, topic):
     return eligibility_reasons(student._profile, topic)
 
 
+def _checklist(student, topic, remaining=None):
+    """Khối "Kiểm tra điều kiện" 4 mục (recommend.engine.condition_checklist) cho SV; [] nếu không phải SV."""
+    if student is None:
+        return []
+    from recommend.engine import Profile, condition_checklist
+
+    if not hasattr(student, "_profile"):
+        student._profile = Profile(student)
+    return condition_checklist(student._profile, topic, remaining)
+
+
 def _ineligible_reason(student, topic):
     """Lọc cứng cho SV đang xem: '' nếu đủ điều kiện, ngược lại là lý do (GPA / môn tiên quyết / kỹ năng bắt buộc)."""
     if student is None:
@@ -577,6 +598,7 @@ def topic_detail(request, pk=None, id=None):
     context = {
         "ineligible_reason": _ineligible_reason(student, topic),
         "eligibility": _eligibility(student, topic),
+        "checklist": _checklist(student, topic, remaining_capacity(topic, _open_period())),
         "open_period": _open_period(),
         "remaining": remaining_capacity(topic, _open_period()),
         "topic": topic,

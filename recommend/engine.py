@@ -141,6 +141,66 @@ def eligibility_reasons(p: Profile, topic: Topic):
     return out
 
 
+def _num(x):
+    return f"{x:.2f}".rstrip("0").rstrip(".") if x is not None else "—"
+
+
+def condition_checklist(p: Profile, topic: Topic, remaining=None):
+    """Khối "Kiểm tra điều kiện" (ảnh duyệt 09/11/16): GPA · kỹ năng · lĩnh vực quan tâm · chỉ tiêu (+ môn tiên quyết).
+
+    Mỗi mục {label, state: ok|warn|fail, value}. fail = vi phạm luật lọc cứng (cùng luật eligible());
+    warn = không chặn đăng ký nhưng nên lưu ý (thiếu kỹ năng không bắt buộc, lĩnh vực ngoài quan tâm, hết chỗ)."""
+    gpa_min = float(topic.min_gpa)
+    rows = [
+        {
+            "label": f"GPA đạt yêu cầu (≥ {_num(gpa_min)})" if gpa_min > 0 else "GPA (đề tài không đặt ngưỡng)",
+            "state": "ok" if p.gpa >= gpa_min else "fail",
+            "value": f"{'Đạt' if p.gpa >= gpa_min else 'Chưa đạt'} ({_num(p.gpa)})",
+        }
+    ]
+    req = list(topic.skills.all())
+    met = [ts for ts in req if p.skills.get(ts.skill_id, 0) >= ts.required_level]
+    missing_mandatory = [ts for ts in req if ts.is_mandatory and ts not in met]
+    rows.append(
+        {
+            "label": "Kỹ năng phù hợp",
+            "state": "fail" if missing_mandatory else ("ok" if len(met) == len(req) else "warn"),
+            "value": (
+                "Thiếu " + ", ".join(ts.skill.name for ts in missing_mandatory)
+                if missing_mandatory
+                else ("Phù hợp" if len(met) == len(req) else f"Đạt {len(met)}/{len(req)}")
+            ),
+        }
+    )
+    for pre in topic.prerequisites.all():
+        have = p.courses.get(pre.course_id)
+        ok = (have or 0) >= float(pre.min_score)
+        rows.append(
+            {
+                "label": f"Môn {pre.course.name} (≥ {_num(float(pre.min_score))})",
+                "state": "ok" if ok else "fail",
+                "value": f"{'Đạt' if ok else 'Chưa đạt'} ({_num(have)})",
+            }
+        )
+    match = any(f.id in p.interests for f in topic.fields.all())
+    rows.append(
+        {
+            "label": "Lĩnh vực quan tâm khớp",
+            "state": "ok" if match else "warn",
+            "value": "Phù hợp" if match else "Ngoài lĩnh vực quan tâm",
+        }
+    )
+    if remaining is not None:
+        rows.append(
+            {
+                "label": "Chỉ tiêu còn chỗ",
+                "state": "ok" if remaining > 0 else "warn",
+                "value": f"Còn {remaining}/{topic.capacity}" if remaining > 0 else "Hết chỗ",
+            }
+        )
+    return rows
+
+
 # ---------------------------------------------------------------- M1: khớp kỹ năng
 def m1_skill(p: Profile, topic: Topic):
     """M1 = 100 · Σ w_k·min(mức_SV/mức_yêu_cầu, 1) / Σ w_k  — đáp ứng bao nhiêu phần kỹ năng đề tài cần."""

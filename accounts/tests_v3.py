@@ -290,3 +290,20 @@ class V37CoreTests(TestCase):
         r = self._profile_post(**{"interest-picked": [keep, new[0]]})
         self.assertEqual(r.status_code, 302)
         self.assertEqual(dict(st.interests.values_list("field_id", "level")), {keep: old[keep], new[0]: 3})
+
+    def test_condition_checklist_on_three_pages(self):
+        from catalog.models import Preference
+
+        pref = (
+            Preference.objects.filter(submitted=True).select_related("topic__lecturer__user", "student__user").first()
+        )
+        self.client.force_login(pref.student.user)
+        items = self.client.get(f"/danh-sach-de-tai/{pref.topic_id}/").context["checklist"]
+        labels = [i["label"] for i in items]
+        self.assertTrue(labels[0].startswith("GPA") and "Kỹ năng phù hợp" in labels and "Chỉ tiêu còn chỗ" in labels)
+        self.assertTrue(all(i["state"] in ("ok", "warn", "fail") for i in items))
+        rows = self.client.get("/nguyen-vong/").context["pref_rows"]
+        self.assertTrue(all(r["checklist"] for r in rows))
+        self.client.force_login(pref.topic.lecturer.user)
+        rows = self.client.get(f"/de-tai/{pref.topic_id}/dang-ky/").context["rows"]
+        self.assertTrue(all(r["checklist"] for r in rows))

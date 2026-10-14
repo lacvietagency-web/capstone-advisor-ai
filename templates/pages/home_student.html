@@ -128,18 +128,11 @@
                   </div>
                 </div>
 
-                <div class="at-grid">
-                  <div class="at-col-6">
-                    {% include "components/score.html" with rec=r size="lg" %}
-                    {% if r.reason %}
-                      <div class="at-mt-3">
-                        {% include "components/note.html" with title="Lý do gợi ý" text=r.reason %}
-                      </div>
-                    {% endif %}
-                  </div>
-                  <div class="at-col-6">
-                    {% include "components/evidence.html" with rec=r detail=False %}
-                  </div>
+                {# Ảnh duyệt 07: điểm · lý do · M1–M5 trên MỘT hàng #}
+                <div class="at-best">
+                  <div class="at-best-score">{% include "components/score.html" with rec=r size="lg" %}</div>
+                  <div class="at-best-reason at-secondary">{{ r.reason|default:"Chưa có giải thích cho kết quả này." }}</div>
+                  <div class="at-best-evidence">{% include "components/evidence.html" with rec=r detail=False %}</div>
                 </div>
 
                 <div class="at-topic-foot at-mt-4">
@@ -153,29 +146,17 @@
               </article>
 
               {% if not forloop.last %}
-                <div class="at-list at-mt-3">
+                <div class="at-rec-rows at-mt-3">
               {% endif %}
             {% else %}
-              <article class="at-item at-row at-row--between">
-                <div class="at-row at-grow">
-                  <span class="at-rank">#{{ r.rank }}</span>
-                  <div class="at-grow">
-                    <a href="{% url 'topic_detail' r.topic.pk %}" class="at-title-link">{{ r.topic.title }}</a>
-                    <div class="at-meta at-mt-1">
-                      <span>GVHD: <strong>{{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</strong></span>
-                      {% for f in r.topic.fields.all %}
-                        <span class="at-tag">{{ f.name }}</span>
-                      {% endfor %}
-                    </div>
-                  </div>
-                </div>
-                <div class="at-row">
-                  {% include "components/score.html" with rec=r size="sm" %}
-                  <a href="{% url 'topic_detail' r.topic.pk %}" class="btn btn-secondary btn-sm" aria-label="Xem chi tiết {{ r.topic.title }}">
-                    {% include "components/icon.html" with name="chevron-right" %}
-                  </a>
-                </div>
-              </article>
+              {# Ảnh duyệt 07: đề tài #2–#5 là hàng gọn một dòng #}
+              <a class="at-rec-row" href="{% url 'topic_detail' r.topic.pk %}">
+                <span class="at-rank">#{{ r.rank }}</span>
+                <span class="at-rec-title">{{ r.topic.title }}</span>
+                <span class="at-rec-gv at-secondary">GVHD: {{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</span>
+                <span class="at-rec-score at-num"><strong>{{ r.final_score|floatformat:1 }}</strong> /100</span>
+                {% include "components/icon.html" with name="chevron-right" class="at-muted" %}
+              </a>
               {% if forloop.last %}
                 </div>
               {% endif %}

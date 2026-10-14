@@ -176,7 +176,7 @@
           </div>
           {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
             <a href="{% url 'student_preferences' %}" class="btn btn-secondary btn-sm">
-              {% include "components/icon.html" with name="square-pen" %}Chỉnh sửa
+              {% include "components/icon.html" with name="square-pen" %}Chỉnh sửa nguyện vọng
             </a>
           {% endif %}
         </div>
@@ -205,13 +205,6 @@
               </div>
             {% endfor %}
           </div>
-          {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
-            <div class="at-mt-4">
-              <a href="{% url 'student_preferences' %}" class="btn btn-secondary w-100">
-                {% include "components/icon.html" with name="square-pen" %}Chỉnh sửa nguyện vọng
-              </a>
-            </div>
-          {% endif %}
         {% else %}
           {% url 'student_preferences' as pref_url %}
           {% include "components/empty.html" with illustration="empty-preferences" title="Chưa đăng ký nguyện vọng" desc="Bạn chưa nộp nguyện vọng trong đợt này. Hãy chọn tối đa 3 đề tài theo thứ tự ưu tiên." primary_url=pref_url primary_label="Chọn nguyện vọng" %}

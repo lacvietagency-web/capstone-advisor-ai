@@ -45,10 +45,43 @@
         <div class="at-panel-header">
           <div>
             <h2>Hành trình đăng ký đề tài</h2>
-            <p class="at-secondary">Tiến độ thực hiện các bước trong đợt đăng ký đồ án</p>
           </div>
         </div>
-        {% include "components/journey.html" with journey=journey %}
+        <div class="pg-12-journey-grid">
+          {% for step in journey %}
+            <div class="pg-12-step pg-12-step--{{ step.state }}">
+              <div class="pg-12-step-top">
+                {% if not forloop.first %}<div class="pg-12-step-line pg-12-step-line--left"></div>{% endif %}
+                <div class="pg-12-step-circle">
+                  {% if step.state == "done" %}
+                    {% include "components/icon.html" with name="check" size=16 %}
+                  {% elif step.state == "current" %}
+                    {% include "components/icon.html" with name="circle-dot" size=16 %}
+                  {% elif step.state == "missed" %}
+                    {% include "components/icon.html" with name="triangle-alert" size=16 %}
+                  {% else %}
+                    <span class="pg-12-step-num">{{ step.number }}</span>
+                  {% endif %}
+                </div>
+                {% if not forloop.last %}<div class="pg-12-step-line pg-12-step-line--right"></div>{% endif %}
+              </div>
+              <strong class="pg-12-step-title">{{ step.number }}. {{ step.label }}</strong>
+              {% if step.number == 1 %}
+                <span class="at-badge {% if step.state == 'done' %}at-badge--success{% else %}at-badge--neutral{% endif %} pg-12-step-badge">{% if step.state == 'done' %}Đã hoàn thành{% else %}Chưa xong{% endif %}</span>
+                <p class="pg-12-step-desc">Cập nhật thông tin cá nhân, kỹ năng, định hướng.</p>
+              {% elif step.number == 2 %}
+                <span class="at-badge {% if step.state == 'done' %}at-badge--success{% else %}at-badge--neutral{% endif %} pg-12-step-badge">{% if step.state == 'done' %}Đã hoàn thành{% else %}Chưa có gợi ý{% endif %}</span>
+                <p class="pg-12-step-desc">Hệ thống gợi ý các đề tài phù hợp với hồ sơ của bạn.</p>
+              {% elif step.number == 3 %}
+                <span class="at-badge {% if step.state == 'done' %}at-badge--info{% else %}at-badge--neutral{% endif %} pg-12-step-badge">{% if step.state == 'done' %}Đã nộp{% else %}Chưa nộp{% endif %}</span>
+                <p class="pg-12-step-desc">Đã nộp 3 nguyện vọng trong thời gian quy định.</p>
+              {% elif step.number == 4 %}
+                <span class="at-badge {% if is_published %}at-badge--success{% else %}at-badge--neutral{% endif %} pg-12-step-badge">{% if is_published %}Đã công bố{% else %}Chờ công bố{% endif %}</span>
+                <p class="pg-12-step-desc">Kết quả phân công chính thức đã được công bố.</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
       </section>
     {% endif %}
 
@@ -105,15 +138,17 @@
             <div class="pg-12-badge-group">
               {% if preference_rank %}
                 <span class="at-badge at-badge--success">
-                  {% include "components/icon.html" with name="check" size=14 %}Đạt NV{{ preference_rank }}
+                  {% include "components/icon.html" with name="circle-check" size=14 %}Đạt NV{{ preference_rank }}
                 </span>
               {% else %}
                 <span class="at-badge">Xếp bổ sung</span>
               {% endif %}
-              {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
+              <span class="at-badge at-badge--info">
+                {% include "components/icon.html" with name="badge-check" size=14 %}Chính thức
+              </span>
               {% if allocation.source %}
-                <span class="at-badge at-badge--info">
-                  {% include "components/icon.html" with name="route" size=14 %}Phân công bằng {{ allocation.get_source_display }}
+                <span class="at-badge at-badge--neutral">
+                  {% include "components/icon.html" with name="git-compare" size=14 %}Phân công bằng {{ allocation.get_source_display }}
                 </span>
               {% endif %}
             </div>
@@ -122,7 +157,7 @@
           <div class="pg-12-gv-info">
             <span>GVHD: <strong>{{ lecturer.user.get_full_name|default:lecturer.user.username }}</strong></span>
             {% if lecturer.department %}<span class="at-secondary"> · Bộ môn {{ lecturer.department }}</span>{% endif %}
-            {% if lecturer.user.email %}<span class="at-secondary"> ({{ lecturer.user.email }})</span>{% endif %}
+            {% if lecturer.user.email %}<span class="visually-hidden"> ({{ lecturer.user.email }})</span>{% endif %}
           </div>
 
           <div class="pg-12-content-grid">
@@ -142,7 +177,7 @@
                 {% if recommendation and recommendation.m5_llm is None %}
                   Điểm sơ bộ M1–M4
                 {% else %}
-                  Điểm phù hợp
+                  Đánh giá mức độ phù hợp đề tài
                 {% endif %}
               </div>
             </div>
@@ -193,7 +228,7 @@
                   </li>
                 </ul>
                 <div class="pg-12-ahp-note at-secondary">
-                  <span>Trọng số AHP: <strong>{{ recommendation.weights_version|default:"Chuyên gia v1" }}</strong></span>
+                  <span>AHP: {% for c in ahp.criteria %}{{ c.percent }}%{% if not forloop.last %} / {% endif %}{% endfor %}</span>
                 </div>
               {% else %}
                 <p class="at-secondary">Chưa có điểm thành phần M1–M5 cho đề tài này.</p>
@@ -208,7 +243,7 @@
                   {% if recommendation and recommendation.reason %}
                     {{ recommendation.reason }}
                   {% else %}
-                    Khoa phân công đề tài dựa trên kết quả tối ưu nguyện vọng và chỉ tiêu hướng dẫn.
+                    Đề tài phù hợp với hồ sơ kỹ năng, định hướng phát triển ứng dụng và nguyện vọng ưu tiên của bạn.
                   {% endif %}
                 </p>
               </div>
@@ -221,7 +256,7 @@
                 {% if published_at %}
                   <div class="pg-12-published-time at-secondary">
                     {% include "components/icon.html" with name="calendar-days" size=13 %}
-                    <span>Công bố lúc {{ published_at|date:"H:i d/m/Y" }}</span>
+                    <span>Công bố lúc: {{ published_at|date:"H:i d/m/Y" }}</span>
                   </div>
                 {% endif %}
               </div>
@@ -252,7 +287,7 @@
                   <div class="pg-12-nv-status">
                     {% if topic and p.topic_id == topic.id and p.rank == preference_rank %}
                       <span class="at-badge at-badge--success">
-                        {% include "components/icon.html" with name="check" size=14 %}Đạt
+                        {% include "components/icon.html" with name="circle-check" size=14 %}Đạt
                       </span>
                     {% else %}
                       <span class="at-badge at-badge--neutral">Không được phân công</span>
@@ -262,19 +297,17 @@
               {% endif %}
             {% endfor %}
           </div>
-          <div class="at-divider at-mt-3 at-mb-3"></div>
-          <div class="at-row at-row--between pg-12-actions-bar">
-            <span class="at-secondary"></span>
-            <div class="at-row pg-12-actions-group">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()">
-                {% include "components/icon.html" with name="download" size=14 %}Tải biên bản
-              </button>
-              <a href="{% url 'topic_detail' topic.pk %}" class="btn btn-primary btn-sm">
-                {% include "components/icon.html" with name="arrow-right" size=14 %}Xem chi tiết đề tài
-              </a>
-            </div>
-          </div>
         </section>
+
+        {# Thanh thao tác cuối trang #}
+        <div class="pg-12-actions-bar">
+          <a href="{% url 'topic_detail' topic.pk %}" class="btn btn-primary btn-sm">
+            Xem chi tiết đề tài {% include "components/icon.html" with name="arrow-right" size=14 %}
+          </a>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()">
+            {% include "components/icon.html" with name="download" size=14 %}Tải biên bản
+          </button>
+        </div>
       {% endif %}
     {% endif %}
   </div>

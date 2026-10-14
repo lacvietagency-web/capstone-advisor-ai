@@ -89,8 +89,8 @@
   height: 36px;
   min-width: 36px;
   border-radius: 6px;
-  background: #EAF2FF;
-  color: #2454B8;
+  background: var(--at-brand-soft, #EAF2FF);
+  color: var(--at-brand, #2454B8);
   display: grid;
   place-items: center;
 }
@@ -137,7 +137,7 @@
   min-height: 36px;
   margin: -10px -16px 8px;
   padding: 0 16px;
-  background: #EAF4FF;
+  background: var(--at-brand-soft, #EAF4FF);
   border-bottom: 1px solid var(--at-line, #DDE4EF);
   border-radius: 6px 6px 0 0;
   display: flex;
@@ -199,9 +199,9 @@
 }
 
 .pg-07 .pg-07-step-circle--pending {
-  background: #FFFFFF;
+  background: var(--at-surface, #FFFFFF);
   border: 1.5px dashed #A0AEC0;
-  color: #596579;
+  color: var(--at-ink-muted, #596579);
 }
 
 .pg-07 .pg-07-step-line {
@@ -272,7 +272,7 @@
   min-height: 38px;
   margin: -10px -12px 10px;
   padding: 0 12px;
-  background: #EAF4FF;
+  background: var(--at-brand-soft, #EAF4FF);
   border-bottom: 1px solid var(--at-line, #DDE4EF);
   border-radius: 6px 6px 0 0;
   display: flex;
@@ -303,11 +303,11 @@
 .pg-07 .pg-07-btn-detail {
   height: 30px;
   padding: 0 12px;
-  border: 1px solid #2454B8;
+  border: 1px solid var(--at-brand, #2454B8);
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
-  color: #2454B8;
+  color: var(--at-brand, #2454B8);
   background: transparent;
   display: inline-flex;
   align-items: center;
@@ -316,8 +316,8 @@
 }
 
 .pg-07 .pg-07-btn-detail:hover {
-  background: #EAF2FF;
-  color: #176BFF;
+  background: var(--at-brand-soft, #EAF2FF);
+  color: var(--at-brand, #176BFF);
   border-color: #176BFF;
 }
 
@@ -374,8 +374,8 @@
   height: 20px;
   padding: 0 8px;
   border-radius: 4px;
-  background: #EAF2FF;
-  color: #2454B8;
+  background: var(--at-brand-soft, #EAF2FF);
+  color: var(--at-brand, #2454B8);
   font-size: 12px;
   font-weight: 500;
   display: inline-flex;
@@ -395,7 +395,7 @@
 }
 
 .pg-07 .pg-07-top1-title a:hover {
-  color: #176BFF;
+  color: var(--at-brand, #176BFF);
   text-decoration: underline;
 }
 
@@ -413,7 +413,7 @@
 }
 
 .pg-07 .pg-07-score-box {
-  background: #FFFFFF;
+  background: var(--at-surface, #FFFFFF);
   border: 1px solid var(--at-line, #DDE4EF);
   border-radius: 4px;
   padding: 8px;
@@ -434,7 +434,7 @@
   font-size: 34px;
   font-weight: 700;
   line-height: 38px;
-  color: #176B60;
+  color: var(--at-ai, #176B60);
   font-variant-numeric: tabular-nums;
 }
 
@@ -507,7 +507,7 @@
 .pg-07 .pg-07-m-track {
   display: block;
   height: 8px;
-  background: #E5EAF1;
+  background: var(--at-line, #E5EAF1);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -553,7 +553,7 @@
   height: 38px;
   min-height: 38px;
   padding: 0 8px;
-  border-bottom: 1px solid #DDE4EF;
+  border-bottom: 1px solid var(--at-line, #DDE4EF);
   color: var(--at-ink, #212529);
   text-decoration: none;
   border-radius: 4px;
@@ -601,7 +601,7 @@
 .pg-07 .pg-07-rec-score strong {
   font-size: 14px;
   font-weight: 700;
-  color: #176B60;
+  color: var(--at-ai, #176B60);
 }
 
 .pg-07 .pg-07-rec-arrow {
@@ -635,8 +635,8 @@
 .pg-07 .pg-07-nv-chip {
   min-width: 36px;
   height: 26px;
-  background: #EAF2FF;
-  color: #2454B8;
+  background: var(--at-brand-soft, #EAF2FF);
+  color: var(--at-brand, #2454B8);
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
@@ -659,7 +659,7 @@
 }
 
 .pg-07 .pg-07-nv-title:hover {
-  color: #176BFF;
+  color: var(--at-brand, #176BFF);
   text-decoration: underline;
 }
 
@@ -798,7 +798,7 @@
   padding-left: 36px;
   font-size: 12px;
   border-radius: 6px;
-  border: 1px solid #D9E2EF;
+  border: 1px solid var(--at-line, #D9E2EF);
 }
 
 .pg-10 .pg-10-filter-item {
@@ -811,7 +811,7 @@
 .pg-10 .pg-10-filter-label {
   font-size: 12px;
   font-weight: 500;
-  color: #344054;
+  color: var(--at-ink-muted, #344054);
   margin-bottom: 4px;
   line-height: 16px;
 }
@@ -820,8 +820,8 @@
   height: 40px;
   font-size: 12px;
   border-radius: 6px;
-  border: 1px solid #D9E2EF;
-  color: #344054;
+  border: 1px solid var(--at-line, #D9E2EF);
+  color: var(--at-ink-muted, #344054);
 }
 
 .pg-10 .pg-10-filter-count {
@@ -832,7 +832,7 @@
   justify-content: flex-end;
   font-size: 12px;
   font-weight: 500;
-  color: #344054;
+  color: var(--at-ink-muted, #344054);
   min-width: 64px;
   white-space: nowrap;
 }
@@ -857,8 +857,8 @@
   justify-content: center;
   text-decoration: none;
   background: var(--at-surface, #FFFFFF);
-  border: 1px solid #D9E2EF;
-  color: #344054;
+  border: 1px solid var(--at-line, #D9E2EF);
+  color: var(--at-ink-muted, #344054);
   transition: all 0.15s ease;
 }
 
@@ -888,14 +888,14 @@
   padding: 10px 12px;
   font-size: 12px;
   font-weight: 600;
-  color: #596579;
-  background: #FAFCFE;
-  border-bottom: 1px solid #EAF0F7;
+  color: var(--at-ink-muted, #596579);
+  background: var(--at-surface-2, #FAFCFE);
+  border-bottom: 1px solid var(--at-line, #EAF0F7);
   text-align: left;
 }
 
 .pg-10 .at-table th a {
-  color: #596579;
+  color: var(--at-ink-muted, #596579);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -905,7 +905,7 @@
 .pg-10 .at-table td {
   padding: 12px;
   line-height: 18px;
-  border-bottom: 1px solid #EAF0F7;
+  border-bottom: 1px solid var(--at-line, #EAF0F7);
   vertical-align: middle;
 }
 
@@ -931,13 +931,13 @@
   font-size: 13px;
   font-weight: 600;
   line-height: 18px;
-  color: #101828;
+  color: var(--at-ink, #101828);
   text-decoration: none;
   display: block;
 }
 
 .pg-10 .pg-10-topic-title:hover {
-  color: #176BFF;
+  color: var(--at-brand, #176BFF);
   text-decoration: underline;
 }
 
@@ -953,8 +953,8 @@
   min-height: 20px;
   padding: 2px 8px;
   border-radius: 4px;
-  background: #EAF2FF;
-  color: #2454B8;
+  background: var(--at-brand-soft, #EAF2FF);
+  color: var(--at-brand, #2454B8);
   font-size: 12px;
   font-weight: 500;
   line-height: 16px;
@@ -965,7 +965,7 @@
 .pg-10 .pg-10-lecturer-name {
   font-size: 12px;
   font-weight: 500;
-  color: #344054;
+  color: var(--at-ink-muted, #344054);
   line-height: 18px;
 }
 
@@ -981,37 +981,37 @@
 }
 
 .pg-10 .pg-10-diff-badge--easy {
-  background: #E6F8F0;
-  color: #0D8253;
+  background: var(--at-success-soft, #E6F8F0);
+  color: var(--at-success, #0D8253);
 }
 
 .pg-10 .pg-10-diff-badge--medium {
-  background: #FFF6E5;
-  color: #B76E00;
+  background: var(--at-warning-soft, #FFF6E5);
+  color: var(--at-warning, #B76E00);
 }
 
 .pg-10 .pg-10-diff-badge--hard {
-  background: #FEECEB;
-  color: #D92D20;
+  background: var(--at-danger-soft, #FEECEB);
+  color: var(--at-danger, #D92D20);
 }
 
 .pg-10 .pg-10-capacity {
   font-size: 12px;
   font-weight: 500;
-  color: #344054;
+  color: var(--at-ink-muted, #344054);
 }
 
 .pg-10 .pg-10-score-val {
   font-size: 14px;
   font-weight: 700;
-  color: #176B60;
+  color: var(--at-ai, #176B60);
   font-variant-numeric: tabular-nums;
 }
 
 .pg-10 .pg-10-score-denom {
   font-size: 12px;
   font-weight: 400;
-  color: #596579;
+  color: var(--at-ink-muted, #596579);
 }
 
 .pg-10 .pg-10-cond-ok {
@@ -1020,7 +1020,7 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: #0D8253;
+  color: var(--at-success, #0D8253);
 }
 
 .pg-10 .pg-10-cond-fail {
@@ -1029,7 +1029,7 @@
   gap: 6px;
   font-size: 12px;
   line-height: 16px;
-  color: #D92D20;
+  color: var(--at-danger, #D92D20);
 }
 
 .pg-10 .pg-10-cond-fail .at-icon {
@@ -1068,7 +1068,7 @@
 .pg-10 .pg-10-link-reg {
   font-size: 12px;
   font-weight: 600;
-  color: #176BFF;
+  color: var(--at-brand, #176BFF);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -1270,8 +1270,8 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #EAF2FF;
-  color: #2454B8;
+  background: var(--at-brand-soft, #EAF2FF);
+  color: var(--at-brand, #2454B8);
   display: grid;
   place-items: center;
 }
@@ -1315,8 +1315,8 @@
   font-size: 12px;
   line-height: 16px;
   font-weight: 500;
-  background: #EAF2FF;
-  color: #2454B8;
+  background: var(--at-brand-soft, #EAF2FF);
+  color: var(--at-brand, #2454B8);
   border-radius: 4px;
   white-space: nowrap;
 }
@@ -1342,7 +1342,7 @@
   min-height: 36px;
   margin: -10px -12px 10px;
   padding: 4px 12px;
-  background: #EAF4FF;
+  background: var(--at-brand-soft, #EAF4FF);
   border-bottom: 1px solid var(--at-line, #DDE4EF);
   border-radius: 5px 5px 0 0;
   display: flex;
@@ -1513,7 +1513,7 @@
   font-size: 36px;
   font-weight: 700;
   line-height: 40px;
-  color: #176B60;
+  color: var(--at-ai, #176B60);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1591,7 +1591,7 @@
 .pg-11 .pg-11-m-track {
   display: block;
   height: 8px;
-  background: #E5EAF1;
+  background: var(--at-line, #E5EAF1);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -1605,7 +1605,7 @@
 }
 
 .pg-11 .pg-11-m-track--empty {
-  background: #E5EAF1;
+  background: var(--at-line, #E5EAF1);
 }
 
 .pg-11 .pg-11-m-val {
@@ -1636,7 +1636,7 @@
 .pg-11 .pg-11-ai-note {
   font-size: 12px;
   line-height: 17px;
-  color: #2454B8;
+  color: var(--at-brand, #2454B8);
   padding-top: 6px;
   margin-top: 6px;
   border-top: 1px solid var(--at-line, #DDE4EF);
@@ -1726,7 +1726,7 @@
 /* Footer phiên bản AI */
 .pg-11 .pg-11-version-footer {
   min-height: 30px;
-  background: #F5F8FE;
+  background: var(--at-surface-2, #F5F8FE);
   border: 1px solid var(--at-line, #DDE4EF);
   border-radius: 4px;
   padding: 6px 10px;
@@ -1817,7 +1817,7 @@
   min-height: 36px;
   margin: -10px -12px 10px;
   padding: 4px 12px;
-  background: #EAF4FF;
+  background: var(--at-brand-soft, #EAF4FF);
   border-bottom: 1px solid var(--at-line, #DDE4EF);
   border-radius: 6px 6px 0 0;
   display: flex;
@@ -1953,7 +1953,7 @@
 .pg-12 .pg-12-gv-info {
   font-size: 12px;
   line-height: 19px;
-  color: #344563;
+  color: var(--at-ink-muted, #344563);
   margin-top: 3px;
   margin-bottom: 10px;
 }
@@ -1989,7 +1989,7 @@
   font-size: 36px;
   font-weight: 700;
   line-height: 40px;
-  color: #176B60;
+  color: var(--at-ai, #176B60);
   font-variant-numeric: tabular-nums;
 }
 
@@ -2047,7 +2047,7 @@
 .pg-12 .pg-12-m-track {
   display: block;
   height: 8px;
-  background: #E5EAF1;
+  background: var(--at-line, #E5EAF1);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -2061,7 +2061,7 @@
 }
 
 .pg-12 .pg-12-m-track--empty {
-  background: #E5EAF1;
+  background: var(--at-line, #E5EAF1);
 }
 
 .pg-12 .pg-12-m-val {
@@ -2157,8 +2157,8 @@
   height: 22px;
   font-size: 12px;
   font-weight: 600;
-  background: #EAF2FF;
-  color: #2454B8;
+  background: var(--at-brand-soft, #EAF2FF);
+  color: var(--at-brand, #2454B8);
   border-radius: 4px;
   display: inline-flex;
   align-items: center;

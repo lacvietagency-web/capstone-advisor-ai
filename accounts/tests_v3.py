@@ -307,3 +307,14 @@ class V37CoreTests(TestCase):
         self.client.force_login(pref.topic.lecturer.user)
         rows = self.client.get(f"/de-tai/{pref.topic_id}/dang-ky/").context["rows"]
         self.assertTrue(all(r["checklist"] for r in rows))
+
+    def test_reason_points_and_csv_items(self):
+        from catalog.templatetags.atlas_tags import csv_items, reason_points
+
+        text = "Phù hợp vì bạn đáp ứng kỹ năng, đề tài thuộc lĩnh vực bạn quan tâm. Cần bổ sung: Kiểm thử phần mềm"
+        self.assertEqual(
+            reason_points(text),
+            ["Bạn đáp ứng kỹ năng", "Đề tài thuộc lĩnh vực bạn quan tâm", "Cần bổ sung: Kiểm thử phần mềm"],
+        )
+        self.assertEqual(reason_points(""), [])
+        self.assertEqual(csv_items("Flutter, Firebase; REST API,"), ["Flutter", "Firebase", "REST API"])

@@ -18,12 +18,18 @@ def _ahp():
     return {
         "version": get_active_weights_version(),
         "criteria": [
-            {"key": key, "code": code, "label": label, "percent": round(100 * weights.get(key, 0))}
+            {
+                "key": key,
+                "code": code,
+                "label": label,
+                "percent": round(100 * weights.get(key, 0)),
+                "ratio": round(weights.get(key, 0), 2),
+            }
             for key, code, label in CRITERIA
         ],
     }
 
 
 def ahp(request):
-    """`ahp.version` và `ahp.criteria` (mã, nhãn, % trọng số) — chỉ truy vấn CSDL khi template thực sự dùng."""
+    """`ahp.version` và `ahp.criteria` (mã, nhãn, %, ratio dạng 0,25) — chỉ truy vấn CSDL khi template dùng."""
     return {"ahp": SimpleLazyObject(_ahp)}

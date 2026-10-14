@@ -570,6 +570,7 @@ def _skills_with_share(topic):
     out = []
     for ts, pct in topic.skill_weight_shares():
         ts.share = pct
+        ts.ratio = round(pct / 100, 2)  # ảnh duyệt 11 ghi trọng số dạng 0,25
         out.append(ts)
     return out
 

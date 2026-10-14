@@ -23,59 +23,12 @@
 {% with nav=request.resolver_match.url_name %}
   <a class="at-skip" href="#main">Bỏ qua điều hướng</a>
 
-  <header class="at-topbar">
-    <a class="at-brand" href="{% url 'home' %}" aria-label="Capstone AI — về trang chủ">
-      {% include "components/logo.html" %}<span>Capstone AI</span>
-    </a>
-    <div class="at-topbar-context">
-      <strong>Capstone AI</strong>
-      <span>{% if current_period %}{{ current_period.name }} · {{ current_period.get_status_display }}{% else %}Tư vấn và phân công đề tài tốt nghiệp{% endif %}</span>
-    </div>
-    <div class="at-topbar-end">
-      {% if user.is_authenticated %}
-        <button type="button" class="btn btn-secondary btn-sm at-menu-btn" data-bs-toggle="offcanvas" data-bs-target="#atNavDrawer" aria-controls="atNavDrawer">
-          {% include "components/icon.html" with name="layout-dashboard" %}<span>Menu</span>
-        </button>
-        <div class="dropdown">
-          <button class="at-account" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản và giao diện">
-            <span class="at-avatar" aria-hidden="true">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
-            <span class="at-account-meta">
-              <span class="at-account-name d-block">{{ user.get_full_name|default:user.username }}</span>
-              <span class="at-account-role d-block">{{ user.get_role_display }}</span>
-            </span>
-            {% include "components/icon.html" with name="chevron-down" size=16 class="at-muted at-account-meta" %}
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li class="dropdown-header">{{ user.get_full_name|default:user.username }} · {{ user.get_role_display }}</li>
-            {% if user.is_student %}
-              <li><a class="dropdown-item" href="{% url 'student_profile' %}">{% include "components/icon.html" with name="user-round" %}Hồ sơ năng lực</a></li>
-            {% elif user.is_lecturer %}
-              <li><a class="dropdown-item" href="{% url 'lecturer_profile' %}">{% include "components/icon.html" with name="user-round" %}Hồ sơ giảng viên</a></li>
-            {% endif %}
-            <li><a class="dropdown-item" href="{% url 'password_change' %}">{% include "components/icon.html" with name="lock-keyhole" %}Đổi mật khẩu</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li class="dropdown-header" id="atThemeLabel">Giao diện</li>
-            <li><button type="button" class="dropdown-item" role="menuitemradio" data-at-theme="light">{% include "components/icon.html" with name="sun" %}Sáng</button></li>
-            <li><button type="button" class="dropdown-item" role="menuitemradio" data-at-theme="dark">{% include "components/icon.html" with name="moon" %}Tối</button></li>
-            <li><button type="button" class="dropdown-item" role="menuitemradio" data-at-theme="system">{% include "components/icon.html" with name="monitor" %}Theo thiết bị</button></li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <form method="post" action="{% url 'logout' %}">{% csrf_token %}
-                <button type="submit" class="dropdown-item">{% include "components/icon.html" with name="log-out" %}Đăng xuất</button>
-              </form>
-            </li>
-          </ul>
-        </div>
-      {% else %}
-        <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Đăng nhập</a>
-      {% endif %}
-    </div>
-  </header>
-
   {% if user.is_authenticated %}
-    <nav class="at-rail" aria-label="Điều hướng chính">
-      {% include "components/nav_links.html" with link_class="at-rail-link" size=22 %}
-    </nav>
+    <aside class="at-sidebar" aria-label="Điều hướng chính">
+      <a class="at-brand" href="{% url 'home' %}" aria-label="Capstone AI — về trang chủ">{% include "components/logo.html" %}<span>Capstone AI</span></a>
+      <nav>{% include "components/nav_links.html" with link_class="at-side-link" %}</nav>
+      <div class="at-side-foot">{{ user.get_role_display }} · {{ user.get_full_name|default:user.username }}</div>
+    </aside>
 
     <div class="offcanvas offcanvas-start" tabindex="-1" id="atNavDrawer" aria-labelledby="atNavDrawerTitle">
       <div class="offcanvas-header">
@@ -89,6 +42,61 @@
   {% endif %}
 
   <div class="at-main{% if not user.is_authenticated %} at-main--plain{% endif %}">
+    <header class="at-topbar">
+      {% if user.is_authenticated %}
+        <button type="button" class="btn btn-chrome btn-sm at-menu-btn" data-bs-toggle="offcanvas" data-bs-target="#atNavDrawer" aria-controls="atNavDrawer" aria-label="Mở menu">
+          {% include "components/icon.html" with name="layout-dashboard" %}
+        </button>
+      {% endif %}
+      <a class="at-brand" href="{% url 'home' %}" aria-label="Capstone AI — về trang chủ">
+        {% include "components/logo.html" %}<span>Capstone AI</span>
+      </a>
+      <div class="at-topbar-context">
+        {% if current_period %}
+          <strong>{{ current_period.name }}</strong>
+          <span>{{ current_period.get_status_display }} · {{ current_period.start_at|date:"d/m/Y" }} – {{ current_period.end_at|date:"d/m/Y" }}</span>
+        {% else %}
+          <strong>Capstone Advisor AI</strong>
+          <span>Tư vấn và phân công đề tài tốt nghiệp</span>
+        {% endif %}
+      </div>
+      <div class="at-topbar-end">
+        {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button class="at-account" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản và giao diện">
+              <span class="at-avatar" aria-hidden="true">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+              <span class="at-account-meta">
+                <span class="at-account-name d-block">{{ user.get_full_name|default:user.username }}</span>
+                <span class="at-account-role d-block">{{ user.get_role_display }}</span>
+              </span>
+              {% include "components/icon.html" with name="chevron-down" size=16 class="at-account-meta" %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li class="dropdown-header">{{ user.get_full_name|default:user.username }} · {{ user.get_role_display }}</li>
+              {% if user.is_student %}
+                <li><a class="dropdown-item" href="{% url 'student_profile' %}">{% include "components/icon.html" with name="user-round" %}Hồ sơ năng lực</a></li>
+              {% elif user.is_lecturer %}
+                <li><a class="dropdown-item" href="{% url 'lecturer_profile' %}">{% include "components/icon.html" with name="user-round" %}Hồ sơ giảng viên</a></li>
+              {% endif %}
+              <li><a class="dropdown-item" href="{% url 'password_change' %}">{% include "components/icon.html" with name="lock-keyhole" %}Đổi mật khẩu</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li class="dropdown-header" id="atThemeLabel">Giao diện</li>
+              <li><button type="button" class="dropdown-item" role="menuitemradio" data-at-theme="light">{% include "components/icon.html" with name="sun" %}Sáng</button></li>
+              <li><button type="button" class="dropdown-item" role="menuitemradio" data-at-theme="dark">{% include "components/icon.html" with name="moon" %}Tối</button></li>
+              <li><button type="button" class="dropdown-item" role="menuitemradio" data-at-theme="system">{% include "components/icon.html" with name="monitor" %}Theo thiết bị</button></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+                  <button type="submit" class="dropdown-item">{% include "components/icon.html" with name="log-out" %}Đăng xuất</button>
+                </form>
+              </li>
+            </ul>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Đăng nhập</a>
+        {% endif %}
+      </div>
+    </header>
     <main class="at-canvas {% block canvas_class %}{% endblock %}" id="main">
       {% block content %}{% endblock %}
     </main>

@@ -429,6 +429,8 @@
             <span>
               {% if submitted_at %}
                 Đã nộp lúc {{ submitted_at|date:"H:i, d/m/Y" }}
+              {% elif is_submitted %}
+                Đã nộp chính thức
               {% else %}
                 Chưa nộp chính thức
               {% endif %}

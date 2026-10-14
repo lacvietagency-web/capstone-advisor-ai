@@ -456,5 +456,5 @@ a.at-journey-step:hover .at-journey-label { color: var(--at-brand); text-decorat
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 @media print { .at-sidebar, .at-topbar, .at-bottomnav, .at-toasts, .at-page-actions, .at-actionbar { display: none !important; } .at-main { margin: 0; padding: 0; } body { background: #fff; } }
 /* Bảng nhiều cột ở 768–1199px: cuộn ngang TRONG khối chứa, không làm tràn cả trang (thông số 2.2) */
-.at-panel:has(.at-table), .at-table-wrap { overflow-x: auto; }
+.at-panel:has(.at-table), .at-table-wrap { overflow-x: auto; position: relative; }  /* relative: chữ ẩn position:absolute trong bảng không thoát khỏi vùng cuộn */
 .at-table th, .at-table td.at-td-actions, .at-table td.at-td-num { white-space: nowrap; }

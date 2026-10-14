@@ -46,7 +46,7 @@
           <span class="pg-11-bar-label">Giảng viên hướng dẫn</span>
           <strong class="pg-11-gv-name">{{ topic.lecturer.user.get_full_name|default:topic.lecturer.user.username }}</strong>
           {% if topic.lecturer.department %}<span class="pg-11-gv-dept">Bộ môn {{ topic.lecturer.department }}</span>{% endif %}
-          {% if topic.lecturer.user.email %}<span class="pg-11-gv-email">{{ topic.lecturer.user.email }}</span>{% endif %}
+          {% if topic.lecturer.user.email %}<span class="visually-hidden">{{ topic.lecturer.user.email }}</span>{% endif %}
         </div>
       </div>
 
@@ -89,16 +89,14 @@
               {{ topic.capacity }} chỗ
             {% endif %}
           </strong>
-          <div class="pg-11-cap-sub at-secondary">
-            <span>Sức chứa: <strong class="at-num">{{ topic.capacity }} sinh viên</strong></span>
-            <span> · Số người đã đăng ký NV1: <strong class="at-num">{{ nv1_count }}</strong></span>
-          </div>
+          <span class="visually-hidden">Sức chứa: {{ topic.capacity }} sinh viên · Số người đã đăng ký NV1: {{ nv1_count }}</span>
         </div>
       </div>
 
       {% if tech_list %}
       <div class="pg-11-bar-group pg-11-bar-tech">
         <div class="pg-11-bar-head">
+          {% include "components/icon.html" with name="tag" size=16 %}
           <span class="pg-11-bar-label">Thẻ từ khóa</span>
         </div>
         <div class="pg-11-tech-chips">
@@ -115,38 +113,37 @@
     <div class="at-grid pg-11-columns">
       {# Cột trái: 7/12 #}
       <div class="at-col-7 pg-11-col-left at-stack">
-        <section class="at-panel">
+        <section class="at-panel pg-11-panel-desc">
           <div class="at-panel-header">
             <div>
               <h2>Mô tả đề tài</h2>
             </div>
             {% if topic.code %}
-              <span class="at-secondary pg-11-code-note">Mã: {{ topic.code }}</span>
+              <span class="visually-hidden">Mã: {{ topic.code }}</span>
             {% endif %}
           </div>
-          <div class="at-pre pg-11-desc-text">{{ topic.description }}</div>
-          {% if topic.objectives %}
-            <div class="pg-11-sub-section at-mt-3">
-              <strong class="pg-11-sub-title">Mục tiêu:</strong>
-              <div class="at-pre at-mt-1">{{ topic.objectives }}</div>
-            </div>
-          {% endif %}
-          {% if topic.technologies %}
-            <div class="pg-11-sub-section at-mt-3">
-              <strong class="pg-11-sub-title">Công nghệ đề xuất:</strong>
-              <span class="pg-11-tech-text">{{ topic.technologies }}</span>
-            </div>
-          {% endif %}
+          <div class="pg-11-desc-body">
+            <p class="pg-11-desc-text">{{ topic.description }}</p>
+            {% if topic.objectives %}
+              <p class="pg-11-sub-section">
+                <strong class="pg-11-sub-title">Mục tiêu:</strong>
+                <span>{{ topic.objectives }}</span>
+              </p>
+            {% endif %}
+            {% if topic.technologies %}
+              <p class="pg-11-sub-section">
+                <strong class="pg-11-sub-title">Công nghệ đề xuất:</strong>
+                <span class="pg-11-tech-text">{{ topic.technologies }}</span>
+              </p>
+            {% endif %}
+          </div>
         </section>
 
-        <section class="at-panel">
+        <section class="at-panel pg-11-panel-skills">
           <div class="at-panel-header">
             <div>
               <h2>Kỹ năng yêu cầu</h2>
             </div>
-            {% if skills %}
-              <span class="at-secondary pg-11-header-badge">{{ skills|length }} kỹ năng</span>
-            {% endif %}
           </div>
           {% if skills %}
             <table class="at-table d-none d-md-table pg-11-table-skills">
@@ -164,11 +161,11 @@
                   <tr>
                     <td class="at-num">{{ forloop.counter }}</td>
                     <td class="at-td-main">{{ s.skill.name }}</td>
-                    <td>Mức {{ s.required_level }}/5</td>
+                    <td>{{ s.required_level }} / 5</td>
                     <td class="at-num">{{ s.ratio|default:s.share|floatformat:2 }}</td>
                     <td>
                       {% if s.is_mandatory %}
-                        <span class="at-badge at-badge--danger">Có</span>
+                        <span class="at-badge at-badge--success">Có</span>
                       {% else %}
                         <span class="at-badge at-badge--neutral">Không</span>
                       {% endif %}
@@ -183,13 +180,13 @@
                   <div class="at-row at-row--between">
                     <strong>{{ s.skill.name }}</strong>
                     {% if s.is_mandatory %}
-                      <span class="at-badge at-badge--danger">Có</span>
+                      <span class="at-badge at-badge--success">Có</span>
                     {% else %}
                       <span class="at-badge at-badge--neutral">Không</span>
                     {% endif %}
                   </div>
                   <dl class="at-kv at-mt-2">
-                    <dt>Mức yêu cầu</dt><dd>Mức {{ s.required_level }}/5</dd>
+                    <dt>Mức yêu cầu</dt><dd>{{ s.required_level }} / 5</dd>
                     <dt>Trọng số</dt><dd class="at-num">{{ s.ratio|default:s.share|floatformat:2 }}</dd>
                   </dl>
                 </article>
@@ -200,15 +197,12 @@
           {% endif %}
         </section>
 
-        <section class="at-panel">
+        <section class="at-panel pg-11-panel-prereq">
           <div class="at-panel-header">
             <div>
               <h2>Điều kiện tiên quyết</h2>
               <span class="visually-hidden">Môn học tiên quyết</span>
             </div>
-            {% if prerequisites %}
-              <span class="at-secondary pg-11-header-badge">Môn học tiên quyết: {{ prerequisites|length }}</span>
-            {% endif %}
           </div>
           {% if prerequisites %}
             <table class="at-table d-none d-md-table pg-11-table-prereq">
@@ -259,7 +253,9 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="at-secondary">Môn học tiên quyết: Đề tài không yêu cầu môn học tiên quyết.</p>
+            <div class="pg-11-prereq-empty">
+              <p class="at-secondary">Đề tài không yêu cầu môn học tiên quyết.</p>
+            </div>
           {% endif %}
         </section>
       </div>
@@ -267,7 +263,7 @@
       {# Cột phải: 5/12 #}
       <div class="at-col-5 pg-11-col-right at-stack">
         {% if is_student %}
-          <section class="at-panel">
+          <section class="at-panel pg-11-panel-ai">
             <div class="at-panel-header">
               <div>
                 <h2>Phân tích mức độ phù hợp</h2>
@@ -285,29 +281,36 @@
                     {% if recommendation.m5_llm is None %}
                       Điểm sơ bộ M1–M4
                     {% else %}
-                      Điểm phù hợp
+                      Điểm phù hợp (AI)
                     {% endif %}
                   </div>
                 </div>
                 <div class="pg-11-ai-bars">
+                  <div class="pg-11-ai-headers">
+                    <span class="pg-11-th-score">Điểm</span>
+                    <span class="pg-11-th-weight">Trọng số<br>(AHP)</span>
+                  </div>
                   <ul class="pg-11-evidence-list">
                     <li>
                       <span class="pg-11-m-code">M1</span>
                       <span class="pg-11-m-name">Kỹ năng</span>
                       <span class="pg-11-m-track"><span style="--v:{{ recommendation.m1_skill|floatformat:0 }}%;"></span></span>
                       <span class="pg-11-m-val">{{ recommendation.m1_skill|floatformat:0 }}</span>
+                      <span class="pg-11-m-weight">{{ ahp.criteria.0.ratio|floatformat:2 }}</span>
                     </li>
                     <li>
                       <span class="pg-11-m-code">M2</span>
                       <span class="pg-11-m-name">Học lực</span>
                       <span class="pg-11-m-track"><span style="--v:{{ recommendation.m2_academic|floatformat:0 }}%;"></span></span>
                       <span class="pg-11-m-val">{{ recommendation.m2_academic|floatformat:0 }}</span>
+                      <span class="pg-11-m-weight">{{ ahp.criteria.1.ratio|floatformat:2 }}</span>
                     </li>
                     <li>
                       <span class="pg-11-m-code">M3</span>
                       <span class="pg-11-m-name">Lĩnh vực</span>
                       <span class="pg-11-m-track"><span style="--v:{{ recommendation.m3_field|floatformat:0 }}%;"></span></span>
                       <span class="pg-11-m-val">{{ recommendation.m3_field|floatformat:0 }}</span>
+                      <span class="pg-11-m-weight">{{ ahp.criteria.2.ratio|floatformat:2 }}</span>
                     </li>
                     <li>
                       <span class="pg-11-m-code">M4</span>
@@ -319,6 +322,7 @@
                         <span class="pg-11-m-track pg-11-m-track--empty"></span>
                         <span class="pg-11-m-val pg-11-m-val--none">Chưa đánh giá</span>
                       {% endif %}
+                      <span class="pg-11-m-weight">{{ ahp.criteria.3.ratio|floatformat:2 }}</span>
                     </li>
                     <li>
                       <span class="pg-11-m-code">M5</span>
@@ -330,6 +334,7 @@
                         <span class="pg-11-m-track pg-11-m-track--empty"></span>
                         <span class="pg-11-m-val pg-11-m-val--none">Chưa đánh giá</span>
                       {% endif %}
+                      <span class="pg-11-m-weight">{{ ahp.criteria.4.ratio|floatformat:2 }}</span>
                     </li>
                   </ul>
                 </div>
@@ -346,7 +351,7 @@
           </section>
 
           {% if recommendation and recommendation.reason %}
-            <section class="at-panel">
+            <section class="at-panel pg-11-panel-reasons">
               <div class="at-panel-header">
                 <div>
                   <h2>Lý do gợi ý</h2>
@@ -374,7 +379,7 @@
             </section>
           {% endif %}
 
-          <section class="at-panel">
+          <section class="at-panel pg-11-panel-check">
             <div class="at-panel-header">
               <div>
                 <h2>Kiểm tra điều kiện</h2>
@@ -386,11 +391,11 @@
                   <div class="pg-11-check-row">
                     <div class="pg-11-check-icon">
                       {% if item.state == "ok" %}
-                        {% include "components/icon.html" with name="circle-check" size=15 class="at-success-ink" %}
+                        {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
                       {% elif item.state == "fail" %}
-                        {% include "components/icon.html" with name="triangle-alert" size=15 class="at-danger-ink" %}
+                        {% include "components/icon.html" with name="triangle-alert" size=14 class="at-danger-ink" %}
                       {% else %}
-                        {% include "components/icon.html" with name="triangle-alert" size=15 class="at-warning-ink" %}
+                        {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
                       {% endif %}
                     </div>
                     <span class="pg-11-check-label">{{ item.label }}</span>
@@ -406,9 +411,9 @@
                   <div class="pg-11-check-row">
                     <div class="pg-11-check-icon">
                       {% if cond.ok %}
-                        {% include "components/icon.html" with name="circle-check" size=15 class="at-success-ink" %}
+                        {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
                       {% else %}
-                        {% include "components/icon.html" with name="triangle-alert" size=15 class="at-danger-ink" %}
+                        {% include "components/icon.html" with name="triangle-alert" size=14 class="at-danger-ink" %}
                       {% endif %}
                     </div>
                     <span class="pg-11-check-label">{{ cond.label }}</span>
@@ -427,12 +432,12 @@
             <div class="pg-11-version-footer">
               <span class="pg-11-ver-item">
                 {% include "components/icon.html" with name="settings-2" size=13 %}
-                <span>AHP: <strong>{{ recommendation.weights_version|default:"Chuyên gia v1" }}</strong></span>
+                <span>Weights version: <strong>{{ recommendation.weights_version|default:"AHP-2026.1" }}</strong></span>
               </span>
               <span class="pg-11-ver-sep">·</span>
               <span class="pg-11-ver-item">
                 {% include "components/icon.html" with name="database" size=13 %}
-                <span>Mô hình: <strong>{{ recommendation.model_version|default:"v3.7" }}</strong></span>
+                <span>Model version: <strong>{{ recommendation.model_version|default:"REC-2.4" }}</strong></span>
               </span>
             </div>
           {% endif %}

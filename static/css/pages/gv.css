@@ -1251,3 +1251,6 @@
     background-color: transparent;
   }
 }
+
+/* Claude: điện thoại — ô điểm lên trên, thanh M1–M5 đủ rộng cho "Chưa đánh giá" */
+@media (max-width: 767.98px) { .pg-16 .at-drawer-ai-body { grid-template-columns: minmax(0, 1fr); } }

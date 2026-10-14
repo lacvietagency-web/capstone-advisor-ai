@@ -333,7 +333,8 @@ def _handle_preference_action(request, topic):
         )
 
     label = "đồng ý" if new_status == Preference.Status.ACCEPTED else "từ chối"
-    messages.success(request, f"Đã {label} nguyện vọng của sinh viên {pref.student}.")
+    reason_txt = f" Lý do: {pref.reject_reason}" if pref.reject_reason else ""  # list mặc định chỉ hiện Chờ duyệt
+    messages.success(request, f"Đã {label} nguyện vọng của sinh viên {pref.student}.{reason_txt}")
     return redirect("lecturer_registrations", pk=topic.pk)
 
 

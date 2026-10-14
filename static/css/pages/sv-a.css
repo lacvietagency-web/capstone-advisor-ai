@@ -373,10 +373,10 @@
 
 .pg-11 .pg-11-evidence-list li {
   display: grid;
-  grid-template-columns: 26px 78px 1fr 34px;
+  grid-template-columns: 26px 96px minmax(40px, 1fr) minmax(34px, max-content); /* Claude: "Đánh giá LLM" / "Chưa đánh giá" không bị cắt */
   align-items: center;
   gap: 6px 10px;
-  height: 22px;
+  min-height: 22px;
   font-size: 12px;
 }
 
@@ -739,10 +739,10 @@
 
 .pg-12 .pg-12-evidence-list li {
   display: grid;
-  grid-template-columns: 24px 75px 1fr 32px;
+  grid-template-columns: 24px 96px minmax(40px, 1fr) minmax(32px, max-content); /* Claude: như .pg-11 */
   align-items: center;
   gap: 6px 8px;
-  height: 22px;
+  min-height: 22px;
   font-size: 12px;
 }
 

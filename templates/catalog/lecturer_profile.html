@@ -12,7 +12,7 @@
       <span>Hồ sơ Giảng viên</span>
     </nav>
     <h1>Hồ sơ Giảng viên</h1>
-    <p class="at-page-desc">Cập nhật thông tin bộ môn, lĩnh vực chuyên môn và chỉ tiêu hướng dẫn tốt nghiệp.</p>
+    <p class="at-page-desc">Cập nhật thông tin cá nhân, chuyên môn và cấu hình hướng dẫn đề tài.</p>
   </div>
 </header>
 
@@ -55,77 +55,186 @@
   <form method="post" id="lecturerProfileForm" class="at-stack" novalidate data-at-busy>
     {% csrf_token %}
 
-    <!-- 1. Thông tin chung -->
-    <section class="at-panel">
-      <div class="at-panel-header">
-        <div>
-          <h2 class="h3">Thông tin chung</h2>
-          <p>Thông tin cá nhân và đơn vị công tác của giảng viên.</p>
-        </div>
+    <div class="at-grid">
+      <!-- Cột trái: Thông tin cá nhân & chuyên môn -->
+      <div class="at-col-7 at-stack">
+        <!-- 1. Thông tin giảng viên -->
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Thông tin giảng viên</h2>
+              <p>Thông tin cá nhân và đơn vị công tác của giảng viên.</p>
+            </div>
+          </div>
+
+          <div class="at-row at-row--top at-mb-4" style="gap:16px">
+            <div class="at-avatar at-avatar--lg" aria-hidden="true">
+              {{ lecturer.user.first_name|default:lecturer.user.username|slice:":2"|upper }}
+            </div>
+            <div>
+              <h3 class="h3 at-mb-1">{% if lecturer.academic_title %}{{ lecturer.academic_title }} {% endif %}{{ lecturer.user.get_full_name|default:lecturer.user.username }}</h3>
+              <p class="at-secondary at-mb-1">Giảng viên</p>
+              <span class="at-muted at-num small">Mã tài khoản: {{ lecturer.user.username }}</span>
+            </div>
+          </div>
+
+          <div class="at-field">
+            <label class="form-label" for="{{ form.academic_title.id_for_label }}">Học hàm, học vị</label>
+            {{ form.academic_title }}
+            {% if form.academic_title.errors %}
+              <div class="at-error">{% for err in form.academic_title.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
+            <div class="form-text">Ví dụ: PGS.TS, TS., ThS.</div>
+          </div>
+
+          <div class="at-field">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" value="{{ lecturer.user.email|default:'Chưa có email' }}" readonly disabled>
+            <div class="form-text">Email hệ thống cấp, liên kết với tài khoản.</div>
+          </div>
+
+          <div class="at-field">
+            <label class="form-label" for="{{ form.phone.id_for_label }}">Số điện thoại</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}
+              <div class="at-error">{% for err in form.phone.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
+            {% if form.phone.help_text %}
+              <div class="form-text">{{ form.phone.help_text }}</div>
+            {% else %}
+              <div class="form-text">Chỉ Khoa và bạn thấy số này.</div>
+            {% endif %}
+          </div>
+
+          <div class="at-field">
+            <label class="form-label at-required" for="{{ form.department.id_for_label }}">Bộ môn công tác</label>
+            {{ form.department }}
+            {% if form.department.errors %}
+              <div class="at-error">{% for err in form.department.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
+            <div class="form-text">Ví dụ: Công nghệ phần mềm, Hệ thống thông tin, Trí tuệ nhân tạo…</div>
+          </div>
+
+          <div class="at-field">
+            <label class="form-label" for="{{ form.bio.id_for_label }}">Giới thiệu bản thân</label>
+            {{ form.bio }}
+            {% if form.bio.errors %}
+              <div class="at-error">{% for err in form.bio.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
+            <div class="form-text">Kinh nghiệm hướng dẫn, định hướng nghiên cứu và mong muốn với sinh viên.</div>
+          </div>
+        </section>
+
+        <!-- 2. Chuyên môn và lĩnh vực hướng dẫn -->
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Chuyên môn và lĩnh vực hướng dẫn</h2>
+              <p>Lĩnh vực nghiên cứu chính phục vụ đối sánh và gợi ý đề tài.</p>
+            </div>
+          </div>
+
+          <div class="at-field">
+            <span class="form-label at-required">Lĩnh vực chuyên môn</span>
+            <div class="at-check-grid">
+              {% for checkbox in form.fields %}
+                <label>{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
+              {% endfor %}
+            </div>
+            {% if form.fields.errors %}
+              <div class="at-error">{% for err in form.fields.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
+            <div class="form-text">Các đề tài do giảng viên tạo và thuật toán đối sánh gợi ý AI sẽ ưu tiên liên kết với những lĩnh vực này.</div>
+          </div>
+
+          <div class="at-field">
+            <label class="form-label" for="{{ form.keywords.id_for_label }}">Từ khoá nghiên cứu</label>
+            {{ form.keywords }}
+            {% if form.keywords.errors %}
+              <div class="at-error">{% for err in form.keywords.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
+            {% if form.keywords.help_text %}
+              <div class="form-text">{{ form.keywords.help_text }}</div>
+            {% else %}
+              <div class="form-text">Cách nhau bằng dấu phẩy, VD: học máy, xử lý ngôn ngữ tiếng Việt.</div>
+            {% endif %}
+          </div>
+        </section>
       </div>
 
-      <div class="at-meta at-mb-4">
-        <span>Họ và tên: <strong>{{ lecturer.user.get_full_name|default:lecturer.user.username }}</strong></span>
-        <span>Tài khoản: <strong>{{ lecturer.user.username }}</strong></span>
-        {% if lecturer.user.email %}<span>Email: <strong>{{ lecturer.user.email }}</strong></span>{% endif %}
-        <span>Số đề tài hiện có: <strong class="at-num">{{ lecturer.topics.count }}</strong></span>
-      </div>
+      <!-- Cột phải: Chỉ tiêu & Thống kê -->
+      <div class="at-col-5 at-stack">
+        <!-- 3. Chỉ tiêu hướng dẫn -->
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Chỉ tiêu hướng dẫn</h2>
+              <p>Số lượng sinh viên tối đa có thể tiếp nhận trong đợt tốt nghiệp.</p>
+            </div>
+          </div>
 
-      <div class="at-field">
-        <label class="form-label at-required" for="{{ form.department.id_for_label }}">Bộ môn công tác</label>
-        {{ form.department }}
-        {% if form.department.errors %}
-          <div class="at-error">{% for err in form.department.errors %}{{ err }}{% endfor %}</div>
-        {% endif %}
-        <div class="form-text">Ví dụ: Bộ môn Công nghệ phần mềm, Bộ môn Hệ thống thông tin…</div>
-      </div>
-    </section>
+          <div class="at-field">
+            <label class="form-label at-required" for="{{ form.max_students.id_for_label }}">Số lượng sinh viên tối đa</label>
+            {{ form.max_students }}
+            {% if form.max_students.errors %}
+              <div class="at-error">{% for err in form.max_students.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
+            {% if form.max_students.help_text %}
+              <div class="form-text">{{ form.max_students.help_text }}</div>
+            {% else %}
+              <div class="form-text">Chỉ tiêu là ràng buộc cứng bảo đảm cân đối tải giữa các giảng viên trong Khoa.</div>
+            {% endif %}
+          </div>
 
-    <!-- 2. Chuyên môn -->
-    <section class="at-panel">
-      <div class="at-panel-header">
-        <div>
-          <h2 class="h3">Chuyên môn</h2>
-          <p>Lĩnh vực nghiên cứu chính phục vụ đối sánh và gợi ý đề tài.</p>
-        </div>
-      </div>
+          <div class="at-divider"></div>
 
-      <div class="at-field">
-        <span class="form-label at-required">Lĩnh vực chuyên môn</span>
-        <div class="at-check-grid">
-          {% for checkbox in form.fields %}
-            <label>{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
-          {% endfor %}
-        </div>
-        {% if form.fields.errors %}
-          <div class="at-error">{% for err in form.fields.errors %}{{ err }}{% endfor %}</div>
-        {% endif %}
-        <div class="form-text">Các đề tài do giảng viên tạo và thuật toán đối sánh gợi ý AI sẽ ưu tiên liên kết với những lĩnh vực này.</div>
-      </div>
-    </section>
+          <div class="at-field">
+            <label class="form-label">Số lượng đề tài hiện tại</label>
+            <input type="text" class="form-control at-num" value="{{ n_topics|default:0 }}" readonly disabled>
+            <div class="form-text">Số đề tài bạn đã tạo trong đợt này.</div>
+          </div>
 
-    <!-- 3. Chỉ tiêu -->
-    <section class="at-panel">
-      <div class="at-panel-header">
-        <div>
-          <h2 class="h3">Chỉ tiêu hướng dẫn</h2>
-          <p>Số lượng sinh viên tối đa có thể tiếp nhận trong đợt tốt nghiệp.</p>
-        </div>
-      </div>
+          <div class="at-field">
+            <label class="form-label">Số sinh viên đang hướng dẫn</label>
+            <input type="text" class="form-control at-num" value="{{ n_guided|default:0 }}" readonly disabled>
+            <div class="form-text">Tổng số sinh viên đã được chấp thuận hoặc phân công chính thức.</div>
+          </div>
+        </section>
 
-      <div class="at-field">
-        <label class="form-label at-required" for="{{ form.max_students.id_for_label }}">Chỉ tiêu sinh viên tối đa</label>
-        {{ form.max_students }}
-        {% if form.max_students.errors %}
-          <div class="at-error">{% for err in form.max_students.errors %}{{ err }}{% endfor %}</div>
-        {% endif %}
-        {% if form.max_students.help_text %}
-          <div class="form-text">{{ form.max_students.help_text }}</div>
-        {% else %}
-          <div class="form-text">Chỉ tiêu là ràng buộc cứng bảo đảm cân đối tải giữa các giảng viên trong Khoa.</div>
-        {% endif %}
+        <!-- 4. Thống kê theo lĩnh vực -->
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Thống kê theo lĩnh vực</h2>
+              <p>Phân bố đề tài tốt nghiệp theo lĩnh vực nghiên cứu.</p>
+            </div>
+          </div>
+
+          {% if field_stats %}
+            <div class="at-stack at-stack--tight">
+              {% for name, count in field_stats %}
+                <div>
+                  <div class="at-row at-row--between at-mb-1">
+                    <span>{{ name }}</span>
+                    <span class="at-num small at-muted">{{ count }} đề tài</span>
+                  </div>
+                  <div class="at-track at-track--ai">
+                    {% if n_topics and n_topics > 0 %}
+                      {% widthratio count n_topics 100 as pct %}
+                      <span style="--v:{{ pct }}%"></span>
+                    {% else %}
+                      <span style="--v:100%"></span>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="at-secondary at-mb-0">Chưa có đề tài nào được phân loại lĩnh vực.</p>
+          {% endif %}
+        </section>
       </div>
-    </section>
+    </div>
 
     <div class="at-form-actions">
       <a href="{% url 'home' %}" class="btn btn-secondary">Quay lại trang chủ</a>
@@ -142,7 +251,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("lecturerProfileForm");
   if (!form) return;
-  form.querySelectorAll("input[type='text'], input[type='number']").forEach(function (el) {
+  form.querySelectorAll("input[type='text'], input[type='number'], input[type='tel'], textarea").forEach(function (el) {
     if (!el.classList.contains("form-control")) el.classList.add("form-control");
   });
 });

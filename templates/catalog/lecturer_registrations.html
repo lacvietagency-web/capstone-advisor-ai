@@ -9,9 +9,10 @@
       <a href="{% url 'lecturer_topics' %}">Đề tài của tôi</a>
       <span>{{ topic.title }}</span>
     </nav>
-    <h1>Sinh viên đăng ký</h1>
+    <h1>Sinh viên đăng ký đề tài</h1>
     <p class="at-page-desc">Theo dõi danh sách sinh viên đăng ký, xem điểm phù hợp AI và xét duyệt nguyện vọng.</p>
     <div class="at-meta at-mt-2">
+      <span>Đề tài: <strong>{{ topic.title }}</strong></span>
       <span>Trạng thái: <strong>{{ topic.get_status_display }}</strong></span>
       <span>Sức chứa: <strong>{{ topic.capacity }} SV</strong></span>
       {% if topic.min_gpa > 0 %}<span>GPA tối thiểu: <strong>{{ topic.min_gpa }}</strong></span>{% endif %}
@@ -25,13 +26,17 @@
 </header>
 
 <div class="at-stack">
+  {% if current_period %}
+    {% include "components/period.html" with period=current_period text="Giảng viên xem xét, phê duyệt các đăng ký đề tài của sinh viên trong thời gian đợt đăng ký đang mở." %}
+  {% endif %}
+
   {% if rows %}
     {% regroup rows|dictsort:"pref.status" by pref.status as sg %}
     <section class="at-ledger" aria-label="Chỉ số đăng ký">
       <div class="at-ledger-item">
         <div class="at-ledger-label">Tổng hồ sơ</div>
         <div class="at-ledger-value">{{ rows|length }}</div>
-        <div class="at-ledger-note">nguyện vọng</div>
+        <div class="at-ledger-note">nguyện vọng đã nộp</div>
       </div>
       <div class="at-ledger-item{% for s in sg %}{% if s.grouper == 'PENDING' and s.list %} at-ledger-item--warn{% endif %}{% endfor %}">
         <div class="at-ledger-label">Chờ duyệt</div>
@@ -58,22 +63,37 @@
         </div>
       </div>
 
+      <div class="at-panel-body">
+        <form class="at-toolbar" id="regFilterForm" onsubmit="return false">
+          <div class="at-search at-input-icon">
+            {% include "components/icon.html" with name="search" %}
+            <input class="form-control" type="search" id="searchRegs" placeholder="Tìm theo tên sinh viên, MSSV…" aria-label="Tìm theo tên sinh viên, MSSV">
+          </div>
+          <select class="form-select at-filter" id="filterRegStatus" aria-label="Lọc trạng thái">
+            <option value="">Tất cả trạng thái</option>
+            <option value="PENDING">Chờ duyệt</option>
+            <option value="ACCEPTED">Đồng ý</option>
+            <option value="REJECTED">Từ chối</option>
+          </select>
+        </form>
+      </div>
+
       <div class="at-table-wrap">
-        <table class="at-table d-none d-md-table">
+        <table class="at-table d-none d-md-table" id="regsTable">
           <thead>
             <tr>
-              <th>Mã SV</th>
+              <th>MSSV</th>
               <th>Sinh viên</th>
               <th class="at-th-num">GPA</th>
               <th class="at-text-center">NV</th>
-              <th class="at-th-num">Điểm</th>
+              <th class="at-th-num">Điểm AI</th>
               <th>Trạng thái</th>
               <th class="at-td-actions"><span class="visually-hidden">Thao tác</span></th>
             </tr>
           </thead>
           <tbody>
             {% for row in rows %}
-              <tr>
+              <tr data-reg-row data-name="{{ row.pref.student.user.get_full_name|default:row.pref.student.user.username|lower }}" data-code="{{ row.pref.student.student_code|lower }}" data-status="{{ row.pref.status }}">
                 <td class="at-num">{{ row.pref.student.student_code }}</td>
                 <td class="at-td-main">
                   {{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}
@@ -91,7 +111,7 @@
                 <td>
                   {% include "components/status.html" with status=row.pref.status label=row.pref.get_status_display %}
                   {% if row.pref.status == "REJECTED" and row.pref.reject_reason %}
-                    <div class="at-secondary at-mt-2">Lý do: {{ row.pref.reject_reason }}</div>
+                    <div class="at-secondary at-mt-1">Lý do: {{ row.pref.reject_reason }}</div>
                   {% endif %}
                 </td>
                 <td class="at-td-actions">
@@ -103,30 +123,28 @@
         </table>
       </div>
 
-      <div class="at-panel-body d-md-none">
-        <div class="at-list">
-          {% for row in rows %}
-            <article class="at-item">
-              <div class="at-row at-row--between at-row--top">
-                <div class="at-td-main">
-                  <strong>{{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}</strong>
-                  <small>{{ row.pref.student.student_code }} · GPA {{ row.pref.student.gpa|floatformat:2 }}</small>
-                </div>
-                {% include "components/status.html" with status=row.pref.status label=row.pref.get_status_display %}
+      <div class="at-list d-md-none" id="regsMobileList" style="padding:0 16px 16px">
+        {% for row in rows %}
+          <article class="at-item" data-reg-row data-name="{{ row.pref.student.user.get_full_name|default:row.pref.student.user.username|lower }}" data-code="{{ row.pref.student.student_code|lower }}" data-status="{{ row.pref.status }}">
+            <div class="at-row at-row--between at-row--top">
+              <div class="at-td-main">
+                <strong>{{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}</strong>
+                <small>{{ row.pref.student.student_code }} · GPA {{ row.pref.student.gpa|floatformat:2 }}</small>
               </div>
-              {% if row.pref.status == "REJECTED" and row.pref.reject_reason %}
-                <div class="at-secondary at-mt-2">Lý do: {{ row.pref.reject_reason }}</div>
-              {% endif %}
-              <div class="at-row at-row--between at-row--top at-mt-3">
-                <span class="at-rank">NV{{ row.pref.rank }}</span>
-                {% include "components/score.html" with rec=row.rec size="sm" %}
-              </div>
-              <div class="at-form-actions at-mt-4">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atStudent{{ row.pref.pk }}">Phân tích</button>
-              </div>
-            </article>
-          {% endfor %}
-        </div>
+              {% include "components/status.html" with status=row.pref.status label=row.pref.get_status_display %}
+            </div>
+            {% if row.pref.status == "REJECTED" and row.pref.reject_reason %}
+              <div class="at-secondary at-mt-2">Lý do: {{ row.pref.reject_reason }}</div>
+            {% endif %}
+            <div class="at-row at-row--between at-row--top at-mt-3">
+              <span class="at-rank">NV{{ row.pref.rank }}</span>
+              {% include "components/score.html" with rec=row.rec size="sm" %}
+            </div>
+            <div class="at-form-actions at-mt-4">
+              <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atStudent{{ row.pref.pk }}">Phân tích</button>
+            </div>
+          </article>
+        {% endfor %}
       </div>
     </section>
 
@@ -135,46 +153,60 @@
       <div class="offcanvas offcanvas-end" tabindex="-1" id="atStudent{{ row.pref.pk }}" aria-labelledby="atStudent{{ row.pref.pk }}Title">
         <div class="offcanvas-header">
           <div>
-            <h2 class="offcanvas-title" id="atStudent{{ row.pref.pk }}Title">{{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}</h2>
-            <p class="at-page-desc at-mb-0">{{ row.pref.student.student_code }}{% if row.pref.student.major %} · {{ row.pref.student.major.name }}{% endif %}</p>
+            <h2 class="offcanvas-title" id="atStudent{{ row.pref.pk }}Title">Phân tích hồ sơ sinh viên</h2>
+            <p class="at-page-desc at-mb-0">{{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}</p>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
         </div>
         <div class="offcanvas-body">
           <div class="at-stack">
-            <!-- Thông tin sinh viên & Điểm tổng -->
+            <!-- Thông tin sinh viên & đề tài -->
             <section class="at-panel">
               <div class="at-row at-row--between at-row--top">
                 <div class="at-meta">
-                  <span>MSSV <strong>{{ row.pref.student.student_code }}</strong></span>
-                  <span>GPA <strong>{{ row.pref.student.gpa|floatformat:2 }}</strong></span>
-                  <span>Nguyện vọng <strong class="at-rank">NV{{ row.pref.rank }}</strong></span>
+                  <span>MSSV: <strong>{{ row.pref.student.student_code }}</strong></span>
+                  {% if row.pref.student.major %}<span>Ngành: <strong>{{ row.pref.student.major.name }}</strong></span>{% endif %}
+                  <span>GPA: <strong>{{ row.pref.student.gpa|floatformat:2 }}</strong></span>
                 </div>
                 {% include "components/status.html" with status=row.pref.status label=row.pref.get_status_display %}
               </div>
               <div class="at-divider"></div>
-              <h3 class="h4 at-mb-3">Điểm phù hợp tổng thể</h3>
-              {% include "components/score.html" with rec=row.rec %}
+              <dl class="at-kv">
+                <dt>Đề tài đăng ký</dt>
+                <dd><strong>{{ topic.title }}</strong></dd>
+                <dt>Nguyện vọng</dt>
+                <dd><span class="at-rank">NV{{ row.pref.rank }}</span></dd>
+              </dl>
             </section>
 
-            <!-- Evidence M1–M5 -->
+            <!-- Kết quả đánh giá AI -->
             <section class="at-panel">
-              <h3 class="h4 at-mb-3">Chi tiết điểm (M1–M5)</h3>
+              <div class="at-panel-header">
+                <div>
+                  <h3 class="h4">Kết quả đánh giá AI</h3>
+                  {% if ahp and ahp.version %}<p>Trọng số AHP: {{ ahp.version }}</p>{% endif %}
+                </div>
+              </div>
+              <div class="at-mb-3">
+                {% include "components/score.html" with rec=row.rec %}
+              </div>
               {% include "components/evidence.html" with rec=row.rec detail=True %}
+              {% if row.rec and row.rec.reason %}
+                <div class="at-mt-4">
+                  {% include "components/note.html" with title="Vì sao đề tài phù hợp?" text=row.rec.reason %}
+                </div>
+              {% endif %}
             </section>
 
-            <!-- Note lý do AI -->
-            {% if row.rec and row.rec.reason %}
-              <section class="at-panel">
-                <h3 class="h4 at-mb-3">Đánh giá phù hợp</h3>
-                {% include "components/note.html" with title="Vì sao đề tài phù hợp?" text=row.rec.reason %}
-              </section>
-            {% endif %}
-
-            <!-- Kiểm tra điều kiện -->
+            <!-- Kiểm tra điều kiện đăng ký -->
             {% if row.eligibility %}
               <section class="at-panel">
-                <h3 class="h4 at-mb-3">Kiểm tra điều kiện</h3>
+                <div class="at-panel-header">
+                  <div>
+                    <h3 class="h4">Kiểm tra điều kiện đăng ký</h3>
+                    <p>Đối chiếu GPA tối thiểu và các yêu cầu đề tài.</p>
+                  </div>
+                </div>
                 <ul class="at-steps">
                   {% for e in row.eligibility %}
                     <li data-state="{% if e.ok %}done{% else %}todo{% endif %}">
@@ -191,12 +223,19 @@
             {% endif %}
 
             <!-- Giới thiệu bản thân -->
-            {% if row.pref.student.about %}
-              <section class="at-panel">
-                <h3 class="h4 at-mb-3">Giới thiệu bản thân</h3>
+            <section class="at-panel">
+              <div class="at-panel-header">
+                <div>
+                  <h3 class="h4">Giới thiệu bản thân</h3>
+                  <p>Thông tin tự thuật từ sinh viên.</p>
+                </div>
+              </div>
+              {% if row.pref.student.about %}
                 <div class="at-pre">{{ row.pref.student.about }}</div>
-              </section>
-            {% endif %}
+              {% else %}
+                <p class="at-secondary at-mb-0">Sinh viên chưa cung cấp giới thiệu.</p>
+              {% endif %}
+            </section>
 
             <!-- Lý do từ chối nếu có -->
             {% if row.pref.status == "REJECTED" and row.pref.reject_reason %}
@@ -204,22 +243,41 @@
                 {% include "components/note.html" with kind="danger" icon="user-x" title="Lý do từ chối" text=row.pref.reject_reason %}
               </section>
             {% endif %}
+
+            <!-- Nhận xét giảng viên đã có nếu đã duyệt -->
+            {% if row.pref.status != "PENDING" and row.pref.lecturer_note %}
+              <section class="at-panel">
+                <div class="at-panel-header">
+                  <div>
+                    <h3 class="h4">Nhận xét của giảng viên</h3>
+                  </div>
+                </div>
+                <div class="at-inset">{{ row.pref.lecturer_note }}</div>
+              </section>
+            {% endif %}
           </div>
         </div>
 
-        <div class="at-drawer-footer">
-          {% if row.pref.status == "PENDING" %}
-            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#atReject" data-at-fill='{"preference_id": {{ row.pref.pk }}, "student": "{{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }} — {{ row.pref.student.student_code }}"}'>Từ chối</button>
-            <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" class="d-inline" data-at-busy>
-              {% csrf_token %}
-              <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
-              <input type="hidden" name="action" value="accept">
-              <button type="submit" class="btn btn-primary">Đồng ý</button>
-            </form>
-          {% else %}
+        {% if row.pref.status == "PENDING" %}
+          <form method="post" action="{% url 'lecturer_registrations' topic.pk %}" class="at-w-100" data-at-busy>
+            {% csrf_token %}
+            <input type="hidden" name="preference_id" value="{{ row.pref.pk }}">
+            <input type="hidden" name="action" value="accept">
+            <div class="at-field" style="padding: 0 24px 8px;">
+              <label class="form-label" for="note-{{ row.pref.pk }}">Nhận xét giảng viên</label>
+              <textarea id="note-{{ row.pref.pk }}" name="note" class="form-control" rows="3" placeholder="Nhập nhận xét của giảng viên (tuỳ chọn, gửi kèm khi đồng ý)...">{% if row.pref.lecturer_note %}{{ row.pref.lecturer_note }}{% endif %}</textarea>
+              <div class="form-text">Nhận xét sẽ được lưu và hiển thị cho sinh viên sau khi duyệt.</div>
+            </div>
+            <div class="at-drawer-footer">
+              <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#atReject" data-at-fill='{"preference_id": {{ row.pref.pk }}, "student": "{{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }} — {{ row.pref.student.student_code }}"}'>Từ chối</button>
+              <button type="submit" class="btn btn-primary">{% include "components/icon.html" with name="check" %}Đồng ý</button>
+            </div>
+          </form>
+        {% else %}
+          <div class="at-drawer-footer">
             {% include "components/status.html" with status=row.pref.status label=row.pref.get_status_display %}
-          {% endif %}
-        </div>
+          </div>
+        {% endif %}
       </div>
     {% endfor %}
 
@@ -232,4 +290,38 @@
     </section>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const searchInput = document.getElementById("searchRegs");
+  const statusSelect = document.getElementById("filterRegStatus");
+  const allRows = document.querySelectorAll("[data-reg-row]");
+
+  if (!searchInput || !statusSelect || allRows.length === 0) return;
+
+  function filterRegs() {
+    const query = (searchInput.value || "").trim().toLowerCase();
+    const status = statusSelect.value;
+
+    allRows.forEach(function (row) {
+      const name = row.getAttribute("data-name") || "";
+      const code = row.getAttribute("data-code") || "";
+      const rowStatus = row.getAttribute("data-status") || "";
+      const matchQuery = !query || name.includes(query) || code.includes(query);
+      const matchStatus = !status || rowStatus === status;
+
+      if (matchQuery && matchStatus) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  }
+
+  searchInput.addEventListener("input", filterRegs);
+  statusSelect.addEventListener("change", filterRegs);
+});
+</script>
 {% endblock %}

@@ -338,3 +338,12 @@ class V37CoreTests(TestCase):
         ctx = self.client.get("/trang-chu/").context
         self.assertEqual(ctx["n_lecturers"], 4)
         self.assertGreater(ctx["n_with_pref"], 0)
+
+    def test_registrations_page_keeps_drawer_deeplink(self):
+        from catalog.models import Preference
+
+        pref = Preference.objects.filter(submitted=True).select_related("topic__lecturer__user")[0]
+        self.client.force_login(pref.topic.lecturer.user)
+        html = self.client.get(f"/de-tai/{pref.topic_id}/dang-ky/?mo={pref.pk}").content.decode()
+        self.assertIn('get("mo")', html)
+        self.assertIn(f'id="atStudent{pref.pk}"', html)

@@ -370,6 +370,11 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  /* ?mo=<mã nguyện vọng>: mở sẵn ngăn kéo Phân tích của SV đó (nút "Phân tích" ở trang chủ GV) */
+  const openId = new URLSearchParams(location.search).get("mo");
+  const drawer = openId && /^\d+$/.test(openId) && document.getElementById("atStudent" + openId);
+  if (drawer && window.bootstrap) bootstrap.Offcanvas.getOrCreateInstance(drawer).show();
+
   const container = document.querySelector(".pg-16");
   const allDrawers = document.querySelectorAll(".at-student-drawer");
   const allRows = document.querySelectorAll("[data-reg-row]");

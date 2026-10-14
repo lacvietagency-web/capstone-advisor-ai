@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
+<path d="M600 600H468C386.262 600 320 533.738 320 452V426C320 380.713 283.287 344 238 344H204" stroke="#DCE4F2" stroke-opacity="0.72" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M600 600H500C440.353 600 392 551.647 392 492V468C392 434.863 365.137 408 332 408H284" stroke="#DCE4F2" stroke-opacity="0.58" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M600 600H538C500.445 600 470 569.555 470 532V510C470 484.595 449.405 464 424 464H368" stroke="#DCE4F2" stroke-opacity="0.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M600 376V468C600 541.454 540.454 601 467 601H436" stroke="#DCE4F2" stroke-opacity="0.46" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M600 430V498C600 553.228 555.228 598 500 598H468" stroke="#DCE4F2" stroke-opacity="0.40" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="512" cy="512" r="76" stroke="#DCE4F2" stroke-opacity="0.32" stroke-width="1.5"/>
+<circle cx="512" cy="512" r="116" stroke="#DCE4F2" stroke-opacity="0.22" stroke-width="1.5"/>
+<circle cx="558" cy="558" r="18" stroke="#DCE4F2" stroke-opacity="0.45" stroke-width="1.5"/>
+<circle cx="430" cy="560" r="10" stroke="#DCE4F2" stroke-opacity="0.42" stroke-width="1.5"/>
+<line x1="548" y1="426" x2="548" y2="468" stroke="#DCE4F2" stroke-opacity="0.30" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="526" y1="446" x2="568" y2="446" stroke="#DCE4F2" stroke-opacity="0.30" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

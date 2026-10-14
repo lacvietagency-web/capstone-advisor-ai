@@ -6,15 +6,13 @@
 <div class="pg-10">
 <header class="at-page-header">
   <div>
-    <nav class="at-breadcrumb" aria-label="Vị trí">
-      <a href="{% url 'home' %}">Trang chủ</a>
-      <span>Đề tài</span>
-    </nav>
     <h1>Danh sách đề tài tốt nghiệp</h1>
-    <div class="at-meta at-mt-1">
+    <div class="pg-10-meta">
       {% if is_student and student %}
         <span>MSSV: <strong class="at-num">{{ student.student_code }}</strong></span>
+        <span class="pg-10-meta-sep">|</span>
         <span>Ngành: <strong>{{ student.major.name|default:student.major }}</strong></span>
+        <span class="pg-10-meta-sep">|</span>
         <span>GPA: <strong class="at-num">{{ student.gpa|floatformat:2 }}</strong></span>
       {% endif %}
     </div>
@@ -23,74 +21,69 @@
 </header>
 
 <div class="at-stack">
-  {% if open_period %}
-    {% include "components/period.html" with period=open_period %}
-  {% endif %}
-
-  <section class="at-panel">
+  <section class="at-panel pg-10-filter-panel">
     <div class="at-panel-header">
       <div>
         <h2>Tìm kiếm và lọc đề tài</h2>
-        <p class="at-secondary">Lọc theo lĩnh vực, giảng viên hướng dẫn và độ khó</p>
       </div>
-      <span class="at-count">{{ page_obj.paginator.count }} đề tài</span>
     </div>
-    <form class="at-toolbar" method="get" action="{% url 'topic_list' %}">
+    <form class="pg-10-filter-bar" method="get" action="{% url 'topic_list' %}">
       {% if tab %}<input type="hidden" name="dk" value="{{ tab }}">{% endif %}
       {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
-      <div class="at-search at-input-icon">
-        {% include "components/icon.html" with name="search" %}
-        <input class="form-control" type="search" name="q" value="{{ search_query }}" placeholder="Tìm theo tên đề tài, từ khóa…" aria-label="Tìm kiếm">
+      <div class="pg-10-filter-search">
+        <div class="at-input-icon">
+          {% include "components/icon.html" with name="search" size=16 %}
+          <input class="form-control" type="search" name="q" value="{{ search_query }}" placeholder="Tìm theo tên đề tài, từ khóa…" aria-label="Tìm kiếm">
+        </div>
       </div>
-      <select class="form-select at-filter" name="field" aria-label="Lọc theo lĩnh vực" data-at-autosubmit>
-        <option value="">Tất cả lĩnh vực</option>
-        {% for f in fields %}
-          <option value="{{ f.id }}" {% if selected_field == f.id|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
-        {% endfor %}
-      </select>
-      <select class="form-select at-filter" name="lecturer" aria-label="Lọc theo giảng viên" data-at-autosubmit>
-        <option value="">Tất cả giảng viên</option>
-        {% for l in lecturers %}
-          <option value="{{ l.id }}" {% if selected_lecturer == l.id|stringformat:"s" %}selected{% endif %}>{{ l.user.get_full_name|default:l.user.username }}</option>
-        {% endfor %}
-      </select>
-      <select class="form-select at-filter" name="difficulty" aria-label="Lọc theo độ khó" data-at-autosubmit>
-        <option value="">Tất cả độ khó</option>
-        {% for val, label in difficulties %}
-          <option value="{{ val }}" {% if selected_difficulty == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      <div class="at-toolbar-end">
-        <button type="submit" class="btn btn-secondary btn-sm">Tìm kiếm</button>
-        {% if search_query or selected_field or selected_lecturer or selected_difficulty or tab or sort %}
-          <a href="{% url 'topic_list' %}" class="btn btn-text btn-sm">Xoá bộ lọc</a>
-        {% endif %}
+      <div class="pg-10-filter-item">
+        <label class="pg-10-filter-label" for="filterField">Lĩnh vực</label>
+        <select id="filterField" class="form-select at-filter" name="field" aria-label="Lọc theo lĩnh vực" data-at-autosubmit>
+          <option value="">Tất cả lĩnh vực</option>
+          {% for f in fields %}
+            <option value="{{ f.id }}" {% if selected_field == f.id|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="pg-10-filter-item">
+        <label class="pg-10-filter-label" for="filterLecturer">Giảng viên</label>
+        <select id="filterLecturer" class="form-select at-filter" name="lecturer" aria-label="Lọc theo giảng viên" data-at-autosubmit>
+          <option value="">Tất cả giảng viên</option>
+          {% for l in lecturers %}
+            <option value="{{ l.id }}" {% if selected_lecturer == l.id|stringformat:"s" %}selected{% endif %}>{{ l.user.get_full_name|default:l.user.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="pg-10-filter-item">
+        <label class="pg-10-filter-label" for="filterDifficulty">Độ khó</label>
+        <select id="filterDifficulty" class="form-select at-filter" name="difficulty" aria-label="Lọc theo độ khó" data-at-autosubmit>
+          <option value="">Tất cả độ khó</option>
+          {% for val, label in difficulties %}
+            <option value="{{ val }}" {% if selected_difficulty == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="pg-10-filter-count">
+        {{ page_obj.paginator.count }} đề tài
       </div>
     </form>
   </section>
 
   {% if is_student and tab_counts %}
-    <div class="at-chips">
-      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}" class="at-chip {% if not tab %}active{% endif %}">
-        Tất cả <span class="at-chip-count">({{ tab_counts.all|default:page_obj.paginator.count }})</span>
+    <div class="pg-10-tabs">
+      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}" class="pg-10-tab {% if not tab %}active{% endif %}">
+        Tất cả ({{ tab_counts.all|default:page_obj.paginator.count }})
       </a>
-      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}dk=1" class="at-chip {% if tab == '1' %}active{% endif %}">
-        Đủ điều kiện <span class="at-chip-count">({{ tab_counts.ok|default:0 }})</span>
+      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}dk=1" class="pg-10-tab {% if tab == '1' %}active{% endif %}">
+        Đủ điều kiện ({{ tab_counts.ok|default:0 }})
       </a>
-      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}dk=0" class="at-chip {% if tab == '0' %}active{% endif %}">
-        Chưa đủ điều kiện <span class="at-chip-count">({{ tab_counts.no|default:0 }})</span>
+      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}dk=0" class="pg-10-tab {% if tab == '0' %}active{% endif %}">
+        Chưa đủ điều kiện ({{ tab_counts.no|default:0 }})
       </a>
     </div>
   {% endif %}
 
-  <section class="at-panel at-panel--flush">
-    <div class="at-panel-header">
-      <div>
-        <h2>Danh sách đề tài</h2>
-        <p class="at-secondary">Tổng số {{ page_obj.paginator.count }} đề tài trong hệ thống</p>
-      </div>
-    </div>
-
+  <section class="at-panel at-panel--flush pg-10-table-panel">
     {% if topics %}
       <div class="at-table-wrap">
         <table class="at-table d-none d-md-table">
@@ -125,29 +118,33 @@
             {% for t in topics %}
               <tr>
                 <td class="at-td-main">
-                  <a href="{% url 'topic_detail' t.id %}" class="at-title-link">{{ t.title }}</a>
+                  <a href="{% url 'topic_detail' t.id %}" class="pg-10-topic-title">{{ t.title }}</a>
                   {% if t.fields.all %}
-                    <div class="at-chips at-mt-1">
+                    <div class="pg-10-topic-tags">
                       {% for f in t.fields.all %}
-                        <span class="at-tag">{{ f.name }}</span>
+                        <span class="pg-10-tag">{{ f.name }}</span>
                       {% endfor %}
                     </div>
                   {% endif %}
                 </td>
                 <td>
-                  <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>
-                  {% if t.lecturer.department %}<span class="at-secondary"> · {{ t.lecturer.department }}</span>{% endif %}
+                  <span class="pg-10-lecturer-name">{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</span>
                 </td>
-                <td><span class="at-tag">{{ t.get_difficulty_display }}</span></td>
+                <td>
+                  <span class="pg-10-diff-badge {% if t.difficulty == 'EASY' %}pg-10-diff-badge--easy{% elif t.difficulty == 'HARD' %}pg-10-diff-badge--hard{% else %}pg-10-diff-badge--medium{% endif %}">
+                    {{ t.get_difficulty_display }}
+                  </span>
+                </td>
                 <td class="at-td-num">
-                  <span class="at-num">{{ t.capacity }}</span> / <span class="at-num">{{ t.nv1_count }}</span>
-                  {% if t.remaining is not None %}
-                    <div class="at-secondary"><small>còn {{ t.remaining }} chỗ</small></div>
-                  {% endif %}
+                  <span class="pg-10-capacity"><span class="at-num">{{ t.capacity }}</span> / <span class="at-num">{{ t.nv1_count }}</span></span>
                 </td>
                 <td class="at-td-num">
                   {% if is_student %}
-                    {% include "components/score.html" with rec=t.recommendation value=t.match_score size="sm" %}
+                    {% if t.match_score %}
+                      <span class="pg-10-score-val">{{ t.match_score|floatformat:1 }}</span> <span class="pg-10-score-denom">/ 100</span>
+                    {% else %}
+                      <span class="at-secondary">Chưa có điểm</span>
+                    {% endif %}
                   {% else %}
                     <span class="at-secondary">—</span>
                   {% endif %}
@@ -155,32 +152,36 @@
                 <td>
                   {% if is_student %}
                     {% if t.ineligible_reason %}
-                      <div class="at-row">
-                        {% include "components/icon.html" with name="triangle-alert" class="at-danger-ink" size=14 %}
-                        <span class="at-danger-ink">Chưa đủ điều kiện</span>
+                      <div class="pg-10-cond-fail">
+                        {% include "components/icon.html" with name="circle-x" size=14 %}
+                        <span>
+                          {% for c in t.eligibility %}
+                            {% if not c.ok %}
+                              {{ c.label }}: cần {{ c.required|floatformat:"-2" }}, {% if c.actual is None %}bạn chưa có điểm{% else %}bạn có {{ c.actual|floatformat:"-2" }}{% endif %}
+                            {% endif %}
+                          {% empty %}
+                            {{ t.ineligible_reason }}
+                          {% endfor %}
+                        </span>
                       </div>
-                      {% for c in t.eligibility %}
-                        {% if not c.ok %}
-                          <div class="at-secondary at-mt-1">
-                            {{ c.label }}: cần {{ c.required|floatformat:"-2" }}, {% if c.actual is None %}bạn chưa có điểm{% else %}bạn có {{ c.actual|floatformat:"-2" }}{% endif %}
-                          </div>
-                        {% endif %}
-                      {% endfor %}
                     {% else %}
-                      {% include "components/status.html" with kind="success" label="Đủ điều kiện" %}
+                      <div class="pg-10-cond-ok">
+                        {% include "components/icon.html" with name="circle-check" size=14 %}
+                        <span>Đủ điều kiện</span>
+                      </div>
                     {% endif %}
                   {% else %}
                     {% include "components/status.html" with status=t.status label=t.get_status_display %}
                   {% endif %}
                 </td>
-                <td class="at-td-actions">
-                  <div class="at-row at-row--between">
-                    <a href="{% url 'topic_detail' t.id %}" class="btn btn-secondary btn-sm">Chi tiết</a>
+                <td class="pg-10-td-actions">
+                  <div class="pg-10-action-group">
+                    <a href="{% url 'topic_detail' t.id %}" class="btn btn-primary pg-10-btn-detail">Chi tiết</a>
                     {% if is_student %}
                       {% if not t.ineligible_reason and open_period %}
-                        <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="btn btn-primary btn-sm">Đăng ký</a>
+                        <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="pg-10-link-reg">Đăng ký</a>
                       {% else %}
-                        <button type="button" class="btn btn-secondary btn-sm" disabled>Đăng ký</button>
+                        <span class="pg-10-link-reg pg-10-link-reg--disabled" aria-disabled="true">Đăng ký</span>
                       {% endif %}
                     {% endif %}
                   </div>
@@ -201,58 +202,66 @@
                   {% if t.recommendation.rank %}
                     <span class="at-rank">#{{ t.recommendation.rank }}</span>
                   {% endif %}
-                  <a href="{% url 'topic_detail' t.id %}" class="at-title-link"><strong>{{ t.title }}</strong></a>
+                  <a href="{% url 'topic_detail' t.id %}" class="pg-10-topic-title"><strong>{{ t.title }}</strong></a>
                 </div>
                 <div class="at-secondary">
-                  GVHD: <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>{% if t.lecturer.department %} · {{ t.lecturer.department }}{% endif %}
+                  GVHD: <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>
                 </div>
                 {% if t.fields.all %}
-                  <div class="at-chips at-mt-1">
+                  <div class="pg-10-topic-tags at-mt-1">
                     {% for f in t.fields.all %}
-                      <span class="at-tag">{{ f.name }}</span>
+                      <span class="pg-10-tag">{{ f.name }}</span>
                     {% endfor %}
-                    <span class="at-tag">{{ t.get_difficulty_display }}</span>
+                    <span class="pg-10-diff-badge {% if t.difficulty == 'EASY' %}pg-10-diff-badge--easy{% elif t.difficulty == 'HARD' %}pg-10-diff-badge--hard{% else %}pg-10-diff-badge--medium{% endif %}">{{ t.get_difficulty_display }}</span>
                   </div>
                 {% endif %}
               </div>
               {% if is_student %}
                 <div class="at-text-right">
-                  {% include "components/score.html" with rec=t.recommendation value=t.match_score size="sm" %}
+                  {% if t.match_score %}
+                    <span class="pg-10-score-val">{{ t.match_score|floatformat:1 }}</span> <span class="pg-10-score-denom">/ 100</span>
+                  {% else %}
+                    <span class="at-secondary">Chưa có điểm</span>
+                  {% endif %}
                 </div>
               {% endif %}
             </div>
 
             <dl class="at-kv at-mt-3">
               <dt>Chỉ tiêu / NV1</dt>
-              <dd class="at-num">{{ t.capacity }} / {{ t.nv1_count }}{% if t.remaining is not None %} (còn {{ t.remaining }}){% endif %}</dd>
+              <dd class="at-num">{{ t.capacity }} / {{ t.nv1_count }}</dd>
             </dl>
 
             {% if is_student %}
               <div class="at-divider"></div>
               {% if t.ineligible_reason %}
-                <div class="at-row at-mb-1">
-                  {% include "components/icon.html" with name="triangle-alert" class="at-danger-ink" size=14 %}
-                  <span class="at-danger-ink">Chưa đủ điều kiện</span>
+                <div class="pg-10-cond-fail at-mb-1">
+                  {% include "components/icon.html" with name="circle-x" size=14 %}
+                  <span>
+                    {% for c in t.eligibility %}
+                      {% if not c.ok %}
+                        {{ c.label }}: cần {{ c.required|floatformat:"-2" }}, {% if c.actual is None %}bạn chưa có điểm{% else %}bạn có {{ c.actual|floatformat:"-2" }}{% endif %}
+                      {% endif %}
+                    {% empty %}
+                      {{ t.ineligible_reason }}
+                    {% endfor %}
+                  </span>
                 </div>
-                {% for c in t.eligibility %}
-                  {% if not c.ok %}
-                    <div class="at-secondary at-mt-1">
-                      {{ c.label }}: cần {{ c.required|floatformat:"-2" }}, có {% if c.actual is None %}chưa có điểm{% else %}{{ c.actual|floatformat:"-2" }}{% endif %}
-                    </div>
-                  {% endif %}
-                {% endfor %}
               {% else %}
-                {% include "components/status.html" with kind="success" label="Đủ điều kiện" %}
+                <div class="pg-10-cond-ok">
+                  {% include "components/icon.html" with name="circle-check" size=14 %}
+                  <span>Đủ điều kiện</span>
+                </div>
               {% endif %}
             {% endif %}
 
-            <div class="at-form-actions at-mt-3">
-              <a href="{% url 'topic_detail' t.id %}" class="btn btn-secondary btn-sm">Chi tiết</a>
+            <div class="pg-10-action-group at-mt-3">
+              <a href="{% url 'topic_detail' t.id %}" class="btn btn-primary pg-10-btn-detail">Chi tiết</a>
               {% if is_student %}
                 {% if not t.ineligible_reason and open_period %}
-                  <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="btn btn-primary btn-sm">Đăng ký</a>
+                  <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="pg-10-link-reg">Đăng ký</a>
                 {% else %}
-                  <button type="button" class="btn btn-secondary btn-sm" disabled>Đăng ký</button>
+                  <span class="pg-10-link-reg pg-10-link-reg--disabled" aria-disabled="true">Đăng ký</span>
                 {% endif %}
               {% endif %}
             </div>

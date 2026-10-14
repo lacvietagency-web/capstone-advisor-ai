@@ -7,15 +7,17 @@
 <header class="at-page-header">
   <div>
     <h1>Xin chào, {{ student.user.get_full_name|default:student.user.username }}</h1>
-    <div class="at-meta at-mt-2">
+    <div class="pg-07-meta">
       <span>MSSV: <strong class="at-num">{{ student.student_code }}</strong></span>
+      <span class="pg-07-meta-sep">|</span>
       <span>Ngành: <strong>{{ student.major.name|default:student.major }}</strong></span>
-      <span>GPA tích lũy: <strong class="at-num">{{ student.gpa|floatformat:2 }}</strong></span>
+      <span class="pg-07-meta-sep">|</span>
+      <span>GPA: <strong class="at-num">{{ student.gpa|floatformat:2 }}</strong></span>
     </div>
   </div>
   <div class="at-page-actions">
-    <a href="{% url 'student_profile' %}" class="btn btn-secondary">
-      {% include "components/icon.html" with name="file-text" %}Hồ sơ năng lực
+    <a href="{% url 'student_profile' %}" class="btn btn-secondary pg-07-btn-profile">
+      {% include "components/icon.html" with name="file-text" size=14 %}Hồ sơ năng lực
     </a>
   </div>
 </header>
@@ -25,14 +27,73 @@
     {% include "components/period.html" with period=allocation_result.period text="Sinh viên thực hiện cập nhật hồ sơ năng lực, tham khảo gợi ý đề tài và nộp nguyện vọng trong thời gian quy định." %}
   {% endif %}
 
-  <section class="at-panel">
+  <section class="at-panel pg-07-journey-panel">
     <div class="at-panel-header">
       <div>
         <h2>Hành trình đăng ký đề tài</h2>
-        <p class="at-secondary">Tiến độ thực hiện các bước trong đợt đăng ký đồ án</p>
       </div>
     </div>
-    {% include "components/journey.html" with journey=journey %}
+    <div class="pg-07-journey-grid">
+      {% for step in journey %}
+        <div class="pg-07-step pg-07-step--{{ step.state }}">
+          <div class="pg-07-step-top">
+            {% if not forloop.first %}
+              <div class="pg-07-step-line pg-07-step-line--left {% if step.number == 4 and not allocation_result.is_published %}pg-07-step-line--dashed{% endif %}"></div>
+            {% endif %}
+            <div class="pg-07-step-circle {% if step.number == 4 and not allocation_result.is_published %}pg-07-step-circle--pending{% endif %}">
+              {% if step.state == "done" %}
+                {% include "components/icon.html" with name="check" size=16 %}
+              {% elif step.number == 4 and not allocation_result.is_published %}
+                <span class="pg-07-step-num">4</span>
+              {% elif step.state == "current" %}
+                {% include "components/icon.html" with name="circle-dot" size=16 %}
+              {% elif step.state == "missed" %}
+                {% include "components/icon.html" with name="triangle-alert" size=16 %}
+              {% else %}
+                <span class="pg-07-step-num">{{ step.number }}</span>
+              {% endif %}
+            </div>
+            {% if not forloop.last %}
+              <div class="pg-07-step-line pg-07-step-line--right {% if step.number == 3 and not allocation_result.is_published %}pg-07-step-line--dashed{% endif %}"></div>
+            {% endif %}
+          </div>
+          <strong class="pg-07-step-title">{{ step.number }}. {{ step.label }}</strong>
+          {% if step.number == 1 %}
+            <span class="at-badge {% if step.state == 'done' %}at-badge--success{% else %}at-badge--neutral{% endif %} pg-07-step-badge">
+              {% if step.state == 'done' %}Đã hoàn thành{% else %}Chưa xong{% endif %}
+            </span>
+            <p class="pg-07-step-desc">Cập nhật thông tin cá nhân, kỹ năng, định hướng.</p>
+          {% elif step.number == 2 %}
+            <span class="at-badge {% if step.state == 'done' %}at-badge--success{% else %}at-badge--neutral{% endif %} pg-07-step-badge">
+              {% if step.state == 'done' %}Đã hoàn thành{% else %}Chưa có gợi ý{% endif %}
+            </span>
+            <p class="pg-07-step-desc">Hệ thống gợi ý các đề tài phù hợp với hồ sơ của bạn.</p>
+          {% elif step.number == 3 %}
+            <span class="at-badge {% if step.state == 'done' %}at-badge--info{% else %}at-badge--neutral{% endif %} pg-07-step-badge">
+              {% if step.state == 'done' %}Đã nộp{% else %}Chưa nộp{% endif %}
+            </span>
+            <p class="pg-07-step-desc">
+              {% if preferences %}
+                Đã nộp {{ preferences|length }} nguyện vọng{% if preferences.0.submitted_at %} vào ngày {{ preferences.0.submitted_at|date:"d/m/Y" }}{% endif %}.
+              {% else %}
+                Chưa nộp nguyện vọng trong đợt này.
+              {% endif %}
+            </p>
+          {% elif step.number == 4 %}
+            <span class="at-badge {% if allocation_result.is_published %}at-badge--success{% else %}at-badge--neutral{% endif %} pg-07-step-badge">
+              {% if allocation_result.is_published %}Đã công bố{% else %}Chưa công bố{% endif %}
+            </span>
+            <p class="pg-07-step-desc">
+              {% if allocation_result.is_published %}
+                Kết quả phân công chính thức đã được công bố.
+              {% else %}
+                {{ allocation_result.status_text|default:"Kết quả sẽ được công bố sau khi kết thúc đợt đăng ký." }}
+              {% endif %}
+            </p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
   </section>
 
   {% if allocation_result.is_published %}
@@ -90,73 +151,114 @@
     {% else %}
       {% include "components/banner.html" with kind="warning" title="Chưa được phân công trong đợt này" text="Bạn hiện chưa được phân công đề tài trong đợt này. Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung trong Pha 2." %}
     {% endif %}
-  {% elif allocation_result.period %}
-    {% include "components/banner.html" with kind="neutral" title="Kết quả phân công chưa công bố" text=allocation_result.status_text %}
   {% endif %}
 
   {% if not recommendations and completeness < 100 %}
     {% include "components/profile_missing.html" with completeness_items=completeness_items period=allocation_result.period %}
   {% else %}
-    <div class="at-grid">
-      <section class="at-panel at-col-8">
+    <div class="pg-07-main-grid">
+      <!-- Panel Đề tài phù hợp nhất (8/12) -->
+      <section class="at-panel pg-07-panel-topics">
         <div class="at-panel-header">
           <div>
             <h2>Đề tài phù hợp nhất</h2>
-            <p class="at-secondary">Được xếp hạng theo mức độ phù hợp với hồ sơ năng lực của bạn.</p>
           </div>
-          <a href="{% url 'topic_list' %}" class="btn btn-text btn-sm">
-            Xem tất cả đề tài {% include "components/icon.html" with name="chevron-right" %}
-          </a>
+          {% if recommendations %}
+            <a href="{% url 'topic_detail' recommendations.0.topic.pk %}" class="btn btn-outline-primary btn-sm pg-07-btn-detail">
+              Xem chi tiết đề tài {% include "components/icon.html" with name="arrow-right" size=14 %}
+            </a>
+          {% else %}
+            <a href="{% url 'topic_list' %}" class="btn btn-outline-primary btn-sm pg-07-btn-detail">
+              Xem tất cả đề tài {% include "components/icon.html" with name="arrow-right" size=14 %}
+            </a>
+          {% endif %}
         </div>
 
         {% if recommendations %}
           {% for r in recommendations %}
             {% if forloop.first %}
-              <article class="at-item">
-                <div class="at-row at-row--between at-row--top at-mb-3">
-                  <div class="at-grow">
-                    <div class="at-row at-mb-1">
-                      <span class="at-rank">#{{ r.rank }}</span>
-                      <span class="at-tag">Đề tài phù hợp nhất</span>
-                    </div>
-                    <a href="{% url 'topic_detail' r.topic.pk %}" class="at-topic-title">{{ r.topic.title }}</a>
-                    <div class="at-meta at-mt-1">
-                      <span>GVHD: <strong>{{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</strong></span>
-                      {% for f in r.topic.fields.all %}
-                        <span class="at-tag">{{ f.name }}</span>
-                      {% endfor %}
-                    </div>
+              <article class="pg-07-top1">
+                <div class="pg-07-top1-header">
+                  <div class="pg-07-top1-badge-row">
+                    <span class="pg-07-top1-rank">#{{ r.rank }}</span>
+                    <span class="pg-07-top1-tag">Đề tài phù hợp nhất</span>
+                  </div>
+                  <h3 class="pg-07-top1-title">
+                    <a href="{% url 'topic_detail' r.topic.pk %}">{{ r.topic.title }}</a>
+                  </h3>
+                  <div class="pg-07-top1-gv">
+                    GVHD: <strong>{{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</strong>
                   </div>
                 </div>
 
-                {# Ảnh duyệt 07: điểm · lý do · M1–M5 trên MỘT hàng #}
-                <div class="at-best">
-                  <div class="at-best-score">{% include "components/score.html" with rec=r size="lg" %}</div>
-                  <div class="at-best-reason at-secondary">{{ r.reason|default:"Chưa có giải thích cho kết quả này." }}</div>
-                  <div class="at-best-evidence">{% include "components/evidence.html" with rec=r detail=False %}</div>
-                </div>
+                <div class="pg-07-top1-body">
+                  <div class="pg-07-score-box">
+                    <div class="pg-07-score-val-wrap">
+                      <span class="pg-07-score-num">{{ r.final_score|floatformat:1 }}</span>
+                      <span class="pg-07-score-denom">/100</span>
+                    </div>
+                    <span class="pg-07-score-caption">{% if r.m5_llm is None %}Điểm sơ bộ M1–M4{% else %}Đánh giá mức độ phù hợp đề tài{% endif %}</span>
+                  </div>
 
-                <div class="at-topic-foot at-mt-4">
-                  <a href="{% url 'topic_detail' r.topic.pk %}" class="btn btn-secondary btn-sm">Chi tiết</a>
-                  {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
-                    <a href="{% url 'student_preferences' %}?topic={{ r.topic.pk }}" class="btn btn-primary btn-sm">
-                      Thêm vào nguyện vọng
-                    </a>
-                  {% endif %}
+                  <div class="pg-07-reason-box">
+                    <p class="pg-07-reason-text">{{ r.reason|default:"Chưa có giải thích cho kết quả này." }}</p>
+                  </div>
+
+                  <div class="pg-07-evidence-box">
+                    <ul class="pg-07-m-list">
+                      <li class="pg-07-m-row">
+                        <span class="pg-07-m-code">M1</span>
+                        <span class="pg-07-m-name">Kỹ năng</span>
+                        <span class="pg-07-m-track"><span style="--v:{{ r.m1_skill|floatformat:0 }}%;"></span></span>
+                        <span class="pg-07-m-val">{{ r.m1_skill|floatformat:0 }}</span>
+                      </li>
+                      <li class="pg-07-m-row">
+                        <span class="pg-07-m-code">M2</span>
+                        <span class="pg-07-m-name">Học lực</span>
+                        <span class="pg-07-m-track"><span style="--v:{{ r.m2_academic|floatformat:0 }}%;"></span></span>
+                        <span class="pg-07-m-val">{{ r.m2_academic|floatformat:0 }}</span>
+                      </li>
+                      <li class="pg-07-m-row">
+                        <span class="pg-07-m-code">M3</span>
+                        <span class="pg-07-m-name">Lĩnh vực</span>
+                        <span class="pg-07-m-track"><span style="--v:{{ r.m3_field|floatformat:0 }}%;"></span></span>
+                        <span class="pg-07-m-val">{{ r.m3_field|floatformat:0 }}</span>
+                      </li>
+                      <li class="pg-07-m-row">
+                        <span class="pg-07-m-code">M4</span>
+                        <span class="pg-07-m-name">Ngữ nghĩa</span>
+                        {% if r.m4_semantic is not None %}
+                          <span class="pg-07-m-track"><span style="--v:{{ r.m4_semantic|floatformat:0 }}%;"></span></span>
+                          <span class="pg-07-m-val">{{ r.m4_semantic|floatformat:0 }}</span>
+                        {% else %}
+                          <span class="pg-07-m-val pg-07-m-val--none">Chưa đánh giá</span>
+                        {% endif %}
+                      </li>
+                      <li class="pg-07-m-row">
+                        <span class="pg-07-m-code">M5</span>
+                        <span class="pg-07-m-name">Đánh giá LLM</span>
+                        {% if r.m5_llm is not None %}
+                          <span class="pg-07-m-track"><span style="--v:{{ r.m5_llm|floatformat:0 }}%;"></span></span>
+                          <span class="pg-07-m-val">{{ r.m5_llm|floatformat:0 }}</span>
+                        {% else %}
+                          <span class="pg-07-m-val pg-07-m-val--none">Chưa đánh giá</span>
+                        {% endif %}
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </article>
 
               {% if not forloop.last %}
-                <div class="at-rec-rows at-mt-3">
+                <div class="pg-07-rec-list">
               {% endif %}
             {% else %}
-              {# Ảnh duyệt 07: đề tài #2–#5 là hàng gọn một dòng #}
-              <a class="at-rec-row" href="{% url 'topic_detail' r.topic.pk %}">
-                <span class="at-rank">#{{ r.rank }}</span>
-                <span class="at-rec-title">{{ r.topic.title }}</span>
-                <span class="at-rec-gv at-secondary">GVHD: {{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</span>
-                <span class="at-rec-score at-num"><strong>{{ r.final_score|floatformat:1 }}</strong> /100</span>
-                {% include "components/icon.html" with name="chevron-right" class="at-muted" %}
+              <a class="pg-07-rec-row" href="{% url 'topic_detail' r.topic.pk %}">
+                <span class="pg-07-rec-rank">#{{ r.rank }}</span>
+                <span class="pg-07-rec-title">{{ r.topic.title }}</span>
+                <span class="pg-07-rec-gv">GVHD: {{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</span>
+                <span class="pg-07-rec-score"><strong>{{ r.final_score|floatformat:1 }}</strong> / 100</span>
+                {% include "components/icon.html" with name="chevron-right" size=14 class="pg-07-rec-arrow" %}
               </a>
               {% if forloop.last %}
                 </div>
@@ -169,40 +271,40 @@
         {% endif %}
       </section>
 
-      <aside class="at-panel at-col-4">
+      <!-- Panel Nguyện vọng đã nộp (4/12) -->
+      <aside class="at-panel pg-07-panel-prefs">
         <div class="at-panel-header">
           <div>
             <h2>Nguyện vọng đã nộp</h2>
-            <p class="at-secondary">Nguyện vọng của bạn trong đợt này (tối đa 3 đề tài).</p>
+            <span class="pg-07-sr-only">Nguyện vọng của bạn</span>
           </div>
           {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
-            <a href="{% url 'student_preferences' %}" class="btn btn-secondary btn-sm">
-              {% include "components/icon.html" with name="square-pen" %}Chỉnh sửa nguyện vọng
+            <a href="{% url 'student_preferences' %}" class="btn btn-secondary btn-sm pg-07-btn-edit-pref">
+              {% include "components/icon.html" with name="pencil" size=14 %}Chỉnh sửa nguyện vọng
             </a>
           {% endif %}
         </div>
 
         {% if preferences %}
-          <div class="at-list">
+          <div class="pg-07-nv-list">
             {% for p in preferences %}
-              <div class="at-inset">
-                <div class="at-row at-row--between at-mb-2">
-                  <span class="at-rank">NV{{ p.rank }}</span>
-                  {% include "components/status.html" with status=p.status label=p.get_status_display %}
+              <div class="pg-07-nv-card">
+                <div class="pg-07-nv-head">
+                  <span class="pg-07-nv-chip">NV{{ p.rank }}</span>
+                  <a href="{% url 'topic_detail' p.topic.pk %}" class="pg-07-nv-title">{{ p.topic.title }}</a>
+                  <div class="pg-07-nv-status">
+                    {% include "components/status.html" with status=p.status label=p.get_status_display %}
+                  </div>
                 </div>
-                <a href="{% url 'topic_detail' p.topic.pk %}" class="at-title-link at-clamp-3">
-                  {{ p.topic.title }}
-                </a>
                 {% if p.topic.lecturer %}
-                  <div class="at-secondary at-mt-1">
+                  <div class="pg-07-nv-gv">
                     GVHD: {{ p.topic.lecturer.user.get_full_name|default:p.topic.lecturer.user.username }}
                   </div>
                 {% endif %}
-                {% if p.submitted_at %}
-                  <div class="at-meta at-mt-2">
-                    <span>{% include "components/icon.html" with name="calendar-days" size=14 %}Đã nộp {{ p.submitted_at|date:"d/m/Y H:i" }}</span>
-                  </div>
-                {% endif %}
+                <div class="pg-07-nv-foot">
+                  {% include "components/icon.html" with name="calendar-days" size=14 %}
+                  <span>Đã nộp ngày {{ p.submitted_at|date:"d/m/Y H:i" }}</span>
+                </div>
               </div>
             {% endfor %}
           </div>

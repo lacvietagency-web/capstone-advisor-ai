@@ -9,7 +9,14 @@
       <a href="{% url 'home' %}">Trang chủ</a>
       <span>Kết quả phân công</span>
     </nav>
-    <h1 class="h1">Kết quả phân công đề tài</h1>
+    <h1>Kết quả phân công đề tài</h1>
+    <div class="at-meta at-mt-1">
+      {% if student %}
+        <span>MSSV: <strong class="at-num">{{ student.student_code }}</strong></span>
+        <span>Ngành: <strong>{{ student.major.name|default:student.major }}</strong></span>
+        <span>GPA: <strong class="at-num">{{ student.gpa|floatformat:2 }}</strong></span>
+      {% endif %}
+    </div>
     <p class="at-page-desc">Kết quả phân công đề tài và giảng viên hướng dẫn chính thức từ Hội đồng Khoa.</p>
   </div>
   {% if periods|length > 1 %}
@@ -30,14 +37,14 @@
 
 <div class="at-stack">
   {% if period %}
-    {% include "components/period.html" with period=period %}
+    {% include "components/period.html" with period=period text="Kết quả phân công chính thức đã được công bố cho sinh viên." %}
   {% endif %}
 
   {% if not period %}
     <section class="at-panel">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Kết quả phân công</h2>
+          <h2>Kết quả phân công</h2>
           <p class="at-secondary">Thông tin phân công chính thức cho sinh viên</p>
         </div>
       </div>
@@ -47,37 +54,47 @@
     <section class="at-panel">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Kết quả phân công</h2>
+          <h2>Kết quả phân công</h2>
           <p class="at-secondary">Đợt đăng ký: {{ period.name }}</p>
         </div>
         {% include "components/status.html" with status=period.status label=period.get_status_display %}
       </div>
-      {% include "components/empty.html" with illustration="empty-result" title="Khoa đang xử lý phân công" desc="Hội đồng Khoa đang thẩm định phân công và chạy thuật toán tối ưu. Kết quả chính thức sẽ được công bố tại đây khi hoàn tất xét duyệt." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
+      {% include "components/empty.html" with illustration="empty-result" title="Hội đồng Khoa đang thẩm định phân công" desc="Hội đồng Khoa đang thẩm định phân công và chạy thuật toán tối ưu. Kết quả chính thức sẽ được công bố tại đây khi hoàn tất xét duyệt." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
     </section>
   {% elif unassigned or not topic %}
     <section class="at-panel">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Kết quả phân công</h2>
+          <h2>Kết quả phân công</h2>
           <p class="at-secondary">Đợt đăng ký: {{ period.name }}</p>
         </div>
         {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
       </div>
-      {% include "components/empty.html" with illustration="empty-result" title="Chưa được phân công trong đợt này" desc="Chưa được phân công đề tài trong đợt này. Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
+      {% include "components/empty.html" with illustration="empty-result" title="Chưa được phân công đề tài trong đợt này" desc="Chưa được phân công đề tài trong đợt này. Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung trong Pha 2." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
     </section>
   {% else %}
     <section class="at-panel">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Đề tài được phân công</h2>
+          <h2>Kết quả phân công chính thức</h2>
           <p class="at-secondary">Đợt đăng ký: {{ period.name }}</p>
         </div>
-        {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
+        <div class="at-row">
+          {% if preference_rank %}
+            <span class="at-badge at-badge--success">{% include "components/icon.html" with name="check" size=14 %}Đạt NV{{ preference_rank }}</span>
+          {% else %}
+            <span class="at-badge">Xếp bổ sung</span>
+          {% endif %}
+          {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
+          {% if allocation.source %}
+            <span class="at-badge at-badge--info">{% include "components/icon.html" with name="route" size=14 %}{{ allocation.get_source_display }}</span>
+          {% endif %}
+        </div>
       </div>
 
       <div class="at-grid">
         <div class="at-col-8">
-          <h3 class="h4 at-mb-3">
+          <h3 class="at-mb-3">
             <a href="{% url 'topic_detail' topic.pk %}" class="at-title-link">{{ topic.title }}</a>
           </h3>
           <dl class="at-kv">
@@ -112,9 +129,12 @@
             <dd class="at-pre at-clamp-4">{{ topic.description }}</dd>
           </dl>
         </div>
-        <div class="at-col-4 at-text-right">
+        <div class="at-col-4">
           <div class="at-secondary at-mb-1">Điểm phù hợp</div>
           {% include "components/score.html" with value=match_score size="lg" label="Điểm phù hợp" %}
+          <div class="at-mt-4">
+            {% include "components/note.html" with kind="success" icon="circle-check-big" title="Thông báo chính thức" text="Khoa đã công bố kết quả phân công chính thức. Sinh viên chủ động liên hệ GVHD qua email để trao đổi đề cương chi tiết." %}
+          </div>
         </div>
       </div>
 
@@ -124,6 +144,41 @@
         <a href="{% url 'topic_detail' topic.pk %}" class="btn btn-secondary btn-sm">Xem chi tiết đề tài</a>
       </div>
     </section>
+
+    {% if student.preferences.all %}
+      <section class="at-panel">
+        <div class="at-panel-header">
+          <div>
+            <h2>Nguyện vọng đã nộp</h2>
+            <p class="at-secondary">Các nguyện vọng bạn đã đăng ký trong đợt này</p>
+          </div>
+        </div>
+        <div class="at-list">
+          {% for p in student.preferences.all %}
+            {% if p.period_id == period.id %}
+              <div class="at-item at-row at-row--between">
+                <div class="at-row at-grow">
+                  <span class="at-rank">NV{{ p.rank }}</span>
+                  <div class="at-grow">
+                    <a href="{% url 'topic_detail' p.topic.pk %}" class="at-title-link">{{ p.topic.title }}</a>
+                    <div class="at-secondary at-mt-1">
+                      GVHD: {{ p.topic.lecturer.user.get_full_name|default:p.topic.lecturer.user.username }}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  {% if topic and p.topic_id == topic.id %}
+                    <span class="at-badge at-badge--success">{% include "components/icon.html" with name="check" size=14 %}Đạt</span>
+                  {% else %}
+                    <span class="at-badge at-badge--neutral">Không được phân công</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
   {% endif %}
 </div>
 {% endblock %}

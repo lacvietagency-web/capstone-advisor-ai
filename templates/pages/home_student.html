@@ -5,7 +5,7 @@
 {% block content %}
 <header class="at-page-header">
   <div>
-    <h1 class="h1">Xin chào, {{ student.user.get_full_name|default:student.user.username }}</h1>
+    <h1>Xin chào, {{ student.user.get_full_name|default:student.user.username }}</h1>
     <div class="at-meta at-mt-2">
       <span>MSSV: <strong class="at-num">{{ student.student_code }}</strong></span>
       <span>Ngành: <strong>{{ student.major.name|default:student.major }}</strong></span>
@@ -14,20 +14,20 @@
   </div>
   <div class="at-page-actions">
     <a href="{% url 'student_profile' %}" class="btn btn-secondary">
-      {% include "components/icon.html" with name="user-round" %}Hồ sơ năng lực
+      {% include "components/icon.html" with name="file-text" %}Hồ sơ năng lực
     </a>
   </div>
 </header>
 
 <div class="at-stack">
   {% if allocation_result.period %}
-    {% include "components/period.html" with period=allocation_result.period %}
+    {% include "components/period.html" with period=allocation_result.period text="Sinh viên thực hiện cập nhật hồ sơ năng lực, tham khảo gợi ý đề tài và nộp nguyện vọng trong thời gian quy định." %}
   {% endif %}
 
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
-        <h2 class="h3">Hành trình đăng ký</h2>
+        <h2>Hành trình đăng ký đề tài</h2>
         <p class="at-secondary">Tiến độ thực hiện các bước trong đợt đăng ký đồ án</p>
       </div>
     </div>
@@ -39,7 +39,7 @@
       <section class="at-panel">
         <div class="at-panel-header">
           <div>
-            <h2 class="h3">Kết quả phân công đề tài</h2>
+            <h2>Kết quả phân công đề tài</h2>
             <p class="at-secondary">Đợt đăng ký: <strong>{{ allocation_result.period.name }}</strong></p>
           </div>
           {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
@@ -93,26 +93,31 @@
     {% include "components/banner.html" with kind="neutral" title="Kết quả phân công chưa công bố" text=allocation_result.status_text %}
   {% endif %}
 
-  <div class="at-grid">
-    <section class="at-panel at-col-8">
-      <div class="at-panel-header">
-        <div>
-          <h2 class="h3">Đề tài phù hợp nhất</h2>
-          <p class="at-secondary">Được xếp hạng theo mức độ phù hợp với hồ sơ năng lực của bạn.</p>
+  {% if not recommendations and completeness < 100 %}
+    {% include "components/profile_missing.html" with completeness_items=completeness_items period=allocation_result.period %}
+  {% else %}
+    <div class="at-grid">
+      <section class="at-panel at-col-8">
+        <div class="at-panel-header">
+          <div>
+            <h2>Đề tài phù hợp nhất</h2>
+            <p class="at-secondary">Được xếp hạng theo mức độ phù hợp với hồ sơ năng lực của bạn.</p>
+          </div>
+          <a href="{% url 'topic_list' %}" class="btn btn-text btn-sm">
+            Xem tất cả đề tài {% include "components/icon.html" with name="chevron-right" %}
+          </a>
         </div>
-        <a href="{% url 'topic_list' %}" class="btn btn-text btn-sm">
-          Xem tất cả đề tài {% include "components/icon.html" with name="chevron-right" %}
-        </a>
-      </div>
 
-      {% if recommendations %}
-        {% for r in recommendations %}
-          {% if forloop.first %}
-            <article class="at-item at-topic">
-              <div>
-                <div class="at-row at-row--top at-mb-2">
-                  <span class="at-rank">#{{ r.rank }}</span>
+        {% if recommendations %}
+          {% for r in recommendations %}
+            {% if forloop.first %}
+              <article class="at-item">
+                <div class="at-row at-row--between at-row--top at-mb-3">
                   <div class="at-grow">
+                    <div class="at-row at-mb-1">
+                      <span class="at-rank">#{{ r.rank }}</span>
+                      <span class="at-tag">Đề tài phù hợp nhất</span>
+                    </div>
                     <a href="{% url 'topic_detail' r.topic.pk %}" class="at-topic-title">{{ r.topic.title }}</a>
                     <div class="at-meta at-mt-1">
                       <span>GVHD: <strong>{{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</strong></span>
@@ -122,99 +127,116 @@
                     </div>
                   </div>
                 </div>
-                <div class="at-mt-3">
-                  {% include "components/evidence.html" with rec=r detail=False %}
-                </div>
-                {% if r.reason %}
-                  <div class="at-mt-3">
-                    {% include "components/note.html" with title="Lý do gợi ý" text=r.reason %}
+
+                <div class="at-grid">
+                  <div class="at-col-6">
+                    {% include "components/score.html" with rec=r size="lg" %}
+                    {% if r.reason %}
+                      <div class="at-mt-3">
+                        {% include "components/note.html" with title="Lý do gợi ý" text=r.reason %}
+                      </div>
+                    {% endif %}
                   </div>
-                {% endif %}
-              </div>
-              <div class="at-topic-side">
-                {% include "components/score.html" with rec=r size="lg" %}
-              </div>
-              <div class="at-topic-foot">
-                <a href="{% url 'topic_detail' r.topic.pk %}" class="btn btn-secondary btn-sm">Chi tiết</a>
-                {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
-                  <a href="{% url 'student_preferences' %}?topic={{ r.topic.pk }}" class="btn btn-primary btn-sm">
-                    Thêm vào nguyện vọng
+                  <div class="at-col-6">
+                    {% include "components/evidence.html" with rec=r detail=False %}
+                  </div>
+                </div>
+
+                <div class="at-topic-foot at-mt-4">
+                  <a href="{% url 'topic_detail' r.topic.pk %}" class="btn btn-secondary btn-sm">Chi tiết</a>
+                  {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
+                    <a href="{% url 'student_preferences' %}?topic={{ r.topic.pk }}" class="btn btn-primary btn-sm">
+                      Thêm vào nguyện vọng
+                    </a>
+                  {% endif %}
+                </div>
+              </article>
+
+              {% if not forloop.last %}
+                <div class="at-list at-mt-3">
+              {% endif %}
+            {% else %}
+              <article class="at-item at-row at-row--between">
+                <div class="at-row at-grow">
+                  <span class="at-rank">#{{ r.rank }}</span>
+                  <div class="at-grow">
+                    <a href="{% url 'topic_detail' r.topic.pk %}" class="at-title-link">{{ r.topic.title }}</a>
+                    <div class="at-meta at-mt-1">
+                      <span>GVHD: <strong>{{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</strong></span>
+                      {% for f in r.topic.fields.all %}
+                        <span class="at-tag">{{ f.name }}</span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+                <div class="at-row">
+                  {% include "components/score.html" with rec=r size="sm" %}
+                  <a href="{% url 'topic_detail' r.topic.pk %}" class="btn btn-secondary btn-sm" aria-label="Xem chi tiết {{ r.topic.title }}">
+                    {% include "components/icon.html" with name="chevron-right" %}
                   </a>
-                {% endif %}
-              </div>
-            </article>
-            {% if not forloop.last %}
-              <div class="at-list at-mt-3">
-            {% endif %}
-          {% else %}
-            <article class="at-item at-row at-row--between">
-              <div class="at-row at-grow">
-                <span class="at-rank">#{{ r.rank }}</span>
-                <div class="at-grow">
-                  <a href="{% url 'topic_detail' r.topic.pk %}" class="at-title-link">{{ r.topic.title }}</a>
-                  <div class="at-meta at-mt-1">
-                    <span>GVHD: <strong>{{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</strong></span>
-                    {% for f in r.topic.fields.all %}
-                      <span class="at-tag">{{ f.name }}</span>
-                    {% endfor %}
-                  </div>
                 </div>
-              </div>
-              <div class="at-row">
-                {% include "components/score.html" with rec=r size="sm" %}
-                <a href="{% url 'topic_detail' r.topic.pk %}" class="btn btn-secondary btn-sm">Chi tiết</a>
-              </div>
-            </article>
-            {% if forloop.last %}
-              </div>
-            {% endif %}
-          {% endif %}
-        {% endfor %}
-      {% else %}
-        {% url 'student_profile' as profile_url %}
-        {% include "components/empty.html" with illustration="empty-recommendation" title="Chưa có gợi ý vì hồ sơ chưa có kỹ năng" desc="Thêm ít nhất 1 kỹ năng để hệ thống tính mức độ phù hợp." primary_url=profile_url primary_label="Cập nhật hồ sơ" %}
-      {% endif %}
-    </section>
-
-    <aside class="at-panel at-col-4">
-      <div class="at-panel-header">
-        <div>
-          <h2 class="h3">Nguyện vọng đã nộp</h2>
-          <p class="at-secondary">Nguyện vọng của bạn trong đợt này (tối đa 3 đề tài).</p>
-        </div>
-      </div>
-
-      {% if preferences %}
-        <div class="at-list">
-          {% for p in preferences %}
-            <div class="at-inset">
-              <div class="at-row at-row--between at-mb-2">
-                <span class="at-rank">NV{{ p.rank }}</span>
-                {% include "components/status.html" with status=p.status label=p.get_status_display %}
-              </div>
-              <a href="{% url 'topic_detail' p.topic.pk %}" class="at-title-link at-clamp-3">
-                {{ p.topic.title }}
-              </a>
-              {% if p.topic.lecturer %}
-                <div class="at-secondary at-mt-1">
-                  GVHD: {{ p.topic.lecturer.user.get_full_name|default:p.topic.lecturer.user.username }}
+              </article>
+              {% if forloop.last %}
                 </div>
               {% endif %}
-            </div>
+            {% endif %}
           {% endfor %}
-        </div>
-        {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
-          <div class="at-mt-4">
-            <a href="{% url 'student_preferences' %}" class="btn btn-secondary w-100">
-              {% include "components/icon.html" with name="square-pen" %}Sửa nguyện vọng
-            </a>
-          </div>
+        {% else %}
+          {% url 'student_profile' as profile_url %}
+          {% include "components/empty.html" with illustration="empty-recommendation" title="Chưa có gợi ý vì hồ sơ chưa có kỹ năng" desc="Thêm ít nhất 1 kỹ năng để hệ thống tính mức độ phù hợp." primary_url=profile_url primary_label="Cập nhật hồ sơ" %}
         {% endif %}
-      {% else %}
-        {% url 'student_preferences' as pref_url %}
-        {% include "components/empty.html" with illustration="empty-preferences" title="Chưa đăng ký nguyện vọng" desc="Hãy chọn tối đa 3 đề tài theo thứ tự ưu tiên." primary_url=pref_url primary_label="Chọn nguyện vọng" %}
-      {% endif %}
-    </aside>
-  </div>
+      </section>
+
+      <aside class="at-panel at-col-4">
+        <div class="at-panel-header">
+          <div>
+            <h2>Nguyện vọng đã nộp</h2>
+            <p class="at-secondary">Nguyện vọng của bạn trong đợt này (tối đa 3 đề tài).</p>
+          </div>
+          {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
+            <a href="{% url 'student_preferences' %}" class="btn btn-secondary btn-sm">
+              {% include "components/icon.html" with name="square-pen" %}Chỉnh sửa
+            </a>
+          {% endif %}
+        </div>
+
+        {% if preferences %}
+          <div class="at-list">
+            {% for p in preferences %}
+              <div class="at-inset">
+                <div class="at-row at-row--between at-mb-2">
+                  <span class="at-rank">NV{{ p.rank }}</span>
+                  {% include "components/status.html" with status=p.status label=p.get_status_display %}
+                </div>
+                <a href="{% url 'topic_detail' p.topic.pk %}" class="at-title-link at-clamp-3">
+                  {{ p.topic.title }}
+                </a>
+                {% if p.topic.lecturer %}
+                  <div class="at-secondary at-mt-1">
+                    GVHD: {{ p.topic.lecturer.user.get_full_name|default:p.topic.lecturer.user.username }}
+                  </div>
+                {% endif %}
+                {% if p.submitted_at %}
+                  <div class="at-meta at-mt-2">
+                    <span>{% include "components/icon.html" with name="calendar-days" size=14 %}Đã nộp {{ p.submitted_at|date:"d/m/Y H:i" }}</span>
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          {% if allocation_result.period and allocation_result.period.status == "OPEN" %}
+            <div class="at-mt-4">
+              <a href="{% url 'student_preferences' %}" class="btn btn-secondary w-100">
+                {% include "components/icon.html" with name="square-pen" %}Chỉnh sửa nguyện vọng
+              </a>
+            </div>
+          {% endif %}
+        {% else %}
+          {% url 'student_preferences' as pref_url %}
+          {% include "components/empty.html" with illustration="empty-preferences" title="Chưa đăng ký nguyện vọng" desc="Bạn chưa nộp nguyện vọng trong đợt này. Hãy chọn tối đa 3 đề tài theo thứ tự ưu tiên." primary_url=pref_url primary_label="Chọn nguyện vọng" %}
+        {% endif %}
+      </aside>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}

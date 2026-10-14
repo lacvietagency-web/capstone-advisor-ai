@@ -8,16 +8,15 @@
     <nav class="at-breadcrumb" aria-label="Vị trí">
       <a href="{% url 'home' %}">Trang chủ</a>
       <a href="{% url 'topic_list' %}">Đề tài</a>
-      <span>{{ topic.title }}</span>
+      <span>Chi tiết đề tài</span>
     </nav>
-    <h1 class="h1">{{ topic.title }}</h1>
-    <div class="at-meta at-mt-2">
-      <span>GVHD: <strong>{{ topic.lecturer.user.get_full_name|default:topic.lecturer.user.username }}</strong>{% if topic.lecturer.department %} · {{ topic.lecturer.department }}{% endif %}</span>
-      {% for f in topic.fields.all %}
-        <span class="at-tag">{{ f.name }}</span>
-      {% endfor %}
-      <span class="at-tag">{{ topic.get_difficulty_display }}</span>
-      {% include "components/status.html" with status=topic.status label=topic.get_status_display %}
+    <h1>{{ topic.title }}</h1>
+    <div class="at-meta at-mt-1">
+      {% if is_student and student %}
+        <span>MSSV: <strong class="at-num">{{ student.student_code }}</strong></span>
+        <span>Ngành: <strong>{{ student.major.name|default:student.major }}</strong></span>
+        <span>GPA: <strong class="at-num">{{ student.gpa|floatformat:2 }}</strong></span>
+      {% endif %}
     </div>
   </div>
   <div class="at-page-actions">
@@ -37,22 +36,80 @@
     {% include "components/banner.html" with kind="warning" title="Chưa đủ điều kiện" text="Bạn chưa đủ điều kiện đăng ký đề tài này. "|add:ineligible_reason %}
   {% endif %}
 
+  <section class="at-panel">
+    <div class="at-panel-header">
+      <div>
+        <h2>Thông tin đề tài</h2>
+        <p class="at-secondary">Chỉ tiêu và yêu cầu cơ bản</p>
+      </div>
+      <div>
+        {% include "components/status.html" with status=topic.status label=topic.get_status_display %}
+      </div>
+    </div>
+    <div class="at-grid">
+      <div class="at-col-4">
+        <div class="at-secondary">Giảng viên hướng dẫn</div>
+        <strong>{{ topic.lecturer.user.get_full_name|default:topic.lecturer.user.username }}</strong>
+        {% if topic.lecturer.department %}<div class="at-secondary">Bộ môn {{ topic.lecturer.department }}</div>{% endif %}
+        {% if topic.lecturer.user.email %}<div class="at-secondary">{{ topic.lecturer.user.email }}</div>{% endif %}
+      </div>
+      <div class="at-col-2">
+        <div class="at-secondary">Lĩnh vực</div>
+        <div class="at-chips at-mt-1">
+          {% for f in topic.fields.all %}
+            <span class="at-tag">{{ f.name }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="at-col-2">
+        <div class="at-secondary">Độ khó</div>
+        <div class="at-mt-1"><span class="at-tag">{{ topic.get_difficulty_display }}</span></div>
+      </div>
+      <div class="at-col-2">
+        <div class="at-secondary">Sức chứa</div>
+        <strong class="at-num">{{ topic.capacity }} sinh viên</strong>
+        {% if remaining is not None %}
+          <div class="at-secondary"><small>(còn {{ remaining }} chỗ)</small></div>
+        {% endif %}
+      </div>
+      <div class="at-col-2">
+        <div class="at-secondary">Số người đã đăng ký NV1</div>
+        <strong class="at-num">{{ nv1_count }}</strong>
+      </div>
+    </div>
+  </section>
+
   <div class="at-grid">
     <div class="at-col-7 at-stack">
       <section class="at-panel">
         <div class="at-panel-header">
           <div>
-            <h2 class="h3">Mô tả đề tài</h2>
+            <h2>Mô tả đề tài</h2>
             <p class="at-secondary">Mục tiêu và nội dung chi tiết của đề tài</p>
           </div>
+          {% if topic.code %}
+            <span class="at-tag">Mã: {{ topic.code }}</span>
+          {% endif %}
         </div>
         <div class="at-pre">{{ topic.description }}</div>
+        {% if topic.objectives %}
+          <div class="at-mt-4">
+            <strong>Mục tiêu:</strong>
+            <div class="at-pre at-mt-1">{{ topic.objectives }}</div>
+          </div>
+        {% endif %}
+        {% if topic.technologies %}
+          <div class="at-mt-4">
+            <strong>Công nghệ đề xuất:</strong>
+            <div class="at-secondary at-mt-1">{{ topic.technologies }}</div>
+          </div>
+        {% endif %}
       </section>
 
       <section class="at-panel">
         <div class="at-panel-header">
           <div>
-            <h2 class="h3">Kỹ năng yêu cầu</h2>
+            <h2>Kỹ năng yêu cầu</h2>
             <p class="at-secondary">{{ skills|length }} kỹ năng được thiết lập cho đề tài này.</p>
           </div>
         </div>
@@ -60,23 +117,25 @@
           <table class="at-table d-none d-md-table">
             <thead>
               <tr>
+                <th>#</th>
                 <th>Kỹ năng</th>
                 <th>Mức yêu cầu</th>
                 <th class="at-th-num">Trọng số</th>
-                <th>Tính chất</th>
+                <th>Bắt buộc</th>
               </tr>
             </thead>
             <tbody>
               {% for s in skills %}
                 <tr>
+                  <td class="at-num">{{ forloop.counter }}</td>
                   <td class="at-td-main">{{ s.skill.name }}</td>
                   <td>Mức {{ s.required_level }}/5</td>
                   <td class="at-td-num">{{ s.share }}%</td>
                   <td>
                     {% if s.is_mandatory %}
-                      {% include "components/status.html" with kind="danger" label="Bắt buộc" %}
+                      {% include "components/status.html" with kind="danger" label="Có" %}
                     {% else %}
-                      {% include "components/status.html" with kind="neutral" label="Tuỳ chọn" %}
+                      {% include "components/status.html" with kind="neutral" label="Không" %}
                     {% endif %}
                   </td>
                 </tr>
@@ -89,9 +148,9 @@
                 <div class="at-row at-row--between">
                   <strong>{{ s.skill.name }}</strong>
                   {% if s.is_mandatory %}
-                    {% include "components/status.html" with kind="danger" label="Bắt buộc" %}
+                    {% include "components/status.html" with kind="danger" label="Có" %}
                   {% else %}
-                    {% include "components/status.html" with kind="neutral" label="Tuỳ chọn" %}
+                    {% include "components/status.html" with kind="neutral" label="Không" %}
                   {% endif %}
                 </div>
                 <dl class="at-kv at-mt-2">
@@ -102,14 +161,14 @@
             {% endfor %}
           </div>
         {% else %}
-          <p class="at-secondary">Đề tài không đặt yêu cầu kỹ năng cụ thể.</p>
+          <p class="at-secondary">Đề tài không quy định điều kiện này.</p>
         {% endif %}
       </section>
 
       <section class="at-panel">
         <div class="at-panel-header">
           <div>
-            <h2 class="h3">Môn học tiên quyết</h2>
+            <h2>Môn học tiên quyết</h2>
             <p class="at-secondary">{{ prerequisites|length }} môn học tiên quyết cần đạt.</p>
           </div>
         </div>
@@ -157,7 +216,7 @@
         <section class="at-panel">
           <div class="at-panel-header">
             <div>
-              <h2 class="h3">Mức độ phù hợp với hồ sơ của bạn</h2>
+              <h2>Mức độ phù hợp với hồ sơ của bạn</h2>
               <p class="at-secondary">Đánh giá gợi ý đề tài từ hệ thống Capstone AI</p>
             </div>
           </div>
@@ -166,21 +225,28 @@
               {% include "components/score.html" with rec=recommendation size="lg" %}
             </div>
             {% include "components/evidence.html" with rec=recommendation detail=True %}
-            {% if recommendation.reason %}
-              <div class="at-mt-4">
-                {% include "components/note.html" with title="Lý do phù hợp" text=recommendation.reason %}
-              </div>
-            {% endif %}
           {% else %}
             {% include "components/score.html" with rec=None hint="Hồ sơ chưa có đánh giá cho đề tài này" %}
-            <p class="at-secondary at-mt-3">Chưa có điểm đánh giá phù hợp cho đề tài này.</p>
+            <p class="at-secondary at-mt-3">Chưa có điểm phù hợp cho đề tài này.</p>
           {% endif %}
         </section>
+
+        {% if recommendation and recommendation.reason %}
+          <section class="at-panel">
+            <div class="at-panel-header">
+              <div>
+                <h2>Lý do gợi ý</h2>
+                <p class="at-secondary">Giải thích độ tương đồng</p>
+              </div>
+            </div>
+            {% include "components/note.html" with title="Lý do phù hợp" text=recommendation.reason %}
+          </section>
+        {% endif %}
 
         <section class="at-panel">
           <div class="at-panel-header">
             <div>
-              <h2 class="h3">Điều kiện đăng ký</h2>
+              <h2>Kiểm tra điều kiện</h2>
               <p class="at-secondary">Đối chiếu điều kiện học thuật của bạn</p>
             </div>
           </div>
@@ -203,27 +269,6 @@
           {% endif %}
         </section>
       {% endif %}
-
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2 class="h3">Thông số đề tài</h2>
-            <p class="at-secondary">Chỉ tiêu và yêu cầu cơ bản</p>
-          </div>
-        </div>
-        <dl class="at-kv">
-          <dt>Sức chứa</dt>
-          <dd class="at-num">{{ topic.capacity }} sinh viên</dd>
-          <dt>Số người đã đăng ký NV1</dt>
-          <dd class="at-num">{{ nv1_count }}</dd>
-          <dt>GPA tối thiểu</dt>
-          <dd class="at-num">{{ topic.min_gpa|floatformat:2 }}</dd>
-          <dt>Độ khó</dt>
-          <dd>{{ topic.get_difficulty_display }}</dd>
-          <dt>Trạng thái</dt>
-          <dd>{% include "components/status.html" with status=topic.status label=topic.get_status_display %}</dd>
-        </dl>
-      </section>
     </div>
   </div>
 </div>

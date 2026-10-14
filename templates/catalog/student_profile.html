@@ -1,375 +1,331 @@
 {% extends "base.html" %}
 
 {% block title %}Hồ sơ năng lực — Capstone AI{% endblock %}
-{% block canvas_class %}at-canvas--read{% endblock %}
 
 {% block content %}
-<header class="at-page-header">
-  <div>
-    <nav class="at-breadcrumb" aria-label="Vị trí"><a href="{% url 'home' %}">Trang chủ</a><span>Hồ sơ năng lực</span></nav>
-    <h1>Hồ sơ năng lực</h1>
-    <p class="at-page-desc">Cập nhật thông tin hồ sơ để hệ thống đề xuất đề tài tốt nghiệp phù hợp nhất.</p>
-  </div>
-  <div class="at-page-actions">
-    <a href="{% url 'home' %}" class="btn btn-secondary">
-      {% include "components/icon.html" with name="arrow-left" %}Về trang chủ
-    </a>
-  </div>
-</header>
+<div class="pg-08">
+  <header class="at-page-header">
+    <div>
+      <nav class="at-breadcrumb" aria-label="Vị trí"><a href="{% url 'home' %}">Trang chủ</a><span>Hồ sơ năng lực</span></nav>
+      <h1>Hồ sơ năng lực sinh viên</h1>
+      <div class="profile-meta">
+        MSSV: <span class="at-num">{{ student.student_code }}</span> &nbsp;|&nbsp;
+        Ngành: {{ student.major.name|default:student.major }} &nbsp;|&nbsp;
+        GPA: <span class="at-num">{{ student.gpa|floatformat:2 }}</span>
+      </div>
+      <p class="profile-desc">Cập nhật thông tin hồ sơ để hệ thống đề xuất đề tài phù hợp hơn.</p>
+    </div>
+  </header>
 
-<form method="post" id="student-profile-form" class="at-stack" data-at-busy novalidate>
-  {% csrf_token %}
+  <form method="post" id="student-profile-form" class="at-stack" data-at-busy novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="interest-shown" value="1">
 
-  {# Báo lỗi chung nếu có #}
-  {% if about_form.non_field_errors %}
-    {% for err in about_form.non_field_errors %}
-      {% include "components/banner.html" with kind="danger" text=err %}
-    {% endfor %}
-  {% endif %}
-  {% if skill_formset.non_form_errors %}
-    {% for err in skill_formset.non_form_errors %}
-      {% include "components/banner.html" with kind="danger" text=err %}
-    {% endfor %}
-  {% endif %}
-  {% if interest_formset.non_form_errors %}
-    {% for err in interest_formset.non_form_errors %}
-      {% include "components/banner.html" with kind="danger" text=err %}
-    {% endfor %}
-  {% endif %}
+    {# Báo lỗi chung nếu có #}
+    {% if contact_form.non_field_errors %}
+      {% for err in contact_form.non_field_errors %}
+        {% include "components/banner.html" with kind="danger" text=err %}
+      {% endfor %}
+    {% endif %}
+    {% if about_form.non_field_errors %}
+      {% for err in about_form.non_field_errors %}
+        {% include "components/banner.html" with kind="danger" text=err %}
+      {% endfor %}
+    {% endif %}
+    {% if skill_formset.non_form_errors %}
+      {% for err in skill_formset.non_form_errors %}
+        {% include "components/banner.html" with kind="danger" text=err %}
+      {% endfor %}
+    {% endif %}
+    {% if interest_form.non_field_errors %}
+      {% for err in interest_form.non_field_errors %}
+        {% include "components/banner.html" with kind="danger" text=err %}
+      {% endfor %}
+    {% endif %}
 
-  <div class="at-grid">
-    {# Cột chính (8 cột): Thông tin SV -> Giới thiệu -> Kỹ năng -> Lĩnh vực #}
-    <div class="at-col-8 at-stack order-2 order-md-1">
-      {# Khối 1: Thông tin sinh viên (chỉ xem: họ tên, MSSV, ngành, GPA) #}
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2 class="h3">Thông tin sinh viên</h2>
-            <p>Dữ liệu chính thức từ phòng Đào tạo phục vụ đánh giá tiêu chí học lực M2.</p>
-          </div>
-          {% include "components/status.html" with status="OFFICIAL" label="Đã đồng bộ" %}
-        </div>
-        <dl class="at-kv">
-          <dt>Họ và tên</dt>
-          <dd><strong>{{ student.user.get_full_name|default:student.user.username }}</strong></dd>
-          <dt>Mã sinh viên</dt>
-          <dd class="at-num">{{ student.student_code }}</dd>
-          <dt>Ngành học</dt>
-          <dd>{{ student.major.name|default:student.major }}</dd>
-          <dt>GPA tích lũy</dt>
-          <dd class="at-num"><strong>{{ student.gpa|floatformat:2 }}</strong> / 4.00</dd>
-        </dl>
-        {% if student.course_results.all %}
-          <div class="at-divider"></div>
-          <div>
-            <span class="at-secondary">Kết quả các môn học liên quan:</span>
-            <div class="at-chips at-mt-2">
-              {% for cr in student.course_results.all %}
-                <span class="at-tag" title="{{ cr.course.name }}">{{ cr.course.code }}: <strong class="at-num">{{ cr.score|floatformat:1 }}</strong></span>
-              {% endfor %}
+    <div class="at-grid">
+      {# Cột trái: Thông tin SV -> Giới thiệu -> Kỹ năng -> Lĩnh vực #}
+      <div class="profile-left">
+        {# Khối 1: Thông tin sinh viên (6 trường: Họ tên, MSSV, Ngành, GPA readonly; Email, SĐT sửa được) #}
+        <section class="at-panel panel-info">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Thông tin sinh viên</h2>
             </div>
           </div>
-        {% endif %}
-      </section>
+          <div class="student-info-grid">
+            {# Hàng 1: Họ tên / GPA #}
+            <div class="info-field">
+              <label class="form-label">Họ và tên</label>
+              <input type="text" class="form-control" value="{{ student.user.get_full_name|default:student.user.username }}" readonly>
+            </div>
+            <div class="info-field">
+              <label class="form-label">GPA tích lũy</label>
+              <input type="text" class="form-control at-num" value="{{ student.gpa|floatformat:2 }} / 4.00" readonly>
+            </div>
 
-      {# Khối 2: Giới thiệu bản thân #}
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2 class="h3">Giới thiệu bản thân</h2>
-            <p>Chia sẻ ngắn về kinh nghiệm, định hướng nghề nghiệp và loại đồ án mong muốn.</p>
-          </div>
-        </div>
-        <div class="at-field">
-          <label class="form-label" for="{{ about_form.about.id_for_label }}">Nội dung giới thiệu</label>
-          {{ about_form.about }}
-          {% if about_form.about.help_text %}
-            <div class="form-text">{{ about_form.about.help_text }}</div>
-          {% endif %}
-          {% if about_form.about.errors %}
-            <div class="at-error">{{ about_form.about.errors.0 }}</div>
-          {% endif %}
-        </div>
-      </section>
-
-      {# Khối 3: Kỹ năng chuyên môn #}
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2 class="h3">Kỹ năng chuyên môn</h2>
-            <p>Chọn kỹ năng và tự đánh giá mức độ thành thạo từ 1 đến 5.</p>
-          </div>
-        </div>
-
-        {{ skill_formset.management_form }}
-
-        <div id="skill-forms-container" class="at-stack at-stack--tight">
-          {% for f in skill_formset %}
-            <div class="row g-2 align-items-center py-2 border-bottom skill-row" data-form-index="{{ forloop.counter0 }}">
-              {% for hidden in f.hidden_fields %}
-                {{ hidden }}
-              {% endfor %}
-              <div class="col-12 col-md-5">
-                <label class="form-label" for="{{ f.skill.id_for_label }}">Kỹ năng</label>
-                {{ f.skill }}
-                {% if f.skill.errors %}
-                  <div class="at-error">{{ f.skill.errors.0 }}</div>
-                {% endif %}
-              </div>
-              <div class="col-10 col-md-6">
-                <span class="form-label">Mức năng lực (1–5)</span>
-                <div class="at-row at-row--between">
-                  <label class="form-check d-flex flex-column align-items-center text-center">
-                    <input type="radio" class="form-check-input" name="{{ f.level.html_name }}" value="1" {% if f.level.value == 1 or f.level.value == "1" %}checked{% endif %}>
-                    <span class="at-num">1</span>
-                    <span class="at-secondary">Cơ bản</span>
-                  </label>
-                  <label class="form-check d-flex flex-column align-items-center text-center">
-                    <input type="radio" class="form-check-input" name="{{ f.level.html_name }}" value="2" {% if f.level.value == 2 or f.level.value == "2" %}checked{% endif %}>
-                    <span class="at-num">2</span>
-                    <span class="at-secondary">Biết làm</span>
-                  </label>
-                  <label class="form-check d-flex flex-column align-items-center text-center">
-                    <input type="radio" class="form-check-input" name="{{ f.level.html_name }}" value="3" {% if f.level.value == 3 or f.level.value == "3" %}checked{% endif %}>
-                    <span class="at-num">3</span>
-                    <span class="at-secondary">Khá</span>
-                  </label>
-                  <label class="form-check d-flex flex-column align-items-center text-center">
-                    <input type="radio" class="form-check-input" name="{{ f.level.html_name }}" value="4" {% if f.level.value == 4 or f.level.value == "4" %}checked{% endif %}>
-                    <span class="at-num">4</span>
-                    <span class="at-secondary">Tốt</span>
-                  </label>
-                  <label class="form-check d-flex flex-column align-items-center text-center">
-                    <input type="radio" class="form-check-input" name="{{ f.level.html_name }}" value="5" {% if f.level.value == 5 or f.level.value == "5" %}checked{% endif %}>
-                    <span class="at-num">5</span>
-                    <span class="at-secondary">Thành thạo</span>
-                  </label>
-                </div>
-                {% if f.level.errors %}
-                  <div class="at-error">{{ f.level.errors.0 }}</div>
-                {% endif %}
-              </div>
-              <div class="d-none">{{ f.DELETE }}</div>
-              <div class="col-2 col-md-1 text-end">
-                <button type="button" class="btn btn-secondary btn-icon btn-sm btn-delete-row" aria-label="Xoá kỹ năng">
-                  {% include "components/icon.html" with name="trash-2" %}
-                </button>
-              </div>
-              {% if f.non_field_errors %}
-                <div class="at-error col-12">
-                  {% for err in f.non_field_errors %}{{ err }}{% endfor %}
-                </div>
+            {# Hàng 2: MSSV / Email #}
+            <div class="info-field">
+              <label class="form-label">Mã sinh viên</label>
+              <input type="text" class="form-control at-num" value="{{ student.student_code }}" readonly>
+            </div>
+            <div class="info-field">
+              <label class="form-label" for="id_email">Email</label>
+              <input type="email" name="email" id="id_email" class="form-control" value="{{ contact_form.email.value|default:student.user.email }}" required>
+              {% if contact_form.email.errors %}
+                <div class="at-error">{{ contact_form.email.errors.0 }}</div>
               {% endif %}
             </div>
-          {% endfor %}
-        </div>
 
-        <div class="at-mt-4">
-          <button type="button" class="btn btn-secondary" id="btn-add-skill">
-            {% include "components/icon.html" with name="plus" %}Thêm kỹ năng
-          </button>
-        </div>
-      </section>
-
-      {# Khối 4: Lĩnh vực quan tâm #}
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2 class="h3">Lĩnh vực quan tâm</h2>
-            <p>Chọn các hướng chuyên môn bạn quan tâm kèm mức ưu tiên (1–3) để tính tiêu chí M3.</p>
-          </div>
-        </div>
-
-        {{ interest_formset.management_form }}
-
-        <div id="interest-forms-container" class="at-stack at-stack--tight">
-          {% for f in interest_formset %}
-            <div class="row g-2 align-items-center py-2 border-bottom interest-row" data-form-index="{{ forloop.counter0 }}">
-              {% for hidden in f.hidden_fields %}
-                {{ hidden }}
-              {% endfor %}
-              <div class="col-12 col-md-7">
-                <label class="form-label" for="{{ f.field.id_for_label }}">Lĩnh vực</label>
-                {{ f.field }}
-                {% if f.field.errors %}
-                  <div class="at-error">{{ f.field.errors.0 }}</div>
-                {% endif %}
-              </div>
-              <div class="col-10 col-md-4">
-                <label class="form-label" for="{{ f.level.id_for_label }}">Mức quan tâm</label>
-                <select class="form-select" name="{{ f.level.html_name }}" id="{{ f.level.id_for_label }}">
-                  <option value="" {% if not f.level.value %}selected{% endif %}>-- Chọn mức --</option>
-                  <option value="1" {% if f.level.value == 1 or f.level.value == "1" %}selected{% endif %}>1 — Quan tâm</option>
-                  <option value="2" {% if f.level.value == 2 or f.level.value == "2" %}selected{% endif %}>2 — Yêu thích</option>
-                  <option value="3" {% if f.level.value == 3 or f.level.value == "3" %}selected{% endif %}>3 — Ưu tiên hàng đầu</option>
-                </select>
-                {% if f.level.errors %}
-                  <div class="at-error">{{ f.level.errors.0 }}</div>
-                {% endif %}
-              </div>
-              <div class="d-none">{{ f.DELETE }}</div>
-              <div class="col-2 col-md-1 text-end">
-                <button type="button" class="btn btn-secondary btn-icon btn-sm btn-delete-row" aria-label="Xoá lĩnh vực">
-                  {% include "components/icon.html" with name="trash-2" %}
-                </button>
-              </div>
-              {% if f.non_field_errors %}
-                <div class="at-error col-12">
-                  {% for err in f.non_field_errors %}{{ err }}{% endfor %}
-                </div>
+            {# Hàng 3: Ngành / Số điện thoại #}
+            <div class="info-field">
+              <label class="form-label">Ngành</label>
+              <input type="text" class="form-control" value="{{ student.major.name|default:student.major }}" readonly>
+            </div>
+            <div class="info-field">
+              <label class="form-label" for="id_phone">Số điện thoại</label>
+              <input type="tel" name="phone" id="id_phone" class="form-control" value="{{ contact_form.phone.value|default:student.phone }}">
+              {% if contact_form.phone.errors %}
+                <div class="at-error">{{ contact_form.phone.errors.0 }}</div>
               {% endif %}
             </div>
-          {% endfor %}
-        </div>
+          </div>
+        </section>
 
-        <div class="at-mt-4">
-          <button type="button" class="btn btn-secondary" id="btn-add-interest">
-            {% include "components/icon.html" with name="plus" %}Thêm lĩnh vực
-          </button>
-        </div>
-      </section>
+        {# Khối 2: Giới thiệu bản thân #}
+        <section class="at-panel panel-about">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Giới thiệu bản thân</h2>
+            </div>
+          </div>
+          <div class="about-textarea-wrap">
+            <textarea name="about" id="id_about" class="form-control" rows="4" placeholder="Chia sẻ ngắn về kinh nghiệm, định hướng nghề nghiệp và loại đồ án mong muốn.">{{ about_form.about.value|default:'' }}</textarea>
+            {% if about_form.about.errors %}
+              <div class="at-error">{{ about_form.about.errors.0 }}</div>
+            {% endif %}
+            <div class="about-char-count"><span id="about-count">{{ about_form.about.value|default:''|length }}</span> ký tự</div>
+          </div>
+        </section>
 
-      {# Thao tác cuối form trên Desktop #}
-      <div class="at-form-actions d-none d-md-flex">
-        <a href="{% url 'home' %}" class="btn btn-secondary">Huỷ</a>
-        <button type="submit" class="btn btn-primary">
-          {% include "components/icon.html" with name="save" %}Lưu hồ sơ
+        {# Khối 3: Kỹ năng chuyên môn #}
+        <section class="at-panel panel-skills">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Kỹ năng</h2>
+            </div>
+          </div>
+
+          {{ skill_formset.management_form }}
+
+          <div id="skill-forms-container" class="skill-list">
+            {% for f in skill_formset %}
+              <div class="skill-row" data-form-index="{{ forloop.counter0 }}">
+                {% for hidden in f.hidden_fields %}
+                  {{ hidden }}
+                {% endfor %}
+                <div class="skill-select">
+                  {{ f.skill }}
+                  {% if f.skill.errors %}
+                    <div class="at-error">{{ f.skill.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="skill-levels">
+                  <label class="skill-level-opt">
+                    <input type="radio" name="{{ f.level.html_name }}" value="1" {% if f.level.value == 1 or f.level.value == "1" %}checked{% endif %}>
+                    <div class="skill-level-text">
+                      <span class="skill-level-num">1</span>
+                      <span class="skill-level-desc">Cơ bản</span>
+                    </div>
+                  </label>
+                  <label class="skill-level-opt">
+                    <input type="radio" name="{{ f.level.html_name }}" value="2" {% if f.level.value == 2 or f.level.value == "2" %}checked{% endif %}>
+                    <div class="skill-level-text">
+                      <span class="skill-level-num">2</span>
+                      <span class="skill-level-desc">Biết làm</span>
+                    </div>
+                  </label>
+                  <label class="skill-level-opt">
+                    <input type="radio" name="{{ f.level.html_name }}" value="3" {% if f.level.value == 3 or f.level.value == "3" %}checked{% endif %}>
+                    <div class="skill-level-text">
+                      <span class="skill-level-num">3</span>
+                      <span class="skill-level-desc">Khá</span>
+                    </div>
+                  </label>
+                  <label class="skill-level-opt">
+                    <input type="radio" name="{{ f.level.html_name }}" value="4" {% if f.level.value == 4 or f.level.value == "4" %}checked{% endif %}>
+                    <div class="skill-level-text">
+                      <span class="skill-level-num">4</span>
+                      <span class="skill-level-desc">Tốt</span>
+                    </div>
+                  </label>
+                  <label class="skill-level-opt">
+                    <input type="radio" name="{{ f.level.html_name }}" value="5" {% if f.level.value == 5 or f.level.value == "5" %}checked{% endif %}>
+                    <div class="skill-level-text">
+                      <span class="skill-level-num">5</span>
+                      <span class="skill-level-desc">Thành thạo</span>
+                    </div>
+                  </label>
+                </div>
+                <div class="d-none">{{ f.DELETE }}</div>
+                <div class="text-end">
+                  <button type="button" class="btn-delete-skill btn-delete-row" aria-label="Xoá kỹ năng" title="Xoá kỹ năng">
+                    {% include "components/icon.html" with name="trash-2" %}
+                  </button>
+                </div>
+                {% if f.level.errors %}
+                  <div class="at-error col-12">{{ f.level.errors.0 }}</div>
+                {% endif %}
+                {% if f.non_field_errors %}
+                  <div class="at-error col-12">
+                    {% for err in f.non_field_errors %}{{ err }}{% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+
+          <div>
+            <button type="button" class="btn btn-secondary btn-add-skill" id="btn-add-skill">
+              {% include "components/icon.html" with name="plus" %}Thêm kỹ năng
+            </button>
+          </div>
+        </section>
+
+        {# Khối 4: Lĩnh vực quan tâm #}
+        <section class="at-panel panel-interests">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Lĩnh vực quan tâm</h2>
+            </div>
+            <span class="at-secondary">Chọn tối đa 3 lĩnh vực</span>
+          </div>
+
+          {% if interest_form.picked.errors %}
+            <div class="at-error at-mb-2">{{ interest_form.picked.errors.0 }}</div>
+          {% endif %}
+
+          <div class="interest-grid" id="interest-grid">
+            {% for widget in interest_form.picked %}
+              <label class="interest-chip {% if widget.data.selected %}is-selected{% endif %}">
+                {{ widget.tag }}
+                <span>{{ widget.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+
+      {# Cột phải: Mức độ hoàn thiện hồ sơ #}
+      <aside class="profile-right">
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2 class="h3">Mức độ hoàn thiện hồ sơ</h2>
+            </div>
+          </div>
+
+          <div class="completeness-header">
+            <div class="completeness-pct">{{ completeness }}<small>%</small></div>
+            <div class="completeness-status">Hoàn thành</div>
+          </div>
+
+          <div class="progress-track">
+            <div class="progress-fill" style="--v:{{ completeness }}%;"></div>
+          </div>
+
+          <div class="checklist-items">
+            {% for label, ok in completeness_items %}
+              <div class="checklist-row">
+                <div class="checklist-left">
+                  {% if ok %}
+                    {% include "components/icon.html" with name="circle-check" size=16 class="at-success-ink" %}
+                  {% else %}
+                    {% include "components/icon.html" with name="circle-dot" size=16 class="at-muted" %}
+                  {% endif %}
+                  <span>{{ label }}</span>
+                </div>
+                {% if ok %}
+                  <span class="checklist-badge is-done">Đã hoàn thành</span>
+                {% else %}
+                  <span class="checklist-badge is-todo">Chưa hoàn thành</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="completeness-note">
+            {% include "components/icon.html" with name="info" size=16 %}
+            <span>Hoàn thiện hồ sơ để tăng độ chính xác của gợi ý AI.</span>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    {# Thanh lưu dính đáy #}
+    <div class="save-bar">
+      <div class="unsaved-alert" id="unsaved-alert">
+        {% include "components/icon.html" with name="triangle-alert" size=16 %}
+        <span>Thay đổi chưa được lưu</span>
+      </div>
+      <div>
+        <button type="submit" class="btn-save">
+          {% include "components/icon.html" with name="save" size=16 %}Lưu hồ sơ
         </button>
       </div>
     </div>
-
-    {# Cột phụ (4 cột): Mức độ hoàn thiện hồ sơ #}
-    <aside class="at-col-4 at-stack order-1 order-md-2">
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2 class="h3">Mức độ hoàn thiện hồ sơ</h2>
-            <p>Mức độ đầy đủ thông tin để AI đánh giá</p>
-          </div>
-        </div>
-
-        <div class="at-row at-row--between at-row--top at-mb-3">
-          <div>
-            <div class="at-score-value">{{ completeness }}<small>%</small></div>
-            <div class="at-secondary">Hoàn thành</div>
-          </div>
-          {% if completeness == 100 %}
-            <span class="at-badge at-badge--success">{% include "components/icon.html" with name="check" size=14 %}Đầy đủ</span>
-          {% else %}
-            <span class="at-badge at-badge--warning">{% include "components/icon.html" with name="circle-dot" size=14 %}Chưa hoàn tất</span>
-          {% endif %}
-        </div>
-
-        <div class="at-track at-mb-4">
-          <span style="--v:{{ completeness }}%"></span>
-        </div>
-
-        <div class="at-stack at-stack--tight">
-          {% for label, ok in completeness_items %}
-            <div class="at-row at-row--between">
-              <div class="at-row">
-                {% if ok %}
-                  {% include "components/icon.html" with name="check" size=16 class="at-success-ink" %}
-                {% else %}
-                  {% include "components/icon.html" with name="circle-dot" size=16 class="at-muted" %}
-                {% endif %}
-                <span class="{% if ok %}at-ink{% else %}at-secondary{% endif %}">{{ label }}</span>
-              </div>
-              {% if ok %}
-                <span class="at-badge at-badge--success">Đã hoàn thành</span>
-              {% else %}
-                <span class="at-badge">Chưa hoàn thành</span>
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
-
-        <div class="at-divider"></div>
-        {% include "components/note.html" with kind="neutral" icon="info" text="Hoàn thiện hồ sơ để tăng độ chính xác của gợi ý AI." %}
-      </section>
-    </aside>
-  </div>
-
-  {# Nút lưu trên Mobile (Action Bar thay Bottom Nav) #}
-  <div class="at-actionbar">
-    <a href="{% url 'home' %}" class="btn btn-secondary">Huỷ</a>
-    <button type="submit" class="btn btn-primary">
-      {% include "components/icon.html" with name="save" %}Lưu hồ sơ
-    </button>
-  </div>
-</form>
+  </form>
+</div>
 
 {# Template dòng trống để thêm dòng kỹ năng qua JS #}
 <template id="empty-skill-template">
-  <div class="row g-2 align-items-center py-2 border-bottom skill-row" data-form-index="__prefix__">
+  <div class="skill-row" data-form-index="__prefix__">
     {% for hidden in skill_formset.empty_form.hidden_fields %}
       {{ hidden }}
     {% endfor %}
-    <div class="col-12 col-md-5">
-      <label class="form-label">Kỹ năng</label>
+    <div class="skill-select">
       {{ skill_formset.empty_form.skill }}
     </div>
-    <div class="col-10 col-md-6">
-      <span class="form-label">Mức năng lực (1–5)</span>
-      <div class="at-row at-row--between">
-        <label class="form-check d-flex flex-column align-items-center text-center">
-          <input type="radio" class="form-check-input" name="skills-__prefix__-level" value="1">
-          <span class="at-num">1</span>
-          <span class="at-secondary">Cơ bản</span>
-        </label>
-        <label class="form-check d-flex flex-column align-items-center text-center">
-          <input type="radio" class="form-check-input" name="skills-__prefix__-level" value="2">
-          <span class="at-num">2</span>
-          <span class="at-secondary">Biết làm</span>
-        </label>
-        <label class="form-check d-flex flex-column align-items-center text-center">
-          <input type="radio" class="form-check-input" name="skills-__prefix__-level" value="3" checked>
-          <span class="at-num">3</span>
-          <span class="at-secondary">Khá</span>
-        </label>
-        <label class="form-check d-flex flex-column align-items-center text-center">
-          <input type="radio" class="form-check-input" name="skills-__prefix__-level" value="4">
-          <span class="at-num">4</span>
-          <span class="at-secondary">Tốt</span>
-        </label>
-        <label class="form-check d-flex flex-column align-items-center text-center">
-          <input type="radio" class="form-check-input" name="skills-__prefix__-level" value="5">
-          <span class="at-num">5</span>
-          <span class="at-secondary">Thành thạo</span>
-        </label>
-      </div>
+    <div class="skill-levels">
+      <label class="skill-level-opt">
+        <input type="radio" name="skills-__prefix__-level" value="1">
+        <div class="skill-level-text">
+          <span class="skill-level-num">1</span>
+          <span class="skill-level-desc">Cơ bản</span>
+        </div>
+      </label>
+      <label class="skill-level-opt">
+        <input type="radio" name="skills-__prefix__-level" value="2">
+        <div class="skill-level-text">
+          <span class="skill-level-num">2</span>
+          <span class="skill-level-desc">Biết làm</span>
+        </div>
+      </label>
+      <label class="skill-level-opt">
+        <input type="radio" name="skills-__prefix__-level" value="3" checked>
+        <div class="skill-level-text">
+          <span class="skill-level-num">3</span>
+          <span class="skill-level-desc">Khá</span>
+        </div>
+      </label>
+      <label class="skill-level-opt">
+        <input type="radio" name="skills-__prefix__-level" value="4">
+        <div class="skill-level-text">
+          <span class="skill-level-num">4</span>
+          <span class="skill-level-desc">Tốt</span>
+        </div>
+      </label>
+      <label class="skill-level-opt">
+        <input type="radio" name="skills-__prefix__-level" value="5">
+        <div class="skill-level-text">
+          <span class="skill-level-num">5</span>
+          <span class="skill-level-desc">Thành thạo</span>
+        </div>
+      </label>
     </div>
     <div class="d-none">{{ skill_formset.empty_form.DELETE }}</div>
-    <div class="col-2 col-md-1 text-end">
-      <button type="button" class="btn btn-secondary btn-icon btn-sm btn-delete-row" aria-label="Xoá kỹ năng">
-        {% include "components/icon.html" with name="trash-2" %}
-      </button>
-    </div>
-  </div>
-</template>
-
-{# Template dòng trống để thêm dòng lĩnh vực qua JS #}
-<template id="empty-interest-template">
-  <div class="row g-2 align-items-center py-2 border-bottom interest-row" data-form-index="__prefix__">
-    {% for hidden in interest_formset.empty_form.hidden_fields %}
-      {{ hidden }}
-    {% endfor %}
-    <div class="col-12 col-md-7">
-      <label class="form-label">Lĩnh vực</label>
-      {{ interest_formset.empty_form.field }}
-    </div>
-    <div class="col-10 col-md-4">
-      <label class="form-label">Mức quan tâm</label>
-      <select class="form-select" name="interests-__prefix__-level" id="id_interests-__prefix__-level">
-        <option value="">-- Chọn mức --</option>
-        <option value="1">1 — Quan tâm</option>
-        <option value="2">2 — Yêu thích</option>
-        <option value="3" selected>3 — Ưu tiên hàng đầu</option>
-      </select>
-    </div>
-    <div class="d-none">{{ interest_formset.empty_form.DELETE }}</div>
-    <div class="col-2 col-md-1 text-end">
-      <button type="button" class="btn btn-secondary btn-icon btn-sm btn-delete-row" aria-label="Xoá lĩnh vực">
+    <div class="text-end">
+      <button type="button" class="btn-delete-skill btn-delete-row" aria-label="Xoá kỹ năng" title="Xoá kỹ năng">
         {% include "components/icon.html" with name="trash-2" %}
       </button>
     </div>
@@ -380,11 +336,30 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  var aboutTextarea = document.getElementById("id_about");
-  if (aboutTextarea) {
-    aboutTextarea.classList.add("form-control");
+  var form = document.getElementById("student-profile-form");
+  var unsavedAlert = document.getElementById("unsaved-alert");
+
+  function markDirty() {
+    if (unsavedAlert) {
+      unsavedAlert.classList.add("is-dirty");
+    }
   }
 
+  if (form) {
+    form.addEventListener("input", markDirty);
+    form.addEventListener("change", markDirty);
+  }
+
+  // Bộ đếm ký tự giới thiệu
+  var aboutTextarea = document.getElementById("id_about");
+  var aboutCount = document.getElementById("about-count");
+  if (aboutTextarea && aboutCount) {
+    aboutTextarea.addEventListener("input", function () {
+      aboutCount.textContent = this.value.length;
+    });
+  }
+
+  // Khởi tạo dòng kỹ năng
   function setupRow(row) {
     row.querySelectorAll("select").forEach(function (sel) {
       sel.classList.add("form-select");
@@ -395,12 +370,12 @@ document.addEventListener("DOMContentLoaded", function () {
       deleteBtn.addEventListener("click", function () {
         deleteCheckbox.checked = true;
         row.style.display = "none";
+        markDirty();
       });
     }
   }
 
   document.querySelectorAll(".skill-row").forEach(setupRow);
-  document.querySelectorAll(".interest-row").forEach(setupRow);
 
   var btnAddSkill = document.getElementById("btn-add-skill");
   var skillContainer = document.getElementById("skill-forms-container");
@@ -416,27 +391,33 @@ document.addEventListener("DOMContentLoaded", function () {
       skillContainer.appendChild(newRow);
       totalSkillInput.value = currentIndex + 1;
       setupRow(newRow);
+      markDirty();
       var firstSelect = newRow.querySelector("select");
       if (firstSelect) firstSelect.focus();
     });
   }
 
-  var btnAddInterest = document.getElementById("btn-add-interest");
-  var interestContainer = document.getElementById("interest-forms-container");
-  var totalInterestInput = document.getElementById("id_interests-TOTAL_FORMS");
-  var interestTemplate = document.getElementById("empty-interest-template");
-
-  if (btnAddInterest && interestContainer && totalInterestInput && interestTemplate) {
-    btnAddInterest.addEventListener("click", function () {
-      var currentIndex = parseInt(totalInterestInput.value, 10);
-      var tempDiv = document.createElement("div");
-      tempDiv.innerHTML = interestTemplate.innerHTML.replace(/__prefix__/g, currentIndex);
-      var newRow = tempDiv.firstElementChild;
-      interestContainer.appendChild(newRow);
-      totalInterestInput.value = currentIndex + 1;
-      setupRow(newRow);
-      var firstSelect = newRow.querySelector("select");
-      if (firstSelect) firstSelect.focus();
+  // Lĩnh vực quan tâm: tối đa 3, toggle class is-selected
+  var interestGrid = document.getElementById("interest-grid");
+  if (interestGrid) {
+    interestGrid.addEventListener("change", function (e) {
+      if (e.target && e.target.type === "checkbox") {
+        var checkedBoxes = interestGrid.querySelectorAll('input[type="checkbox"]:checked');
+        if (checkedBoxes.length > 3) {
+          e.target.checked = false;
+          alert("Bạn chỉ được chọn tối đa 3 lĩnh vực quan tâm.");
+          return;
+        }
+        var chip = e.target.closest(".interest-chip");
+        if (chip) {
+          if (e.target.checked) {
+            chip.classList.add("is-selected");
+          } else {
+            chip.classList.remove("is-selected");
+          }
+        }
+        markDirty();
+      }
     });
   }
 });

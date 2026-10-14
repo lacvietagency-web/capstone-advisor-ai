@@ -214,3 +214,61 @@ class V35BackendTests(TestCase):
         ctx = self.client.get("/ho-so/").context
         self.assertIn(ctx["completeness"], (0, 25, 50, 75, 100))
         self.assertEqual(len(ctx["completeness_items"]), 4)
+
+
+class V37CoreTests(TestCase):
+    """Nghiệm thu 15/10: SV tự sửa email/SĐT; trang chủ GV liệt kê từng SV chờ duyệt (thấy tên SV)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", students=12, lecturers=4, topics=10, verbosity=0)
+
+    def _profile_post(self, **extra):
+        ctx = self.client.get("/ho-so/").context
+        data = {}
+        for fs in (ctx["skill_formset"], ctx["interest_formset"]):
+            mf = fs.management_form
+            data.update({f"{fs.prefix}-{k}": v for k, v in mf.initial.items()})
+            for form in fs.forms:
+                data.update({form.add_prefix(k): v for k, v in form.initial.items() if v is not None})
+                if form.instance.pk:
+                    data[form.add_prefix("id")] = form.instance.pk
+        data["about"] = ctx["student"].about
+        data.update(extra)
+        return self.client.post("/ho-so/", data)
+
+    def test_student_edits_contact(self):
+        from catalog.models import Student
+
+        self.client.login(username="sv001", password="123456")
+        r = self._profile_post(email="sv001@truong.edu.vn", phone="0912 345 678")
+        self.assertEqual(r.status_code, 302)
+        st = Student.objects.select_related("user").get(user__username="sv001")
+        self.assertEqual((st.user.email, st.phone), ("sv001@truong.edu.vn", "0912345678"))
+
+    def test_bad_phone_rejected_and_old_page_keeps_contact(self):
+        from catalog.models import Student
+
+        self.client.login(username="sv001", password="123456")
+        self._profile_post(email="a@b.vn", phone="0912345678")
+        r = self._profile_post(email="a@b.vn", phone="12ab")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("phone", r.context["contact_form"].errors)
+        data_without_contact = self._profile_post()  # biểu mẫu không có ô liên hệ → giữ nguyên
+        self.assertEqual(data_without_contact.status_code, 302)
+        self.assertEqual(Student.objects.get(user__username="sv001").phone, "0912345678")
+
+    def test_lecturer_home_lists_pending_students(self):
+        from catalog.models import Preference
+
+        pref = Preference.objects.filter(submitted=True, status=Preference.Status.PENDING).select_related(
+            "topic__lecturer__user", "student__user"
+        ).first()
+        self.client.force_login(pref.topic.lecturer.user)
+        ctx = self.client.get("/trang-chu/").context
+        self.assertIn(pref.pk, [r["pref"].pk for r in ctx["review_rows"]])
+        code = pref.student.student_code
+        rows = self.client.get("/trang-chu/", {"q": code}).context["review_rows"]
+        self.assertTrue(rows and all(r["pref"].student.student_code == code for r in rows))
+        rows = self.client.get("/trang-chu/", {"tt": "dong-y"}).context["review_rows"]
+        self.assertTrue(all(r["pref"].status == Preference.Status.ACCEPTED for r in rows))

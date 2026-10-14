@@ -215,7 +215,6 @@ class Command(BaseCommand):
             user.save(update_fields=["first_name"])
         lec = Lecturer.objects.create(
             user=user,
-            department="Khoa CNTT",
             max_students=self.rnd.choice([4, 5, 6, 8]),
         )
         lec.fields.set(self.rnd.sample(list(self.fields.values()), 2))
@@ -291,16 +290,29 @@ class Command(BaseCommand):
 TITLES = ["ThS.", "ThS.", "TS.", "TS.", "PGS.TS."]
 
 
+DEPARTMENTS = {
+    "Web": "Công nghệ phần mềm",
+    "Di động": "Công nghệ phần mềm",
+    "Trí tuệ nhân tạo": "Khoa học máy tính",
+    "Dữ liệu": "Hệ thống thông tin",
+    "Phần mềm doanh nghiệp": "Hệ thống thông tin",
+    "Hệ thống & Mạng": "Mạng máy tính",
+    "An toàn thông tin": "An toàn thông tin",
+    "IoT": "Kỹ thuật máy tính",
+}
+
+
 def fill_lecturer_details(lec, rnd):
-    """Học hàm, SĐT, giới thiệu, từ khoá cho GV demo (V3.5). Dùng bộ sinh số riêng để không đổi dữ liệu cũ."""
-    names = [f.name for f in lec.fields.all()]
+    """Học hàm, bộ môn (theo lĩnh vực đầu), SĐT, giới thiệu, từ khoá cho GV demo. Bộ sinh số riêng."""
+    names = [f.name for f in lec.fields.order_by("pk")]
+    lec.department = DEPARTMENTS.get(names[0], "Công nghệ phần mềm") if names else "Công nghệ phần mềm"
     lec.academic_title = rnd.choice(TITLES)
     lec.phone = "09" + "".join(str(rnd.randint(0, 9)) for _ in range(8))
     lec.bio = (
         f"Giảng viên {lec.department}, hướng nghiên cứu {', '.join(names).lower()}; hướng dẫn đồ án ứng dụng thực tế."
     )
     lec.keywords = ", ".join(n.lower() for n in names)
-    lec.save(update_fields=["academic_title", "phone", "bio", "keywords"])
+    lec.save(update_fields=["department", "academic_title", "phone", "bio", "keywords"])
 
 
 def fill_topic_details(topic):

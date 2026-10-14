@@ -7,7 +7,41 @@ from django.shortcuts import redirect, render
 from allocate.services import get_student_allocation_result
 from catalog.models import Preference, RegistrationPeriod, Student, Topic
 from catalog.views import profile_completeness
+from recommend.models import Recommendation
 from recommend.services import ensure_recommendations
+
+PENDING_ROWS = 10
+REVIEW_FILTERS = {
+    "cho": Preference.Status.PENDING,
+    "dong-y": Preference.Status.ACCEPTED,
+    "tu-choi": Preference.Status.REJECTED,
+}
+
+
+def _review_rows(lecturer, params):
+    """Bảng "SV chờ duyệt" trên trang chủ GV (ảnh duyệt 13): mỗi dòng 1 nguyện vọng đã nộp.
+
+    ?tt=cho|dong-y|tu-choi|tat-ca (mặc định chờ duyệt), ?q= tìm theo đề tài / tên SV / MSSV."""
+    tt = params.get("tt") if params.get("tt") in (*REVIEW_FILTERS, "tat-ca") else "cho"
+    q = (params.get("q") or "").strip()
+    prefs = Preference.objects.filter(topic__lecturer=lecturer, submitted=True).select_related("student__user", "topic")
+    if tt != "tat-ca":
+        prefs = prefs.filter(status=REVIEW_FILTERS[tt])
+    if q:
+        prefs = prefs.filter(
+            Q(topic__title__icontains=q)
+            | Q(student__student_code__icontains=q)
+            | Q(student__user__first_name__icontains=q)
+            | Q(student__user__last_name__icontains=q)
+        )
+    prefs = list(prefs)
+    recs = Recommendation.objects.filter(topic__lecturer=lecturer, student__in={p.student_id for p in prefs})
+    scores = {(s, t): v for s, t, v in recs.values_list("student_id", "topic_id", "final_score")}
+    rows = sorted(
+        ({"pref": p, "score": scores.get((p.student_id, p.topic_id))} for p in prefs),
+        key=lambda r: (r["pref"].rank, -(r["score"] or 0)),
+    )
+    return {"review_rows": rows[:PENDING_ROWS], "review_total": len(rows), "review_tt": tt, "review_q": q}
 
 
 def _get_lecturer_dashboard_context(lecturer) -> dict:
@@ -128,7 +162,7 @@ def home(request):
     if user.is_lecturer:
         if not hasattr(user, "lecturer"):
             return render(request, "pages/missing_profile.html")
-        context = _get_lecturer_dashboard_context(user.lecturer)
+        context = {**_get_lecturer_dashboard_context(user.lecturer), **_review_rows(user.lecturer, request.GET)}
         return render(request, "pages/home_lecturer.html", context)
     if not hasattr(user, "student"):
         return render(request, "pages/missing_profile.html")

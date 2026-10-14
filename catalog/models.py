@@ -64,6 +64,7 @@ class Student(models.Model):
         "GPA (thang 4)", max_digits=3, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(4)]
     )
     about = models.TextField("Tự giới thiệu, kinh nghiệm, định hướng nghề", blank=True)
+    phone = models.CharField("Số điện thoại", max_length=15, blank=True)  # SV tự sửa; email nằm ở tài khoản
     profile_version = models.PositiveIntegerField(default=1, editable=False)  # tăng mỗi lần sửa hồ sơ → làm mới điểm AI
 
     class Meta:

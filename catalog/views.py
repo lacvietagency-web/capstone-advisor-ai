@@ -17,6 +17,7 @@ from .forms import (
     LecturerProfileForm,
     PreferenceForm,
     StudentAboutForm,
+    StudentContactForm,
     StudentInterestFormSet,
     StudentSkillFormSet,
     TopicForm,
@@ -60,11 +61,15 @@ def _open_period():
 @login_required
 def student_profile(request):
     st = _student(request)
+    contact = StudentContactForm(request.POST or None, student=st)
     about = StudentAboutForm(request.POST or None, instance=st)
     skills = StudentSkillFormSet(request.POST or None, instance=st, prefix="skills")
     interests = StudentInterestFormSet(request.POST or None, instance=st, prefix="interests")
-    if request.method == "POST" and about.is_valid() and skills.is_valid() and interests.is_valid():
+    forms_ok = all([contact.is_valid(), about.is_valid(), skills.is_valid(), interests.is_valid()])
+    if request.method == "POST" and forms_ok:
         with transaction.atomic():
+            if "email" in request.POST:  # trang cũ không có ô liên hệ → không xoá trắng email/SĐT
+                contact.save()
             about.save()
             skills.save()
             interests.save()
@@ -81,6 +86,7 @@ def student_profile(request):
         "catalog/student_profile.html",
         {
             "student": st,
+            "contact_form": contact,
             "about_form": about,
             "skill_formset": skills,
             "interest_formset": interests,

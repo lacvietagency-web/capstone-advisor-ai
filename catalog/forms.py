@@ -1,11 +1,39 @@
 """Form nghiệp vụ: hồ sơ SV, nguyện vọng, đề tài của GV."""
 
+import re
+
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
 
 from .models import Lecturer, Student, StudentInterest, StudentSkill, Topic, TopicPrerequisite, TopicSkill
 
 ABOUT_HINT = "Ví dụ: Em thích làm backend, đã làm web bán hàng bằng Django, muốn làm Backend Developer…"
+
+
+class StudentContactForm(forms.Form):
+    """Thông tin liên hệ SV tự sửa (ảnh duyệt 08). Họ tên, MSSV, ngành, GPA là dữ liệu phòng Đào tạo → chỉ đọc."""
+
+    email = forms.EmailField(label="Email", required=False, max_length=254)
+    phone = forms.CharField(label="Số điện thoại", required=False, max_length=20)
+
+    def __init__(self, *args, student, **kwargs):
+        self.student = student
+        kwargs.setdefault("initial", {"email": student.user.email, "phone": student.phone})
+        super().__init__(*args, **kwargs)
+        self.fields["email"].widget.attrs.update(autocomplete="email", placeholder="ten@truong.edu.vn")
+        self.fields["phone"].widget.attrs.update(autocomplete="tel", inputmode="tel", placeholder="09xxxxxxxx")
+
+    def clean_phone(self):
+        phone = re.sub(r"[ .-]", "", self.cleaned_data["phone"])
+        if phone and not re.fullmatch(r"(\+84|0)\d{9,10}", phone):
+            raise forms.ValidationError("Số điện thoại gồm 10–11 chữ số, bắt đầu bằng 0 hoặc +84.")
+        return phone
+
+    def save(self):
+        self.student.user.email = self.cleaned_data["email"]
+        self.student.user.save(update_fields=["email"])
+        self.student.phone = self.cleaned_data["phone"]
+        self.student.save(update_fields=["phone"])
 
 
 class StudentAboutForm(forms.ModelForm):

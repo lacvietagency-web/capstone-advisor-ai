@@ -284,6 +284,7 @@
 }
 
 .pg-18 .pg18-btn-assign {
+  white-space: nowrap;
   min-width: 72px;
   height: 28px;
   padding: 0 10px;
@@ -404,7 +405,7 @@
 }
 
 .pg-19 .pg19-select-period {
-  width: 190px;
+  width: 240px;
   height: 34px;
   font-size: 12px;
   border: 1px solid #B7C5D8;
@@ -701,9 +702,9 @@
 /* Toolbar bộ lọc gọn */
 .pg-19 .pg19-toolbar {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap; /* Claude: 7 bộ lọc không vừa 1 hàng ở 1440px → xuống hàng thay vì tràn mép */
   align-items: center;
-  gap: 8px;
+  gap: 8px 12px;
   margin: 0;
   padding: 0;
 }

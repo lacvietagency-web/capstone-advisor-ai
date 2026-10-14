@@ -18,11 +18,11 @@
 </header>
 
 <div class="at-stack">
-  {# Thông tin học tập chính thức từ phòng Đào tạo (Read-only) #}
+  {# Khối 1: Thông tin sinh viên (MSSV, ngành, GPA — chỉ xem) #}
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
-        <h2 class="h3">Thông tin học tập</h2>
+        <h2 class="h3">Thông tin sinh viên</h2>
         <p>Dữ liệu chính thức từ phòng Đào tạo phục vụ đánh giá tiêu chí học lực M2.</p>
       </div>
       {% include "components/status.html" with status="OFFICIAL" label="Đã đồng bộ" %}
@@ -50,7 +50,7 @@
     {% endif %}
   </section>
 
-  <form method="post" id="student-profile-form" data-at-busy novalidate>
+  <form method="post" id="student-profile-form" class="at-stack" data-at-busy novalidate>
     {% csrf_token %}
 
     {# Báo lỗi chung của form hoặc formset nếu có #}
@@ -72,11 +72,11 @@
       {% endfor %}
     {% endif %}
 
-    {# Panel Giới thiệu #}
+    {# Khối 2: Giới thiệu bản thân #}
     <section class="at-panel">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Giới thiệu</h2>
+          <h2 class="h3">Giới thiệu bản thân</h2>
           <p>Chia sẻ ngắn về kinh nghiệm, định hướng nghề nghiệp và loại đồ án bạn muốn thực hiện.</p>
         </div>
       </div>
@@ -92,7 +92,7 @@
       </div>
     </section>
 
-    {# Panel Kỹ năng #}
+    {# Khối 3: Kỹ năng (bảng dòng lặp, không card rời) #}
     <section class="at-panel">
       <div class="at-panel-header">
         <div>
@@ -150,7 +150,7 @@
       </div>
     </section>
 
-    {# Panel Lĩnh vực quan tâm #}
+    {# Khối 4: Lĩnh vực quan tâm #}
     <section class="at-panel">
       <div class="at-panel-header">
         <div>
@@ -206,11 +206,19 @@
       </div>
     </section>
 
-    {# Thao tác cuối form #}
-    <div class="at-form-actions">
+    {# Thao tác cuối form trên Desktop #}
+    <div class="at-form-actions d-none d-md-flex">
       <a href="{% url 'home' %}" class="btn btn-secondary">Huỷ</a>
       <button type="submit" class="btn btn-primary">
         {% include "components/icon.html" with name="save" %}Lưu và tính lại gợi ý
+      </button>
+    </div>
+
+    {# Nút lưu trên Mobile (Action Bar thay Bottom Nav) #}
+    <div class="at-actionbar">
+      <a href="{% url 'home' %}" class="btn btn-secondary">Huỷ</a>
+      <button type="submit" class="btn btn-primary">
+        {% include "components/icon.html" with name="save" %}Lưu hồ sơ
       </button>
     </div>
   </form>
@@ -274,7 +282,6 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  // Gán class giao diện cho các thẻ form Django
   var aboutTextarea = document.getElementById("id_about");
   if (aboutTextarea) {
     aboutTextarea.classList.add("form-control");
@@ -297,7 +304,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll(".skill-row").forEach(setupRow);
   document.querySelectorAll(".interest-row").forEach(setupRow);
 
-  // Thêm dòng kỹ năng
   var btnAddSkill = document.getElementById("btn-add-skill");
   var skillContainer = document.getElementById("skill-forms-container");
   var totalSkillInput = document.getElementById("id_skills-TOTAL_FORMS");
@@ -317,7 +323,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Thêm dòng lĩnh vực
   var btnAddInterest = document.getElementById("btn-add-interest");
   var interestContainer = document.getElementById("interest-forms-container");
   var totalInterestInput = document.getElementById("id_interests-TOTAL_FORMS");

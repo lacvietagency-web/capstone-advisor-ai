@@ -5,7 +5,7 @@ import re
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
 
-from .models import Lecturer, Student, StudentInterest, StudentSkill, Topic, TopicPrerequisite, TopicSkill
+from .models import Field, Lecturer, Student, StudentInterest, StudentSkill, Topic, TopicPrerequisite, TopicSkill
 
 ABOUT_HINT = "Ví dụ: Em thích làm backend, đã làm web bán hàng bằng Django, muốn làm Backend Developer…"
 
@@ -87,6 +87,40 @@ StudentSkillFormSet = inlineformset_factory(
 StudentInterestFormSet = inlineformset_factory(
     Student, StudentInterest, formset=_NoDuplicateFieldFormSet, fields=["field", "level"], extra=1, can_delete=True
 )
+
+MAX_INTERESTS = 3
+
+
+class StudentInterestPickForm(forms.Form):
+    """Lĩnh vực quan tâm dạng lưới ô tick, tối đa 3 (ảnh duyệt 08).
+
+    M3 cần mức quan tâm 1–3: lĩnh vực đã có giữ nguyên mức cũ, lĩnh vực mới tick = mức 3 (quan tâm)."""
+
+    picked = forms.ModelMultipleChoiceField(
+        label="Lĩnh vực quan tâm",
+        queryset=Field.objects.order_by("name"),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    def __init__(self, *args, student, **kwargs):
+        self.student = student
+        kwargs.setdefault("initial", {"picked": list(student.interests.values_list("field_id", flat=True))})
+        super().__init__(*args, prefix="interest", **kwargs)
+
+    def clean_picked(self):
+        picked = self.cleaned_data["picked"]
+        if len(picked) > MAX_INTERESTS:
+            raise forms.ValidationError(f"Chọn tối đa {MAX_INTERESTS} lĩnh vực.")
+        return picked
+
+    def save(self):
+        picked = {f.pk for f in self.cleaned_data["picked"]}
+        self.student.interests.exclude(field_id__in=picked).delete()
+        have = set(self.student.interests.values_list("field_id", flat=True))
+        StudentInterest.objects.bulk_create(
+            StudentInterest(student=self.student, field_id=f, level=3) for f in picked - have
+        )
 
 
 class PreferenceForm(forms.Form):

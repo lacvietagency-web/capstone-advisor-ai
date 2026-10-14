@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 # ---------------------------------------------------------------- danh mục
@@ -170,8 +171,6 @@ class Topic(models.Model):
         """Mã đề tài tự sinh lần lưu đầu: DT-<năm>-<số thứ tự 3 chữ số theo id>."""
         super().save(*args, **kwargs)
         if not self.code:
-            from django.utils import timezone
-
             self.code = f"DT-{timezone.now().year}-{self.pk:03d}"
             type(self).objects.filter(pk=self.pk).update(code=self.code)
 
@@ -229,6 +228,13 @@ class RegistrationPeriod(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def days_left(self):
+        """Số ngày còn lại tới hạn đóng khi đợt đang mở (thẻ đợt: "còn N ngày"); None nếu không áp dụng."""
+        if self.status != self.Status.OPEN:
+            return None
+        return max((self.end_at.date() - timezone.localdate()).days, 0)
 
 
 class Preference(models.Model):

@@ -340,8 +340,6 @@ a.at-page:hover { background: var(--at-surface-hover); color: var(--at-ink); }
 }
 
 /* 11. HÀNH TRÌNH SINH VIÊN · DẢI TRẠNG THÁI ĐỢT -------------------------------------- */
-.at-period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--at-surface); border: 1px solid var(--at-line); border-radius: var(--at-radius-md); }
-.at-period-name { font-weight: 600; } .at-period-end { margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .at-journey { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin: 0; padding: 0; list-style: none; }
 .at-journey-step { position: relative; display: block; padding-top: 36px; color: var(--at-ink); text-decoration: none; }
 .at-journey-step::before { content: ""; position: absolute; top: 12px; left: 30px; right: -24px; border-top: 1px solid var(--at-line-strong); }
@@ -362,7 +360,6 @@ a.at-journey-step:hover .at-journey-label { color: var(--at-brand); text-decorat
 @media (max-width: 767.98px) {
   .at-journey { grid-template-columns: 1fr; gap: 0; }
   .at-journey-step { padding: 0 0 16px 40px; min-height: 44px; } .at-journey-step::before { top: 26px; bottom: 0; left: 12px; right: auto; border-top: 0; border-left: 1px solid var(--at-line-strong); }
-  .at-period { padding: 12px 16px; } .at-period-end { margin-left: 0; width: 100%; }
 }
 
 /* 12. ĐIỂM AI — điểm tổng bằng chữ số lớn + dải chứng cứ M1–M5 + ghi chú giải thích ------ */
@@ -499,3 +496,13 @@ a.at-journey-step:hover .at-journey-label { color: var(--at-brand); text-decorat
 .at-evidence-value { white-space: nowrap; }
 .at-best-evidence .at-evidence-value--none { white-space: normal; text-align: right; }
 .at-best-evidence .at-evidence li { grid-template-columns: 26px minmax(70px, max-content) minmax(40px, 1fr) auto; gap: 6px 10px; }
+
+/* Thẻ đợt đăng ký V3.7 (ảnh duyệt 09/12/13/14/16/18/19): trái = tên + thời gian, phải = câu giải thích sau vạch ngăn */
+.at-period { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 16px 24px; padding: 14px 20px; background: var(--at-surface); border: 1px solid var(--at-line); border-radius: var(--at-radius-md); }
+.at-period-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.at-period-tile { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 8px; background: var(--at-brand-soft, #EAF1FD); color: var(--at-brand); }
+.at-period-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.at-period-name { font-size: 16px; line-height: 24px; font-weight: 700; color: var(--at-ink); }
+.at-period-time { margin-top: 2px; font-size: 13px; line-height: 20px; color: var(--at-ink-muted); }
+.at-period-aside { margin: 0; padding-left: 24px; border-left: 1px solid var(--at-line); font-size: 13px; line-height: 21px; color: var(--at-ink-muted); }
+@media (max-width: 767.98px) { .at-period { grid-template-columns: 1fr; padding: 12px 16px; } .at-period-aside { padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--at-line); } }

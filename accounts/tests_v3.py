@@ -226,7 +226,9 @@ class V37CoreTests(TestCase):
     def _profile_post(self, **extra):
         ctx = self.client.get("/ho-so/").context
         data = {}
-        for fs in (ctx["skill_formset"], ctx["interest_formset"]):
+        data["interest-shown"] = "1"
+        data["interest-picked"] = [str(f) for f in ctx["interest_form"].initial["picked"]]
+        for fs in (ctx["skill_formset"],):
             mf = fs.management_form
             data.update({f"{fs.prefix}-{k}": v for k, v in mf.initial.items()})
             for form in fs.forms:
@@ -261,9 +263,11 @@ class V37CoreTests(TestCase):
     def test_lecturer_home_lists_pending_students(self):
         from catalog.models import Preference
 
-        pref = Preference.objects.filter(submitted=True, status=Preference.Status.PENDING).select_related(
-            "topic__lecturer__user", "student__user"
-        ).first()
+        pref = (
+            Preference.objects.filter(submitted=True, status=Preference.Status.PENDING)
+            .select_related("topic__lecturer__user", "student__user")
+            .first()
+        )
         self.client.force_login(pref.topic.lecturer.user)
         ctx = self.client.get("/trang-chu/").context
         self.assertIn(pref.pk, [r["pref"].pk for r in ctx["review_rows"]])
@@ -272,3 +276,17 @@ class V37CoreTests(TestCase):
         self.assertTrue(rows and all(r["pref"].student.student_code == code for r in rows))
         rows = self.client.get("/trang-chu/", {"tt": "dong-y"}).context["review_rows"]
         self.assertTrue(all(r["pref"].status == Preference.Status.ACCEPTED for r in rows))
+
+    def test_interest_checkboxes_max_three_keep_levels(self):
+        from catalog.models import Field, Student
+
+        self.client.login(username="sv001", password="123456")
+        st = Student.objects.get(user__username="sv001")
+        old = dict(st.interests.values_list("field_id", "level"))
+        keep = next(iter(old))
+        new = list(Field.objects.exclude(pk__in=old).values_list("pk", flat=True)[:3])
+        r = self._profile_post(**{"interest-picked": [keep, *new]})
+        self.assertIn("picked", r.context["interest_form"].errors)  # 4 lĩnh vực → bị chặn
+        r = self._profile_post(**{"interest-picked": [keep, new[0]]})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(dict(st.interests.values_list("field_id", "level")), {keep: old[keep], new[0]: 3})

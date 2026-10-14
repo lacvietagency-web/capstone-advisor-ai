@@ -1,10 +1,19 @@
-{# Dải trạng thái đợt đăng ký. Tham số: period (RegistrationPeriod); text (câu giải thích, tuỳ chọn). #}
+{% comment %}Thẻ đợt đăng ký (ảnh duyệt V3.6): ô biểu tượng · tên + trạng thái · "Thời gian … (còn N ngày)" | câu giải thích bên phải.
+   Tham số: period (RegistrationPeriod); text (câu giải thích, tuỳ chọn); aside (HTML khối bên phải thay cho text, tuỳ chọn).{% endcomment %}
 {% if period %}
-<div class="at-period">
-  {% include "components/icon.html" with name="clipboard-list" class="at-muted" %}
-  <span class="at-period-name">{{ period.name }}</span>
-  {% include "components/status.html" with status=period.status label=period.get_status_display %}
-  <span class="at-secondary at-num">{{ period.start_at|date:"d/m/Y" }} – {{ period.end_at|date:"d/m/Y" }}</span>
-  {% if text %}<span class="at-secondary">{{ text }}</span>{% endif %}
-</div>
+<section class="at-period" aria-label="Đợt đăng ký">
+  <div class="at-period-main">
+    <span class="at-period-tile">{% include "components/icon.html" with name="calendar-days" size=22 %}</span>
+    <div>
+      <div class="at-period-head">
+        <span class="at-period-name">{{ period.name }}</span>
+        {% include "components/status.html" with status=period.status label=period.get_status_display %}
+      </div>
+      <div class="at-period-time">
+        Thời gian: <span class="at-num">{{ period.start_at|date:"d/m/Y" }} – {{ period.end_at|date:"d/m/Y" }}</span>{% if period.days_left is not None %} (còn {{ period.days_left }} ngày){% endif %}
+      </div>
+    </div>
+  </div>
+  {% if aside %}<div class="at-period-aside">{{ aside }}</div>{% elif text %}<p class="at-period-aside">{{ text }}</p>{% endif %}
+</section>
 {% endif %}

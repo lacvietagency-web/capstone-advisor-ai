@@ -18,7 +18,7 @@ from .forms import (
     PreferenceForm,
     StudentAboutForm,
     StudentContactForm,
-    StudentInterestFormSet,
+    StudentInterestPickForm,
     StudentSkillFormSet,
     TopicForm,
     TopicPrerequisiteFormSet,
@@ -64,7 +64,7 @@ def student_profile(request):
     contact = StudentContactForm(request.POST or None, student=st)
     about = StudentAboutForm(request.POST or None, instance=st)
     skills = StudentSkillFormSet(request.POST or None, instance=st, prefix="skills")
-    interests = StudentInterestFormSet(request.POST or None, instance=st, prefix="interests")
+    interests = StudentInterestPickForm(request.POST or None, student=st)
     forms_ok = all([contact.is_valid(), about.is_valid(), skills.is_valid(), interests.is_valid()])
     if request.method == "POST" and forms_ok:
         with transaction.atomic():
@@ -72,7 +72,8 @@ def student_profile(request):
                 contact.save()
             about.save()
             skills.save()
-            interests.save()
+            if "interest-shown" in request.POST:  # biểu mẫu có lưới lĩnh vực (ô ẩn interest-shown)
+                interests.save()
             Student.objects.filter(pk=st.pk).update(
                 profile_version=F("profile_version") + 1
             )  # điểm AI sẽ được tính lại
@@ -89,7 +90,7 @@ def student_profile(request):
             "contact_form": contact,
             "about_form": about,
             "skill_formset": skills,
-            "interest_formset": interests,
+            "interest_form": interests,
             **profile_completeness(st),
         },
     )

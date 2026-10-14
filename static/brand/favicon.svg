@@ -1,26 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg"
-width="64" height="64" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
 <rect
 width="64"
 height="64"
-rx="12"
-fill="#305F52"/>
+rx="10"
+fill="#142B4B"
+/>
 <path
-d="M32 48V21
-M32 21C24 15 15 14 8 17V44
-C17 44 28 42 32 48Z
-M32 21C40 15 49 14 56 17V44
-C56 44 36 42 32 48Z"
-fill="none"
-stroke="#FFFFFF"
-stroke-width="4.5"
+d="M10 47V17L23 25L32 35L41 25L54 17V47L42 40V30L32 40L22 30V40L10 47Z"
+stroke="#8EC5FF"
+stroke-width="3.5"
 stroke-linecap="round"
-stroke-linejoin="round"/>
+stroke-linejoin="round"
+/>
 <path
-d="M22 34L28 39L42 25"
-fill="none"
-stroke="#C9E5D6"
-stroke-width="4.5"
+d="M10 17L22 11L32 20L42 11L54 17"
+stroke="#8EC5FF"
+stroke-width="3.5"
 stroke-linecap="round"
-stroke-linejoin="round"/>
+stroke-linejoin="round"
+/>
 </svg>

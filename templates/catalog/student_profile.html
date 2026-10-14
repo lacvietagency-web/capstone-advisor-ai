@@ -71,10 +71,12 @@
             </div>
             <div class="info-field">
               <label class="form-label" for="id_email">Email</label>
-              <input type="email" name="email" id="id_email" class="form-control" value="{{ contact_form.email.value|default:student.user.email }}" required>
-              {% if contact_form.email.errors %}
-                <div class="at-error">{{ contact_form.email.errors.0 }}</div>
-              {% endif %}
+              <div class="info-input-wrap">
+                <input type="email" name="email" id="id_email" class="form-control" value="{{ contact_form.email.value|default:student.user.email }}" required>
+                {% if contact_form.email.errors %}
+                  <div class="at-error">{{ contact_form.email.errors.0 }}</div>
+                {% endif %}
+              </div>
             </div>
 
             {# Hàng 3: Ngành / Số điện thoại #}
@@ -84,10 +86,12 @@
             </div>
             <div class="info-field">
               <label class="form-label" for="id_phone">Số điện thoại</label>
-              <input type="tel" name="phone" id="id_phone" class="form-control" value="{{ contact_form.phone.value|default:student.phone }}">
-              {% if contact_form.phone.errors %}
-                <div class="at-error">{{ contact_form.phone.errors.0 }}</div>
-              {% endif %}
+              <div class="info-input-wrap">
+                <input type="tel" name="phone" id="id_phone" class="form-control" value="{{ contact_form.phone.value|default:student.phone }}">
+                {% if contact_form.phone.errors %}
+                  <div class="at-error">{{ contact_form.phone.errors.0 }}</div>
+                {% endif %}
+              </div>
             </div>
           </div>
         </section>
@@ -100,11 +104,11 @@
             </div>
           </div>
           <div class="about-textarea-wrap">
-            <textarea name="about" id="id_about" class="form-control" rows="4" placeholder="Chia sẻ ngắn về kinh nghiệm, định hướng nghề nghiệp và loại đồ án mong muốn.">{{ about_form.about.value|default:'' }}</textarea>
+            <textarea name="about" id="id_about" class="form-control" rows="3" maxlength="500" placeholder="Chia sẻ ngắn về kinh nghiệm, định hướng nghề nghiệp và loại đồ án mong muốn.">{{ about_form.about.value|default:'' }}</textarea>
             {% if about_form.about.errors %}
               <div class="at-error">{{ about_form.about.errors.0 }}</div>
             {% endif %}
-            <div class="about-char-count"><span id="about-count">{{ about_form.about.value|default:''|length }}</span> ký tự</div>
+            <div class="about-char-count"><span id="about-count">{{ about_form.about.value|default:''|length }}</span> / 500 ký tự</div>
           </div>
         </section>
 

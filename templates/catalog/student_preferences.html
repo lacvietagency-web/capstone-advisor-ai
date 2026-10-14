@@ -24,7 +24,7 @@
   <div class="period-status-card">
     <div class="period-left">
       <span class="period-tile">
-        {% include "components/icon.html" with name="calendar-days" size=22 %}
+        {% include "components/icon.html" with name="calendar-days" size=20 %}
       </span>
       <div class="period-info">
         <div class="period-title-row">
@@ -41,11 +41,11 @@
       {% if is_submitted %}
         <div class="period-status-content">
           <span class="period-status-icon at-success-ink">
-            {% include "components/icon.html" with name="circle-check" size=18 %}
+            {% include "components/icon.html" with name="circle-check" size=16 %}
           </span>
           <div class="period-status-text">
             <div class="period-status-title">Đã nộp chính thức lúc {{ submitted_at|date:"H:i, d/m/Y" }}</div>
-            <p class="period-status-desc">Giảng viên và Khoa đã ghi nhận nguyện vọng của bạn. Bạn vẫn có thể rút về nháp để sửa trước khi đợt đóng.</p>
+            <p class="period-status-desc">Giảng viên và Khoa đã ghi nhận. Bạn vẫn có thể rút về nháp để sửa trước hạn.</p>
           </div>
         </div>
         <form method="post" data-at-busy class="d-inline">
@@ -59,7 +59,7 @@
         {% if pref_rows %}
           <div class="period-status-content">
             <span class="period-status-icon at-warning-ink">
-              {% include "components/icon.html" with name="triangle-alert" size=18 %}
+              {% include "components/icon.html" with name="triangle-alert" size=16 %}
             </span>
             <div class="period-status-text">
               <div class="period-status-title">Bạn đã lưu {{ pref_rows|length }} nguyện vọng, chưa nộp chính thức.</div>
@@ -69,7 +69,7 @@
         {% else %}
           <div class="period-status-content">
             <span class="period-status-icon at-info-ink">
-              {% include "components/icon.html" with name="info" size=18 %}
+              {% include "components/icon.html" with name="info" size=16 %}
             </span>
             <div class="period-status-text">
               <div class="period-status-title">Chưa nộp nguyện vọng</div>
@@ -117,26 +117,26 @@
                 {% endif %}{% endfor %}
               </div>
               <button type="button" class="btn-clear-nv js-clear-nv" data-rank="1" aria-label="Xoá nguyện vọng 1" title="Xoá nguyện vọng 1">
-                {% include "components/icon.html" with name="trash-2" size=16 %}
+                {% include "components/icon.html" with name="trash-2" size=14 %}
               </button>
             </div>
           </div>
 
           <div class="nv-body">
-            <div class="nv-select-row">
-              <label class="nv-select-label" for="{{ form.nv1.id_for_label }}">Chọn đề tài</label>
-              <div class="nv-select-wrap">
-                {{ form.nv1 }}
-                {% if form.nv1.errors %}
-                  <div class="at-error">{{ form.nv1.errors.0 }}</div>
-                {% endif %}
-              </div>
-            </div>
+            <div class="nv-content-grid">
+              <div class="nv-content-left">
+                <div class="nv-select-row">
+                  <label class="nv-select-label" for="{{ form.nv1.id_for_label }}">Chọn đề tài</label>
+                  <div class="nv-select-wrap">
+                    {{ form.nv1 }}
+                    {% if form.nv1.errors %}
+                      <div class="at-error">{{ form.nv1.errors.0 }}</div>
+                    {% endif %}
+                  </div>
+                </div>
 
-            <div class="nv-detail" id="nvDetail1" data-rank="1"{% for r in pref_rows %}{% if r.rank == 1 %} data-topic-id="{{ r.pref.topic.id }}"{% endif %}{% endfor %}>
-              {% for r in pref_rows %}{% if r.rank == 1 %}
-                <div class="nv-content-grid">
-                  <div class="nv-content-left">
+                <div class="nv-detail" id="nvDetail1" data-rank="1"{% for r in pref_rows %}{% if r.rank == 1 %} data-topic-id="{{ r.pref.topic.id }}"{% endif %}{% endfor %}>
+                  {% for r in pref_rows %}{% if r.rank == 1 %}
                     <div class="topic-strip">
                       <div class="topic-strip-info">
                         <span class="topic-strip-title" title="{{ r.pref.topic.title }}">{{ r.pref.topic.title }}</span>
@@ -163,43 +163,49 @@
                     {% endif %}
 
                     {% if r.pref.status != "PENDING" and r.pref.lecturer_note %}
-                      <div class="at-mt-1">
-                        {% include "components/note.html" with kind="neutral" icon="user-round" title="Nhận xét của giảng viên" text=r.pref.lecturer_note %}
+                      <div class="nv-sub-note nv-lecturer-note">
+                        {% include "components/icon.html" with name="user-round" size=14 %}
+                        <span><strong>Nhận xét:</strong> {{ r.pref.lecturer_note }}</span>
                       </div>
                     {% endif %}
                     {% if r.pref.status == "REJECTED" and r.pref.reject_reason %}
-                      <div class="at-mt-1">
-                        {% include "components/note.html" with kind="danger" icon="triangle-alert" title="Lý do từ chối" text=r.pref.reject_reason %}
+                      <div class="nv-sub-note nv-reject-note">
+                        {% include "components/icon.html" with name="triangle-alert" size=14 class="at-danger-ink" %}
+                        <span><strong>Từ chối:</strong> {{ r.pref.reject_reason }}</span>
                       </div>
                     {% endif %}
-                  </div>
-
-                  <div class="nv-content-right">
-                    <div class="eligibility-title">Kiểm tra điều kiện</div>
-                    <div class="eligibility-list">
-                      {% for item in r.checklist %}
-                        <div class="eligibility-row">
-                          <div class="eligibility-left">
-                            {% if item.state == 'ok' %}
-                              {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
-                            {% elif item.state == 'warn' %}
-                              {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
-                            {% else %}
-                              {% include "components/icon.html" with name="circle-x" size=14 class="at-danger-ink" %}
-                            {% endif %}
-                            <span class="eligibility-label" title="{{ item.label }}">{{ item.label }}</span>
-                          </div>
-                          <span class="eligibility-value is-{{ item.state }}">{{ item.value }}</span>
-                        </div>
-                      {% empty %}
-                        <div class="at-secondary">Không có tiêu chí kiểm tra</div>
-                      {% endfor %}
-                    </div>
-                  </div>
+                  {% endif %}{% empty %}
+                    <div class="at-secondary nv-empty-note">Chưa chọn đề tài cho nguyện vọng này.</div>
+                  {% endfor %}
                 </div>
-              {% endif %}{% empty %}
-                <div class="at-secondary nv-empty-note">Chưa chọn đề tài cho nguyện vọng này.</div>
-              {% endfor %}
+              </div>
+
+              <div class="nv-content-right" id="nvChecklist1">
+                <div class="eligibility-title">Kiểm tra điều kiện</div>
+                <div class="eligibility-list">
+                  {% for r in pref_rows %}{% if r.rank == 1 %}
+                    {% for item in r.checklist %}
+                      <div class="eligibility-row">
+                        <div class="eligibility-left">
+                          {% if item.state == 'ok' %}
+                            {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
+                          {% elif item.state == 'warn' %}
+                            {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
+                          {% else %}
+                            {% include "components/icon.html" with name="circle-x" size=14 class="at-danger-ink" %}
+                          {% endif %}
+                          <span class="eligibility-label" title="{{ item.label }}">{{ item.label }}</span>
+                        </div>
+                        <span class="eligibility-value is-{{ item.state }}">{{ item.value }}</span>
+                      </div>
+                    {% empty %}
+                      <div class="at-secondary nv-empty-note">Không có tiêu chí kiểm tra</div>
+                    {% endfor %}
+                  {% endif %}{% empty %}
+                    <div class="at-secondary nv-empty-note">Chưa có tiêu chí kiểm tra</div>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -226,26 +232,26 @@
                 {% endif %}{% endfor %}
               </div>
               <button type="button" class="btn-clear-nv js-clear-nv" data-rank="2" aria-label="Xoá nguyện vọng 2" title="Xoá nguyện vọng 2">
-                {% include "components/icon.html" with name="trash-2" size=16 %}
+                {% include "components/icon.html" with name="trash-2" size=14 %}
               </button>
             </div>
           </div>
 
           <div class="nv-body">
-            <div class="nv-select-row">
-              <label class="nv-select-label" for="{{ form.nv2.id_for_label }}">Chọn đề tài</label>
-              <div class="nv-select-wrap">
-                {{ form.nv2 }}
-                {% if form.nv2.errors %}
-                  <div class="at-error">{{ form.nv2.errors.0 }}</div>
-                {% endif %}
-              </div>
-            </div>
+            <div class="nv-content-grid">
+              <div class="nv-content-left">
+                <div class="nv-select-row">
+                  <label class="nv-select-label" for="{{ form.nv2.id_for_label }}">Chọn đề tài</label>
+                  <div class="nv-select-wrap">
+                    {{ form.nv2 }}
+                    {% if form.nv2.errors %}
+                      <div class="at-error">{{ form.nv2.errors.0 }}</div>
+                    {% endif %}
+                  </div>
+                </div>
 
-            <div class="nv-detail" id="nvDetail2" data-rank="2"{% for r in pref_rows %}{% if r.rank == 2 %} data-topic-id="{{ r.pref.topic.id }}"{% endif %}{% endfor %}>
-              {% for r in pref_rows %}{% if r.rank == 2 %}
-                <div class="nv-content-grid">
-                  <div class="nv-content-left">
+                <div class="nv-detail" id="nvDetail2" data-rank="2"{% for r in pref_rows %}{% if r.rank == 2 %} data-topic-id="{{ r.pref.topic.id }}"{% endif %}{% endfor %}>
+                  {% for r in pref_rows %}{% if r.rank == 2 %}
                     <div class="topic-strip">
                       <div class="topic-strip-info">
                         <span class="topic-strip-title" title="{{ r.pref.topic.title }}">{{ r.pref.topic.title }}</span>
@@ -272,43 +278,49 @@
                     {% endif %}
 
                     {% if r.pref.status != "PENDING" and r.pref.lecturer_note %}
-                      <div class="at-mt-1">
-                        {% include "components/note.html" with kind="neutral" icon="user-round" title="Nhận xét của giảng viên" text=r.pref.lecturer_note %}
+                      <div class="nv-sub-note nv-lecturer-note">
+                        {% include "components/icon.html" with name="user-round" size=14 %}
+                        <span><strong>Nhận xét:</strong> {{ r.pref.lecturer_note }}</span>
                       </div>
                     {% endif %}
                     {% if r.pref.status == "REJECTED" and r.pref.reject_reason %}
-                      <div class="at-mt-1">
-                        {% include "components/note.html" with kind="danger" icon="triangle-alert" title="Lý do từ chối" text=r.pref.reject_reason %}
+                      <div class="nv-sub-note nv-reject-note">
+                        {% include "components/icon.html" with name="triangle-alert" size=14 class="at-danger-ink" %}
+                        <span><strong>Từ chối:</strong> {{ r.pref.reject_reason }}</span>
                       </div>
                     {% endif %}
-                  </div>
-
-                  <div class="nv-content-right">
-                    <div class="eligibility-title">Kiểm tra điều kiện</div>
-                    <div class="eligibility-list">
-                      {% for item in r.checklist %}
-                        <div class="eligibility-row">
-                          <div class="eligibility-left">
-                            {% if item.state == 'ok' %}
-                              {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
-                            {% elif item.state == 'warn' %}
-                              {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
-                            {% else %}
-                              {% include "components/icon.html" with name="circle-x" size=14 class="at-danger-ink" %}
-                            {% endif %}
-                            <span class="eligibility-label" title="{{ item.label }}">{{ item.label }}</span>
-                          </div>
-                          <span class="eligibility-value is-{{ item.state }}">{{ item.value }}</span>
-                        </div>
-                      {% empty %}
-                        <div class="at-secondary">Không có tiêu chí kiểm tra</div>
-                      {% endfor %}
-                    </div>
-                  </div>
+                  {% endif %}{% empty %}
+                    <div class="at-secondary nv-empty-note">Chưa chọn đề tài cho nguyện vọng này.</div>
+                  {% endfor %}
                 </div>
-              {% endif %}{% empty %}
-                <div class="at-secondary nv-empty-note">Chưa chọn đề tài cho nguyện vọng này.</div>
-              {% endfor %}
+              </div>
+
+              <div class="nv-content-right" id="nvChecklist2">
+                <div class="eligibility-title">Kiểm tra điều kiện</div>
+                <div class="eligibility-list">
+                  {% for r in pref_rows %}{% if r.rank == 2 %}
+                    {% for item in r.checklist %}
+                      <div class="eligibility-row">
+                        <div class="eligibility-left">
+                          {% if item.state == 'ok' %}
+                            {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
+                          {% elif item.state == 'warn' %}
+                            {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
+                          {% else %}
+                            {% include "components/icon.html" with name="circle-x" size=14 class="at-danger-ink" %}
+                          {% endif %}
+                          <span class="eligibility-label" title="{{ item.label }}">{{ item.label }}</span>
+                        </div>
+                        <span class="eligibility-value is-{{ item.state }}">{{ item.value }}</span>
+                      </div>
+                    {% empty %}
+                      <div class="at-secondary nv-empty-note">Không có tiêu chí kiểm tra</div>
+                    {% endfor %}
+                  {% endif %}{% empty %}
+                    <div class="at-secondary nv-empty-note">Chưa có tiêu chí kiểm tra</div>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -335,26 +347,26 @@
                 {% endif %}{% endfor %}
               </div>
               <button type="button" class="btn-clear-nv js-clear-nv" data-rank="3" aria-label="Xoá nguyện vọng 3" title="Xoá nguyện vọng 3">
-                {% include "components/icon.html" with name="trash-2" size=16 %}
+                {% include "components/icon.html" with name="trash-2" size=14 %}
               </button>
             </div>
           </div>
 
           <div class="nv-body">
-            <div class="nv-select-row">
-              <label class="nv-select-label" for="{{ form.nv3.id_for_label }}">Chọn đề tài</label>
-              <div class="nv-select-wrap">
-                {{ form.nv3 }}
-                {% if form.nv3.errors %}
-                  <div class="at-error">{{ form.nv3.errors.0 }}</div>
-                {% endif %}
-              </div>
-            </div>
+            <div class="nv-content-grid">
+              <div class="nv-content-left">
+                <div class="nv-select-row">
+                  <label class="nv-select-label" for="{{ form.nv3.id_for_label }}">Chọn đề tài</label>
+                  <div class="nv-select-wrap">
+                    {{ form.nv3 }}
+                    {% if form.nv3.errors %}
+                      <div class="at-error">{{ form.nv3.errors.0 }}</div>
+                    {% endif %}
+                  </div>
+                </div>
 
-            <div class="nv-detail" id="nvDetail3" data-rank="3"{% for r in pref_rows %}{% if r.rank == 3 %} data-topic-id="{{ r.pref.topic.id }}"{% endif %}{% endfor %}>
-              {% for r in pref_rows %}{% if r.rank == 3 %}
-                <div class="nv-content-grid">
-                  <div class="nv-content-left">
+                <div class="nv-detail" id="nvDetail3" data-rank="3"{% for r in pref_rows %}{% if r.rank == 3 %} data-topic-id="{{ r.pref.topic.id }}"{% endif %}{% endfor %}>
+                  {% for r in pref_rows %}{% if r.rank == 3 %}
                     <div class="topic-strip">
                       <div class="topic-strip-info">
                         <span class="topic-strip-title" title="{{ r.pref.topic.title }}">{{ r.pref.topic.title }}</span>
@@ -381,43 +393,49 @@
                     {% endif %}
 
                     {% if r.pref.status != "PENDING" and r.pref.lecturer_note %}
-                      <div class="at-mt-1">
-                        {% include "components/note.html" with kind="neutral" icon="user-round" title="Nhận xét của giảng viên" text=r.pref.lecturer_note %}
+                      <div class="nv-sub-note nv-lecturer-note">
+                        {% include "components/icon.html" with name="user-round" size=14 %}
+                        <span><strong>Nhận xét:</strong> {{ r.pref.lecturer_note }}</span>
                       </div>
                     {% endif %}
                     {% if r.pref.status == "REJECTED" and r.pref.reject_reason %}
-                      <div class="at-mt-1">
-                        {% include "components/note.html" with kind="danger" icon="triangle-alert" title="Lý do từ chối" text=r.pref.reject_reason %}
+                      <div class="nv-sub-note nv-reject-note">
+                        {% include "components/icon.html" with name="triangle-alert" size=14 class="at-danger-ink" %}
+                        <span><strong>Từ chối:</strong> {{ r.pref.reject_reason }}</span>
                       </div>
                     {% endif %}
-                  </div>
-
-                  <div class="nv-content-right">
-                    <div class="eligibility-title">Kiểm tra điều kiện</div>
-                    <div class="eligibility-list">
-                      {% for item in r.checklist %}
-                        <div class="eligibility-row">
-                          <div class="eligibility-left">
-                            {% if item.state == 'ok' %}
-                              {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
-                            {% elif item.state == 'warn' %}
-                              {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
-                            {% else %}
-                              {% include "components/icon.html" with name="circle-x" size=14 class="at-danger-ink" %}
-                            {% endif %}
-                            <span class="eligibility-label" title="{{ item.label }}">{{ item.label }}</span>
-                          </div>
-                          <span class="eligibility-value is-{{ item.state }}">{{ item.value }}</span>
-                        </div>
-                      {% empty %}
-                        <div class="at-secondary">Không có tiêu chí kiểm tra</div>
-                      {% endfor %}
-                    </div>
-                  </div>
+                  {% endif %}{% empty %}
+                    <div class="at-secondary nv-empty-note">Chưa chọn đề tài cho nguyện vọng này.</div>
+                  {% endfor %}
                 </div>
-              {% endif %}{% empty %}
-                <div class="at-secondary nv-empty-note">Chưa chọn đề tài cho nguyện vọng này.</div>
-              {% endfor %}
+              </div>
+
+              <div class="nv-content-right" id="nvChecklist3">
+                <div class="eligibility-title">Kiểm tra điều kiện</div>
+                <div class="eligibility-list">
+                  {% for r in pref_rows %}{% if r.rank == 3 %}
+                    {% for item in r.checklist %}
+                      <div class="eligibility-row">
+                        <div class="eligibility-left">
+                          {% if item.state == 'ok' %}
+                            {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
+                          {% elif item.state == 'warn' %}
+                            {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
+                          {% else %}
+                            {% include "components/icon.html" with name="circle-x" size=14 class="at-danger-ink" %}
+                          {% endif %}
+                          <span class="eligibility-label" title="{{ item.label }}">{{ item.label }}</span>
+                        </div>
+                        <span class="eligibility-value is-{{ item.state }}">{{ item.value }}</span>
+                      </div>
+                    {% empty %}
+                      <div class="at-secondary nv-empty-note">Không có tiêu chí kiểm tra</div>
+                    {% endfor %}
+                  {% endif %}{% empty %}
+                    <div class="at-secondary nv-empty-note">Chưa có tiêu chí kiểm tra</div>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -425,16 +443,21 @@
         {# Sticky Save Bar (Cột trái) #}
         <div class="pref-save-bar">
           <div class="pref-save-left">
-            {% include "components/icon.html" with name="clock" size=14 %}
-            <span>
-              {% if submitted_at %}
-                Đã nộp lúc {{ submitted_at|date:"H:i, d/m/Y" }}
-              {% elif is_submitted %}
-                Đã nộp chính thức
-              {% else %}
-                Chưa nộp chính thức
-              {% endif %}
-            </span>
+            {% if is_submitted %}
+              {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
+              <span>
+                Đã nộp chính thức{% if submitted_at %} lúc {{ submitted_at|date:"H:i, d/m/Y" }}{% endif %}
+              </span>
+            {% else %}
+              {% include "components/icon.html" with name="clock" size=14 %}
+              <span>
+                {% if pref_rows %}
+                  Đã lưu {{ pref_rows|length }} nguyện vọng, chưa nộp
+                {% else %}
+                  Chưa nộp chính thức
+                {% endif %}
+              </span>
+            {% endif %}
           </div>
           <div class="pref-save-right">
             {% if not is_submitted %}
@@ -678,20 +701,26 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateNvDetail(rank, forceUpdate) {
-    var slot = document.getElementById("nvDetail" + rank);
+    var detailSlot = document.getElementById("nvDetail" + rank);
+    var checkSlot = document.getElementById("nvChecklist" + rank);
     var statusSlot = document.getElementById("nvStatus" + rank);
     var sel = selects[rank];
-    if (!slot || !sel) return;
+    if (!detailSlot || !sel) return;
 
     var topicId = sel.value;
     if (!topicId) {
-      slot.innerHTML = '<div class="at-secondary nv-empty-note">Chưa chọn đề tài cho nguyện vọng này.</div>';
-      slot.removeAttribute("data-topic-id");
+      detailSlot.innerHTML = '<div class="at-secondary nv-empty-note">Chưa chọn đề tài cho nguyện vọng này.</div>';
+      detailSlot.removeAttribute("data-topic-id");
+      if (checkSlot) {
+        checkSlot.innerHTML =
+          '<div class="eligibility-title">Kiểm tra điều kiện</div>' +
+          '<div class="eligibility-list"><div class="at-secondary nv-empty-note">Chưa có tiêu chí kiểm tra</div></div>';
+      }
       if (statusSlot) statusSlot.innerHTML = '';
       return;
     }
 
-    var renderedTopicId = slot.getAttribute("data-topic-id");
+    var renderedTopicId = detailSlot.getAttribute("data-topic-id");
     if (!forceUpdate && renderedTopicId && String(renderedTopicId) === String(topicId)) {
       return;
     }
@@ -756,7 +785,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var warnIcon = '<svg class="at-icon at-warning-ink" width="14" height="14"><use href="/static/icons/triangle-alert.svg#icon"></use></svg>';
 
     var gpaOk = minGpa > 0 ? (studentGpa >= minGpa) : true;
-    var gpaLabel = minGpa > 0 ? ('GPA đạt yêu cầu (≥ ' + minGpa.toFixed(1) + ')') : 'GPA (đề tài không đặt ngưỡng)';
+    var gpaLabel = minGpa > 0 ? ('GPA đạt yêu cầu (≥ ' + minGpa.toFixed(1) + ')') : 'GPA không yêu cầu';
     var gpaValue = gpaOk ? ('Đạt (' + studentGpa.toFixed(2) + ')') : ('Chưa đạt (' + studentGpa.toFixed(2) + ')');
 
     var remaining = (isSavedMatch && saved.remaining !== undefined) ? saved.remaining : capacity;
@@ -796,17 +825,11 @@ document.addEventListener("DOMContentLoaded", function () {
         '</div>' +
       '</div>';
 
-    slot.setAttribute("data-topic-id", topicId);
-    slot.innerHTML =
-      '<div class="nv-content-grid">' +
-        '<div class="nv-content-left">' +
-          stripHtml +
-          reasonHtml +
-        '</div>' +
-        '<div class="nv-content-right">' +
-          checklistHtml +
-        '</div>' +
-      '</div>';
+    detailSlot.setAttribute("data-topic-id", topicId);
+    detailSlot.innerHTML = stripHtml + reasonHtml;
+    if (checkSlot) {
+      checkSlot.innerHTML = checklistHtml;
+    }
   }
 
   [1, 2, 3].forEach(function (rank) {

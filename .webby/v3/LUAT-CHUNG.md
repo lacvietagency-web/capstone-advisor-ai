@@ -12,6 +12,8 @@ LUẬT CHUNG ĐỘI GIAO DIỆN — ATLAS V3.4 (máy kiểm sẽ chặn mọi vi
       (biến checklist: list {label, state ok|warn|fail, value}), bộ lọc {% load atlas_tags %}: reason_points (lý do → các ý đánh số),
       csv_items (chuỗi "a, b" → thẻ). Biến mới ghi trong HOP-DONG-v37-<nhóm>.md.
    d) Không bịa: chỉ dữ liệu thật từ context; nút nào không có chức năng thật thì bỏ (không href="#"); không chuông; M5 = "Đánh giá LLM".
+   f) Cỡ chữ tối thiểu 12px (máy kiểm chặn chữ nhỏ hơn): diff ghi 10–11px thì dùng 12px, giữ nguyên độ đậm/màu/khoảng cách.
+   g) "Tải biên bản" (màn 12) = nút gọi window.print() (trình duyệt cho "Lưu dưới dạng PDF") — đó là chức năng thật, được dùng.
    e) Điện thoại: các màn m<mã> làm theo bản desktop đã sửa + mục "Mobile" trong diff; không tràn ngang ở 390px.
    (Bản V3.6 cũ: spec .webby/v3/v36/spec-<nhóm>.md vẫn là nguồn phụ khi diff không nói gì.)
 1. Thông số có hiệu lực (mới nhất thắng): .webby/v3/truong/g4-chot.md (V3.5, học bố cục web trường) > .webby/v3/b2-chot.md (V3.4) > .webby/v3/a2-thong-so.md (V3.3).

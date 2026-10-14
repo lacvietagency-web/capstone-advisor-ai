@@ -9,167 +9,254 @@
       <a href="{% url 'home' %}">Trang chủ</a>
       <span>Đề tài</span>
     </nav>
-    <h1 class="h1">Danh sách đề tài tốt nghiệp</h1>
-    <p class="at-page-desc">Tra cứu, tìm kiếm và lọc đề tài theo lĩnh vực, giảng viên hướng dẫn và độ khó.</p>
+    <h1>Danh sách đề tài tốt nghiệp</h1>
+    <div class="at-meta at-mt-1">
+      {% if is_student and student %}
+        <span>MSSV: <strong class="at-num">{{ student.student_code }}</strong></span>
+        <span>Ngành: <strong>{{ student.major.name|default:student.major }}</strong></span>
+        <span>GPA: <strong class="at-num">{{ student.gpa|floatformat:2 }}</strong></span>
+      {% endif %}
+    </div>
+    <p class="at-page-desc">Tra cứu, so sánh và lựa chọn đề tài phù hợp với hồ sơ năng lực của bạn.</p>
   </div>
 </header>
 
 <div class="at-stack">
+  {% if open_period %}
+    {% include "components/period.html" with period=open_period %}
+  {% endif %}
+
+  <section class="at-panel">
+    <div class="at-panel-header">
+      <div>
+        <h2>Tìm kiếm và lọc đề tài</h2>
+        <p class="at-secondary">Lọc theo lĩnh vực, giảng viên hướng dẫn và độ khó</p>
+      </div>
+      <span class="at-count">{{ page_obj.paginator.count }} đề tài</span>
+    </div>
+    <form class="at-toolbar" method="get" action="{% url 'topic_list' %}">
+      {% if tab %}<input type="hidden" name="dk" value="{{ tab }}">{% endif %}
+      {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+      <div class="at-search at-input-icon">
+        {% include "components/icon.html" with name="search" %}
+        <input class="form-control" type="search" name="q" value="{{ search_query }}" placeholder="Tìm theo tên đề tài, từ khóa…" aria-label="Tìm kiếm">
+      </div>
+      <select class="form-select at-filter" name="field" aria-label="Lọc theo lĩnh vực" data-at-autosubmit>
+        <option value="">Tất cả lĩnh vực</option>
+        {% for f in fields %}
+          <option value="{{ f.id }}" {% if selected_field == f.id|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
+        {% endfor %}
+      </select>
+      <select class="form-select at-filter" name="lecturer" aria-label="Lọc theo giảng viên" data-at-autosubmit>
+        <option value="">Tất cả giảng viên</option>
+        {% for l in lecturers %}
+          <option value="{{ l.id }}" {% if selected_lecturer == l.id|stringformat:"s" %}selected{% endif %}>{{ l.user.get_full_name|default:l.user.username }}</option>
+        {% endfor %}
+      </select>
+      <select class="form-select at-filter" name="difficulty" aria-label="Lọc theo độ khó" data-at-autosubmit>
+        <option value="">Tất cả độ khó</option>
+        {% for val, label in difficulties %}
+          <option value="{{ val }}" {% if selected_difficulty == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <div class="at-toolbar-end">
+        <button type="submit" class="btn btn-secondary btn-sm">Tìm kiếm</button>
+        {% if search_query or selected_field or selected_lecturer or selected_difficulty or tab or sort %}
+          <a href="{% url 'topic_list' %}" class="btn btn-text btn-sm">Xoá bộ lọc</a>
+        {% endif %}
+      </div>
+    </form>
+  </section>
+
+  {% if is_student and tab_counts %}
+    <div class="at-chips">
+      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}" class="at-chip {% if not tab %}active{% endif %}">
+        Tất cả <span class="at-chip-count">({{ tab_counts.all|default:page_obj.paginator.count }})</span>
+      </a>
+      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}dk=1" class="at-chip {% if tab == '1' %}active{% endif %}">
+        Đủ điều kiện <span class="at-chip-count">({{ tab_counts.ok|default:0 }})</span>
+      </a>
+      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}dk=0" class="at-chip {% if tab == '0' %}active{% endif %}">
+        Chưa đủ điều kiện <span class="at-chip-count">({{ tab_counts.no|default:0 }})</span>
+      </a>
+    </div>
+  {% endif %}
+
   <section class="at-panel at-panel--flush">
     <div class="at-panel-header">
       <div>
-        <h2 class="h3">Danh sách đề tài</h2>
+        <h2>Danh sách đề tài</h2>
         <p class="at-secondary">Tổng số {{ page_obj.paginator.count }} đề tài trong hệ thống</p>
       </div>
-    </div>
-    <div class="at-panel-body">
-      <form class="at-toolbar" method="get" action="{% url 'topic_list' %}">
-        <div class="at-search at-input-icon">
-          {% include "components/icon.html" with name="search" %}
-          <input class="form-control" type="search" name="q" value="{{ search_query }}" placeholder="Tìm theo tên đề tài, từ khoá…" aria-label="Tìm kiếm">
-        </div>
-        <select class="form-select at-filter" name="field" aria-label="Lọc theo lĩnh vực" data-at-autosubmit>
-          <option value="">Tất cả lĩnh vực</option>
-          {% for f in fields %}
-            <option value="{{ f.id }}" {% if selected_field == f.id|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
-          {% endfor %}
-        </select>
-        <select class="form-select at-filter" name="lecturer" aria-label="Lọc theo giảng viên" data-at-autosubmit>
-          <option value="">Tất cả giảng viên</option>
-          {% for l in lecturers %}
-            <option value="{{ l.id }}" {% if selected_lecturer == l.id|stringformat:"s" %}selected{% endif %}>{{ l.user.get_full_name|default:l.user.username }}</option>
-          {% endfor %}
-        </select>
-        <select class="form-select at-filter" name="difficulty" aria-label="Lọc theo độ khó" data-at-autosubmit>
-          <option value="">Tất cả độ khó</option>
-          {% for val, label in difficulties %}
-            <option value="{{ val }}" {% if selected_difficulty == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-        <div class="at-toolbar-end">
-          <span class="at-count">{{ page_obj.paginator.count }} đề tài</span>
-          {% if search_query or selected_field or selected_lecturer or selected_difficulty %}
-            <a href="{% url 'topic_list' %}" class="btn btn-text btn-sm">Xoá bộ lọc</a>
-          {% endif %}
-        </div>
-      </form>
     </div>
 
     {% if topics %}
       <div class="at-table-wrap">
-      <table class="at-table d-none d-md-table">
-        <thead>
-          <tr>
-            <th>Tên đề tài &amp; Lĩnh vực</th>
-            <th>GVHD</th>
-            <th>Độ khó</th>
-            <th class="at-th-num">Sức chứa / NV1</th>
-            <th class="at-th-num">Điểm phù hợp</th>
-            <th>Điều kiện</th>
-            <th class="at-td-actions" aria-label="Thao tác"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t in topics %}
+        <table class="at-table d-none d-md-table">
+          <thead>
             <tr>
-              <td class="at-td-main">
-                <a href="{% url 'topic_detail' t.id %}" class="at-title-link">{{ t.title }}</a>
-                {% if t.fields.all %}
-                  <div class="at-chips at-mt-1">
-                    {% for f in t.fields.all %}
-                      <span class="at-tag">{{ f.name }}</span>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-              </td>
-              <td>
-                <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>
-                {% if t.lecturer.department %}<span class="at-secondary"> · {{ t.lecturer.department }}</span>{% endif %}
-              </td>
-              <td><span class="at-tag">{{ t.get_difficulty_display }}</span></td>
-              <td class="at-td-num"><span class="at-num">{{ t.capacity }}</span> / <span class="at-num">{{ t.nv1_count }}</span></td>
-              <td class="at-td-num">
-                {% if is_student %}
-                  {% include "components/score.html" with rec=t.recommendation value=t.match_score size="sm" %}
-                {% else %}
-                  <span class="at-secondary">—</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if is_student %}
-                  {% if t.ineligible_reason %}
-                    {% include "components/status.html" with kind="danger" label="Chưa đủ điều kiện" %}
-                    {% for c in t.eligibility %}{% if not c.ok %}<div class="at-secondary at-mt-2">{{ c.label }}: cần {{ c.required|floatformat:"-2" }}, có {% if c.actual is None %}chưa có điểm{% else %}{{ c.actual|floatformat:"-2" }}{% endif %}</div>{% endif %}{% endfor %}
-                  {% else %}
-                    {% include "components/status.html" with kind="success" label="Đủ điều kiện" %}
-                  {% endif %}
-                {% else %}
-                  {% include "components/status.html" with status=t.status label=t.get_status_display %}
-                {% endif %}
-              </td>
-              <td class="at-td-actions">
-                <a href="{% url 'topic_detail' t.id %}" class="btn btn-secondary btn-sm">Chi tiết</a>
-                {% if is_student and not t.ineligible_reason and open_period %}
-                  <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="btn btn-primary btn-sm">Đăng ký</a>
-                {% endif %}
-              </td>
+              <th>
+                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}sort=title" class="{% if sort == 'title' %}active{% endif %}">
+                  Đề tài {% include "components/icon.html" with name="arrow-up-down" size=12 %}
+                </a>
+              </th>
+              <th>Giảng viên hướng dẫn</th>
+              <th>
+                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}sort=difficulty" class="{% if sort == 'difficulty' %}active{% endif %}">
+                  Độ khó {% include "components/icon.html" with name="arrow-up-down" size=12 %}
+                </a>
+              </th>
+              <th class="at-th-num">
+                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}sort=capacity" class="{% if sort == 'capacity' %}active{% endif %}">
+                  Chỉ tiêu / NV1 {% include "components/icon.html" with name="arrow-up-down" size=12 %}
+                </a>
+              </th>
+              <th class="at-th-num">
+                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}sort=score" class="{% if sort == 'score' %}active{% endif %}">
+                  Điểm phù hợp AI {% include "components/icon.html" with name="arrow-up-down" size=12 %}
+                </a>
+              </th>
+              <th>Điều kiện</th>
+              <th class="at-td-actions" aria-label="Thao tác">Thao tác</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      </div>
-
-      <div class="at-panel-body d-md-none">
-        <div class="at-list">
-          {% for t in topics %}
-            <article class="at-item">
-              <div class="at-row at-row--between at-row--top">
-                <div class="at-grow">
-                  <a href="{% url 'topic_detail' t.id %}" class="at-title-link"><strong>{{ t.title }}</strong></a>
+          </thead>
+          <tbody>
+            {% for t in topics %}
+              <tr>
+                <td class="at-td-main">
+                  <a href="{% url 'topic_detail' t.id %}" class="at-title-link">{{ t.title }}</a>
                   {% if t.fields.all %}
                     <div class="at-chips at-mt-1">
                       {% for f in t.fields.all %}
                         <span class="at-tag">{{ f.name }}</span>
                       {% endfor %}
-                      <span class="at-tag">{{ t.get_difficulty_display }}</span>
                     </div>
                   {% endif %}
-                </div>
-                {% if is_student %}
-                  {% if t.ineligible_reason %}
-                    {% include "components/status.html" with kind="danger" label="Chưa đủ điều kiện" %}
-                    {% for c in t.eligibility %}{% if not c.ok %}<div class="at-secondary at-mt-2">{{ c.label }}: cần {{ c.required|floatformat:"-2" }}, có {% if c.actual is None %}chưa có điểm{% else %}{{ c.actual|floatformat:"-2" }}{% endif %}</div>{% endif %}{% endfor %}
-                  {% else %}
-                    {% include "components/status.html" with kind="success" label="Đủ điều kiện" %}
+                </td>
+                <td>
+                  <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>
+                  {% if t.lecturer.department %}<span class="at-secondary"> · {{ t.lecturer.department }}</span>{% endif %}
+                </td>
+                <td><span class="at-tag">{{ t.get_difficulty_display }}</span></td>
+                <td class="at-td-num">
+                  <span class="at-num">{{ t.capacity }}</span> / <span class="at-num">{{ t.nv1_count }}</span>
+                  {% if t.remaining is not None %}
+                    <div class="at-secondary"><small>còn {{ t.remaining }} chỗ</small></div>
                   {% endif %}
-                {% else %}
-                  {% include "components/status.html" with status=t.status label=t.get_status_display %}
+                </td>
+                <td class="at-td-num">
+                  {% if is_student %}
+                    {% include "components/score.html" with rec=t.recommendation value=t.match_score size="sm" %}
+                  {% else %}
+                    <span class="at-secondary">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if is_student %}
+                    {% if t.ineligible_reason %}
+                      <div class="at-row">
+                        {% include "components/icon.html" with name="triangle-alert" class="at-danger-ink" size=14 %}
+                        <span class="at-danger-ink">Chưa đủ điều kiện</span>
+                      </div>
+                      {% for c in t.eligibility %}
+                        {% if not c.ok %}
+                          <div class="at-secondary at-mt-1">
+                            {{ c.label }}: cần {{ c.required|floatformat:"-2" }}, bạn có {% if c.actual is None %}chưa có điểm{% else %}{{ c.actual|floatformat:"-2" }}{% endif %}
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    {% else %}
+                      {% include "components/status.html" with kind="success" label="Đủ điều kiện" %}
+                    {% endif %}
+                  {% else %}
+                    {% include "components/status.html" with status=t.status label=t.get_status_display %}
+                  {% endif %}
+                </td>
+                <td class="at-td-actions">
+                  <div class="at-row at-row--between">
+                    <a href="{% url 'topic_detail' t.id %}" class="btn btn-secondary btn-sm">Chi tiết</a>
+                    {% if is_student %}
+                      {% if not t.ineligible_reason and open_period %}
+                        <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="btn btn-primary btn-sm">Đăng ký</a>
+                      {% else %}
+                        <button type="button" class="btn btn-secondary btn-sm" disabled>Đăng ký</button>
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="at-panel-body d-md-none">
+        <div class="at-list">
+        {% for t in topics %}
+          <article class="at-item">
+            <div class="at-row at-row--between at-row--top">
+              <div class="at-grow">
+                <div class="at-row at-mb-1">
+                  {% if t.recommendation.rank %}
+                    <span class="at-rank">#{{ t.recommendation.rank }}</span>
+                  {% endif %}
+                  <a href="{% url 'topic_detail' t.id %}" class="at-title-link"><strong>{{ t.title }}</strong></a>
+                </div>
+                <div class="at-secondary">
+                  GVHD: <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>{% if t.lecturer.department %} · {{ t.lecturer.department }}{% endif %}
+                </div>
+                {% if t.fields.all %}
+                  <div class="at-chips at-mt-1">
+                    {% for f in t.fields.all %}
+                      <span class="at-tag">{{ f.name }}</span>
+                    {% endfor %}
+                    <span class="at-tag">{{ t.get_difficulty_display }}</span>
+                  </div>
                 {% endif %}
               </div>
-              <div class="at-secondary at-mt-2">
-                GVHD: <strong>{{ t.lecturer.user.get_full_name|default:t.lecturer.user.username }}</strong>{% if t.lecturer.department %} · {{ t.lecturer.department }}{% endif %}
-              </div>
-              <dl class="at-kv at-mt-3">
-                <dt>Sức chứa / NV1</dt>
-                <dd class="at-num">{{ t.capacity }} / {{ t.nv1_count }}</dd>
-                {% if is_student %}
-                  <dt>Điểm phù hợp</dt>
-                  <dd>{% include "components/score.html" with rec=t.recommendation value=t.match_score size="sm" %}</dd>
-                {% endif %}
-              </dl>
-              {% if is_student and t.ineligible_reason %}
-                <div class="at-mt-3">
-                  {% include "components/note.html" with kind="warning" icon="triangle-alert" title="Chưa đủ điều kiện" text=t.ineligible_reason %}
+              {% if is_student %}
+                <div class="at-text-right">
+                  {% include "components/score.html" with rec=t.recommendation value=t.match_score size="sm" %}
                 </div>
               {% endif %}
-              <div class="at-form-actions at-mt-3">
-                <a href="{% url 'topic_detail' t.id %}" class="btn btn-secondary btn-sm">Chi tiết</a>
-                {% if is_student and not t.ineligible_reason and open_period %}
+            </div>
+
+            <dl class="at-kv at-mt-3">
+              <dt>Chỉ tiêu / NV1</dt>
+              <dd class="at-num">{{ t.capacity }} / {{ t.nv1_count }}{% if t.remaining is not None %} (còn {{ t.remaining }}){% endif %}</dd>
+            </dl>
+
+            {% if is_student %}
+              <div class="at-divider"></div>
+              {% if t.ineligible_reason %}
+                <div class="at-row at-mb-1">
+                  {% include "components/icon.html" with name="triangle-alert" class="at-danger-ink" size=14 %}
+                  <span class="at-danger-ink">Chưa đủ điều kiện</span>
+                </div>
+                {% for c in t.eligibility %}
+                  {% if not c.ok %}
+                    <div class="at-secondary at-mt-1">
+                      {{ c.label }}: cần {{ c.required|floatformat:"-2" }}, có {% if c.actual is None %}chưa có điểm{% else %}{{ c.actual|floatformat:"-2" }}{% endif %}
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% else %}
+                {% include "components/status.html" with kind="success" label="Đủ điều kiện" %}
+              {% endif %}
+            {% endif %}
+
+            <div class="at-form-actions at-mt-3">
+              <a href="{% url 'topic_detail' t.id %}" class="btn btn-secondary btn-sm">Chi tiết</a>
+              {% if is_student %}
+                {% if not t.ineligible_reason and open_period %}
                   <a href="{% url 'student_preferences' %}?topic={{ t.id }}" class="btn btn-primary btn-sm">Đăng ký</a>
+                {% else %}
+                  <button type="button" class="btn btn-secondary btn-sm" disabled>Đăng ký</button>
                 {% endif %}
-              </div>
-            </article>
-          {% endfor %}
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
         </div>
       </div>
 
@@ -177,7 +264,7 @@
     {% else %}
       <div class="at-panel-body">
         {% url 'topic_list' as clear_filter_url %}
-        {% include "components/empty.html" with illustration="empty-search" title="Không có đề tài khớp bộ lọc" desc="Hãy thử thay đổi tiêu chí lọc hoặc từ khoá tìm kiếm để xem các đề tài khác." primary_url=clear_filter_url primary_label="Xoá bộ lọc" %}
+        {% include "components/empty.html" with illustration="empty-topics" title="Không tìm thấy đề tài phù hợp" desc="Hãy thử thay đổi tiêu chí lọc hoặc từ khoá tìm kiếm để xem các đề tài khác." primary_url=clear_filter_url primary_label="Xoá bộ lọc" %}
       </div>
     {% endif %}
   </section>

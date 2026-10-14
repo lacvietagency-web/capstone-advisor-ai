@@ -153,6 +153,9 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **o):
         self.rnd = random.Random(o["seed"])
+        self.extra = random.Random(
+            o["seed"] + 1
+        )  # riêng cho các trường V3.5 → dữ liệu cũ (và kết quả phân công) không đổi
         self._reset()
         # tài khoản Khoa demo (khớp gợi ý ở trang đăng nhập); admin superuser vẫn giữ nguyên
         kh, _ = User.objects.update_or_create(
@@ -210,6 +213,7 @@ class Command(BaseCommand):
             max_students=self.rnd.choice([4, 5, 6, 8]),
         )
         lec.fields.set(self.rnd.sample(list(self.fields.values()), 2))
+        fill_lecturer_details(lec, self.extra)
         return lec
 
     def _unique_title(self, title, skill):
@@ -245,6 +249,7 @@ class Command(BaseCommand):
         same_field = [c for c, cf in self.course_field.items() if cf == f.name]
         if same_field and rnd.random() < 0.6:
             TopicPrerequisite.objects.create(topic=t, course=self.courses[same_field[0]], min_score=5)
+        fill_topic_details(t)
         return t
 
     def _student(self, i, topics, hotness, period):
@@ -275,3 +280,29 @@ class Command(BaseCommand):
             pool = [(x, h) for x, h in pool if x != t]
         for rank, t in enumerate(chosen, 1):
             Preference.objects.create(student=st, topic=t, period=period, rank=rank)
+
+
+TITLES = ["ThS.", "ThS.", "TS.", "TS.", "PGS.TS."]
+
+
+def fill_lecturer_details(lec, rnd):
+    """Học hàm, SĐT, giới thiệu, từ khoá cho GV demo (V3.5). Dùng bộ sinh số riêng để không đổi dữ liệu cũ."""
+    names = [f.name for f in lec.fields.all()]
+    lec.academic_title = rnd.choice(TITLES)
+    lec.phone = "09" + "".join(str(rnd.randint(0, 9)) for _ in range(8))
+    lec.bio = (
+        f"Giảng viên {lec.department}, hướng nghiên cứu {', '.join(names).lower()}; hướng dẫn đồ án ứng dụng thực tế."
+    )
+    lec.keywords = ", ".join(n.lower() for n in names)
+    lec.save(update_fields=["academic_title", "phone", "bio", "keywords"])
+
+
+def fill_topic_details(topic):
+    """Mục tiêu + công nghệ gợi ý mặc định cho đề tài demo (lấy từ kỹ năng yêu cầu) khi chưa có bản do AI viết."""
+    skills = [ts.skill.name for ts in topic.skills.select_related("skill")]
+    topic.objectives = (
+        f"Xây dựng sản phẩm {topic.title.lower()} chạy được, có tài liệu thiết kế và kiểm thử; "
+        f"đánh giá trên dữ liệu thực tế của bài toán."
+    )
+    topic.technologies = ", ".join(skills)[:255]
+    topic.save(update_fields=["objectives", "technologies"])

@@ -775,13 +775,13 @@
   background-color: #F8FBFF;
 }
 
-.pg-14 .at-table th:nth-child(1), .pg-14 .at-table td:nth-child(1) { width: 5%; text-align: center; }
-.pg-14 .at-table th:nth-child(2), .pg-14 .at-table td:nth-child(2) { width: 31%; text-align: left; }
-.pg-14 .at-table th:nth-child(3), .pg-14 .at-table td:nth-child(3) { width: 18%; text-align: left; }
-.pg-14 .at-table th:nth-child(4), .pg-14 .at-table td:nth-child(4) { width: 8%; text-align: center; }
-.pg-14 .at-table th:nth-child(5), .pg-14 .at-table td:nth-child(5) { width: 10%; text-align: center; }
-.pg-14 .at-table th:nth-child(6), .pg-14 .at-table td:nth-child(6) { width: 14%; text-align: center; }
-.pg-14 .at-table th:nth-child(7), .pg-14 .at-table td:nth-child(7) { width: 14%; text-align: center; }
+.pg-14 .at-table th:nth-child(1), .pg-14 .at-table td:nth-child(1) { width: 4%; text-align: center; }
+.pg-14 .at-table th:nth-child(2), .pg-14 .at-table td:nth-child(2) { width: 30%; text-align: left; }
+.pg-14 .at-table th:nth-child(3), .pg-14 .at-table td:nth-child(3) { width: 17%; text-align: left; }
+.pg-14 .at-table th:nth-child(4), .pg-14 .at-table td:nth-child(4) { width: 7%; text-align: center; }
+.pg-14 .at-table th:nth-child(5), .pg-14 .at-table td:nth-child(5) { width: 9%; text-align: center; }
+.pg-14 .at-table th:nth-child(6), .pg-14 .at-table td:nth-child(6) { width: 13%; text-align: center; }
+.pg-14 .at-table th:nth-child(7), .pg-14 .at-table td:nth-child(7) { width: 20%; text-align: center; }
 
 .pg-14 .at-topic-title {
   display: block;
@@ -1868,3 +1868,6 @@
     background-color: var(--at-surface-2);
   }
 }
+
+/* Claude: cột Thao tác đủ 3 nút (Xem · Sửa · ⋮), chip trạng thái không xuống dòng/không bị đè */
+.pg-14 .at-table td:nth-child(6) .at-status, .pg-14 .at-table td:nth-child(6) .at-badge { white-space: nowrap; }

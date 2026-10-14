@@ -384,7 +384,7 @@
 
 .pg-11 .pg-11-ai-headers {
   display: grid;
-  grid-template-columns: 24px 80px minmax(40px, 1fr) 36px 42px;
+  grid-template-columns: 24px 80px minmax(40px, 1fr) 36px 56px;
   gap: 6px 8px;
   margin-bottom: 4px;
   font-size: 12px;
@@ -414,7 +414,7 @@
 
 .pg-11 .pg-11-evidence-list li {
   display: grid;
-  grid-template-columns: 24px 80px minmax(40px, 1fr) 36px 42px;
+  grid-template-columns: 24px 80px minmax(40px, 1fr) 36px 56px;
   align-items: center;
   gap: 6px 8px;
   min-height: 24px;

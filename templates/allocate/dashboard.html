@@ -270,7 +270,9 @@
                   {% endif %}
                 </td>
                 <td class="at-text-center">
-                  {% if a.source == 'ILP' %}
+                  {% if not a.topic %}
+                    <span class="at-muted">—</span>
+                  {% elif a.source == 'ILP' %}
                     <span class="at-tag">ILP</span>
                   {% elif a.source == 'GREEDY' %}
                     <span class="at-tag">Greedy</span>

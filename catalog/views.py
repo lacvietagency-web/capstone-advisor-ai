@@ -114,6 +114,11 @@ def _initial_preferences(request, student, period):
             slot = next((f"nv{r}" for r in (1, 2, 3) if not initial.get(f"nv{r}")), None)
             if slot:
                 initial[slot] = preset_topic
+            else:
+                messages.info(
+                    request,
+                    f"Bạn đã chọn đủ 3 nguyện vọng. Muốn đăng ký «{preset_topic.title}» thì thay vào một ô bên dưới.",
+                )
     return initial
 
 

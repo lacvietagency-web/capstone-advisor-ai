@@ -161,7 +161,7 @@
                       {% for c in t.eligibility %}
                         {% if not c.ok %}
                           <div class="at-secondary at-mt-1">
-                            {{ c.label }}: cần {{ c.required|floatformat:"-2" }}, bạn có {% if c.actual is None %}chưa có điểm{% else %}{{ c.actual|floatformat:"-2" }}{% endif %}
+                            {{ c.label }}: cần {{ c.required|floatformat:"-2" }}, {% if c.actual is None %}bạn chưa có điểm{% else %}bạn có {{ c.actual|floatformat:"-2" }}{% endif %}
                           </div>
                         {% endif %}
                       {% endfor %}

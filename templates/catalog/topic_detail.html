@@ -256,10 +256,10 @@
                 <li data-state="{% if cond.ok %}done{% else %}todo{% endif %}">
                   {% if cond.ok %}
                     {% include "components/icon.html" with name="check" size=14 %}
-                    <span>{{ cond.label }}: cần {{ cond.required|floatformat:"-2" }}, bạn có {% if cond.actual is None %}chưa có điểm{% else %}{{ cond.actual|floatformat:"-2" }}{% endif %}</span>
+                    <span>{{ cond.label }}: cần {{ cond.required|floatformat:"-2" }}, {% if cond.actual is None %}bạn chưa có điểm{% else %}bạn có {{ cond.actual|floatformat:"-2" }}{% endif %}</span>
                   {% else %}
                     {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
-                    <span class="at-warning-ink">{{ cond.label }}: cần {{ cond.required|floatformat:"-2" }}, bạn có {% if cond.actual is None %}chưa có điểm{% else %}{{ cond.actual|floatformat:"-2" }}{% endif %}</span>
+                    <span class="at-warning-ink">{{ cond.label }}: cần {{ cond.required|floatformat:"-2" }}, {% if cond.actual is None %}bạn chưa có điểm{% else %}bạn có {{ cond.actual|floatformat:"-2" }}{% endif %}</span>
                   {% endif %}
                 </li>
               {% endfor %}

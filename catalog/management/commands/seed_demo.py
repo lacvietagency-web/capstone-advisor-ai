@@ -207,8 +207,14 @@ class Command(BaseCommand):
         )
 
     def _lecturer(self, i):
+        user = self._person("gv", i, User.Role.LECTURER)
+        # GV trùng họ tên trông như lỗi nhân đôi trong thống kê → đổi tên, không dùng rnd để giữ nguyên dữ liệu còn lại
+        taken = {(u.last_name, u.first_name) for u in User.objects.filter(role=User.Role.LECTURER).exclude(pk=user.pk)}
+        if (user.last_name, user.first_name) in taken:
+            user.first_name = next(f for f in FIRST if (user.last_name, f) not in taken)
+            user.save(update_fields=["first_name"])
         lec = Lecturer.objects.create(
-            user=self._person("gv", i, User.Role.LECTURER),
+            user=user,
             department="Khoa CNTT",
             max_students=self.rnd.choice([4, 5, 6, 8]),
         )

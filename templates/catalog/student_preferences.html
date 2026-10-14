@@ -739,16 +739,16 @@ document.addEventListener("DOMContentLoaded", function () {
     var statusHtml = "";
     if (isSavedMatch) {
       if (saved.status === "ACCEPTED") {
-        statusHtml = '<span class="nv-status-badge nv-status-accepted"><svg class="at-icon" width="12" height="12"><use href="/static/icons/check.svg#icon"></use></svg>Đồng ý</span>';
+        statusHtml = '<span class="nv-status-badge nv-status-accepted"><span class="at-icon" style="--i:url(\'/static/icons/check.svg\');--s:12px" aria-hidden="true"></span>Đồng ý</span>';
       } else if (saved.status === "REJECTED") {
-        statusHtml = '<span class="nv-status-badge nv-status-rejected"><svg class="at-icon" width="12" height="12"><use href="/static/icons/circle-x.svg#icon"></use></svg>Từ chối</span>';
+        statusHtml = '<span class="nv-status-badge nv-status-rejected"><span class="at-icon" style="--i:url(\'/static/icons/circle-x.svg\');--s:12px" aria-hidden="true"></span>Từ chối</span>';
       } else if (saved.submitted) {
-        statusHtml = '<span class="nv-status-badge nv-status-pending"><svg class="at-icon" width="12" height="12"><use href="/static/icons/clock.svg#icon"></use></svg>Chờ duyệt</span>';
+        statusHtml = '<span class="nv-status-badge nv-status-pending"><span class="at-icon" style="--i:url(\'/static/icons/clock.svg\');--s:12px" aria-hidden="true"></span>Chờ duyệt</span>';
       } else {
-        statusHtml = '<span class="nv-status-badge nv-status-saved"><svg class="at-icon" width="12" height="12"><use href="/static/icons/circle-check.svg#icon"></use></svg>Đã lưu</span>';
+        statusHtml = '<span class="nv-status-badge nv-status-saved"><span class="at-icon" style="--i:url(\'/static/icons/circle-check.svg\');--s:12px" aria-hidden="true"></span>Đã lưu</span>';
       }
     } else {
-      statusHtml = '<span class="nv-status-badge nv-status-draft"><svg class="at-icon" width="12" height="12"><use href="/static/icons/circle-dot.svg#icon"></use></svg>Chưa lưu</span>';
+      statusHtml = '<span class="nv-status-badge nv-status-draft"><span class="at-icon" style="--i:url(\'/static/icons/circle-dot.svg\');--s:12px" aria-hidden="true"></span>Chưa lưu</span>';
     }
     if (statusSlot) statusSlot.innerHTML = statusHtml;
 
@@ -775,14 +775,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // AI note
     var reasonHtml = reason ? (
       '<div class="ai-reason-note">' +
-        '<svg class="at-icon" width="14" height="14"><use href="/static/icons/info.svg#icon"></use></svg>' +
+        '<span class="at-icon" style="--i:url(\'/static/icons/info.svg\');--s:14px" aria-hidden="true"></span>' +
         '<div class="ai-reason-text">' + escapeHtml(reason) + '</div>' +
       '</div>'
     ) : '';
 
     // Checklist
-    var checkIcon = '<svg class="at-icon at-success-ink" width="14" height="14"><use href="/static/icons/circle-check.svg#icon"></use></svg>';
-    var warnIcon = '<svg class="at-icon at-warning-ink" width="14" height="14"><use href="/static/icons/triangle-alert.svg#icon"></use></svg>';
+    var checkIcon = '<span class="at-icon at-success-ink" style="--i:url(\'/static/icons/circle-check.svg\');--s:14px" aria-hidden="true"></span>';
+    var warnIcon = '<span class="at-icon at-warning-ink" style="--i:url(\'/static/icons/triangle-alert.svg\');--s:14px" aria-hidden="true"></span>';
 
     var gpaOk = minGpa > 0 ? (studentGpa >= minGpa) : true;
     var gpaLabel = minGpa > 0 ? ('GPA đạt yêu cầu (≥ ' + minGpa.toFixed(1) + ')') : 'GPA không yêu cầu';

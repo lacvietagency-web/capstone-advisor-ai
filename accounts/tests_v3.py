@@ -430,3 +430,9 @@ class V37CoreTests(TestCase):
         }
         fs = TopicSkillFormSet(data, instance=topic, prefix="skills")
         self.assertFalse(fs.is_valid())
+
+    def test_no_broken_svg_use_icon_refs(self):
+        import pathlib
+
+        bad = [p for p in pathlib.Path("templates").rglob("*.html") if ".svg#icon" in p.read_text(encoding="utf-8")]
+        self.assertEqual(bad, [], "icon Lucide không có id=icon — dùng components/icon.html")

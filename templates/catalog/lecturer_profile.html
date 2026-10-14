@@ -22,7 +22,7 @@
       <div class="at-panel-header">
         <div>
           <h2 class="h3">Chọn giảng viên</h2>
-          <p>Cán bộ Khoa chọn giảng viên cần điều chỉnh hồ sơ.</p>
+          <p>Cán bộ Khoa chọn giảng viên cần xem hoặc điều chỉnh hồ sơ.</p>
         </div>
       </div>
       <form method="get">
@@ -38,30 +38,8 @@
     </section>
   {% endif %}
 
-  <section class="at-panel">
-    <div class="at-row at-row--between at-row--top">
-      <div>
-        <h2 class="h3">{{ lecturer.user.get_full_name|default:lecturer.user.username }}</h2>
-        <div class="at-meta at-mt-2">
-          <span>Tài khoản: <strong>{{ lecturer.user.username }}</strong></span>
-          <span>Bộ môn: <strong>{{ lecturer.department|default:"Chưa cập nhật bộ môn" }}</strong></span>
-        </div>
-      </div>
-      <div class="at-row">
-        <div class="at-inset">
-          <div class="at-secondary">Chỉ tiêu tối đa</div>
-          <strong class="at-num">{{ lecturer.max_students }} SV</strong>
-        </div>
-        <div class="at-inset">
-          <div class="at-secondary">Số đề tài</div>
-          <strong class="at-num">{{ lecturer.topics.count }}</strong>
-        </div>
-      </div>
-    </div>
-  </section>
-
   {% if is_locked %}
-    {% include "components/banner.html" with kind="warning" title="Đợt đã đóng — chỉ tiêu bị khoá" text="Chỉ tiêu hướng dẫn tối đa đã được chốt phục vụ phân công. Bạn vẫn có thể cập nhật bộ môn và lĩnh vực chuyên môn. Nếu cần điều chỉnh chỉ tiêu, vui lòng liên hệ Ban chủ nhiệm Khoa." %}
+    {% include "components/banner.html" with kind="warning" title="Đợt đã đóng — chỉ tiêu bị khoá" text="Chỉ tiêu hướng dẫn tối đa đã được chốt phục vụ phân công. Bạn vẫn có thể cập nhật bộ môn và lĩnh vực chuyên môn. Nếu cần điều chỉnh chỉ tiêu, vui lòng liên hệ Ban chủ nhiệm Khoa (chỉ Khoa mới có quyền điều chỉnh)." %}
   {% endif %}
 
   {% if form.non_field_errors %}
@@ -77,12 +55,20 @@
   <form method="post" id="lecturerProfileForm" class="at-stack" novalidate data-at-busy>
     {% csrf_token %}
 
+    <!-- 1. Thông tin chung -->
     <section class="at-panel">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Thông tin chuyên môn</h2>
-          <p>Bộ môn công tác và các hướng nghiên cứu ưu tiên.</p>
+          <h2 class="h3">Thông tin chung</h2>
+          <p>Thông tin cá nhân và đơn vị công tác của giảng viên.</p>
         </div>
+      </div>
+
+      <div class="at-meta at-mb-4">
+        <span>Họ và tên: <strong>{{ lecturer.user.get_full_name|default:lecturer.user.username }}</strong></span>
+        <span>Tài khoản: <strong>{{ lecturer.user.username }}</strong></span>
+        {% if lecturer.user.email %}<span>Email: <strong>{{ lecturer.user.email }}</strong></span>{% endif %}
+        <span>Số đề tài hiện có: <strong class="at-num">{{ lecturer.topics.count }}</strong></span>
       </div>
 
       <div class="at-field">
@@ -91,7 +77,17 @@
         {% if form.department.errors %}
           <div class="at-error">{% for err in form.department.errors %}{{ err }}{% endfor %}</div>
         {% endif %}
-        <div class="form-text">Ví dụ: Bộ môn Công nghệ phần mềm, Bộ môn Trí tuệ nhân tạo, Bộ môn Hệ thống thông tin...</div>
+        <div class="form-text">Ví dụ: Bộ môn Công nghệ phần mềm, Bộ môn Hệ thống thông tin…</div>
+      </div>
+    </section>
+
+    <!-- 2. Chuyên môn -->
+    <section class="at-panel">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Chuyên môn</h2>
+          <p>Lĩnh vực nghiên cứu chính phục vụ đối sánh và gợi ý đề tài.</p>
+        </div>
       </div>
 
       <div class="at-field">
@@ -104,7 +100,17 @@
         {% if form.fields.errors %}
           <div class="at-error">{% for err in form.fields.errors %}{{ err }}{% endfor %}</div>
         {% endif %}
-        <div class="form-text">Các đề tài do giảng viên tạo và thuật toán đối sánh gợi ý sẽ ưu tiên liên kết với những lĩnh vực này.</div>
+        <div class="form-text">Các đề tài do giảng viên tạo và thuật toán đối sánh gợi ý AI sẽ ưu tiên liên kết với những lĩnh vực này.</div>
+      </div>
+    </section>
+
+    <!-- 3. Chỉ tiêu -->
+    <section class="at-panel">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Chỉ tiêu hướng dẫn</h2>
+          <p>Số lượng sinh viên tối đa có thể tiếp nhận trong đợt tốt nghiệp.</p>
+        </div>
       </div>
 
       <div class="at-field">

@@ -59,46 +59,48 @@
       </div>
 
       <div class="at-table-wrap">
-      <table class="at-table d-none d-md-table">
-        <thead>
-          <tr>
-            <th>Mã SV</th>
-            <th>Sinh viên</th>
-            <th class="at-th-num">GPA</th>
-            <th class="at-text-center">NV</th>
-            <th class="at-th-num">Điểm</th>
-            <th>Trạng thái</th>
-            <th class="at-td-actions"><span class="visually-hidden">Thao tác</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in rows %}
+        <table class="at-table d-none d-md-table">
+          <thead>
             <tr>
-              <td class="at-num">{{ row.pref.student.student_code }}</td>
-              <td class="at-td-main">
-                {{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}
-                {% if row.pref.student.major %}<small>{{ row.pref.student.major.name }}</small>{% endif %}
-              </td>
-              <td class="at-td-num">{{ row.pref.student.gpa|floatformat:2 }}</td>
-              <td class="at-text-center"><span class="at-rank">NV{{ row.pref.rank }}</span></td>
-              <td class="at-td-num">
-                {% if row.rec and row.rec.final_score is not None %}
-                  <span class="at-num">{{ row.rec.final_score|floatformat:1 }}</span>
-                {% else %}
-                  <span class="at-muted">Chưa đánh giá</span>
-                {% endif %}
-              </td>
-              <td>
-                {% include "components/status.html" with status=row.pref.status label=row.pref.get_status_display %}
-                {% if row.pref.status == "REJECTED" and row.pref.reject_reason %}<div class="at-secondary at-mt-2">Lý do: {{ row.pref.reject_reason }}</div>{% endif %}
-              </td>
-              <td class="at-td-actions">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atStudent{{ row.pref.pk }}">Phân tích</button>
-              </td>
+              <th>Mã SV</th>
+              <th>Sinh viên</th>
+              <th class="at-th-num">GPA</th>
+              <th class="at-text-center">NV</th>
+              <th class="at-th-num">Điểm</th>
+              <th>Trạng thái</th>
+              <th class="at-td-actions"><span class="visually-hidden">Thao tác</span></th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td class="at-num">{{ row.pref.student.student_code }}</td>
+                <td class="at-td-main">
+                  {{ row.pref.student.user.get_full_name|default:row.pref.student.user.username }}
+                  {% if row.pref.student.major %}<small>{{ row.pref.student.major.name }}</small>{% endif %}
+                </td>
+                <td class="at-td-num">{{ row.pref.student.gpa|floatformat:2 }}</td>
+                <td class="at-text-center"><span class="at-rank">NV{{ row.pref.rank }}</span></td>
+                <td class="at-td-num">
+                  {% if row.rec and row.rec.final_score is not None %}
+                    <span class="at-num">{{ row.rec.final_score|floatformat:1 }}</span>
+                  {% else %}
+                    <span class="at-muted">Chưa có điểm</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% include "components/status.html" with status=row.pref.status label=row.pref.get_status_display %}
+                  {% if row.pref.status == "REJECTED" and row.pref.reject_reason %}
+                    <div class="at-secondary at-mt-2">Lý do: {{ row.pref.reject_reason }}</div>
+                  {% endif %}
+                </td>
+                <td class="at-td-actions">
+                  <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atStudent{{ row.pref.pk }}">Phân tích</button>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
 
       <div class="at-panel-body d-md-none">
@@ -111,8 +113,10 @@
                   <small>{{ row.pref.student.student_code }} · GPA {{ row.pref.student.gpa|floatformat:2 }}</small>
                 </div>
                 {% include "components/status.html" with status=row.pref.status label=row.pref.get_status_display %}
-                {% if row.pref.status == "REJECTED" and row.pref.reject_reason %}<div class="at-secondary at-mt-2">Lý do: {{ row.pref.reject_reason }}</div>{% endif %}
               </div>
+              {% if row.pref.status == "REJECTED" and row.pref.reject_reason %}
+                <div class="at-secondary at-mt-2">Lý do: {{ row.pref.reject_reason }}</div>
+              {% endif %}
               <div class="at-row at-row--between at-row--top at-mt-3">
                 <span class="at-rank">NV{{ row.pref.rank }}</span>
                 {% include "components/score.html" with rec=row.rec size="sm" %}
@@ -126,7 +130,7 @@
       </div>
     </section>
 
-    <!-- Offcanvas chi tiết cho từng sinh viên -->
+    <!-- Offcanvas chi tiết từng sinh viên (440px desktop, toàn màn hình mobile) -->
     {% for row in rows %}
       <div class="offcanvas offcanvas-end" tabindex="-1" id="atStudent{{ row.pref.pk }}" aria-labelledby="atStudent{{ row.pref.pk }}Title">
         <div class="offcanvas-header">
@@ -167,7 +171,7 @@
               </section>
             {% endif %}
 
-            <!-- at-steps điều kiện -->
+            <!-- Kiểm tra điều kiện -->
             {% if row.eligibility %}
               <section class="at-panel">
                 <h3 class="h4 at-mb-3">Kiểm tra điều kiện</h3>
@@ -219,7 +223,7 @@
       </div>
     {% endfor %}
 
-    <!-- Modal từ chối (include một lần) -->
+    <!-- Modal từ chối nguyện vọng (include 1 lần) -->
     {% include "components/reject_modal.html" with action_url=request.path %}
 
   {% else %}

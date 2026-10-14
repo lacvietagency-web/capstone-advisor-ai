@@ -5,8 +5,11 @@
 {% block content %}
 <header class="at-page-header">
   <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí">
+      <span>Tổng quan</span>
+    </nav>
     <h1>Tổng quan</h1>
-    <p class="at-page-desc">Theo dõi đề tài, hồ sơ sinh viên đăng ký và các yêu cầu chờ duyệt.</p>
+    <p class="at-page-desc">Theo dõi các đề tài hướng dẫn, số lượng sinh viên đăng ký và xét duyệt nguyện vọng.</p>
   </div>
   <div class="at-page-actions">
     <a href="{% url 'lecturer_topic_new' %}" class="btn btn-primary">
@@ -43,7 +46,7 @@
     <div class="at-panel-header">
       <div>
         <h2 class="h3">Đề tài của tôi</h2>
-        <p>Đề tài cần duyệt và theo dõi danh sách đăng ký.</p>
+        <p>Đề tài có sinh viên chờ duyệt và theo dõi danh sách đăng ký.</p>
       </div>
       {% if topics %}
         <a href="{% url 'lecturer_topics' %}" class="btn btn-text btn-sm">Xem tất cả {% include "components/icon.html" with name="chevron-right" %}</a>
@@ -52,49 +55,49 @@
 
     {% if topics %}
       <div class="at-table-wrap">
-      <table class="at-table d-none d-md-table">
-        <thead>
-          <tr>
-            <th>Tên đề tài</th>
-            <th>Lĩnh vực</th>
-            <th class="at-th-num">Sức chứa</th>
-            <th class="at-th-num">Chờ duyệt</th>
-            <th>Trạng thái</th>
-            <th class="at-td-actions"><span class="visually-hidden">Thao tác</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t in topics %}
+        <table class="at-table d-none d-md-table">
+          <thead>
             <tr>
-              <td class="at-td-main">
-                <a href="{% url 'lecturer_topic_edit' t.pk %}">{{ t.title }}</a>
-                {% if t.description %}<small>{{ t.description|truncatewords:15 }}</small>{% endif %}
-              </td>
-              <td>
-                {% for f in t.fields.all %}
-                  <span class="at-tag">{{ f.name }}</span>
-                {% empty %}
-                  <span class="at-muted">—</span>
-                {% endfor %}
-              </td>
-              <td class="at-td-num">{{ t.capacity }}</td>
-              <td class="at-td-num">
-                {% if t.pending_count and t.pending_count > 0 %}
-                  <span class="at-badge at-badge--warning">{{ t.pending_count }}</span>
-                {% else %}
-                  <span class="at-muted">0</span>
-                {% endif %}
-              </td>
-              <td>
-                {% include "components/status.html" with status=t.status label=t.get_status_display %}
-              </td>
-              <td class="at-td-actions">
-                <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-secondary btn-sm">Duyệt ngay</a>
-              </td>
+              <th>Tên đề tài</th>
+              <th>Lĩnh vực</th>
+              <th class="at-th-num">Sức chứa</th>
+              <th class="at-th-num">Chờ duyệt</th>
+              <th>Trạng thái</th>
+              <th class="at-td-actions"><span class="visually-hidden">Thao tác</span></th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for t in topics %}
+              <tr>
+                <td class="at-td-main">
+                  <a href="{% url 'lecturer_topic_edit' t.pk %}">{{ t.title }}</a>
+                  {% if t.description %}<small>{{ t.description|truncatewords:15 }}</small>{% endif %}
+                </td>
+                <td>
+                  {% for f in t.fields.all %}
+                    <span class="at-tag">{{ f.name }}</span>
+                  {% empty %}
+                    <span class="at-muted">—</span>
+                  {% endfor %}
+                </td>
+                <td class="at-td-num">{{ t.capacity }}</td>
+                <td class="at-td-num">
+                  {% if t.pending_count and t.pending_count > 0 %}
+                    <span class="at-badge at-badge--warning">{{ t.pending_count }}</span>
+                  {% else %}
+                    <span class="at-muted">0</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% include "components/status.html" with status=t.status label=t.get_status_display %}
+                </td>
+                <td class="at-td-actions">
+                  <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-secondary btn-sm">Duyệt ngay</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
 
       <div class="at-panel-body d-md-none">
@@ -130,5 +133,9 @@
       </div>
     {% endif %}
   </section>
+
+  {% if current_period %}
+    {% include "components/period.html" with period=current_period text="Tiến độ đợt đăng ký và xét duyệt đề tài tốt nghiệp." %}
+  {% endif %}
 </div>
 {% endblock %}

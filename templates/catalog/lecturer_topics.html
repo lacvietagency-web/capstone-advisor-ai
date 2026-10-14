@@ -5,8 +5,12 @@
 {% block content %}
 <header class="at-page-header">
   <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí">
+      <a href="{% url 'home' %}">Tổng quan</a>
+      <span>Đề tài của tôi</span>
+    </nav>
     <h1>Đề tài của tôi</h1>
-    <p class="at-page-desc">Danh sách đề tài hướng dẫn tốt nghiệp và theo dõi đăng ký.</p>
+    <p class="at-page-desc">Quản lý danh sách đề tài hướng dẫn tốt nghiệp, theo dõi số lượng đăng ký và chỉ tiêu.</p>
   </div>
   <div class="at-page-actions">
     <a href="{% url 'lecturer_topic_new' %}" class="btn btn-primary">
@@ -25,53 +29,74 @@
     </div>
 
     {% if topics %}
+      <div class="at-panel-body">
+        <form class="at-toolbar" id="topicFilterForm" onsubmit="return false">
+          <div class="at-search at-input-icon">
+            {% include "components/icon.html" with name="search" %}
+            <input class="form-control" type="search" id="searchTopics" placeholder="Tìm theo tên đề tài…" aria-label="Tìm theo tên đề tài">
+          </div>
+          <select class="form-select at-filter" id="filterStatus" aria-label="Lọc trạng thái">
+            <option value="">Tất cả trạng thái</option>
+            <option value="OPEN">Đang mở</option>
+            <option value="DRAFT">Nháp</option>
+            <option value="CLOSED">Đã đóng</option>
+          </select>
+          <div class="at-toolbar-end">
+            <span class="at-count" id="topicsCount">Đang xem {{ topics|length }} trong {{ topics|length }} đề tài</span>
+            <button type="button" class="btn btn-text btn-sm" id="resetTopicFilter">Xoá bộ lọc</button>
+          </div>
+        </form>
+      </div>
+
       <div class="at-table-wrap">
-      <table class="at-table d-none d-md-table">
-        <thead>
-          <tr>
-            <th>Tên đề tài</th>
-            <th>Lĩnh vực</th>
-            <th>Độ khó</th>
-            <th class="at-th-num">Sức chứa</th>
-            <th>Trạng thái</th>
-            <th class="at-td-actions"><span class="visually-hidden">Thao tác</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t in topics %}
+        <table class="at-table d-none d-md-table" id="topicsTable">
+          <thead>
             <tr>
-              <td class="at-td-main">
-                <a href="{% url 'lecturer_topic_edit' t.pk %}">{{ t.title }}</a>
-                {% if t.description %}<small>{{ t.description|truncatewords:15 }}</small>{% endif %}
-              </td>
-              <td>
-                {% for f in t.fields.all %}
-                  <span class="at-tag">{{ f.name }}</span>
-                {% empty %}
-                  <span class="at-muted">—</span>
-                {% endfor %}
-              </td>
-              <td>{{ t.get_difficulty_display }}</td>
-              <td class="at-td-num">{{ t.capacity }}</td>
-              <td>
-                {% include "components/status.html" with status=t.status label=t.get_status_display %}
-              </td>
-              <td class="at-td-actions">
-                <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-secondary btn-sm"><span class="d-none d-lg-inline">Sinh viên </span>đăng ký</a>
-                <a href="{% url 'lecturer_topic_edit' t.pk %}" class="btn btn-secondary btn-icon btn-sm" aria-label="Sửa">
-                  {% include "components/icon.html" with name="square-pen" %}
-                </a>
-              </td>
+              <th>Tên đề tài</th>
+              <th>Lĩnh vực</th>
+              <th>Độ khó</th>
+              <th class="at-th-num">Sức chứa</th>
+              <th class="at-th-num">Số đăng ký</th>
+              <th>Trạng thái</th>
+              <th class="at-td-actions"><span class="visually-hidden">Thao tác</span></th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for t in topics %}
+              <tr data-topic-row data-title="{{ t.title|lower }}" data-status="{{ t.status }}">
+                <td class="at-td-main">
+                  <a href="{% url 'lecturer_topic_edit' t.pk %}">{{ t.title }}</a>
+                  {% if t.description %}<small>{{ t.description|truncatewords:15 }}</small>{% endif %}
+                </td>
+                <td>
+                  {% for f in t.fields.all %}
+                    <span class="at-tag">{{ f.name }}</span>
+                  {% empty %}
+                    <span class="at-muted">—</span>
+                  {% endfor %}
+                </td>
+                <td>{{ t.get_difficulty_display }}</td>
+                <td class="at-td-num">{{ t.capacity }}</td>
+                <td class="at-td-num">{{ t.preference_set.count }}</td>
+                <td>
+                  {% include "components/status.html" with status=t.status label=t.get_status_display %}
+                </td>
+                <td class="at-td-actions">
+                  <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-secondary btn-sm"><span class="d-none d-lg-inline">Sinh viên </span>đăng ký</a>
+                  <a href="{% url 'lecturer_topic_edit' t.pk %}" class="btn btn-secondary btn-icon btn-sm" aria-label="Sửa đề tài">
+                    {% include "components/icon.html" with name="square-pen" %}
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
 
       <div class="at-panel-body d-md-none">
-        <div class="at-list">
+        <div class="at-list" id="topicsMobileList">
           {% for t in topics %}
-            <article class="at-item">
+            <article class="at-item" data-topic-row data-title="{{ t.title|lower }}" data-status="{{ t.status }}">
               <div class="at-row at-row--between at-row--top">
                 <a href="{% url 'lecturer_topic_edit' t.pk %}" class="at-td-main"><strong>{{ t.title }}</strong></a>
                 {% include "components/status.html" with status=t.status label=t.get_status_display %}
@@ -89,9 +114,10 @@
               <dl class="at-kv at-mt-3">
                 <dt>Độ khó</dt><dd>{{ t.get_difficulty_display }}</dd>
                 <dt>Sức chứa</dt><dd class="at-num">{{ t.capacity }} SV</dd>
+                <dt>Số đăng ký</dt><dd class="at-num">{{ t.preference_set.count }}</dd>
               </dl>
               <div class="at-form-actions at-mt-4">
-                <a href="{% url 'lecturer_topic_edit' t.pk %}" class="btn btn-secondary btn-icon btn-sm" aria-label="Sửa">
+                <a href="{% url 'lecturer_topic_edit' t.pk %}" class="btn btn-secondary btn-icon btn-sm" aria-label="Sửa đề tài">
                   {% include "components/icon.html" with name="square-pen" %}
                 </a>
                 <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-secondary btn-sm">Sinh viên đăng ký</a>
@@ -103,9 +129,59 @@
     {% else %}
       <div class="at-panel-body">
         {% url 'lecturer_topic_new' as url_new_topic %}
-        {% include "components/empty.html" with illustration="empty-topics" title="Bạn chưa có đề tài nào" desc="Tạo đề tài đầu tiên để sinh viên có thể đăng ký và hệ thống đánh giá mức độ phù hợp." primary_url=url_new_topic primary_label="Thêm đề tài" %}
+        {% include "components/empty.html" with illustration="empty-topics" title="Chưa có đề tài" desc="Bạn chưa có đề tài nào. Thêm đề tài mới để sinh viên có thể đăng ký." primary_url=url_new_topic primary_label="Thêm đề tài" %}
       </div>
     {% endif %}
   </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const searchInput = document.getElementById("searchTopics");
+  const statusSelect = document.getElementById("filterStatus");
+  const countEl = document.getElementById("topicsCount");
+  const resetBtn = document.getElementById("resetTopicFilter");
+  const allRows = document.querySelectorAll("[data-topic-row]");
+  const total = {{ topics|length|default:0 }};
+
+  if (!searchInput || !statusSelect || allRows.length === 0) return;
+
+  function filterTopics() {
+    const query = (searchInput.value || "").trim().toLowerCase();
+    const status = statusSelect.value;
+    let visibleCount = 0;
+
+    allRows.forEach(function (row) {
+      const title = row.getAttribute("data-title") || "";
+      const rowStatus = row.getAttribute("data-status") || "";
+      const matchQuery = !query || title.includes(query);
+      const matchStatus = !status || rowStatus === status;
+
+      if (matchQuery && matchStatus) {
+        row.style.display = "";
+        if (row.tagName === "TR") visibleCount++;
+      } else {
+        row.style.display = "none";
+      }
+    });
+
+    if (countEl) {
+      countEl.textContent = "Đang xem " + visibleCount + " trong " + total + " đề tài";
+    }
+  }
+
+  searchInput.addEventListener("input", filterTopics);
+  statusSelect.addEventListener("change", filterTopics);
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", function () {
+      searchInput.value = "";
+      statusSelect.value = "";
+      filterTopics();
+    });
+  }
+});
+</script>
 {% endblock %}

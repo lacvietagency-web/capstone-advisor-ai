@@ -12,7 +12,7 @@
       <span>{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %}</span>
     </nav>
     <h1>{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %}</h1>
-    <p class="at-page-desc">Cập nhật thông tin đề tài và các tiêu chí tuyển chọn sinh viên.</p>
+    <p class="at-page-desc">Cập nhật thông tin đề tài, yêu cầu kỹ năng và chỉ tiêu tuyển chọn sinh viên.</p>
   </div>
 </header>
 
@@ -29,12 +29,12 @@
     </div>
   {% endif %}
 
-  <!-- Panel thông tin đề tài -->
+  <!-- 1. Thông tin chung -->
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
-        <h2 class="h3">Thông tin đề tài</h2>
-        <p>Mục tiêu, định hướng và phạm vi nghiên cứu của đề tài.</p>
+        <h2 class="h3">Thông tin chung</h2>
+        <p>Tên đề tài, tóm tắt nhiệm vụ và các lĩnh vực nghiên cứu.</p>
       </div>
     </div>
 
@@ -68,43 +68,9 @@
       {% endif %}
       <div class="form-text">Chọn các lĩnh vực liên quan để hệ thống đối sánh độ phù hợp với sở thích sinh viên.</div>
     </div>
-
-    <div class="at-grid">
-      <div class="at-col-6 at-field">
-        <label class="form-label at-required" for="{{ form.difficulty.id_for_label }}">Độ khó</label>
-        {{ form.difficulty }}
-        {% if form.difficulty.errors %}
-          <div class="at-error">{% for err in form.difficulty.errors %}{{ err }}{% endfor %}</div>
-        {% endif %}
-      </div>
-
-      <div class="at-col-6 at-field">
-        <label class="form-label at-required" for="{{ form.min_gpa.id_for_label }}">GPA tối thiểu</label>
-        {{ form.min_gpa }}
-        {% if form.min_gpa.errors %}
-          <div class="at-error">{% for err in form.min_gpa.errors %}{{ err }}{% endfor %}</div>
-        {% endif %}
-      </div>
-
-      <div class="at-col-6 at-field">
-        <label class="form-label at-required" for="{{ form.capacity.id_for_label }}">Sức chứa (SV)</label>
-        {{ form.capacity }}
-        {% if form.capacity.errors %}
-          <div class="at-error">{% for err in form.capacity.errors %}{{ err }}{% endfor %}</div>
-        {% endif %}
-      </div>
-
-      <div class="at-col-6 at-field">
-        <label class="form-label at-required" for="{{ form.status.id_for_label }}">Trạng thái</label>
-        {{ form.status }}
-        {% if form.status.errors %}
-          <div class="at-error">{% for err in form.status.errors %}{{ err }}{% endfor %}</div>
-        {% endif %}
-      </div>
-    </div>
   </section>
 
-  <!-- Panel Kỹ năng yêu cầu -->
+  <!-- 2. Kỹ năng yêu cầu -->
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
@@ -173,7 +139,67 @@
     </div>
 
     <div class="at-inset at-mt-4">
-      <p class="at-secondary at-mb-0">Trọng số thể hiện mức độ quan trọng tương đối của từng kỹ năng. Không yêu cầu tổng bằng 100%.</p>
+      <p class="at-secondary at-mb-0">Trọng số thể hiện mức độ quan trọng tương đối giữa các kỹ năng. Không bắt buộc tổng trọng số bằng 100%.</p>
+    </div>
+  </section>
+
+  <!-- 3. Điều kiện học thuật (GPA tối thiểu) -->
+  <section class="at-panel">
+    <div class="at-panel-header">
+      <div>
+        <h2 class="h3">Điều kiện học thuật</h2>
+        <p>Yêu cầu về GPA tối thiểu và mức độ thử thách của đề tài.</p>
+      </div>
+    </div>
+
+    <div class="at-grid">
+      <div class="at-col-6 at-field">
+        <label class="form-label at-required" for="{{ form.min_gpa.id_for_label }}">GPA tối thiểu</label>
+        {{ form.min_gpa }}
+        {% if form.min_gpa.errors %}
+          <div class="at-error">{% for err in form.min_gpa.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+        <div class="form-text">Điểm trung bình tích lũy tối thiểu của sinh viên để được phép đăng ký.</div>
+      </div>
+
+      <div class="at-col-6 at-field">
+        <label class="form-label at-required" for="{{ form.difficulty.id_for_label }}">Độ khó</label>
+        {{ form.difficulty }}
+        {% if form.difficulty.errors %}
+          <div class="at-error">{% for err in form.difficulty.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+        <div class="form-text">Độ phức tạp dự kiến của các yêu cầu và giải pháp trong đề tài.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Chỉ tiêu & trạng thái -->
+  <section class="at-panel">
+    <div class="at-panel-header">
+      <div>
+        <h2 class="h3">Chỉ tiêu &amp; trạng thái</h2>
+        <p>Số lượng sinh viên tiếp nhận và khả năng mở đăng ký.</p>
+      </div>
+    </div>
+
+    <div class="at-grid">
+      <div class="at-col-6 at-field">
+        <label class="form-label at-required" for="{{ form.capacity.id_for_label }}">Sức chứa (SV)</label>
+        {{ form.capacity }}
+        {% if form.capacity.errors %}
+          <div class="at-error">{% for err in form.capacity.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+        <div class="form-text">Số lượng sinh viên tối đa có thể cùng thực hiện đề tài này.</div>
+      </div>
+
+      <div class="at-col-6 at-field">
+        <label class="form-label at-required" for="{{ form.status.id_for_label }}">Trạng thái</label>
+        {{ form.status }}
+        {% if form.status.errors %}
+          <div class="at-error">{% for err in form.status.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+        <div class="form-text">Trạng thái công bố để sinh viên nhìn thấy và chọn nguyện vọng.</div>
+      </div>
     </div>
   </section>
 

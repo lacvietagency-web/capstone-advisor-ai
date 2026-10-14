@@ -8,3 +8,4 @@ staticfiles/
 .vscode/
 ui-review/
 graphify-out/
+tmp/

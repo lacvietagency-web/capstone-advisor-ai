@@ -121,6 +121,10 @@ class Lecturer(models.Model):
     department = models.CharField("Bộ môn", max_length=120, blank=True)
     max_students = models.PositiveSmallIntegerField("Chỉ tiêu hướng dẫn tối đa", default=5)
     fields = models.ManyToManyField(Field, verbose_name="Lĩnh vực chuyên môn", blank=True)
+    academic_title = models.CharField("Học hàm, học vị", max_length=60, blank=True)  # VD "TS.", "ThS."
+    phone = models.CharField("Số điện thoại", max_length=20, blank=True)  # chỉ Khoa và chính GV xem
+    bio = models.TextField("Giới thiệu", blank=True)
+    keywords = models.CharField("Từ khoá nghiên cứu", max_length=255, blank=True)  # cách nhau bằng dấu phẩy
 
     class Meta:
         verbose_name = verbose_name_plural = "Giảng viên"
@@ -142,8 +146,12 @@ class Topic(models.Model):
         CLOSED = "CLOSED", "Đã đóng"
 
     lecturer = models.ForeignKey(Lecturer, verbose_name="Giảng viên", on_delete=models.CASCADE, related_name="topics")
+    code = models.CharField("Mã đề tài", max_length=20, unique=True, null=True, blank=True, editable=False)  # tự sinh
     title = models.CharField("Tên đề tài", max_length=255)
     description = models.TextField("Mô tả")
+    objectives = models.TextField("Mục tiêu", blank=True)
+    technologies = models.CharField("Công nghệ gợi ý", max_length=255, blank=True)
+    review_note = models.TextField("Ghi chú xét duyệt", blank=True)  # lưu ý của GV khi xét SV đăng ký
     fields = models.ManyToManyField(Field, verbose_name="Lĩnh vực")
     difficulty = models.PositiveSmallIntegerField("Độ khó", choices=Difficulty.choices, default=Difficulty.MEDIUM)
     min_gpa = models.DecimalField("GPA tối thiểu", max_digits=3, decimal_places=2, default=0)
@@ -156,6 +164,15 @@ class Topic(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        """Mã đề tài tự sinh lần lưu đầu: DT-<năm>-<số thứ tự 3 chữ số theo id>."""
+        super().save(*args, **kwargs)
+        if not self.code:
+            from django.utils import timezone
+
+            self.code = f"DT-{timezone.now().year}-{self.pk:03d}"
+            type(self).objects.filter(pk=self.pk).update(code=self.code)
 
     def skill_weight_shares(self):
         """Tỉ lệ % trọng số từng kỹ năng yêu cầu — chỉ để HIỂN THỊ, không ép tổng = 100% (chủ dự án chốt 07/10/2026)."""
@@ -227,6 +244,11 @@ class Preference(models.Model):
     rank = models.PositiveSmallIntegerField("Nguyện vọng", validators=[MinValueValidator(1), MaxValueValidator(3)])
     status = models.CharField("Trạng thái", max_length=10, choices=Status.choices, default=Status.PENDING)
     reject_reason = models.TextField("Lý do từ chối", blank=True)  # bắt buộc khi GV từ chối (chủ dự án chốt 07/10/2026)
+    lecturer_note = models.TextField("Nhận xét giảng viên", blank=True)  # SV xem được sau khi GV đã duyệt
+    # Bản nháp (submitted=False) chỉ SV thấy; GV, thống kê và thuật toán phân công chỉ dùng nguyện vọng đã nộp.
+    # Mặc định True: dữ liệu cũ, Excel, seed và mọi chỗ tạo nguyện vọng ngoài trang SV đều là bản đã nộp.
+    submitted = models.BooleanField("Đã nộp chính thức", default=True)
+    submitted_at = models.DateTimeField("Thời điểm nộp", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

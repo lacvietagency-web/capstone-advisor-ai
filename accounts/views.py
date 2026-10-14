@@ -29,14 +29,14 @@ def _get_lecturer_dashboard_context(lecturer) -> dict:
         .annotate(
             pending_count=Count(
                 "preference",
-                filter=Q(preference__status=Preference.Status.PENDING),
+                filter=Q(preference__status=Preference.Status.PENDING, preference__submitted=True),
             )
         )
         .order_by("title")
     )
     n_topics = topics.count()
 
-    prefs = Preference.objects.filter(topic__lecturer=lecturer)
+    prefs = Preference.objects.filter(topic__lecturer=lecturer, submitted=True)  # GV chỉ thấy nguyện vọng đã nộp
     n_students = prefs.values("student").distinct().count()
     n_pending = prefs.filter(status=Preference.Status.PENDING).count()
     n_accepted = prefs.filter(status=Preference.Status.ACCEPTED).count()
@@ -120,7 +120,7 @@ def home(request):
                 "n_students": Student.objects.count(),
                 "n_periods": RegistrationPeriod.objects.count(),
                 "periods": RegistrationPeriod.objects.annotate(
-                    student_count=Count("preference__student", distinct=True)
+                    student_count=Count("preference__student", filter=Q(preference__submitted=True), distinct=True)
                 ).order_by("-start_at")[:5],
             },
         )

@@ -97,7 +97,9 @@ def annotate_topics_nv1(queryset):
     Công thức toán học:
         t.nv1_count = Count(p in Preference | p.topic = t and p.rank = 1)
     """
-    return queryset.annotate(nv1_count=Count("preference", filter=Q(preference__rank=1), distinct=True))
+    return queryset.annotate(
+        nv1_count=Count("preference", filter=Q(preference__rank=1, preference__submitted=True), distinct=True)
+    )
 
 
 def paginate_topics(queryset, page_number=1, per_page=10):
@@ -124,7 +126,7 @@ def get_topic_nv1_count(topic, period=None):
     Công thức toán học:
         nv1_count(t) = |{ p in Preference | p.topic = t and p.rank = 1 (and p.period = period) }|
     """
-    qs = Preference.objects.filter(topic=topic, rank=1)
+    qs = Preference.objects.filter(topic=topic, rank=1, submitted=True)
     if period is not None:
         qs = qs.filter(period=period)
     return qs.count()
@@ -273,3 +275,11 @@ def save_lecturer_profile(lecturer, form, user=None, is_locked=False, is_faculty
             },
         )
     return saved_lec
+
+
+def remaining_capacity(topic, period=None):
+    """Chỗ còn của đề tài = sức chứa − số nguyện vọng đã được GV đồng ý (trong đợt nếu có). Không âm."""
+    qs = Preference.objects.filter(topic=topic, status=Preference.Status.ACCEPTED, submitted=True)
+    if period is not None:
+        qs = qs.filter(period=period)
+    return max(topic.capacity - qs.count(), 0)

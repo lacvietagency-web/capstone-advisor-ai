@@ -3,7 +3,7 @@
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
 
-from .models import Lecturer, Student, StudentInterest, StudentSkill, Topic, TopicSkill
+from .models import Lecturer, Student, StudentInterest, StudentSkill, Topic, TopicPrerequisite, TopicSkill
 
 ABOUT_HINT = "Ví dụ: Em thích làm backend, đã làm web bán hàng bằng Django, muốn làm Backend Developer…"
 
@@ -103,8 +103,28 @@ class PreferenceForm(forms.Form):
 class TopicForm(forms.ModelForm):
     class Meta:
         model = Topic
-        fields = ["title", "description", "fields", "difficulty", "min_gpa", "capacity", "status"]
-        widgets = {"description": forms.Textarea(attrs={"rows": 5}), "fields": forms.CheckboxSelectMultiple}
+        fields = [
+            "title",
+            "description",
+            "objectives",
+            "technologies",
+            "fields",
+            "difficulty",
+            "min_gpa",
+            "capacity",
+            "status",
+            "review_note",
+        ]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 5}),
+            "objectives": forms.Textarea(attrs={"rows": 3}),
+            "review_note": forms.Textarea(attrs={"rows": 3}),
+            "fields": forms.CheckboxSelectMultiple,
+        }
+        help_texts = {
+            "technologies": "Cách nhau bằng dấu phẩy, VD: Flutter, Spring Boot, MySQL.",
+            "review_note": "Lưu ý khi xét sinh viên đăng ký (sinh viên không thấy).",
+        }
 
 
 TopicSkillFormSet = inlineformset_factory(
@@ -117,14 +137,34 @@ TopicSkillFormSet = inlineformset_factory(
 )
 
 
+class _NoDuplicateCourseFormSet(_NoDuplicateFormSet):
+    key_field = "course"
+    key_label = "Môn học"
+
+
+TopicPrerequisiteFormSet = inlineformset_factory(
+    Topic,
+    TopicPrerequisite,
+    formset=_NoDuplicateCourseFormSet,
+    fields=["course", "min_score"],
+    extra=1,
+    can_delete=True,
+)
+
+
 class LecturerProfileForm(forms.ModelForm):
     """Form cập nhật chuyên môn (bộ môn, lĩnh vực) và chỉ tiêu tối đa của GV [UC09]."""
 
     class Meta:
         model = Lecturer
-        fields = ["department", "fields", "max_students"]
+        fields = ["academic_title", "department", "phone", "bio", "keywords", "fields", "max_students"]
         widgets = {
             "fields": forms.CheckboxSelectMultiple,
+            "bio": forms.Textarea(attrs={"rows": 3}),
+        }
+        help_texts = {
+            "phone": "Chỉ Khoa và bạn thấy số này.",
+            "keywords": "Cách nhau bằng dấu phẩy, VD: học máy, xử lý ngôn ngữ tiếng Việt.",
         }
 
     def __init__(self, *args, is_locked=False, is_faculty_admin=False, **kwargs):

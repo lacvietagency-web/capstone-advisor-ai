@@ -1,5 +1,6 @@
 """Màn hình nghiệp vụ cho Sinh viên và Giảng viên."""
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -7,6 +8,7 @@ from django.db import transaction
 from django.db.models import F
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from recommend.models import Recommendation
 from recommend.services import ensure_recommendations, refresh_student, score_preferences
@@ -18,6 +20,7 @@ from .forms import (
     StudentInterestFormSet,
     StudentSkillFormSet,
     TopicForm,
+    TopicPrerequisiteFormSet,
     TopicSkillFormSet,
 )
 from .models import AuditLog, Field, Lecturer, Preference, RegistrationPeriod, Student, Topic
@@ -32,6 +35,7 @@ from .services import (
     get_visible_topics,
     is_quota_locked,
     paginate_topics,
+    remaining_capacity,
     save_lecturer_profile,
 )
 
@@ -75,64 +79,132 @@ def student_profile(request):
     return render(
         request,
         "catalog/student_profile.html",
-        {"student": st, "about_form": about, "skill_formset": skills, "interest_formset": interests},
+        {
+            "student": st,
+            "about_form": about,
+            "skill_formset": skills,
+            "interest_formset": interests,
+            **profile_completeness(st),
+        },
     )
+
+
+def profile_completeness(student):
+    """Mức độ hoàn thiện hồ sơ: 4 mục (giới thiệu, kỹ năng, lĩnh vực quan tâm, điểm môn học) — mỗi mục 25%.
+    `completeness` (0–100) và `completeness_items` [(nhãn, đã có?)] để hiển thị danh sách kiểm."""
+    items = [
+        ("Giới thiệu bản thân", bool(student.about.strip())),
+        ("Kỹ năng và mức độ", student.skills.exists()),
+        ("Lĩnh vực quan tâm", student.interests.exists()),
+        ("Điểm các môn đã học", student.course_results.exists()),
+    ]
+    return {"completeness": 25 * sum(ok for _, ok in items), "completeness_items": items}
+
+
+def _initial_preferences(request, student, period):
+    """Giá trị ban đầu của form NV1–NV3: nguyện vọng đã lưu + đề tài truyền qua ?topic= vào ô trống đầu tiên."""
+    initial = {f"nv{p.rank}": p.topic for p in Preference.objects.filter(student=student, period=period)}
+    preset_topic_id = request.GET.get("topic") or request.GET.get("topic_id")
+    if preset_topic_id and request.method == "GET":
+        try:
+            preset_topic = Topic.objects.get(pk=preset_topic_id, status=Topic.Status.OPEN)
+        except (Topic.DoesNotExist, ValueError):
+            return initial
+        if preset_topic not in initial.values():
+            slot = next((f"nv{r}" for r in (1, 2, 3) if not initial.get(f"nv{r}")), None)
+            if slot:
+                initial[slot] = preset_topic
+    return initial
+
+
+def _save_preferences(request, student, period, form, submit):
+    """Ghi lại NV1–NV3 (xoá rồi tạo lại). Đề tài GV đã duyệt giữ nguyên trạng thái, lý do và nhận xét.
+    submit=False → bản nháp (GV, thống kê, thuật toán không thấy); True → nộp chính thức."""
+    with transaction.atomic():
+        old = Preference.objects.filter(student=student, period=period)
+        kept = {p.topic_id: (p.status, p.reject_reason, p.lecturer_note) for p in old}
+        old.delete()
+        for rank in (1, 2, 3):
+            topic = form.cleaned_data.get(f"nv{rank}")
+            if topic:
+                status, reason, note = kept.get(topic.pk, (Preference.Status.PENDING, "", ""))
+                Preference.objects.create(
+                    student=student,
+                    period=period,
+                    topic=topic,
+                    rank=rank,
+                    status=status,
+                    reject_reason=reason,
+                    lecturer_note=note,
+                    submitted=submit,
+                    submitted_at=timezone.now() if submit else None,
+                )
+        AuditLog.objects.create(
+            user=request.user,
+            action="submit_preferences" if submit else "save_preferences_draft",
+            entity="Preference",
+            entity_id=student.pk,
+            detail={f"nv{r}": getattr(form.cleaned_data.get(f"nv{r}"), "pk", None) for r in (1, 2, 3)},
+        )
+    score_preferences(student)
 
 
 @login_required
 def student_preferences(request):
+    """Nguyện vọng NV1–NV3. POST action: "draft" lưu nháp · "submit" (mặc định) nộp · "withdraw" rút về nháp."""
     st = _student(request)
     ensure_recommendations(st)
     period = _open_period()
     if period is None:
         return render(request, "catalog/student_preferences.html", _submitted_preferences(st))
-    current = {p.rank: p.topic for p in Preference.objects.filter(student=st, period=period)}
-    initial = {f"nv{r}": t for r, t in current.items()}
-    preset_topic_id = request.GET.get("topic") or request.GET.get("topic_id")
-    if preset_topic_id and request.method == "GET":
-        try:
-            preset_topic = Topic.objects.get(pk=preset_topic_id, status=Topic.Status.OPEN)
-            if preset_topic not in initial.values():
-                for slot in ("nv1", "nv2", "nv3"):
-                    if slot not in initial or not initial[slot]:
-                        initial[slot] = preset_topic
-                        break
-        except (Topic.DoesNotExist, ValueError):
-            pass
-    form = PreferenceForm(request.POST or None, initial=initial, student=st)
-    scores = {r.topic_id: r for r in Recommendation.objects.filter(student=st)}
-    if request.method == "POST" and form.is_valid():
-        with transaction.atomic():
-            old = Preference.objects.filter(student=st, period=period)
-            kept_status = dict(old.values_list("topic_id", "status"))  # GV đã duyệt đề tài nào thì giữ nguyên kết quả
-            old.delete()
-            for rank in (1, 2, 3):
-                topic = form.cleaned_data.get(f"nv{rank}")
-                if topic:
-                    Preference.objects.create(
-                        student=st,
-                        period=period,
-                        topic=topic,
-                        rank=rank,
-                        status=kept_status.get(topic.pk, Preference.Status.PENDING),
-                    )
-            AuditLog.objects.create(
-                user=request.user,
-                action="set_preferences",
-                entity="Preference",
-                entity_id=st.pk,
-                detail={
-                    f"nv{r}": (form.cleaned_data.get(f"nv{r}").pk if form.cleaned_data.get(f"nv{r}") else None)
-                    for r in (1, 2, 3)
-                },
-            )
-        score_preferences(st)
-        messages.success(request, "Đã lưu nguyện vọng.")
+    action = request.POST.get("action") or "submit"
+    if request.method == "POST" and action == "withdraw":
+        n = Preference.objects.filter(student=st, period=period).update(submitted=False, submitted_at=None)
+        AuditLog.objects.create(user=request.user, action="withdraw_preferences", entity="Preference", entity_id=st.pk)
+        messages.success(request, f"Đã rút {n} nguyện vọng về bản nháp — sửa xong nhớ nộp lại trước khi đợt đóng.")
         return redirect("student_preferences")
+    form = PreferenceForm(request.POST or None, initial=_initial_preferences(request, st, period), student=st)
+    if request.method == "POST" and form.is_valid():
+        submit = action != "draft"
+        _save_preferences(request, st, period, form, submit)
+        if submit:
+            messages.success(request, "Đã lưu nguyện vọng và nộp chính thức.")
+        else:
+            messages.success(request, "Đã lưu nháp nguyện vọng — giảng viên chưa thấy cho tới khi bạn nộp chính thức.")
+        return redirect("student_preferences")
+    scores = {r.topic_id: r for r in Recommendation.objects.filter(student=st)}
     top5 = Recommendation.objects.filter(student=st, rank__isnull=False).select_related("topic").order_by("rank")[:5]
     return render(
-        request, "catalog/student_preferences.html", {"period": period, "form": form, "top5": top5, "scores": scores}
+        request,
+        "catalog/student_preferences.html",
+        {"period": period, "form": form, "top5": top5, "scores": scores, **_preference_rows(st, period, scores)},
     )
+
+
+def _preference_rows(student, period, scores):
+    """Nguyện vọng đã lưu của đợt: `pref_rows` (rank, pref, rec, eligibility, remaining = chỗ còn của đề tài),
+    `is_submitted` (đã nộp chính thức hết chưa), `submitted_at` (lần nộp gần nhất)."""
+    prefs = list(
+        Preference.objects.filter(student=student, period=period)
+        .select_related("topic__lecturer__user")
+        .prefetch_related("topic__skills__skill", "topic__prerequisites__course")
+        .order_by("rank")
+    )
+    rows = [
+        {
+            "rank": p.rank,
+            "pref": p,
+            "rec": scores.get(p.topic_id),
+            "eligibility": _eligibility(student, p.topic),
+            "remaining": remaining_capacity(p.topic, period),
+        }
+        for p in prefs
+    ]
+    return {
+        "pref_rows": rows,
+        "is_submitted": bool(prefs) and all(p.submitted for p in prefs),
+        "submitted_at": max((p.submitted_at for p in prefs if p.submitted_at), default=None),
+    }
 
 
 def _submitted_preferences(student):
@@ -164,7 +236,11 @@ def lecturer_topic_edit(request, pk=None):
     topic = get_object_or_404(Topic, pk=pk, lecturer=lec) if pk else Topic(lecturer=lec)
     form = TopicForm(request.POST or None, instance=topic)
     skills = TopicSkillFormSet(request.POST or None, instance=topic, prefix="skills")
-    if request.method == "POST" and form.is_valid() and skills.is_valid():
+    # Môn tiên quyết là phần tuỳ chọn của form: chỉ xử lý khi trang gửi kèm (có management form)
+    prereq_data = request.POST if "prereqs-TOTAL_FORMS" in request.POST else None
+    prereqs = TopicPrerequisiteFormSet(prereq_data, instance=topic, prefix="prereqs")
+    prereqs_ok = prereq_data is None or prereqs.is_valid()
+    if request.method == "POST" and form.is_valid() and skills.is_valid() and prereqs_ok:
         with transaction.atomic():
             t = form.save(commit=False)
             t.lecturer = lec
@@ -174,10 +250,17 @@ def lecturer_topic_edit(request, pk=None):
             form.save_m2m()
             skills.instance = t
             skills.save()
+            if prereq_data is not None:
+                prereqs.instance = t
+                prereqs.save()
             AuditLog.objects.create(user=request.user, action="save_topic", entity="Topic", entity_id=t.pk)
         messages.success(request, "Đã lưu đề tài.")
         return redirect("lecturer_topics")
-    return render(request, "catalog/lecturer_topic_form.html", {"form": form, "skill_formset": skills, "topic": topic})
+    return render(
+        request,
+        "catalog/lecturer_topic_form.html",
+        {"form": form, "skill_formset": skills, "prereq_formset": prereqs, "topic": topic},
+    )
 
 
 def _handle_preference_action(request, topic):
@@ -215,10 +298,13 @@ def _handle_preference_action(request, topic):
         messages.error(request, "Thao tác không hợp lệ.")
         return redirect("lecturer_registrations", pk=topic.pk)
 
+    note = (request.POST.get("note") or "").strip()[:1000]  # nhận xét GV (tuỳ chọn), SV xem sau khi đã duyệt
     with transaction.atomic():
         pref.status = new_status
         pref.reject_reason = reason if new_status == Preference.Status.REJECTED else ""
-        pref.save(update_fields=["status", "reject_reason"])
+        if note:
+            pref.lecturer_note = note
+        pref.save(update_fields=["status", "reject_reason", "lecturer_note"])
         AuditLog.objects.create(
             user=request.user,
             action=log_action,
@@ -255,7 +341,9 @@ def lecturer_registrations(request, pk):
         return _handle_preference_action(request, topic)
 
     prefs = (
-        Preference.objects.filter(topic=topic).select_related("student__user", "period").order_by("rank", "created_at")
+        Preference.objects.filter(topic=topic, submitted=True)
+        .select_related("student__user", "period")
+        .order_by("rank", "created_at")
     )
     for p in prefs:
         ensure_recommendations(p.student)
@@ -313,6 +401,7 @@ def lecturer_profile(request, pk=None):
             "is_locked": locked,
             "is_faculty_admin": is_admin,
             "lecturers_list": lecturers_list,
+            **lecturer_load_stats(lec),
         },
     )
 
@@ -338,8 +427,6 @@ def topic_list(request):
     filtered_qs = filter_topics(
         visible_qs, field_id=field_id, lecturer_id=lecturer_id, difficulty=difficulty, query=query
     )
-    annotated_qs = annotate_topics_nv1(filtered_qs)
-    page_obj = paginate_topics(annotated_qs, page_number=page_num, per_page=per_page)
 
     student = None
     scores_map = {}
@@ -352,12 +439,16 @@ def topic_list(request):
         student = request.user.student
         ensure_recommendations(student)
         scores_map = get_student_recommendations_map(student)
+    tab, tab_counts, filtered_qs = _eligibility_tab(request, student, filtered_qs)
+    annotated_qs = _sort_topics(request, student, annotate_topics_nv1(filtered_qs))
+    page_obj = paginate_topics(annotated_qs, page_number=page_num, per_page=per_page)
 
     for topic in page_obj:
         topic.recommendation = scores_map.get(topic.id)
         topic.match_score = topic.recommendation.final_score if topic.recommendation else None
         topic.ineligible_reason = _ineligible_reason(student, topic)
         topic.eligibility = _eligibility(student, topic)
+        topic.remaining = remaining_capacity(topic, _open_period())
 
     get_params = request.GET.copy()
     get_params.pop("page", None)
@@ -378,8 +469,45 @@ def topic_list(request):
         "is_student": student is not None,
         "student": student,
         "open_period": _open_period(),
+        "tab": tab,
+        "tab_counts": tab_counts,
+        "sort": request.GET.get("sort") or "",
     }
     return render(request, "catalog/topic_list.html", context)
+
+
+def _eligibility_tab(request, student, qs):
+    """Tab Đủ / Chưa đủ điều kiện (chỉ với SV): ?dk=1 hoặc ?dk=0. Trả (tab, số đếm từng tab, queryset đã lọc)."""
+    if student is None:
+        return "", {}, qs
+    from recommend.engine import Profile, eligible
+
+    profile = Profile(student)
+    ok_ids = [t.pk for t in qs.prefetch_related("skills", "prerequisites") if eligible(profile, t)[0]]
+    counts = {"all": qs.count(), "ok": len(ok_ids)}
+    counts["no"] = counts["all"] - counts["ok"]
+    tab = request.GET.get("dk", "")
+    if tab == "1":
+        qs = qs.filter(pk__in=ok_ids)
+    elif tab == "0":
+        qs = qs.exclude(pk__in=ok_ids)
+    return tab, counts, qs
+
+
+TOPIC_SORTS = {"title": "title", "difficulty": "difficulty", "capacity": "-capacity", "nv1": "-nv1_count"}
+
+
+def _sort_topics(request, student, qs):
+    """?sort=score (điểm phù hợp của SV, cao trước) | title | difficulty | capacity | nv1. Mặc định giữ thứ tự cũ."""
+    key = request.GET.get("sort") or ""
+    if key == "score" and student is not None:
+        from django.db.models import OuterRef, Subquery
+
+        score = Recommendation.objects.filter(student=student, topic=OuterRef("pk")).values("final_score")[:1]
+        return qs.annotate(match=Subquery(score)).order_by(F("match").desc(nulls_last=True), "title")
+    if key in TOPIC_SORTS:
+        return qs.order_by(TOPIC_SORTS[key], "title")
+    return qs
 
 
 def _eligibility(student, topic):
@@ -438,6 +566,7 @@ def topic_detail(request, pk=None, id=None):
         "ineligible_reason": _ineligible_reason(student, topic),
         "eligibility": _eligibility(student, topic),
         "open_period": _open_period(),
+        "remaining": remaining_capacity(topic, _open_period()),
         "topic": topic,
         "nv1_count": nv1_count,
         "is_student": is_student,
@@ -453,38 +582,98 @@ def topic_detail(request, pk=None, id=None):
 MAX_IMPORT_BYTES = 5 * 1024 * 1024
 
 
+IMPORT_TMP = settings.BASE_DIR / "tmp" / "imports"  # tệp đã kiểm tra, chờ Khoa bấm xác nhận (gitignore)
+IMPORT_LABELS = {"students": "Sinh viên", "lecturers": "Giảng viên", "topics": "Đề tài", "skills": "Kỹ năng"}
+
+
+def _import_result(ok, errors, stats, filename, pending=False):
+    rows = [(IMPORT_LABELS.get(k, k), v) for k, v in stats.items()]
+    return {"ok": ok, "errors": errors, "stats": stats, "rows": rows, "filename": filename, "pending": pending}
+
+
+def _uploaded_file(request):
+    """Tệp .xlsx hợp lệ từ request, hoặc None (đã báo lỗi bằng messages)."""
+    f = request.FILES.get("file")
+    if not f:
+        messages.error(request, "Chưa chọn tệp Excel.")
+    elif not f.name.lower().endswith(".xlsx"):
+        messages.error(request, "Chỉ nhận tệp .xlsx.")
+    elif f.size > MAX_IMPORT_BYTES:
+        messages.error(request, "Tệp lớn hơn 5 MB.")
+    else:
+        return f
+    return None
+
+
+def _import_check(request, f):
+    """Bước 1: kiểm tra (chạy thử rồi hoàn tác). Sạch lỗi thì giữ tệp lại, chờ bước xác nhận."""
+    import uuid
+
+    from .importer import import_excel_data
+
+    ok, errors, stats = import_excel_data(f, dry_run=True)
+    if not ok:
+        messages.error(request, f"Tệp có {len(errors)} lỗi — sửa rồi tải lên lại. Chưa nhập gì.")
+        return _import_result(ok, errors, stats, f.name)
+    IMPORT_TMP.mkdir(parents=True, exist_ok=True)
+    token = uuid.uuid4().hex
+    f.seek(0)
+    (IMPORT_TMP / f"{token}.xlsx").write_bytes(f.read())
+    request.session["import_pending"] = {"token": token, "filename": f.name}
+    messages.info(request, "Tệp hợp lệ. Kiểm tra số dòng bên dưới rồi bấm Xác nhận nhập.")
+    return _import_result(ok, errors, stats, f.name, pending=True)
+
+
+def _import_confirm(request):
+    """Bước 2: nhập thật đúng tệp đã kiểm tra ở bước 1 (cùng phiên đăng nhập)."""
+    from .importer import import_excel_data
+
+    pending = request.session.pop("import_pending", None)
+    path = IMPORT_TMP / f"{pending['token']}.xlsx" if pending else None
+    if not path or not path.exists():
+        messages.error(request, "Không còn tệp chờ xác nhận — hãy tải lên và kiểm tra lại.")
+        return None
+    ok, errors, stats = import_excel_data(path)
+    path.unlink(missing_ok=True)
+    return _import_result(ok, errors, stats, pending["filename"])
+
+
 @login_required
 def faculty_import(request):
-    """Khoa tải tệp .xlsx lên: lỗi bất kỳ dòng nào thì không nhập gì (all-or-nothing), báo lỗi theo dòng."""
+    """Khoa nhập dữ liệu Excel (UC15), 2 bước: action=check (kiểm tra, chưa ghi) → action=confirm (ghi thật).
+    Không có action: kiểm tra và nhập luôn (all-or-nothing) như bản trước."""
     if not (getattr(request.user, "is_faculty_admin", False) or request.user.is_superuser):
         raise PermissionDenied("Chỉ tài khoản Khoa mới có quyền nhập dữ liệu.")
     from .importer import import_excel_data
 
     result = None
-    if request.method == "POST":
-        f = request.FILES.get("file")
-        if not f:
-            messages.error(request, "Chưa chọn tệp Excel.")
-        elif not f.name.lower().endswith(".xlsx"):
-            messages.error(request, "Chỉ nhận tệp .xlsx.")
-        elif f.size > MAX_IMPORT_BYTES:
-            messages.error(request, "Tệp lớn hơn 5 MB.")
-        else:
+    action = request.POST.get("action", "")
+    if request.method == "POST" and action == "confirm":
+        result = _import_confirm(request)
+    elif request.method == "POST":
+        f = _uploaded_file(request)
+        if f and action == "check":
+            result = _import_check(request, f)
+        elif f:
             ok, errors, stats = import_excel_data(f)
-            labels = {"students": "Sinh viên", "lecturers": "Giảng viên", "topics": "Đề tài", "skills": "Kỹ năng"}
-            rows = [(labels.get(k, k), v) for k, v in stats.items()]
-            result = {"ok": ok, "errors": errors, "stats": stats, "rows": rows, "filename": f.name}
-            AuditLog.objects.create(
-                user=request.user,
-                action="import_excel",
-                entity="Excel",
-                detail={"file": f.name, "ok": ok, "stats": stats, "n_errors": len(errors)},
-            )
-            if ok:
-                done = ", ".join(f"{v} {k.lower()}" for k, v in rows)
-                messages.success(request, f"Đã nhập xong: {done}.")
-            else:
-                messages.error(request, f"Không nhập gì vì có {len(errors)} lỗi — sửa tệp rồi tải lên lại.")
+            result = _import_result(ok, errors, stats, f.name)
+    if result is not None and not result["pending"]:
+        AuditLog.objects.create(
+            user=request.user,
+            action="import_excel",
+            entity="Excel",
+            detail={
+                "file": result["filename"],
+                "ok": result["ok"],
+                "stats": result["stats"],
+                "n_errors": len(result["errors"]),
+            },
+        )
+        if result["ok"]:
+            done = ", ".join(f"{v} {k.lower()}" for k, v in result["rows"])
+            messages.success(request, f"Đã nhập xong: {done}.")
+        elif action != "check":
+            messages.error(request, f"Không nhập gì vì có {len(result['errors'])} lỗi — sửa tệp rồi tải lên lại.")
     return render(
         request, "catalog/faculty_import.html", {"result": result, "max_mb": MAX_IMPORT_BYTES // (1024 * 1024)}
     )
@@ -503,3 +692,33 @@ def faculty_import_sample(request):
     )
     resp["Content-Disposition"] = 'attachment; filename="mau_nhap_lieu.xlsx"'
     return resp
+
+
+def lecturer_load_stats(lecturer):
+    """Số liệu hồ sơ GV: số đề tài, số SV đang hướng dẫn (nguyện vọng đã nộp được đồng ý + phân công chính thức,
+    không đếm trùng), số đề tài theo lĩnh vực (`field_stats`: [(tên lĩnh vực, số đề tài)], nhiều trước)."""
+    from django.db.models import Count
+
+    from allocate.models import Allocation
+
+    accepted = set(
+        Preference.objects.filter(
+            topic__lecturer=lecturer, status=Preference.Status.ACCEPTED, submitted=True
+        ).values_list("student_id", flat=True)
+    )
+    official = set(
+        Allocation.objects.filter(topic__lecturer=lecturer, status=Allocation.Status.OFFICIAL).values_list(
+            "student_id", flat=True
+        )
+    )
+    fields = (
+        Field.objects.filter(topic__lecturer=lecturer)
+        .annotate(n=Count("topic", distinct=True))
+        .order_by("-n", "name")
+        .values_list("name", "n")
+    )
+    return {
+        "n_topics": lecturer.topics.count(),
+        "n_guided": len(accepted | official),
+        "field_stats": list(fields),
+    }

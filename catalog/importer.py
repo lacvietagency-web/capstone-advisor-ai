@@ -420,7 +420,7 @@ def _save_imported_students(items: list[dict]) -> int:
 
 
 # ---------------------------------------------------------------- Điểm nhập dữ liệu chính
-def import_excel_data(file_or_path) -> tuple[bool, list[str], dict[str, int]]:
+def import_excel_data(file_or_path, dry_run: bool = False) -> tuple[bool, list[str], dict[str, int]]:
     """Nhập dữ liệu từ tệp Excel với bảo toàn giao dịch ACID (UC15).
 
     Công thức tổng hợp dữ liệu thành công:
@@ -428,6 +428,7 @@ def import_excel_data(file_or_path) -> tuple[bool, list[str], dict[str, int]]:
 
     Nếu phát hiện bất kỳ lỗi nào, toàn bộ giao dịch được hoàn tác (rollback),
     đảm bảo tính toàn vẹn tuyệt đối của cơ sở dữ liệu.
+    dry_run=True: chạy đủ các bước ghi trong giao dịch rồi hoàn tác — trả về đúng số dòng SẼ nhập, không lưu gì.
     """
     stats = {"students": 0, "lecturers": 0, "topics": 0, "skills": 0}
     errors = []
@@ -476,6 +477,8 @@ def import_excel_data(file_or_path) -> tuple[bool, list[str], dict[str, int]]:
             stats["lecturers"] = n_lec
             stats["topics"] = _save_imported_topics(topic_items, new_lecs)
             stats["students"] = _save_imported_students(student_items)
+            if dry_run:
+                transaction.set_rollback(True)
     except Exception as exc:
         return False, [f"Lỗi hệ thống khi lưu dữ liệu vào cơ sở dữ liệu: {exc}"], stats
 

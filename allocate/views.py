@@ -247,7 +247,7 @@ def allocation_student_detail(request, period_id, student_id):
     profile = Profile(student)
     prefs = [
         {"pref": p, "rec": scores.get(p.topic_id), "eligibility": eligibility_reasons(profile, p.topic)}
-        for p in Preference.objects.filter(student=student, period=period)
+        for p in Preference.objects.filter(student=student, period=period, submitted=True)
         .select_related("topic__lecturer__user")
         .prefetch_related("topic__skills__skill", "topic__prerequisites__course")
         .order_by("rank")

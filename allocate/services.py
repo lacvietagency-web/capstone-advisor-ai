@@ -32,7 +32,7 @@ def _prepare_solver_data(period, students):
     """
     prefs = {s.id: [] for s in students}
     for sid, tid, status in (
-        Preference.objects.filter(period=period, student__in=students)
+        Preference.objects.filter(period=period, student__in=students, submitted=True)  # bản nháp không vào thuật toán
         .order_by("student_id", "rank")
         .values_list("student_id", "topic_id", "status")
     ):
@@ -68,7 +68,9 @@ def _save_allocation_results(period, students, assign, prefs, scores, algorithm)
     source = Allocation.Source.ILP if algorithm == "ILP" else Allocation.Source.GREEDY
     real_rank = {
         (sid, tid): rank
-        for sid, tid, rank in Preference.objects.filter(period=period).values_list("student_id", "topic_id", "rank")
+        for sid, tid, rank in Preference.objects.filter(period=period, submitted=True).values_list(
+            "student_id", "topic_id", "rank"
+        )
     }
 
     with transaction.atomic():

@@ -74,7 +74,7 @@ def get_topic_nv1_distribution(period: RegistrationPeriod | None, limit: int = 1
         return []
 
     nv1_qs = (
-        Preference.objects.filter(period=period, rank=1)
+        Preference.objects.filter(period=period, rank=1, submitted=True)
         .values(
             "topic_id",
             "topic__title",
@@ -127,7 +127,7 @@ def get_field_distribution(period: RegistrationPeriod | None) -> list[dict]:
         return []
 
     field_qs = (
-        Preference.objects.filter(period=period, rank=1, topic__fields__isnull=False)
+        Preference.objects.filter(period=period, rank=1, submitted=True, topic__fields__isnull=False)
         .values("topic__fields__id", "topic__fields__name")
         .annotate(count=Count("id"))
         .order_by("-count", "topic__fields__name")

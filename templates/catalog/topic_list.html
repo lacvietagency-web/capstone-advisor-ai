@@ -70,13 +70,13 @@
 
   {% if is_student and tab_counts %}
     <div class="at-chips">
-      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}" class="at-chip {% if not tab %}active{% endif %}">
+      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}" class="at-chip {% if not tab %}active{% endif %}">
         Tất cả <span class="at-chip-count">({{ tab_counts.all|default:page_obj.paginator.count }})</span>
       </a>
-      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}dk=1" class="at-chip {% if tab == '1' %}active{% endif %}">
+      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}dk=1" class="at-chip {% if tab == '1' %}active{% endif %}">
         Đủ điều kiện <span class="at-chip-count">({{ tab_counts.ok|default:0 }})</span>
       </a>
-      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}dk=0" class="at-chip {% if tab == '0' %}active{% endif %}">
+      <a href="?{% for k, v in request.GET.items %}{% if k != 'dk' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}dk=0" class="at-chip {% if tab == '0' %}active{% endif %}">
         Chưa đủ điều kiện <span class="at-chip-count">({{ tab_counts.no|default:0 }})</span>
       </a>
     </div>
@@ -96,23 +96,23 @@
           <thead>
             <tr>
               <th>
-                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}sort=title" class="{% if sort == 'title' %}active{% endif %}">
+                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}sort=title" class="{% if sort == 'title' %}active{% endif %}">
                   Đề tài {% include "components/icon.html" with name="arrow-up-down" size=12 %}
                 </a>
               </th>
               <th>Giảng viên hướng dẫn</th>
               <th>
-                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}sort=difficulty" class="{% if sort == 'difficulty' %}active{% endif %}">
+                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}sort=difficulty" class="{% if sort == 'difficulty' %}active{% endif %}">
                   Độ khó {% include "components/icon.html" with name="arrow-up-down" size=12 %}
                 </a>
               </th>
               <th class="at-th-num">
-                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}sort=capacity" class="{% if sort == 'capacity' %}active{% endif %}">
+                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}sort=capacity" class="{% if sort == 'capacity' %}active{% endif %}">
                   Chỉ tiêu / NV1 {% include "components/icon.html" with name="arrow-up-down" size=12 %}
                 </a>
               </th>
               <th class="at-th-num">
-                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&amp;{% endif %}{% endfor %}sort=score" class="{% if sort == 'score' %}active{% endif %}">
+                <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}sort=score" class="{% if sort == 'score' %}active{% endif %}">
                   Điểm phù hợp AI {% include "components/icon.html" with name="arrow-up-down" size=12 %}
                 </a>
               </th>

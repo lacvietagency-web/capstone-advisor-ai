@@ -26,7 +26,7 @@
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
-        <h2 class="h3">Bước 1: Tải tệp mẫu và chuẩn bị dữ liệu</h2>
+        <h2>Bước 1 — Hướng dẫn và tải tệp mẫu</h2>
         <p>Sử dụng tệp mẫu chuẩn của Khoa để đảm bảo đúng định dạng và thứ tự cột.</p>
       </div>
       <a href="{% url 'faculty_import_sample' %}" class="btn btn-secondary btn-sm">
@@ -52,7 +52,7 @@
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
-        <h2 class="h3">Bước 2: Tải lên tệp dữ liệu</h2>
+        <h2>Bước 2 — Tải lên tệp dữ liệu</h2>
         <p>Chọn tệp .xlsx từ máy tính để hệ thống kiểm tra cấu trúc và ghi vào cơ sở dữ liệu.</p>
       </div>
     </div>
@@ -62,7 +62,7 @@
       <div class="at-field">
         <label class="form-label at-required" for="atFileInput">Tệp dữ liệu Excel</label>
         <input class="form-control" type="file" id="atFileInput" name="file" accept=".xlsx" required>
-        <div class="form-text">Chỉ nhận tệp có định dạng .xlsx, dung lượng tối đa {{ max_mb }} MB.</div>
+        <div class="form-text">Chỉ chấp nhận tệp có định dạng .xlsx, dung lượng tối đa {{ max_mb }} MB.</div>
       </div>
 
       <div class="at-form-actions">
@@ -78,7 +78,7 @@
     <section class="at-panel at-panel--flush">
       <div class="at-panel-header">
         <div>
-          <h2 class="h3">Kết quả nhập dữ liệu</h2>
+          <h2>Bước 3 — Kết quả kiểm tra</h2>
           <p>Tệp xử lý: <strong>{{ result.filename }}</strong></p>
         </div>
       </div>
@@ -89,24 +89,24 @@
         </div>
 
         <div class="at-table-wrap">
-        <table class="at-table d-none d-md-table">
-          <thead>
-            <tr>
-              <th>Đối tượng dữ liệu</th>
-              <th class="at-th-num">Số lượng đã nhập</th>
-              <th>Trạng thái</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for label, count in result.rows %}
+          <table class="at-table d-none d-md-table">
+            <thead>
               <tr>
-                <td class="at-td-main">{{ label }}</td>
-                <td class="at-td-num">{{ count }}</td>
-                <td>{% include "components/status.html" with status="ACCEPTED" label="Hợp lệ" %}</td>
+                <th>Đối tượng dữ liệu</th>
+                <th class="at-th-num">Số lượng đã nhập</th>
+                <th>Trạng thái</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for label, count in result.rows %}
+                <tr>
+                  <td class="at-td-main">{{ label }}</td>
+                  <td class="at-td-num">{{ count }}</td>
+                  <td>{% include "components/status.html" with status="ACCEPTED" label="Hợp lệ" %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
 
         <div class="at-panel-body d-md-none">
@@ -131,24 +131,24 @@
         </div>
 
         <div class="at-table-wrap">
-        <table class="at-table d-none d-md-table">
-          <thead>
-            <tr>
-              <th style="width:72px">STT</th>
-              <th>Chi tiết thông báo lỗi</th>
-              <th style="width:120px">Phân loại</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for err in result.errors %}
+          <table class="at-table d-none d-md-table">
+            <thead>
               <tr>
-                <td class="at-num">{{ forloop.counter }}</td>
-                <td>{{ err }}</td>
-                <td>{% include "components/status.html" with status="REJECTED" label="Lỗi dòng" %}</td>
+                <th style="width:72px">STT</th>
+                <th>Chi tiết thông báo lỗi</th>
+                <th style="width:140px">Phân loại</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for err in result.errors %}
+                <tr>
+                  <td class="at-num">{{ forloop.counter }}</td>
+                  <td>{{ err }}</td>
+                  <td>{% include "components/status.html" with status="REJECTED" label="Lỗi dòng" %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
 
         <div class="at-panel-body d-md-none">
@@ -167,6 +167,12 @@
     </section>
   {% else %}
     <section class="at-panel">
+      <div class="at-panel-header">
+        <div>
+          <h2>Bước 3 — Kết quả kiểm tra</h2>
+          <p>Trạng thái kết quả sau khi tải lên và phân tích tệp dữ liệu.</p>
+        </div>
+      </div>
       {% include "components/empty.html" with illustration="empty-topics" title="Chưa có dữ liệu kiểm tra" desc="Vui lòng chọn tệp .xlsx ở bước 2 và bấm 'Tải lên và nhập dữ liệu' để bắt đầu kiểm tra và nhập." %}
     </section>
   {% endif %}

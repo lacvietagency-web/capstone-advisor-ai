@@ -153,7 +153,7 @@ def condition_checklist(p: Profile, topic: Topic, remaining=None):
     gpa_min = float(topic.min_gpa)
     rows = [
         {
-            "label": f"GPA đạt yêu cầu (≥ {_num(gpa_min)})" if gpa_min > 0 else "GPA (đề tài không đặt ngưỡng)",
+            "label": f"GPA đạt yêu cầu (≥ {_num(gpa_min)})" if gpa_min > 0 else "GPA không yêu cầu",
             "state": "ok" if p.gpa >= gpa_min else "fail",
             "value": f"{'Đạt' if p.gpa >= gpa_min else 'Chưa đạt'} ({_num(p.gpa)})",
         }

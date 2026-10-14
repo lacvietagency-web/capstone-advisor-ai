@@ -29,19 +29,19 @@
         {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
       </form>
 
-      {% if period %}
+      {% if period and not period_locked and period.status != 'PUBLISHED' %}
         {# Nút chạy thuật toán #}
         <form method="post" data-at-busy class="d-inline">
           {% csrf_token %}
           <input type="hidden" name="action" value="run_greedy">
-          <button type="submit" class="btn btn-secondary btn-sm pg19-btn-greedy"{% if period.status == 'PUBLISHED' %} disabled title="Đợt đã công bố kết quả"{% endif %}>
+          <button type="submit" class="btn btn-secondary btn-sm pg19-btn-greedy">
             Chạy Greedy
           </button>
         </form>
         <form method="post" data-at-busy class="d-inline">
           {% csrf_token %}
           <input type="hidden" name="action" value="run_ilp">
-          <button type="submit" class="btn btn-primary btn-sm pg19-btn-ilp"{% if period.status == 'PUBLISHED' %} disabled title="Đợt đã công bố kết quả"{% endif %}>
+          <button type="submit" class="btn btn-primary btn-sm pg19-btn-ilp">
             Chạy tối ưu ILP
           </button>
         </form>
@@ -176,40 +176,51 @@
               </select>
             </div>
 
-            {# Các bộ lọc bổ sung giữ nguyên chức năng #}
-            <div class="pg19-filter-group d-none d-xl-inline-flex">
-              <label for="atFilterField" class="pg19-filter-label">Lĩnh vực</label>
-              <select id="atFilterField" class="form-select form-select-sm pg19-filter-select pg19-select-extra" name="field" data-at-autosubmit>
-                <option value="">Tất cả</option>
-                {% for f in fields %}
-                  <option value="{{ f.pk }}"{% if field_id == f.pk|stringformat:"s" %} selected{% endif %}>{{ f.name }}</option>
-                {% endfor %}
-              </select>
-            </div>
+            {# Bộ lọc nâng cao gom Lĩnh vực, Điểm, Sắp xếp để toolbar nằm trên đúng 1 hàng #}
+            <details class="pg19-advanced-filter">
+              <summary class="pg19-btn-advanced">
+                {% include "components/icon.html" with name="sliders-horizontal" size=13 %}
+                <span>Bộ lọc nâng cao</span>
+                {% if field_id or score_min or sort and sort != 'code' %}
+                  <span class="pg19-filter-dot" title="Đang có bộ lọc nâng cao áp dụng">●</span>
+                {% endif %}
+              </summary>
+              <div class="pg19-advanced-menu">
+                <div class="pg19-filter-group">
+                  <label for="atFilterField" class="pg19-filter-label">Lĩnh vực</label>
+                  <select id="atFilterField" class="form-select form-select-sm pg19-filter-select pg19-select-popover" name="field" data-at-autosubmit>
+                    <option value="">Tất cả</option>
+                    {% for f in fields %}
+                      <option value="{{ f.pk }}"{% if field_id == f.pk|stringformat:"s" %} selected{% endif %}>{{ f.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
 
-            <div class="pg19-filter-group d-none d-xl-inline-flex">
-              <label for="atFilterScore" class="pg19-filter-label">Điểm</label>
-              <select id="atFilterScore" class="form-select form-select-sm pg19-filter-select pg19-select-extra" name="score_min" data-at-autosubmit>
-                <option value="">Mọi mức</option>
-                <option value="50"{% if score_min == "50" %} selected{% endif %}>Từ 50</option>
-                <option value="70"{% if score_min == "70" %} selected{% endif %}>Từ 70</option>
-                <option value="80"{% if score_min == "80" %} selected{% endif %}>Từ 80</option>
-              </select>
-            </div>
+                <div class="pg19-filter-group">
+                  <label for="atFilterScore" class="pg19-filter-label">Điểm</label>
+                  <select id="atFilterScore" class="form-select form-select-sm pg19-filter-select pg19-select-popover" name="score_min" data-at-autosubmit>
+                    <option value="">Mọi mức</option>
+                    <option value="50"{% if score_min == "50" %} selected{% endif %}>Từ 50</option>
+                    <option value="70"{% if score_min == "70" %} selected{% endif %}>Từ 70</option>
+                    <option value="80"{% if score_min == "80" %} selected{% endif %}>Từ 80</option>
+                  </select>
+                </div>
 
-            <div class="pg19-filter-group d-none d-xl-inline-flex">
-              <label for="atFilterSort" class="pg19-filter-label">Sắp xếp</label>
-              <select id="atFilterSort" class="form-select form-select-sm pg19-filter-select pg19-select-extra" name="sort" data-at-autosubmit>
-                <option value="code"{% if sort == "code" %} selected{% endif %}>Mã SV</option>
-                <option value="gpa"{% if sort == "gpa" %} selected{% endif %}>GPA</option>
-                <option value="score"{% if sort == "score" %} selected{% endif %}>Điểm</option>
-                <option value="rank"{% if sort == "rank" %} selected{% endif %}>Thứ tự NV</option>
-              </select>
-            </div>
+                <div class="pg19-filter-group">
+                  <label for="atFilterSort" class="pg19-filter-label">Sắp xếp</label>
+                  <select id="atFilterSort" class="form-select form-select-sm pg19-filter-select pg19-select-popover" name="sort" data-at-autosubmit>
+                    <option value="code"{% if sort == "code" %} selected{% endif %}>Mã SV</option>
+                    <option value="gpa"{% if sort == "gpa" %} selected{% endif %}>GPA</option>
+                    <option value="score"{% if sort == "score" %} selected{% endif %}>Điểm</option>
+                    <option value="rank"{% if sort == "rank" %} selected{% endif %}>Thứ tự NV</option>
+                  </select>
+                </div>
+              </div>
+            </details>
 
             <div class="pg19-toolbar-end">
               <span class="pg19-count">{{ page_obj.paginator.count }} sinh viên</span>
-              {% if q or rank or lecturer_id or field_id or score_min or status != 'all' and status %}
+              {% if q or rank or lecturer_id or field_id or score_min or status != 'all' and status or sort and sort != 'code' %}
                 <a href="?period_id={{ period.pk }}" class="btn btn-text btn-sm pg19-reset-filter" title="Xoá bộ lọc">Xoá lọc</a>
               {% endif %}
             </div>
@@ -296,7 +307,7 @@
                     {% endif %}
                   </td>
                   <td class="at-text-center pg19-td-actions">
-                    {% if a.topic %}
+                    {% if a.topic or period_locked or period.status == 'PUBLISHED' %}
                       <button type="button" class="btn btn-text btn-sm pg19-btn-link" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
                         Xem
                       </button>
@@ -369,7 +380,7 @@
                   </dd>
                 </dl>
                 <div class="at-form-actions at-mt-4">
-                  {% if a.topic %}
+                  {% if a.topic or period_locked or period.status == 'PUBLISHED' %}
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#atAllocDrawer" data-at-drawer-url="{% url 'allocation_student_detail' period.pk a.student.pk %}" data-at-drawer-title="{{ a.student.user.get_full_name|default:a.student.user.username }}">
                       Xem
                     </button>
@@ -488,7 +499,7 @@
       {% endfor %}
 
       var maxVal = Math.max(nv1, nv2, nv3, other, unassigned, 10);
-      var suggestedMax = Math.ceil((maxVal + 8) / 10) * 10;
+      var chartMax = maxVal <= 60 ? 60 : Math.ceil(maxVal / 10) * 10;
 
       var el = document.getElementById("atAllocChart");
       if (el) {
@@ -507,7 +518,7 @@
                 "var(--pg19-chua-xep)"
               ],
               borderRadius: 4,
-              maxBarThickness: 42,
+              maxBarThickness: 44,
               categoryPercentage: 0.72,
               barPercentage: 0.8
             }]
@@ -515,19 +526,22 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+              padding: { top: 18 }
+            },
             plugins: {
               legend: { display: false }
             },
             scales: {
               x: {
                 grid: { display: false },
-                ticks: { font: { size: 12 } }
+                ticks: { font: { size: 12, family: "'Be Vietnam Pro', sans-serif" } }
               },
               y: {
                 beginAtZero: true,
-                suggestedMax: suggestedMax,
-                grid: { color: "#DDE4EF" },
-                ticks: { precision: 0, font: { size: 12 } }
+                max: chartMax,
+                grid: { color: "#DDE4EF", drawTicks: false },
+                ticks: { stepSize: 20, precision: 0, font: { size: 12, family: "'Be Vietnam Pro', sans-serif" } }
               }
             }
           }

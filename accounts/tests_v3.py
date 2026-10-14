@@ -318,3 +318,23 @@ class V37CoreTests(TestCase):
         )
         self.assertEqual(reason_points(""), [])
         self.assertEqual(csv_items("Flutter, Firebase; REST API,"), ["Flutter", "Firebase", "REST API"])
+
+    def test_result_page_and_faculty_home_data(self):
+        from allocate.services import publish_allocations, run_allocation
+        from catalog.models import Student
+
+        period = RegistrationPeriod.objects.get()
+        period.status = RegistrationPeriod.Status.CLOSED
+        period.save()
+        run_allocation(period)
+        publish_allocations(period, user=None)
+        st = Student.objects.filter(allocation__topic__isnull=False).first()
+        self.client.force_login(st.user)
+        ctx = self.client.get("/ket-qua/").context
+        self.assertIsNotNone(ctx["published_at"])
+        self.assertEqual(len(ctx["journey"]), 4)
+        self.assertTrue(ctx["preferences"].exists())
+        self.client.login(username="khoa01", password="123456")
+        ctx = self.client.get("/trang-chu/").context
+        self.assertEqual(ctx["n_lecturers"], 4)
+        self.assertGreater(ctx["n_with_pref"], 0)

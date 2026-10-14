@@ -294,10 +294,14 @@ def _format_published_result(alloc: Allocation | None, period: RegistrationPerio
     lecturer = topic.lecturer if topic else None
     score = alloc.match_score if alloc else None
 
-    if score is None and alloc and topic:
-        rec = Recommendation.objects.filter(student=alloc.student, topic=topic).first()
-        if rec:
-            score = rec.final_score
+    rec = Recommendation.objects.filter(student=alloc.student, topic=topic).first() if alloc and topic else None
+    if score is None and rec:
+        score = rec.final_score
+    published = (
+        AuditLog.objects.filter(action="publish_allocations", entity="RegistrationPeriod", entity_id=str(period.pk))
+        .order_by("-at")
+        .first()
+    )
 
     return {
         "period": period,
@@ -310,6 +314,8 @@ def _format_published_result(alloc: Allocation | None, period: RegistrationPerio
         "preference_rank": alloc.preference_rank if alloc else None,
         "match_score": score,
         "unassigned": bool(alloc and not alloc.topic),
+        "recommendation": rec,  # M1–M5 của đề tài được phân (ảnh duyệt 12)
+        "published_at": published.at if published else None,
     }
 
 

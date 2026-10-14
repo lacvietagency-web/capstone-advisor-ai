@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.views import student_journey
 from catalog.models import AuditLog, Field, Lecturer, Preference, RegistrationPeriod, Student, Topic
 from recommend.services import ensure_recommendations
 
@@ -286,11 +287,21 @@ def student_allocation_result(request):
     student = _check_student(request.user)
     period_id = request.GET.get("period_id")
     result_data = get_student_allocation_result(student, period_id=period_id)
+    period = result_data["period"]
+    prefs = (
+        Preference.objects.filter(student=student, period=period, submitted=True)
+        .select_related("topic__lecturer__user")
+        .order_by("rank")
+        if period
+        else Preference.objects.none()
+    )
     return render(
         request,
         "allocate/student_result.html",
         {
             "student": student,
             **result_data,
+            "preferences": prefs,  # bảng "Nguyện vọng đã nộp": NV nào trúng = rank == preference_rank
+            "journey": student_journey(student, prefs.exists(), period),
         },
     )

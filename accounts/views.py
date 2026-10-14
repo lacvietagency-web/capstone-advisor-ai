@@ -5,7 +5,7 @@ from django.db.models import Count, Q
 from django.shortcuts import redirect, render
 
 from allocate.services import get_student_allocation_result
-from catalog.models import Preference, RegistrationPeriod, Student, Topic
+from catalog.models import Lecturer, Preference, RegistrationPeriod, Student, Topic
 from catalog.views import profile_completeness
 from recommend.models import Recommendation
 from recommend.services import ensure_recommendations
@@ -154,6 +154,8 @@ def home(request):
                 "n_topics": Topic.objects.count(),
                 "n_students": Student.objects.count(),
                 "n_periods": RegistrationPeriod.objects.count(),
+                "n_lecturers": Lecturer.objects.count(),
+                "n_with_pref": Preference.objects.filter(submitted=True).values("student").distinct().count(),
                 "periods": RegistrationPeriod.objects.annotate(
                     student_count=Count("preference__student", filter=Q(preference__submitted=True), distinct=True)
                 ).order_by("-start_at")[:5],

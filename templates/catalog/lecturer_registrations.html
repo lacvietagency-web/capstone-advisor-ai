@@ -248,11 +248,11 @@
                     <div class="at-check-item">
                       <div class="at-check-left">
                         {% if item.state == 'ok' %}
-                          {% include "components/icon.html" with name="circle-check" size=16 class="at-success-ink" %}
+                          {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
                         {% elif item.state == 'warn' %}
-                          {% include "components/icon.html" with name="circle-help" size=16 class="at-muted" %}
+                          {% include "components/icon.html" with name="circle-help" size=14 class="at-muted" %}
                         {% else %}
-                          {% include "components/icon.html" with name="triangle-alert" size=16 class="at-warning-ink" %}
+                          {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
                         {% endif %}
                         <span class="at-check-label">{{ item.label }}</span>
                       </div>
@@ -266,9 +266,9 @@
                     <div class="at-check-item">
                       <div class="at-check-left">
                         {% if e.ok %}
-                          {% include "components/icon.html" with name="circle-check" size=16 class="at-success-ink" %}
+                          {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
                         {% else %}
-                          {% include "components/icon.html" with name="triangle-alert" size=16 class="at-warning-ink" %}
+                          {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
                         {% endif %}
                         <span class="at-check-label">{{ e.label }}</span>
                       </div>
@@ -280,7 +280,7 @@
                 {% else %}
                   <div class="at-check-item">
                     <div class="at-check-left">
-                      {% include "components/icon.html" with name="circle-check" size=16 class="at-success-ink" %}
+                      {% include "components/icon.html" with name="circle-check" size=14 class="at-success-ink" %}
                       <span class="at-check-label">Đạt GPA tối thiểu {{ topic.min_gpa|default:"2.0" }}</span>
                     </div>
                     <div class="at-check-val at-success-ink">Đạt ({{ row.pref.student.gpa|floatformat:2 }})</div>

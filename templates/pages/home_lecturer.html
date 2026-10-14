@@ -26,7 +26,7 @@
       {% include "components/period.html" with period=current_period text="Giảng viên xem xét đăng ký của sinh viên và quản lý các đề tài trong thời gian của đợt đăng ký." %}
     {% endif %}
 
-    <section class="at-panel">
+    <section class="at-panel at-panel--flush at-ledger-panel">
       <div class="at-panel-header">
         <div>
           <h2 class="h3">Tổng quan đề tài hướng dẫn</h2>
@@ -198,21 +198,23 @@
         {% endif %}
       </section>
 
-      <aside class="at-panel at-col-4">
+      <aside class="at-panel at-panel--flush at-col-4">
         <div class="at-panel-header">
           <div>
             <h2 class="h3">Trạng thái đợt</h2>
           </div>
         </div>
         <div class="at-period-status-list">
-          <div class="at-period-status-box">
-            <div class="at-row at-row--middle at-mb-2">
-              {% include "components/icon.html" with name="circle-dot" class="at-success-ink" size=16 %}
-              <strong>Đang nhận đăng ký</strong>
+          <div class="at-period-status-wrap">
+            <div class="at-period-status-box">
+              <div class="at-row at-row--middle at-mb-1">
+                {% include "components/icon.html" with name="circle-dot" class="at-success-ink" size=14 %}
+                <strong>Đang nhận đăng ký</strong>
+              </div>
+              <p class="at-secondary at-mb-0">
+                Sinh viên đang đăng ký đề tài. Giảng viên vui lòng xem xét và duyệt các đăng ký trong thời gian quy định.
+              </p>
             </div>
-            <p class="at-secondary at-mb-0">
-              Sinh viên đang đăng ký đề tài. Giảng viên vui lòng xem xét và duyệt các đăng ký trong thời gian quy định.
-            </p>
           </div>
 
           <div class="at-period-status-item">

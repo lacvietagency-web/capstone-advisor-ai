@@ -12,12 +12,16 @@
       <span>{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %}</span>
     </nav>
     <h1>{% if topic.pk %}Chỉnh sửa đề tài{% else %}Thêm đề tài mới{% endif %}</h1>
-    <p class="at-page-desc">Cập nhật thông tin đề tài, yêu cầu kỹ năng và chỉ tiêu tuyển chọn sinh viên.</p>
+    <p class="at-page-desc">Cập nhật thông tin đề tài, mục tiêu, yêu cầu kỹ năng, môn học tiên quyết và chỉ tiêu tuyển chọn sinh viên.</p>
   </div>
 </header>
 
 <form method="post" novalidate id="topicForm" class="at-stack" data-at-busy>
   {% csrf_token %}
+
+  {% if current_period %}
+    {% include "components/period.html" with period=current_period text="Giảng viên có thể thêm mới hoặc chỉnh sửa đề tài trong thời gian đăng ký. Thông tin sẽ được công bố đến sinh viên sau khi lưu và ở trạng thái mở." %}
+  {% endif %}
 
   {% if form.non_field_errors %}
     <div class="at-banner at-banner--danger" role="alert">
@@ -34,30 +38,79 @@
     <div class="at-panel-header">
       <div>
         <h2 class="h3">Thông tin chung</h2>
-        <p>Tên đề tài, tóm tắt nhiệm vụ và các lĩnh vực nghiên cứu.</p>
+        <p>Tên đề tài, mục tiêu, công nghệ và bài toán cần giải quyết.</p>
+      </div>
+    </div>
+
+    <div class="at-grid">
+      <div class="at-col-8 at-field">
+        <label class="form-label at-required" for="{{ form.title.id_for_label }}">Tên đề tài</label>
+        {{ form.title }}
+        {% if form.title.errors %}
+          <div class="at-error">{% for err in form.title.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+        <div class="form-text">Tên đề tài cần ngắn gọn, rõ ràng, thể hiện nội dung chính.</div>
+      </div>
+
+      <div class="at-col-4 at-field">
+        <label class="form-label">Mã đề tài</label>
+        <input type="text" class="form-control" value="{{ topic.code|default:'Hệ thống tự cấp khi lưu' }}" readonly disabled>
+        <div class="form-text">Mã đề tài do hệ thống tự sinh, chỉ dùng hiển thị.</div>
+      </div>
+
+      <div class="at-col-12 at-field">
+        <label class="form-label at-required" for="{{ form.difficulty.id_for_label }}">Độ khó</label>
+        {{ form.difficulty }}
+        {% if form.difficulty.errors %}
+          <div class="at-error">{% for err in form.difficulty.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+        <div class="form-text">Đánh giá mức độ phức tạp của đề tài.</div>
+      </div>
+
+      <div class="at-col-6 at-field">
+        <label class="form-label at-required" for="{{ form.description.id_for_label }}">Mô tả ngắn</label>
+        {{ form.description }}
+        {% if form.description.errors %}
+          <div class="at-error">{% for err in form.description.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+        <div class="form-text">Mô tả ngắn gọn về nội dung, phạm vi và sản phẩm dự kiến.</div>
+      </div>
+
+      <div class="at-col-6 at-field">
+        <label class="form-label" for="{{ form.objectives.id_for_label }}">Mục tiêu</label>
+        {{ form.objectives }}
+        {% if form.objectives.errors %}
+          <div class="at-error">{% for err in form.objectives.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+        <div class="form-text">Nêu rõ mục tiêu, kết quả đầu ra mong muốn.</div>
+      </div>
+
+      <div class="at-col-12 at-field">
+        <label class="form-label" for="{{ form.technologies.id_for_label }}">Công nghệ gợi ý</label>
+        {{ form.technologies }}
+        {% if form.technologies.errors %}
+          <div class="at-error">{% for err in form.technologies.errors %}{{ err }}{% endfor %}</div>
+        {% endif %}
+        {% if form.technologies.help_text %}
+          <div class="form-text">{{ form.technologies.help_text }}</div>
+        {% else %}
+          <div class="form-text">Liệt kê các công nghệ, công cụ dự kiến sử dụng (cách nhau bằng dấu phẩy).</div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Lĩnh vực -->
+  <section class="at-panel">
+    <div class="at-panel-header">
+      <div>
+        <h2 class="h3">Lĩnh vực</h2>
+        <p>Chọn các lĩnh vực liên quan để hệ thống đối sánh độ phù hợp với sở thích sinh viên.</p>
       </div>
     </div>
 
     <div class="at-field">
-      <label class="form-label at-required" for="{{ form.title.id_for_label }}">Tên đề tài</label>
-      {{ form.title }}
-      {% if form.title.errors %}
-        <div class="at-error">{% for err in form.title.errors %}{{ err }}{% endfor %}</div>
-      {% endif %}
-      <div class="form-text">Tên rõ ràng, bao quát được mục tiêu và giải pháp công nghệ chính.</div>
-    </div>
-
-    <div class="at-field">
-      <label class="form-label at-required" for="{{ form.description.id_for_label }}">Mô tả đề tài</label>
-      {{ form.description }}
-      {% if form.description.errors %}
-        <div class="at-error">{% for err in form.description.errors %}{{ err }}{% endfor %}</div>
-      {% endif %}
-      <div class="form-text">Mô tả ngắn gọn bối cảnh, nhiệm vụ, bài toán cần giải quyết và kết quả dự kiến.</div>
-    </div>
-
-    <div class="at-field">
-      <span class="form-label at-required">Lĩnh vực</span>
+      <span class="form-label at-required">Lĩnh vực chuyên môn</span>
       <div class="at-check-grid">
         {% for checkbox in form.fields %}
           <label>{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
@@ -66,11 +119,11 @@
       {% if form.fields.errors %}
         <div class="at-error">{% for err in form.fields.errors %}{{ err }}{% endfor %}</div>
       {% endif %}
-      <div class="form-text">Chọn các lĩnh vực liên quan để hệ thống đối sánh độ phù hợp với sở thích sinh viên.</div>
+      <div class="form-text">Chọn lĩnh vực phù hợp nhất với đề tài để hỗ trợ gợi ý AI.</div>
     </div>
   </section>
 
-  <!-- 2. Kỹ năng yêu cầu -->
+  <!-- 3. Kỹ năng yêu cầu -->
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
@@ -78,7 +131,7 @@
         <p>Danh sách kỹ năng cần thiết hoặc được ưu tiên cho đề tài này.</p>
       </div>
       <button type="button" class="btn btn-secondary btn-sm" id="btn-add-skill">
-        {% include "components/icon.html" with name="plus" %}Thêm dòng
+        {% include "components/icon.html" with name="plus" %}Thêm kỹ năng
       </button>
     </div>
 
@@ -105,7 +158,7 @@
             {% endif %}
           </div>
           <div class="at-field at-mb-0">
-            <label class="form-label" for="{{ f.required_level.id_for_label }}">Mức (1–5)</label>
+            <label class="form-label" for="{{ f.required_level.id_for_label }}">Mức yêu cầu (1–5)</label>
             {{ f.required_level }}
             {% if f.required_level.errors %}
               <div class="at-error">{% for err in f.required_level.errors %}{{ err }}{% endfor %}</div>
@@ -143,37 +196,86 @@
     </div>
   </section>
 
-  <!-- 3. Điều kiện học thuật (GPA tối thiểu) -->
+  <!-- 4. Điều kiện học thuật & Môn tiên quyết -->
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
-        <h2 class="h3">Điều kiện học thuật</h2>
-        <p>Yêu cầu về GPA tối thiểu và mức độ thử thách của đề tài.</p>
+        <h2 class="h3">Điều kiện</h2>
+        <p>GPA tối thiểu, môn học tiên quyết và ghi chú xét duyệt sinh viên.</p>
       </div>
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-add-prereq">
+        {% include "components/icon.html" with name="plus" %}Thêm môn tiên quyết
+      </button>
     </div>
 
-    <div class="at-grid">
-      <div class="at-col-6 at-field">
-        <label class="form-label at-required" for="{{ form.min_gpa.id_for_label }}">GPA tối thiểu</label>
-        {{ form.min_gpa }}
-        {% if form.min_gpa.errors %}
-          <div class="at-error">{% for err in form.min_gpa.errors %}{{ err }}{% endfor %}</div>
-        {% endif %}
-        <div class="form-text">Điểm trung bình tích lũy tối thiểu của sinh viên để được phép đăng ký.</div>
-      </div>
+    <div class="at-field">
+      <label class="form-label at-required" for="{{ form.min_gpa.id_for_label }}">GPA tối thiểu</label>
+      {{ form.min_gpa }}
+      {% if form.min_gpa.errors %}
+        <div class="at-error">{% for err in form.min_gpa.errors %}{{ err }}{% endfor %}</div>
+      {% endif %}
+      <div class="form-text">Điểm trung bình tích lũy tối thiểu của sinh viên để được phép đăng ký.</div>
+    </div>
 
-      <div class="at-col-6 at-field">
-        <label class="form-label at-required" for="{{ form.difficulty.id_for_label }}">Độ khó</label>
-        {{ form.difficulty }}
-        {% if form.difficulty.errors %}
-          <div class="at-error">{% for err in form.difficulty.errors %}{{ err }}{% endfor %}</div>
-        {% endif %}
-        <div class="form-text">Độ phức tạp dự kiến của các yêu cầu và giải pháp trong đề tài.</div>
+    <div class="at-divider"></div>
+
+    <h3 class="h4 at-mb-3">Học phần tiên quyết</h3>
+    {{ prereq_formset.management_form }}
+
+    {% if prereq_formset.non_form_errors %}
+      <div class="at-banner at-banner--danger at-mb-4" role="alert">
+        {% include "components/icon.html" with name="triangle-alert" %}
+        <div>
+          {% for err in prereq_formset.non_form_errors %}{{ err }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+        </div>
       </div>
+    {% endif %}
+
+    <div id="prereq-rows-container">
+      {% for f in prereq_formset %}
+        <div class="at-repeat-row" data-prereq-row>
+          {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+          <div class="at-field at-mb-0">
+            <label class="form-label" for="{{ f.course.id_for_label }}">Môn học</label>
+            {{ f.course }}
+            {% if f.course.errors %}
+              <div class="at-error">{% for err in f.course.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
+          </div>
+          <div class="at-field at-mb-0">
+            <label class="form-label" for="{{ f.min_score.id_for_label }}">Điểm tối thiểu</label>
+            {{ f.min_score }}
+            {% if f.min_score.errors %}
+              <div class="at-error">{% for err in f.min_score.errors %}{{ err }}{% endfor %}</div>
+            {% endif %}
+          </div>
+          <div class="at-field at-mb-0">
+            <div class="d-none">{{ f.DELETE }}</div>
+            <button type="button" class="btn btn-secondary btn-icon btn-delete-prereq" aria-label="Xoá môn tiên quyết">
+              {% include "components/icon.html" with name="trash-2" %}
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="at-divider"></div>
+
+    <div class="at-field">
+      <label class="form-label" for="{{ form.review_note.id_for_label }}">Ghi chú xét duyệt</label>
+      {{ form.review_note }}
+      {% if form.review_note.errors %}
+        <div class="at-error">{% for err in form.review_note.errors %}{{ err }}{% endfor %}</div>
+      {% endif %}
+      {% if form.review_note.help_text %}
+        <div class="form-text">{{ form.review_note.help_text }}</div>
+      {% else %}
+        <div class="form-text">Các lưu ý khác khi xét duyệt đăng ký của sinh viên (sinh viên không thấy nội dung này).</div>
+      {% endif %}
     </div>
   </section>
 
-  <!-- 4. Chỉ tiêu & trạng thái -->
+  <!-- 5. Chỉ tiêu & trạng thái -->
   <section class="at-panel">
     <div class="at-panel-header">
       <div>
@@ -184,7 +286,7 @@
 
     <div class="at-grid">
       <div class="at-col-6 at-field">
-        <label class="form-label at-required" for="{{ form.capacity.id_for_label }}">Sức chứa (SV)</label>
+        <label class="form-label at-required" for="{{ form.capacity.id_for_label }}">Chỉ tiêu sinh viên</label>
         {{ form.capacity }}
         {% if form.capacity.errors %}
           <div class="at-error">{% for err in form.capacity.errors %}{{ err }}{% endfor %}</div>
@@ -193,12 +295,12 @@
       </div>
 
       <div class="at-col-6 at-field">
-        <label class="form-label at-required" for="{{ form.status.id_for_label }}">Trạng thái</label>
+        <label class="form-label at-required" for="{{ form.status.id_for_label }}">Trạng thái đề tài</label>
         {{ form.status }}
         {% if form.status.errors %}
           <div class="at-error">{% for err in form.status.errors %}{{ err }}{% endfor %}</div>
         {% endif %}
-        <div class="form-text">Trạng thái công bố để sinh viên nhìn thấy và chọn nguyện vọng.</div>
+        <div class="form-text">Chỉ sinh viên có thể đăng ký khi đề tài ở trạng thái mở.</div>
       </div>
     </div>
   </section>
@@ -220,7 +322,7 @@
       {{ skill_formset.empty_form.skill }}
     </div>
     <div class="at-field at-mb-0">
-      <label class="form-label" for="{{ skill_formset.empty_form.required_level.id_for_label }}">Mức (1–5)</label>
+      <label class="form-label" for="{{ skill_formset.empty_form.required_level.id_for_label }}">Mức yêu cầu (1–5)</label>
       {{ skill_formset.empty_form.required_level }}
     </div>
     <div class="at-field at-mb-0">
@@ -237,6 +339,26 @@
     <div class="at-field at-mb-0">
       <div class="d-none">{{ skill_formset.empty_form.DELETE }}</div>
       <button type="button" class="btn btn-secondary btn-icon btn-delete-skill" aria-label="Xoá dòng">
+        {% include "components/icon.html" with name="trash-2" %}
+      </button>
+    </div>
+  </div>
+</template>
+
+<template id="empty-prereq-form-template">
+  <div class="at-repeat-row" data-prereq-row>
+    {% for hidden in prereq_formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+    <div class="at-field at-mb-0">
+      <label class="form-label" for="{{ prereq_formset.empty_form.course.id_for_label }}">Môn học</label>
+      {{ prereq_formset.empty_form.course }}
+    </div>
+    <div class="at-field at-mb-0">
+      <label class="form-label" for="{{ prereq_formset.empty_form.min_score.id_for_label }}">Điểm tối thiểu</label>
+      {{ prereq_formset.empty_form.min_score }}
+    </div>
+    <div class="at-field at-mb-0">
+      <div class="d-none">{{ prereq_formset.empty_form.DELETE }}</div>
+      <button type="button" class="btn btn-secondary btn-icon btn-delete-prereq" aria-label="Xoá môn tiên quyết">
         {% include "components/icon.html" with name="trash-2" %}
       </button>
     </div>
@@ -260,12 +382,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   ensureClasses(form);
 
-  const container = document.getElementById("skill-rows-container");
-  const totalInput = document.getElementById("id_skills-TOTAL_FORMS");
-  const templateEl = document.getElementById("empty-skill-form-template");
-  const addBtn = document.getElementById("btn-add-skill");
+  // Xử lý kỹ năng
+  const skillContainer = document.getElementById("skill-rows-container");
+  const skillTotalInput = document.getElementById("id_skills-TOTAL_FORMS");
+  const skillTemplate = document.getElementById("empty-skill-form-template");
+  const addSkillBtn = document.getElementById("btn-add-skill");
 
-  function attachDelete(btn) {
+  function attachSkillDelete(btn) {
     btn.addEventListener("click", function () {
       const row = btn.closest("[data-skill-row]");
       if (!row) return;
@@ -281,20 +404,59 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-  form.querySelectorAll(".btn-delete-skill").forEach(attachDelete);
+  form.querySelectorAll(".btn-delete-skill").forEach(attachSkillDelete);
 
-  if (addBtn && totalInput && templateEl && container) {
-    addBtn.addEventListener("click", function () {
-      const idx = parseInt(totalInput.value, 10) || 0;
-      const html = templateEl.innerHTML.replace(/__prefix__/g, idx.toString());
+  if (addSkillBtn && skillTotalInput && skillTemplate && skillContainer) {
+    addSkillBtn.addEventListener("click", function () {
+      const idx = parseInt(skillTotalInput.value, 10) || 0;
+      const html = skillTemplate.innerHTML.replace(/__prefix__/g, idx.toString());
       const wrapper = document.createElement("div");
       wrapper.innerHTML = html.trim();
       const newRow = wrapper.firstElementChild;
       ensureClasses(newRow);
       const delBtn = newRow.querySelector(".btn-delete-skill");
-      if (delBtn) attachDelete(delBtn);
-      container.appendChild(newRow);
-      totalInput.value = (idx + 1).toString();
+      if (delBtn) attachSkillDelete(delBtn);
+      skillContainer.appendChild(newRow);
+      skillTotalInput.value = (idx + 1).toString();
+    });
+  }
+
+  // Xử lý môn học tiên quyết
+  const prereqContainer = document.getElementById("prereq-rows-container");
+  const prereqTotalInput = document.getElementById("id_prereqs-TOTAL_FORMS");
+  const prereqTemplate = document.getElementById("empty-prereq-form-template");
+  const addPrereqBtn = document.getElementById("btn-add-prereq");
+
+  function attachPrereqDelete(btn) {
+    btn.addEventListener("click", function () {
+      const row = btn.closest("[data-prereq-row]");
+      if (!row) return;
+      const delCheckbox = row.querySelector("input[name$='-DELETE']");
+      const idInput = row.querySelector("input[name$='-id']");
+      if (delCheckbox) {
+        delCheckbox.checked = true;
+        row.style.display = "none";
+      } else if (!idInput || !idInput.value) {
+        row.remove();
+      } else {
+        row.style.display = "none";
+      }
+    });
+  }
+  form.querySelectorAll(".btn-delete-prereq").forEach(attachPrereqDelete);
+
+  if (addPrereqBtn && prereqTotalInput && prereqTemplate && prereqContainer) {
+    addPrereqBtn.addEventListener("click", function () {
+      const idx = parseInt(prereqTotalInput.value, 10) || 0;
+      const html = prereqTemplate.innerHTML.replace(/__prefix__/g, idx.toString());
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = html.trim();
+      const newRow = wrapper.firstElementChild;
+      ensureClasses(newRow);
+      const delBtn = newRow.querySelector(".btn-delete-prereq");
+      if (delBtn) attachPrereqDelete(delBtn);
+      prereqContainer.appendChild(newRow);
+      prereqTotalInput.value = (idx + 1).toString();
     });
   }
 });

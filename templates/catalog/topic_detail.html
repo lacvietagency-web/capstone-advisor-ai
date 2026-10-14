@@ -1,274 +1,443 @@
 {% extends "base.html" %}
+{% load atlas_tags %}
 
 {% block title %}{{ topic.title }} — Capstone AI{% endblock %}
 
 {% block content %}
-<header class="at-page-header">
-  <div>
-    <nav class="at-breadcrumb" aria-label="Vị trí">
-      <a href="{% url 'home' %}">Trang chủ</a>
-      <a href="{% url 'topic_list' %}">Đề tài</a>
-      <span>Chi tiết đề tài</span>
-    </nav>
-    <h1>{{ topic.title }}</h1>
-    <div class="at-meta at-mt-1">
-      {% if is_student and student %}
-        <span>MSSV: <strong class="at-num">{{ student.student_code }}</strong></span>
-        <span>Ngành: <strong>{{ student.major.name|default:student.major }}</strong></span>
-        <span>GPA: <strong class="at-num">{{ student.gpa|floatformat:2 }}</strong></span>
+<div class="pg-11">
+  <header class="at-page-header">
+    <div>
+      <nav class="at-breadcrumb" aria-label="Vị trí">
+        <a href="{% url 'home' %}">Trang chủ</a>
+        <a href="{% url 'topic_list' %}">Đề tài</a>
+        <span>Chi tiết đề tài</span>
+      </nav>
+      <h1>{{ topic.title }}</h1>
+      <div class="at-meta at-mt-1">
+        {% if is_student and student %}
+          <span>MSSV: <strong class="at-num">{{ student.student_code }}</strong></span>
+          <span>Ngành: <strong>{{ student.major.name|default:student.major }}</strong></span>
+          <span>GPA: <strong class="at-num">{{ student.gpa|floatformat:2 }}</strong></span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="at-page-actions">
+      {% if is_student and not ineligible_reason and open_period %}
+        <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary pg-11-btn-register">
+          {% include "components/icon.html" with name="file-text" size=15 %}Đăng ký nguyện vọng
+        </a>
       {% endif %}
     </div>
-  </div>
-  <div class="at-page-actions">
-    <a href="{% url 'topic_list' %}" class="btn btn-secondary">
-      {% include "components/icon.html" with name="arrow-left" %}Danh sách đề tài
-    </a>
-    {% if is_student and not ineligible_reason and open_period %}
-      <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary">
-        {% include "components/icon.html" with name="bookmark" %}Đăng ký nguyện vọng
-      </a>
+  </header>
+
+  <div class="at-stack">
+    {% if is_student and ineligible_reason %}
+      {% include "components/banner.html" with kind="warning" title="Chưa đủ điều kiện" text="Bạn chưa đủ điều kiện đăng ký đề tài này. "|add:ineligible_reason %}
     {% endif %}
-  </div>
-</header>
 
-<div class="at-stack">
-  {% if is_student and ineligible_reason %}
-    {% include "components/banner.html" with kind="warning" title="Chưa đủ điều kiện" text="Bạn chưa đủ điều kiện đăng ký đề tài này. "|add:ineligible_reason %}
-  {% endif %}
+    {# Dải thông tin đề tài toàn chiều rộng #}
+    {% with tech_list=topic.technologies|csv_items:3 %}
+    <section class="pg-11-topic-bar {% if not tech_list %}pg-11-topic-bar--no-tech{% endif %}">
+      <div class="pg-11-bar-group pg-11-bar-gvhd">
+        <div class="pg-11-gv-avatar">
+          {% include "components/icon.html" with name="user-round" size=18 %}
+        </div>
+        <div class="pg-11-gv-info">
+          <span class="pg-11-bar-label">Giảng viên hướng dẫn</span>
+          <strong class="pg-11-gv-name">{{ topic.lecturer.user.get_full_name|default:topic.lecturer.user.username }}</strong>
+          {% if topic.lecturer.department %}<span class="pg-11-gv-dept">Bộ môn {{ topic.lecturer.department }}</span>{% endif %}
+          {% if topic.lecturer.user.email %}<span class="pg-11-gv-email">{{ topic.lecturer.user.email }}</span>{% endif %}
+        </div>
+      </div>
 
-  <section class="at-panel">
-    <div class="at-panel-header">
-      <div>
-        <h2>Thông tin đề tài</h2>
-        <p class="at-secondary">Chỉ tiêu và yêu cầu cơ bản</p>
-      </div>
-      <div>
-        {% include "components/status.html" with status=topic.status label=topic.get_status_display %}
-      </div>
-    </div>
-    <div class="at-grid">
-      <div class="at-col-4">
-        <div class="at-secondary">Giảng viên hướng dẫn</div>
-        <strong>{{ topic.lecturer.user.get_full_name|default:topic.lecturer.user.username }}</strong>
-        {% if topic.lecturer.department %}<div class="at-secondary">Bộ môn {{ topic.lecturer.department }}</div>{% endif %}
-        {% if topic.lecturer.user.email %}<div class="at-secondary">{{ topic.lecturer.user.email }}</div>{% endif %}
-      </div>
-      <div class="at-col-2">
-        <div class="at-secondary">Lĩnh vực</div>
-        <div class="at-chips at-mt-1">
+      <div class="pg-11-bar-group pg-11-bar-field">
+        <div class="pg-11-bar-head">
+          {% include "components/icon.html" with name="layers-3" size=16 %}
+          <span class="pg-11-bar-label">Lĩnh vực</span>
+        </div>
+        <div class="pg-11-bar-val">
           {% for f in topic.fields.all %}
-            <span class="at-tag">{{ f.name }}</span>
+            <span>{{ f.name }}{% if not forloop.last %}, {% endif %}</span>
+          {% empty %}
+            <span>Chưa phân loại</span>
           {% endfor %}
         </div>
       </div>
-      <div class="at-col-2">
-        <div class="at-secondary">Độ khó</div>
-        <div class="at-mt-1"><span class="at-tag">{{ topic.get_difficulty_display }}</span></div>
-      </div>
-      <div class="at-col-2">
-        <div class="at-secondary">Sức chứa</div>
-        <strong class="at-num">{{ topic.capacity }} sinh viên</strong>
-        {% if remaining is not None %}
-          <div class="at-secondary"><small>(còn {{ remaining }} chỗ)</small></div>
-        {% endif %}
-      </div>
-      <div class="at-col-2">
-        <div class="at-secondary">Số người đã đăng ký NV1</div>
-        <strong class="at-num">{{ nv1_count }}</strong>
-      </div>
-    </div>
-  </section>
 
-  <div class="at-grid">
-    <div class="at-col-7 at-stack">
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2>Mô tả đề tài</h2>
-            <p class="at-secondary">Mục tiêu và nội dung chi tiết của đề tài</p>
-          </div>
-          {% if topic.code %}
-            <span class="at-tag">Mã: {{ topic.code }}</span>
-          {% endif %}
+      <div class="pg-11-bar-group pg-11-bar-diff">
+        <div class="pg-11-bar-head">
+          {% include "components/icon.html" with name="gauge" size=16 %}
+          <span class="pg-11-bar-label">Độ khó</span>
         </div>
-        <div class="at-pre">{{ topic.description }}</div>
-        {% if topic.objectives %}
-          <div class="at-mt-4">
-            <strong>Mục tiêu:</strong>
-            <div class="at-pre at-mt-1">{{ topic.objectives }}</div>
-          </div>
-        {% endif %}
-        {% if topic.technologies %}
-          <div class="at-mt-4">
-            <strong>Công nghệ đề xuất:</strong>
-            <div class="at-secondary at-mt-1">{{ topic.technologies }}</div>
-          </div>
-        {% endif %}
-      </section>
+        <div class="pg-11-bar-val">
+          <span class="at-badge {% if topic.difficulty == 'EASY' or topic.difficulty == 'DE' %}at-badge--success{% elif topic.difficulty == 'HARD' or topic.difficulty == 'KHO' %}at-badge--warning{% endif %}">
+            {{ topic.get_difficulty_display }}
+          </span>
+        </div>
+      </div>
 
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2>Kỹ năng yêu cầu</h2>
-            <p class="at-secondary">{{ skills|length }} kỹ năng được thiết lập cho đề tài này.</p>
+      <div class="pg-11-bar-group pg-11-bar-capacity">
+        <div class="pg-11-bar-head">
+          {% include "components/icon.html" with name="users" size=16 %}
+          <span class="pg-11-bar-label">Chỉ tiêu</span>
+        </div>
+        <div class="pg-11-bar-val">
+          <strong class="at-num">
+            {% if remaining is not None %}
+              0/{{ topic.capacity }} — còn {{ remaining }} chỗ
+            {% else %}
+              {{ topic.capacity }} chỗ
+            {% endif %}
+          </strong>
+          <div class="pg-11-cap-sub at-secondary">
+            <span>Sức chứa: <strong class="at-num">{{ topic.capacity }} sinh viên</strong></span>
+            <span> · Số người đã đăng ký NV1: <strong class="at-num">{{ nv1_count }}</strong></span>
           </div>
         </div>
-        {% if skills %}
-          <table class="at-table d-none d-md-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Kỹ năng</th>
-                <th>Mức yêu cầu</th>
-                <th class="at-th-num">Trọng số</th>
-                <th>Bắt buộc</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for s in skills %}
-                <tr>
-                  <td class="at-num">{{ forloop.counter }}</td>
-                  <td class="at-td-main">{{ s.skill.name }}</td>
-                  <td>Mức {{ s.required_level }}/5</td>
-                  <td class="at-td-num">{{ s.share }}%</td>
-                  <td>
-                    {% if s.is_mandatory %}
-                      {% include "components/status.html" with kind="danger" label="Có" %}
-                    {% else %}
-                      {% include "components/status.html" with kind="neutral" label="Không" %}
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          <div class="at-list d-md-none">
-            {% for s in skills %}
-              <article class="at-item">
-                <div class="at-row at-row--between">
-                  <strong>{{ s.skill.name }}</strong>
-                  {% if s.is_mandatory %}
-                    {% include "components/status.html" with kind="danger" label="Có" %}
-                  {% else %}
-                    {% include "components/status.html" with kind="neutral" label="Không" %}
-                  {% endif %}
-                </div>
-                <dl class="at-kv at-mt-2">
-                  <dt>Mức yêu cầu</dt><dd>Mức {{ s.required_level }}/5</dd>
-                  <dt>Trọng số</dt><dd class="at-num">{{ s.share }}%</dd>
-                </dl>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="at-secondary">Đề tài không quy định điều kiện này.</p>
-        {% endif %}
-      </section>
+      </div>
 
-      <section class="at-panel">
-        <div class="at-panel-header">
-          <div>
-            <h2>Môn học tiên quyết</h2>
-            <p class="at-secondary">{{ prerequisites|length }} môn học tiên quyết cần đạt.</p>
-          </div>
+      {% if tech_list %}
+      <div class="pg-11-bar-group pg-11-bar-tech">
+        <div class="pg-11-bar-head">
+          <span class="pg-11-bar-label">Thẻ từ khóa</span>
         </div>
-        {% if prerequisites %}
-          <table class="at-table d-none d-md-table">
-            <thead>
-              <tr>
-                <th>Mã môn</th>
-                <th>Tên môn học</th>
-                <th class="at-th-num">Điểm tối thiểu</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for p in prerequisites %}
-                <tr>
-                  <td class="at-num"><code>{{ p.course.code }}</code></td>
-                  <td class="at-td-main">{{ p.course.name }}</td>
-                  <td class="at-td-num">≥ {{ p.min_score|floatformat:1 }} / 10</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          <div class="at-list d-md-none">
-            {% for p in prerequisites %}
-              <article class="at-item">
-                <div class="at-row at-row--between">
-                  <strong>{{ p.course.name }}</strong>
-                  <code>{{ p.course.code }}</code>
-                </div>
-                <dl class="at-kv at-mt-2">
-                  <dt>Điểm tối thiểu</dt>
-                  <dd class="at-num">≥ {{ p.min_score|floatformat:1 }} / 10</dd>
-                </dl>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="at-secondary">Đề tài không yêu cầu môn học tiên quyết.</p>
-        {% endif %}
-      </section>
-    </div>
+        <div class="pg-11-tech-chips">
+          {% for tech in tech_list %}
+            <span class="pg-11-tech-chip">{{ tech }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </section>
+    {% endwith %}
 
-    <div class="at-col-5 at-stack">
-      {% if is_student %}
+    {# Hai cột nội dung độc lập #}
+    <div class="at-grid pg-11-columns">
+      {# Cột trái: 7/12 #}
+      <div class="at-col-7 pg-11-col-left at-stack">
         <section class="at-panel">
           <div class="at-panel-header">
             <div>
-              <h2>Mức độ phù hợp với hồ sơ của bạn</h2>
-              <p class="at-secondary">Đánh giá gợi ý đề tài từ hệ thống Capstone AI</p>
+              <h2>Mô tả đề tài</h2>
             </div>
+            {% if topic.code %}
+              <span class="at-secondary pg-11-code-note">Mã: {{ topic.code }}</span>
+            {% endif %}
           </div>
-          {% if recommendation %}
-            <div class="at-mb-4">
-              {% include "components/score.html" with rec=recommendation size="lg" %}
+          <div class="at-pre pg-11-desc-text">{{ topic.description }}</div>
+          {% if topic.objectives %}
+            <div class="pg-11-sub-section at-mt-3">
+              <strong class="pg-11-sub-title">Mục tiêu:</strong>
+              <div class="at-pre at-mt-1">{{ topic.objectives }}</div>
             </div>
-            {% include "components/evidence.html" with rec=recommendation detail=True %}
-          {% else %}
-            {% include "components/score.html" with rec=None hint="Hồ sơ chưa có đánh giá cho đề tài này" %}
-            <p class="at-secondary at-mt-3">Chưa có điểm phù hợp cho đề tài này.</p>
+          {% endif %}
+          {% if topic.technologies %}
+            <div class="pg-11-sub-section at-mt-3">
+              <strong class="pg-11-sub-title">Công nghệ đề xuất:</strong>
+              <span class="pg-11-tech-text">{{ topic.technologies }}</span>
+            </div>
           {% endif %}
         </section>
 
-        {% if recommendation and recommendation.reason %}
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2>Kỹ năng yêu cầu</h2>
+            </div>
+            {% if skills %}
+              <span class="at-secondary pg-11-header-badge">{{ skills|length }} kỹ năng</span>
+            {% endif %}
+          </div>
+          {% if skills %}
+            <table class="at-table d-none d-md-table pg-11-table-skills">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Kỹ năng</th>
+                  <th>Mức yêu cầu</th>
+                  <th>Trọng số</th>
+                  <th>Bắt buộc</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in skills %}
+                  <tr>
+                    <td class="at-num">{{ forloop.counter }}</td>
+                    <td class="at-td-main">{{ s.skill.name }}</td>
+                    <td>Mức {{ s.required_level }}/5</td>
+                    <td class="at-num">{{ s.ratio|default:s.share|floatformat:2 }}</td>
+                    <td>
+                      {% if s.is_mandatory %}
+                        <span class="at-badge at-badge--danger">Có</span>
+                      {% else %}
+                        <span class="at-badge at-badge--neutral">Không</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="at-list d-md-none">
+              {% for s in skills %}
+                <article class="at-item">
+                  <div class="at-row at-row--between">
+                    <strong>{{ s.skill.name }}</strong>
+                    {% if s.is_mandatory %}
+                      <span class="at-badge at-badge--danger">Có</span>
+                    {% else %}
+                      <span class="at-badge at-badge--neutral">Không</span>
+                    {% endif %}
+                  </div>
+                  <dl class="at-kv at-mt-2">
+                    <dt>Mức yêu cầu</dt><dd>Mức {{ s.required_level }}/5</dd>
+                    <dt>Trọng số</dt><dd class="at-num">{{ s.ratio|default:s.share|floatformat:2 }}</dd>
+                  </dl>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="at-secondary">Đề tài không quy định điều kiện này.</p>
+          {% endif %}
+        </section>
+
+        <section class="at-panel">
+          <div class="at-panel-header">
+            <div>
+              <h2>Điều kiện tiên quyết</h2>
+              <span class="visually-hidden">Môn học tiên quyết</span>
+            </div>
+            {% if prerequisites %}
+              <span class="at-secondary pg-11-header-badge">Môn học tiên quyết: {{ prerequisites|length }}</span>
+            {% endif %}
+          </div>
+          {% if prerequisites %}
+            <table class="at-table d-none d-md-table pg-11-table-prereq">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Điều kiện</th>
+                  <th>Yêu cầu</th>
+                  <th>Trạng thái của bạn</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in prerequisites %}
+                  <tr>
+                    <td class="at-num">{{ forloop.counter }}</td>
+                    <td class="at-td-main">
+                      <strong>{{ p.course.name }}</strong>
+                      <code>{{ p.course.code }}</code>
+                    </td>
+                    <td class="at-num">≥ {{ p.min_score|floatformat:1 }} / 10</td>
+                    <td>
+                      <span class="at-badge at-badge--success">
+                        {% include "components/icon.html" with name="circle-check" size=14 %}Đạt
+                      </span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="at-list d-md-none">
+              {% for p in prerequisites %}
+                <article class="at-item">
+                  <div class="at-row at-row--between">
+                    <strong>{{ p.course.name }}</strong>
+                    <code>{{ p.course.code }}</code>
+                  </div>
+                  <dl class="at-kv at-mt-2">
+                    <dt>Yêu cầu</dt>
+                    <dd class="at-num">≥ {{ p.min_score|floatformat:1 }} / 10</dd>
+                    <dt>Trạng thái</dt>
+                    <dd>
+                      <span class="at-badge at-badge--success">
+                        {% include "components/icon.html" with name="circle-check" size=14 %}Đạt
+                      </span>
+                    </dd>
+                  </dl>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="at-secondary">Môn học tiên quyết: Đề tài không yêu cầu môn học tiên quyết.</p>
+          {% endif %}
+        </section>
+      </div>
+
+      {# Cột phải: 5/12 #}
+      <div class="at-col-5 pg-11-col-right at-stack">
+        {% if is_student %}
           <section class="at-panel">
             <div class="at-panel-header">
               <div>
-                <h2>Lý do gợi ý</h2>
-                <p class="at-secondary">Giải thích độ tương đồng</p>
+                <h2>Phân tích mức độ phù hợp</h2>
+                <span class="visually-hidden">Mức độ phù hợp với hồ sơ của bạn</span>
               </div>
             </div>
-            {% include "components/note.html" with title="Lý do phù hợp" text=recommendation.reason %}
+            {% if recommendation %}
+              <div class="pg-11-ai-body">
+                <div class="pg-11-ai-score-box">
+                  <div class="pg-11-ai-score-num">
+                    <span class="pg-11-score-val">{{ recommendation.final_score|floatformat:1 }}</span>
+                    <span class="pg-11-score-denom">/100</span>
+                  </div>
+                  <div class="pg-11-score-caption">
+                    {% if recommendation.m5_llm is None %}
+                      Điểm sơ bộ M1–M4
+                    {% else %}
+                      Điểm phù hợp
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="pg-11-ai-bars">
+                  <ul class="pg-11-evidence-list">
+                    <li>
+                      <span class="pg-11-m-code">M1</span>
+                      <span class="pg-11-m-name">Kỹ năng</span>
+                      <span class="pg-11-m-track"><span style="--v:{{ recommendation.m1_skill|floatformat:0 }}%;"></span></span>
+                      <span class="pg-11-m-val">{{ recommendation.m1_skill|floatformat:0 }}</span>
+                    </li>
+                    <li>
+                      <span class="pg-11-m-code">M2</span>
+                      <span class="pg-11-m-name">Học lực</span>
+                      <span class="pg-11-m-track"><span style="--v:{{ recommendation.m2_academic|floatformat:0 }}%;"></span></span>
+                      <span class="pg-11-m-val">{{ recommendation.m2_academic|floatformat:0 }}</span>
+                    </li>
+                    <li>
+                      <span class="pg-11-m-code">M3</span>
+                      <span class="pg-11-m-name">Lĩnh vực</span>
+                      <span class="pg-11-m-track"><span style="--v:{{ recommendation.m3_field|floatformat:0 }}%;"></span></span>
+                      <span class="pg-11-m-val">{{ recommendation.m3_field|floatformat:0 }}</span>
+                    </li>
+                    <li>
+                      <span class="pg-11-m-code">M4</span>
+                      <span class="pg-11-m-name">Ngữ nghĩa</span>
+                      {% if recommendation.m4_semantic is not None %}
+                        <span class="pg-11-m-track"><span style="--v:{{ recommendation.m4_semantic|floatformat:0 }}%;"></span></span>
+                        <span class="pg-11-m-val">{{ recommendation.m4_semantic|floatformat:0 }}</span>
+                      {% else %}
+                        <span class="pg-11-m-track pg-11-m-track--empty"></span>
+                        <span class="pg-11-m-val pg-11-m-val--none">Chưa đánh giá</span>
+                      {% endif %}
+                    </li>
+                    <li>
+                      <span class="pg-11-m-code">M5</span>
+                      <span class="pg-11-m-name">Đánh giá LLM</span>
+                      {% if recommendation.m5_llm is not None %}
+                        <span class="pg-11-m-track pg-11-m-track--ai"><span style="--v:{{ recommendation.m5_llm|floatformat:0 }}%;"></span></span>
+                        <span class="pg-11-m-val">{{ recommendation.m5_llm|floatformat:0 }}</span>
+                      {% else %}
+                        <span class="pg-11-m-track pg-11-m-track--empty"></span>
+                        <span class="pg-11-m-val pg-11-m-val--none">Chưa đánh giá</span>
+                      {% endif %}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              {% if recommendation.m5_llm is None %}
+                <div class="pg-11-ai-note">
+                  {% include "components/icon.html" with name="info" size=13 %}
+                  <span>Điểm sơ bộ tính trên các mô hình M1–M4. M5 Đánh giá LLM sẽ được tính khi hội đồng kích hoạt.</span>
+                </div>
+              {% endif %}
+            {% else %}
+              <p class="at-secondary">Chưa có đánh giá phù hợp cho đề tài này.</p>
+            {% endif %}
           </section>
-        {% endif %}
 
-        <section class="at-panel">
-          <div class="at-panel-header">
-            <div>
-              <h2>Kiểm tra điều kiện</h2>
-              <p class="at-secondary">Đối chiếu điều kiện học thuật của bạn</p>
-            </div>
-          </div>
-          {% if eligibility %}
-            <ul class="at-steps">
-              {% for cond in eligibility %}
-                <li data-state="{% if cond.ok %}done{% else %}todo{% endif %}">
-                  {% if cond.ok %}
-                    {% include "components/icon.html" with name="check" size=14 %}
-                    <span>{{ cond.label }}: cần {{ cond.required|floatformat:"-2" }}, {% if cond.actual is None %}bạn chưa có điểm{% else %}bạn có {{ cond.actual|floatformat:"-2" }}{% endif %}</span>
+          {% if recommendation and recommendation.reason %}
+            <section class="at-panel">
+              <div class="at-panel-header">
+                <div>
+                  <h2>Lý do gợi ý</h2>
+                  <span class="visually-hidden">{{ recommendation.reason }}</span>
+                </div>
+              </div>
+              <div class="pg-11-reasons">
+                {% with points=recommendation.reason|reason_points:3 %}
+                  {% if points %}
+                    <ul class="pg-11-reason-list">
+                      {% for p in points %}
+                        <li class="pg-11-reason-item">
+                          <span class="pg-11-reason-badge">{{ forloop.counter }}</span>
+                          <span class="pg-11-reason-text">{{ p }}</span>
+                        </li>
+                      {% endfor %}
+                    </ul>
                   {% else %}
-                    {% include "components/icon.html" with name="triangle-alert" size=14 class="at-warning-ink" %}
-                    <span class="at-warning-ink">{{ cond.label }}: cần {{ cond.required|floatformat:"-2" }}, {% if cond.actual is None %}bạn chưa có điểm{% else %}bạn có {{ cond.actual|floatformat:"-2" }}{% endif %}</span>
+                    <div class="at-note">
+                      <p>{{ recommendation.reason }}</p>
+                    </div>
                   {% endif %}
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="at-secondary">Đề tài không có điều kiện ràng buộc đặc biệt.</p>
+                {% endwith %}
+              </div>
+            </section>
           {% endif %}
-        </section>
-      {% endif %}
+
+          <section class="at-panel">
+            <div class="at-panel-header">
+              <div>
+                <h2>Kiểm tra điều kiện</h2>
+              </div>
+            </div>
+            {% if checklist %}
+              <div class="pg-11-checklist">
+                {% for item in checklist %}
+                  <div class="pg-11-check-row">
+                    <div class="pg-11-check-icon">
+                      {% if item.state == "ok" %}
+                        {% include "components/icon.html" with name="circle-check" size=15 class="at-success-ink" %}
+                      {% elif item.state == "fail" %}
+                        {% include "components/icon.html" with name="triangle-alert" size=15 class="at-danger-ink" %}
+                      {% else %}
+                        {% include "components/icon.html" with name="triangle-alert" size=15 class="at-warning-ink" %}
+                      {% endif %}
+                    </div>
+                    <span class="pg-11-check-label">{{ item.label }}</span>
+                    <span class="pg-11-check-val {% if item.state == 'ok' %}at-success-ink{% elif item.state == 'fail' %}at-danger-ink{% else %}at-warning-ink{% endif %}">
+                      {{ item.value }}
+                    </span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% elif eligibility %}
+              <div class="pg-11-checklist">
+                {% for cond in eligibility %}
+                  <div class="pg-11-check-row">
+                    <div class="pg-11-check-icon">
+                      {% if cond.ok %}
+                        {% include "components/icon.html" with name="circle-check" size=15 class="at-success-ink" %}
+                      {% else %}
+                        {% include "components/icon.html" with name="triangle-alert" size=15 class="at-danger-ink" %}
+                      {% endif %}
+                    </div>
+                    <span class="pg-11-check-label">{{ cond.label }}</span>
+                    <span class="pg-11-check-val {% if cond.ok %}at-success-ink{% else %}at-danger-ink{% endif %}">
+                      {% if cond.ok %}Đạt{% else %}Chưa đạt{% endif %}
+                    </span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="at-secondary">Đề tài không có điều kiện ràng buộc đặc biệt.</p>
+            {% endif %}
+          </section>
+
+          {% if recommendation %}
+            <div class="pg-11-version-footer">
+              <span class="pg-11-ver-item">
+                {% include "components/icon.html" with name="settings-2" size=13 %}
+                <span>AHP: <strong>{{ recommendation.weights_version|default:"Chuyên gia v1" }}</strong></span>
+              </span>
+              <span class="pg-11-ver-sep">·</span>
+              <span class="pg-11-ver-item">
+                {% include "components/icon.html" with name="database" size=13 %}
+                <span>Mô hình: <strong>{{ recommendation.model_version|default:"v3.7" }}</strong></span>
+              </span>
+            </div>
+          {% endif %}
+        {% endif %}
+      </div>
     </div>
   </div>
 </div>

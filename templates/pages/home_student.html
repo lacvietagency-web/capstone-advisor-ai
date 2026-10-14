@@ -3,6 +3,7 @@
 {% block title %}Trang chủ Sinh viên — Capstone AI{% endblock %}
 
 {% block content %}
+<div class="pg-07">
 <header class="at-page-header">
   <div>
     <h1>Xin chào, {{ student.user.get_full_name|default:student.user.username }}</h1>
@@ -212,5 +213,6 @@
       </aside>
     </div>
   {% endif %}
+</div>
 </div>
 {% endblock %}

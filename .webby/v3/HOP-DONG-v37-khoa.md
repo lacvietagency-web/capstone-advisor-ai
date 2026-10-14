@@ -8,3 +8,7 @@ dashboard: giữ NGUYÊN mọi name/param GET của bộ lọc đang có (status
 (không xoá chức năng). Bảng dòng gọn 1 dòng; thao tác dạng liên kết chữ "Xem" / "Xếp tay" mở đúng ngăn kéo hiện có.
 Biểu đồ "Kết quả theo nguyện vọng": cấu hình JSON trong data-at-chart; màu ghi dạng "var(--pg19-nv1)" (atlas.js tự đổi var() thành màu, đọc ở :root).
 Ngoại lệ luật tiền tố: khoa.css được khai báo biến màu biểu đồ trên :root (và bản tối) với tên bắt đầu --pg19-. Màu từng cột như diff.
+
+VÒNG 2 (sau duyệt lại): biến period_locked = True khi đợt ĐÃ CÔNG BỐ → ẩn nút "Chạy Greedy", "Chạy tối ưu ILP", liên kết "Xếp tay"
+và form xếp tay trong ngăn kéo (backend đã chặn, giao diện chỉ còn "Xem"). Bộ lọc nâng cao (Lĩnh vực, Điểm, Sắp xếp) gom vào nút
+"Bộ lọc nâng cao" (dùng <details> hoặc collapse Bootstrap có sẵn) để toolbar 1 hàng; giữ nguyên name/param GET.

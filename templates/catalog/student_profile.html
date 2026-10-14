@@ -124,74 +124,80 @@
 
           <div id="skill-forms-container" class="skill-list">
             {% for f in skill_formset %}
-              <div class="skill-row" data-form-index="{{ forloop.counter0 }}">
-                {% for hidden in f.hidden_fields %}
-                  {{ hidden }}
-                {% endfor %}
-                <div class="skill-select">
-                  {{ f.skill }}
-                  {% if f.skill.errors %}
-                    <div class="at-error">{{ f.skill.errors.0 }}</div>
+              {% if f.instance.pk or f.errors or f.skill.value %}
+                <div class="skill-row" data-form-index="{{ forloop.counter0 }}">
+                  {% for hidden in f.hidden_fields %}
+                    {{ hidden }}
+                  {% endfor %}
+                  <div class="skill-select">
+                    {{ f.skill }}
+                    {% if f.skill.errors %}
+                      <div class="at-error">{{ f.skill.errors.0 }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="skill-levels">
+                    <label class="skill-level-opt">
+                      <input type="radio" name="{{ f.level.html_name }}" value="1" {% if f.level.value == 1 or f.level.value == "1" %}checked{% endif %}>
+                      <div class="skill-level-text">
+                        <span class="skill-level-num">1</span>
+                        <span class="skill-level-desc">Cơ bản</span>
+                      </div>
+                    </label>
+                    <label class="skill-level-opt">
+                      <input type="radio" name="{{ f.level.html_name }}" value="2" {% if f.level.value == 2 or f.level.value == "2" %}checked{% endif %}>
+                      <div class="skill-level-text">
+                        <span class="skill-level-num">2</span>
+                        <span class="skill-level-desc">Biết làm</span>
+                      </div>
+                    </label>
+                    <label class="skill-level-opt">
+                      <input type="radio" name="{{ f.level.html_name }}" value="3" {% if f.level.value == 3 or f.level.value == "3" or not f.level.value %}checked{% endif %}>
+                      <div class="skill-level-text">
+                        <span class="skill-level-num">3</span>
+                        <span class="skill-level-desc">Khá</span>
+                      </div>
+                    </label>
+                    <label class="skill-level-opt">
+                      <input type="radio" name="{{ f.level.html_name }}" value="4" {% if f.level.value == 4 or f.level.value == "4" %}checked{% endif %}>
+                      <div class="skill-level-text">
+                        <span class="skill-level-num">4</span>
+                        <span class="skill-level-desc">Tốt</span>
+                      </div>
+                    </label>
+                    <label class="skill-level-opt">
+                      <input type="radio" name="{{ f.level.html_name }}" value="5" {% if f.level.value == 5 or f.level.value == "5" %}checked{% endif %}>
+                      <div class="skill-level-text">
+                        <span class="skill-level-num">5</span>
+                        <span class="skill-level-desc">Thành thạo</span>
+                      </div>
+                    </label>
+                  </div>
+                  <div class="d-none">{{ f.DELETE }}</div>
+                  <div class="skill-delete-wrap">
+                    <button type="button" class="btn-delete-skill btn-delete-row" aria-label="Xoá kỹ năng" title="Xoá kỹ năng">
+                      {% include "components/icon.html" with name="trash-2" size=16 %}
+                    </button>
+                  </div>
+                  {% if f.level.errors %}
+                    <div class="at-error col-12">{{ f.level.errors.0 }}</div>
+                  {% endif %}
+                  {% if f.non_field_errors %}
+                    <div class="at-error col-12">
+                      {% for err in f.non_field_errors %}{{ err }}{% endfor %}
+                    </div>
                   {% endif %}
                 </div>
-                <div class="skill-levels">
-                  <label class="skill-level-opt">
-                    <input type="radio" name="{{ f.level.html_name }}" value="1" {% if f.level.value == 1 or f.level.value == "1" %}checked{% endif %}>
-                    <div class="skill-level-text">
-                      <span class="skill-level-num">1</span>
-                      <span class="skill-level-desc">Cơ bản</span>
-                    </div>
-                  </label>
-                  <label class="skill-level-opt">
-                    <input type="radio" name="{{ f.level.html_name }}" value="2" {% if f.level.value == 2 or f.level.value == "2" %}checked{% endif %}>
-                    <div class="skill-level-text">
-                      <span class="skill-level-num">2</span>
-                      <span class="skill-level-desc">Biết làm</span>
-                    </div>
-                  </label>
-                  <label class="skill-level-opt">
-                    <input type="radio" name="{{ f.level.html_name }}" value="3" {% if f.level.value == 3 or f.level.value == "3" %}checked{% endif %}>
-                    <div class="skill-level-text">
-                      <span class="skill-level-num">3</span>
-                      <span class="skill-level-desc">Khá</span>
-                    </div>
-                  </label>
-                  <label class="skill-level-opt">
-                    <input type="radio" name="{{ f.level.html_name }}" value="4" {% if f.level.value == 4 or f.level.value == "4" %}checked{% endif %}>
-                    <div class="skill-level-text">
-                      <span class="skill-level-num">4</span>
-                      <span class="skill-level-desc">Tốt</span>
-                    </div>
-                  </label>
-                  <label class="skill-level-opt">
-                    <input type="radio" name="{{ f.level.html_name }}" value="5" {% if f.level.value == 5 or f.level.value == "5" %}checked{% endif %}>
-                    <div class="skill-level-text">
-                      <span class="skill-level-num">5</span>
-                      <span class="skill-level-desc">Thành thạo</span>
-                    </div>
-                  </label>
-                </div>
-                <div class="d-none">{{ f.DELETE }}</div>
-                <div class="text-end">
-                  <button type="button" class="btn-delete-skill btn-delete-row" aria-label="Xoá kỹ năng" title="Xoá kỹ năng">
-                    {% include "components/icon.html" with name="trash-2" %}
-                  </button>
-                </div>
-                {% if f.level.errors %}
-                  <div class="at-error col-12">{{ f.level.errors.0 }}</div>
-                {% endif %}
-                {% if f.non_field_errors %}
-                  <div class="at-error col-12">
-                    {% for err in f.non_field_errors %}{{ err }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
+              {% endif %}
             {% endfor %}
           </div>
 
+          <div id="skill-empty-hint" class="skill-empty-hint" style="display: none;">
+            Chưa có kỹ năng nào được chọn. Bấm "+ Thêm kỹ năng" bên dưới để bổ sung.
+          </div>
+
           <div>
-            <button type="button" class="btn btn-secondary btn-add-skill" id="btn-add-skill">
-              {% include "components/icon.html" with name="plus" %}Thêm kỹ năng
+            <button type="button" class="btn-add-skill" id="btn-add-skill">
+              {% include "components/icon.html" with name="plus" size=14 %}Thêm kỹ năng
             </button>
           </div>
         </section>
@@ -199,10 +205,10 @@
         {# Khối 4: Lĩnh vực quan tâm #}
         <section class="at-panel panel-interests">
           <div class="at-panel-header">
-            <div>
+            <div class="interests-title-wrap">
               <h2 class="h3">Lĩnh vực quan tâm</h2>
+              <span class="at-secondary">Chọn tối đa 3 lĩnh vực</span>
             </div>
-            <span class="at-secondary">Chọn tối đa 3 lĩnh vực</span>
           </div>
 
           {% if interest_form.picked.errors %}
@@ -260,7 +266,13 @@
 
           <div class="completeness-note">
             {% include "components/icon.html" with name="info" size=16 %}
-            <span>Hoàn thiện hồ sơ để tăng độ chính xác của gợi ý AI.</span>
+            <span>
+              {% if completeness >= 100 %}
+                Hồ sơ đã đầy đủ. Bạn có thể cập nhật để cải thiện gợi ý.
+              {% else %}
+                Hoàn thiện hồ sơ để tăng độ chính xác của gợi ý AI.
+              {% endif %}
+            </span>
           </div>
         </section>
       </aside>
@@ -273,7 +285,7 @@
         <span>Thay đổi chưa được lưu</span>
       </div>
       <div>
-        <button type="submit" class="btn-save">
+        <button type="submit" class="btn-save" id="btn-save-profile">
           {% include "components/icon.html" with name="save" size=16 %}Lưu hồ sơ
         </button>
       </div>
@@ -328,9 +340,9 @@
       </label>
     </div>
     <div class="d-none">{{ skill_formset.empty_form.DELETE }}</div>
-    <div class="text-end">
+    <div class="skill-delete-wrap">
       <button type="button" class="btn-delete-skill btn-delete-row" aria-label="Xoá kỹ năng" title="Xoá kỹ năng">
-        {% include "components/icon.html" with name="trash-2" %}
+        {% include "components/icon.html" with name="trash-2" size=16 %}
       </button>
     </div>
   </div>
@@ -349,9 +361,57 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  var skillContainer = document.getElementById("skill-forms-container");
+  var totalSkillInput = document.getElementById("id_skills-TOTAL_FORMS");
+  var skillEmptyHint = document.getElementById("skill-empty-hint");
+
+  function checkEmptyHint() {
+    if (!skillContainer || !skillEmptyHint) return;
+    var visibleRows = skillContainer.querySelectorAll(".skill-row:not([style*='display: none'])");
+    if (visibleRows.length === 0) {
+      skillEmptyHint.style.display = "block";
+    } else {
+      skillEmptyHint.style.display = "none";
+    }
+  }
+
+  function validateDuplicateSkills() {
+    if (!skillContainer) return true;
+    var selects = Array.from(skillContainer.querySelectorAll(".skill-row:not([style*='display: none']) select[name$='-skill']"));
+    var chosen = new Set();
+    var hasDuplicate = false;
+    selects.forEach(function (sel) {
+      if (sel.value) {
+        if (chosen.has(sel.value)) {
+          hasDuplicate = true;
+          sel.classList.add("is-invalid");
+        } else {
+          chosen.add(sel.value);
+          sel.classList.remove("is-invalid");
+        }
+      } else {
+        sel.classList.remove("is-invalid");
+      }
+    });
+    return !hasDuplicate;
+  }
+
   if (form) {
     form.addEventListener("input", markDirty);
     form.addEventListener("change", markDirty);
+    form.addEventListener("submit", function (e) {
+      if (!validateDuplicateSkills()) {
+        e.preventDefault();
+        alert("Có kỹ năng bị chọn trùng lặp. Vui lòng chọn kỹ năng khác nhau.");
+        return;
+      }
+      var btn = document.getElementById("btn-save-profile");
+      if (btn) {
+        setTimeout(function () {
+          btn.disabled = true;
+        }, 0);
+      }
+    });
   }
 
   // Bộ đếm ký tự giới thiệu
@@ -367,6 +427,10 @@ document.addEventListener("DOMContentLoaded", function () {
   function setupRow(row) {
     row.querySelectorAll("select").forEach(function (sel) {
       sel.classList.add("form-select");
+      sel.addEventListener("change", function () {
+        validateDuplicateSkills();
+        markDirty();
+      });
     });
     var deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
     var deleteBtn = row.querySelector(".btn-delete-row");
@@ -374,16 +438,23 @@ document.addEventListener("DOMContentLoaded", function () {
       deleteBtn.addEventListener("click", function () {
         deleteCheckbox.checked = true;
         row.style.display = "none";
+        checkEmptyHint();
+        validateDuplicateSkills();
         markDirty();
       });
     }
   }
 
   document.querySelectorAll(".skill-row").forEach(setupRow);
+  checkEmptyHint();
+
+  // Đảm bảo totalSkillInput khớp với số dòng thực tế đang render
+  if (skillContainer && totalSkillInput) {
+    var renderedRows = skillContainer.querySelectorAll(".skill-row");
+    totalSkillInput.value = renderedRows.length;
+  }
 
   var btnAddSkill = document.getElementById("btn-add-skill");
-  var skillContainer = document.getElementById("skill-forms-container");
-  var totalSkillInput = document.getElementById("id_skills-TOTAL_FORMS");
   var skillTemplate = document.getElementById("empty-skill-template");
 
   if (btnAddSkill && skillContainer && totalSkillInput && skillTemplate) {
@@ -395,31 +466,57 @@ document.addEventListener("DOMContentLoaded", function () {
       skillContainer.appendChild(newRow);
       totalSkillInput.value = currentIndex + 1;
       setupRow(newRow);
+      checkEmptyHint();
       markDirty();
       var firstSelect = newRow.querySelector("select");
       if (firstSelect) firstSelect.focus();
     });
   }
 
-  // Lĩnh vực quan tâm: tối đa 3, toggle class is-selected
+  // Lĩnh vực quan tâm: tối đa 3
   var interestGrid = document.getElementById("interest-grid");
+  function updateInterestStates() {
+    if (!interestGrid) return;
+    var allBoxes = interestGrid.querySelectorAll('input[type="checkbox"]');
+    var checkedCount = 0;
+    allBoxes.forEach(function (cb) {
+      var chip = cb.closest(".interest-chip");
+      if (cb.checked) {
+        checkedCount++;
+        if (chip) chip.classList.add("is-selected");
+      } else {
+        if (chip) chip.classList.remove("is-selected");
+      }
+    });
+    allBoxes.forEach(function (cb) {
+      if (!cb.checked) {
+        cb.disabled = (checkedCount >= 3);
+        var chip = cb.closest(".interest-chip");
+        if (chip) {
+          if (checkedCount >= 3) {
+            chip.classList.add("is-disabled");
+          } else {
+            chip.classList.remove("is-disabled");
+          }
+        }
+      } else {
+        cb.disabled = false;
+        var chip = cb.closest(".interest-chip");
+        if (chip) chip.classList.remove("is-disabled");
+      }
+    });
+  }
+
   if (interestGrid) {
+    updateInterestStates();
     interestGrid.addEventListener("change", function (e) {
       if (e.target && e.target.type === "checkbox") {
         var checkedBoxes = interestGrid.querySelectorAll('input[type="checkbox"]:checked');
         if (checkedBoxes.length > 3) {
           e.target.checked = false;
           alert("Bạn chỉ được chọn tối đa 3 lĩnh vực quan tâm.");
-          return;
         }
-        var chip = e.target.closest(".interest-chip");
-        if (chip) {
-          if (e.target.checked) {
-            chip.classList.add("is-selected");
-          } else {
-            chip.classList.remove("is-selected");
-          }
-        }
+        updateInterestStates();
         markDirty();
       }
     });

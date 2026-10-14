@@ -13,6 +13,7 @@ from recommend.services import ensure_recommendations
 
 from .models import Allocation
 from .services import (
+    PublishedPeriodError,
     calculate_period_metrics,
     get_phase2_suggestions,
     get_student_allocation_result,
@@ -173,12 +174,16 @@ def allocation_dashboard(request):
 
     if request.method == "POST" and period:
         action = request.POST.get("action")
-        if action == "run_ilp":
-            return _handle_run(request, period, "ILP")
-        if action == "run_greedy":
-            return _handle_run(request, period, "GREEDY")
-        if action == "manual_assign":
-            return _handle_manual(request, period)
+        try:
+            if action == "run_ilp":
+                return _handle_run(request, period, "ILP")
+            if action == "run_greedy":
+                return _handle_run(request, period, "GREEDY")
+            if action == "manual_assign":
+                return _handle_manual(request, period)
+        except PublishedPeriodError as e:
+            messages.error(request, str(e))
+            return redirect(f"/khoa/phan-cong/?period_id={period.pk}")
         if action == "publish":
             return _handle_publish(request, period)
 

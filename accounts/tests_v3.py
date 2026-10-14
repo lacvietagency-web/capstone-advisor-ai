@@ -347,3 +347,27 @@ class V37CoreTests(TestCase):
         html = self.client.get(f"/de-tai/{pref.topic_id}/dang-ky/?mo={pref.pk}").content.decode()
         self.assertIn('get("mo")', html)
         self.assertIn(f'id="atStudent{pref.pk}"', html)
+
+    def test_published_results_cannot_be_overwritten(self):
+        from allocate.models import Allocation
+        from allocate.services import publish_allocations, run_allocation
+
+        period = RegistrationPeriod.objects.get()
+        period.status = RegistrationPeriod.Status.CLOSED
+        period.save()
+        run_allocation(period)
+        publish_allocations(period, user=None)
+        before = list(Allocation.objects.filter(period=period).values_list("student_id", "topic_id", "status"))
+        self.client.login(username="khoa01", password="123456")
+        for action in ("run_ilp", "run_greedy"):
+            r = self.client.post(f"/khoa/phan-cong/?period_id={period.pk}", {"action": action}, follow=True)
+            self.assertContains(r, "đã công bố")
+        st = Allocation.objects.filter(period=period).first().student
+        self.client.post(
+            f"/khoa/phan-cong/?period_id={period.pk}",
+            {"action": "manual_assign", "student_id": st.pk, "topic_id": "none"},
+        )
+        period.refresh_from_db()
+        self.assertEqual(period.status, RegistrationPeriod.Status.PUBLISHED)
+        after = list(Allocation.objects.filter(period=period).values_list("student_id", "topic_id", "status"))
+        self.assertEqual(before, after)

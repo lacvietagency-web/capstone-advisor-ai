@@ -95,11 +95,21 @@ def _save_allocation_results(period, students, assign, prefs, scores, algorithm)
         period.save()
 
 
+class PublishedPeriodError(ValueError):
+    """Đợt đã công bố: kết quả là CHÍNH THỨC, không được chạy lại thuật toán hay xếp tay (sẽ ghi đè thành nháp)."""
+
+
+def _ensure_not_published(period: RegistrationPeriod):
+    if period.status == RegistrationPeriod.Status.PUBLISHED:
+        raise PublishedPeriodError(f"Đợt '{period.name}' đã công bố — kết quả chính thức không được thay đổi.")
+
+
 def run_allocation(period: RegistrationPeriod, algorithm: str = "ILP", user=None) -> dict:
     """Chạy thuật toán phân công cho đợt đăng ký và lưu kết quả nháp.
 
     Hàm dùng chung cho giao diện Khoa và lệnh dòng lệnh allocate_period.
     """
+    _ensure_not_published(period)
     students_qs = Student.objects.filter(preferences__period=period).distinct()
     if not students_qs.exists():
         students_qs = Student.objects.all()
@@ -216,6 +226,7 @@ def get_phase2_suggestions(period: RegistrationPeriod, student: Student) -> list
 
 def manual_assign(period: RegistrationPeriod, student: Student, topic: Topic | None, user=None) -> Allocation:
     """Khoa gán thủ công một đề tài cho sinh viên (Pha 2), nguồn là MANUAL."""
+    _ensure_not_published(period)
     score_val = None
     rank_val = None
     if topic:

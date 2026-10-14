@@ -7,7 +7,7 @@ python manage.py allocate_period --period 1 --algorithm ILP
 
 from django.core.management.base import BaseCommand, CommandError
 
-from allocate.services import run_allocation
+from allocate.services import PublishedPeriodError, run_allocation
 from catalog.models import RegistrationPeriod
 
 
@@ -57,7 +57,10 @@ class Command(BaseCommand):
             raise CommandError("Chưa có đợt đăng ký nào trong hệ thống.")
 
         self.stdout.write(f"Đang chạy phân công đợt '{period.name}' bằng thuật toán {algorithm}...")
-        result = run_allocation(period, algorithm=algorithm)
+        try:
+            result = run_allocation(period, algorithm=algorithm)
+        except PublishedPeriodError as e:
+            raise CommandError(str(e)) from e
         m = result["metrics"]
         msg = (
             f"Hoàn thành phân công cho đợt '{period.name}': "

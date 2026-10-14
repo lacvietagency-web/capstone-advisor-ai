@@ -99,6 +99,7 @@
                 {% if is_student %}
                   {% if t.ineligible_reason %}
                     {% include "components/status.html" with kind="danger" label="Chưa đủ điều kiện" %}
+                    {% for c in t.eligibility %}{% if not c.ok %}<div class="at-secondary at-mt-2">{{ c.label }}: cần {{ c.required|floatformat:"-2" }}, có {% if c.actual is None %}chưa có điểm{% else %}{{ c.actual|floatformat:"-2" }}{% endif %}</div>{% endif %}{% endfor %}
                   {% else %}
                     {% include "components/status.html" with kind="success" label="Đủ điều kiện" %}
                   {% endif %}
@@ -137,6 +138,7 @@
                 {% if is_student %}
                   {% if t.ineligible_reason %}
                     {% include "components/status.html" with kind="danger" label="Chưa đủ điều kiện" %}
+                    {% for c in t.eligibility %}{% if not c.ok %}<div class="at-secondary at-mt-2">{{ c.label }}: cần {{ c.required|floatformat:"-2" }}, có {% if c.actual is None %}chưa có điểm{% else %}{{ c.actual|floatformat:"-2" }}{% endif %}</div>{% endif %}{% endfor %}
                   {% else %}
                     {% include "components/status.html" with kind="success" label="Đủ điều kiện" %}
                   {% endif %}

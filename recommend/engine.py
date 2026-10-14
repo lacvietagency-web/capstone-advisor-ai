@@ -104,15 +104,17 @@ def eligibility_reasons(p: Profile, topic: Topic):
 
     Cùng luật với eligible() (GPA, môn tiên quyết, kỹ năng bắt buộc); đề tài đủ điều kiện ⇔ mọi mục ok=True.
     """
-    out = [
-        {
-            "rule_type": "gpa",
-            "label": "GPA tối thiểu",
-            "required": float(topic.min_gpa),
-            "actual": p.gpa,
-            "ok": p.gpa >= float(topic.min_gpa),
-        }
-    ]
+    out = []
+    if float(topic.min_gpa) > 0:  # đề tài không đặt ngưỡng GPA thì không liệt kê điều kiện này
+        out.append(
+            {
+                "rule_type": "gpa",
+                "label": "GPA tối thiểu",
+                "required": float(topic.min_gpa),
+                "actual": p.gpa,
+                "ok": p.gpa >= float(topic.min_gpa),
+            }
+        )
     for pre in topic.prerequisites.all():
         have = p.courses.get(pre.course_id)
         out.append(

@@ -38,10 +38,13 @@
   {% endif %}
 
   <div class="at-grid">
-    <div class="at-col-8 at-stack">
+    <div class="at-col-7 at-stack">
       <section class="at-panel">
         <div class="at-panel-header">
-          <h2 class="h3">Mô tả đề tài</h2>
+          <div>
+            <h2 class="h3">Mô tả đề tài</h2>
+            <p class="at-secondary">Mục tiêu và nội dung chi tiết của đề tài</p>
+          </div>
         </div>
         <div class="at-pre">{{ topic.description }}</div>
       </section>
@@ -149,11 +152,14 @@
       </section>
     </div>
 
-    <div class="at-col-4 at-stack">
+    <div class="at-col-5 at-stack">
       {% if is_student %}
         <section class="at-panel">
           <div class="at-panel-header">
-            <h2 class="h3">Mức độ phù hợp với hồ sơ của bạn</h2>
+            <div>
+              <h2 class="h3">Mức độ phù hợp với hồ sơ của bạn</h2>
+              <p class="at-secondary">Đánh giá gợi ý đề tài từ hệ thống Capstone AI</p>
+            </div>
           </div>
           {% if recommendation %}
             <div class="at-mb-4">
@@ -173,7 +179,10 @@
 
         <section class="at-panel">
           <div class="at-panel-header">
-            <h2 class="h3">Điều kiện đăng ký</h2>
+            <div>
+              <h2 class="h3">Điều kiện đăng ký</h2>
+              <p class="at-secondary">Đối chiếu điều kiện học thuật của bạn</p>
+            </div>
           </div>
           {% if eligibility %}
             <ul class="at-steps">
@@ -197,7 +206,10 @@
 
       <section class="at-panel">
         <div class="at-panel-header">
-          <h2 class="h3">Thông số đề tài</h2>
+          <div>
+            <h2 class="h3">Thông số đề tài</h2>
+            <p class="at-secondary">Chỉ tiêu và yêu cầu cơ bản</p>
+          </div>
         </div>
         <dl class="at-kv">
           <dt>Sức chứa</dt>

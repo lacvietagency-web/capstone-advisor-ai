@@ -35,14 +35,34 @@
 
   {% if not period %}
     <section class="at-panel">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Kết quả phân công</h2>
+          <p class="at-secondary">Thông tin phân công chính thức cho sinh viên</p>
+        </div>
+      </div>
       {% include "components/empty.html" with illustration="empty-result" title="Chưa có đợt đăng ký nào" desc="Hiện tại hệ thống chưa có đợt đăng ký đồ án nào." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
     </section>
   {% elif not is_published %}
     <section class="at-panel">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Kết quả phân công</h2>
+          <p class="at-secondary">Đợt đăng ký: {{ period.name }}</p>
+        </div>
+        {% include "components/status.html" with status=period.status label=period.get_status_display %}
+      </div>
       {% include "components/empty.html" with illustration="empty-result" title="Khoa đang xử lý phân công" desc="Hội đồng Khoa đang thẩm định phân công và chạy thuật toán tối ưu. Kết quả chính thức sẽ được công bố tại đây khi hoàn tất xét duyệt." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
     </section>
   {% elif unassigned or not topic %}
     <section class="at-panel">
+      <div class="at-panel-header">
+        <div>
+          <h2 class="h3">Kết quả phân công</h2>
+          <p class="at-secondary">Đợt đăng ký: {{ period.name }}</p>
+        </div>
+        {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
+      </div>
       {% include "components/empty.html" with illustration="empty-result" title="Chưa được phân công trong đợt này" desc="Chưa được phân công đề tài trong đợt này. Vui lòng liên hệ Văn phòng Khoa để được hỗ trợ phân công bổ sung." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
     </section>
   {% else %}
@@ -50,16 +70,9 @@
       <div class="at-panel-header">
         <div>
           <h2 class="h3">Đề tài được phân công</h2>
-          <div class="at-chips at-mt-2">
-            {% for f in topic.fields.all %}
-              <span class="at-tag">{{ f.name }}</span>
-            {% endfor %}
-            <span class="at-tag">{{ topic.get_difficulty_display }}</span>
-          </div>
+          <p class="at-secondary">Đợt đăng ký: {{ period.name }}</p>
         </div>
-        <div>
-          {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
-        </div>
+        {% include "components/status.html" with status="OFFICIAL" label="Chính thức" %}
       </div>
 
       <div class="at-grid">
@@ -68,6 +81,8 @@
             <a href="{% url 'topic_detail' topic.pk %}" class="at-title-link">{{ topic.title }}</a>
           </h3>
           <dl class="at-kv">
+            <dt>Đề tài được phân</dt>
+            <dd>{{ topic.title }}</dd>
             <dt>GVHD</dt>
             <dd>
               <strong>{{ lecturer.user.get_full_name|default:lecturer.user.username }}</strong>
@@ -83,6 +98,15 @@
                 <span class="at-badge">Xếp bổ sung</span>
                 <span class="at-secondary"> (Khoa phân công bổ sung Pha 2)</span>
               {% endif %}
+            </dd>
+            <dt>Lĩnh vực</dt>
+            <dd>
+              <div class="at-chips">
+                {% for f in topic.fields.all %}
+                  <span class="at-tag">{{ f.name }}</span>
+                {% endfor %}
+                <span class="at-tag">{{ topic.get_difficulty_display }}</span>
+              </div>
             </dd>
             <dt>Mô tả đề tài</dt>
             <dd class="at-pre at-clamp-4">{{ topic.description }}</dd>

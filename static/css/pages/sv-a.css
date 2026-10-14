@@ -616,8 +616,7 @@
 }
 
 .pg-07 .pg-07-nv-card {
-  min-height: 95px;
-  max-height: 105px;
+  min-height: 95px; /* Claude: bỏ max-height */
   background: #FFFFFF;
   border: 1px solid var(--at-line, #DDE4EF);
   border-radius: 6px;
@@ -649,6 +648,7 @@
 
 .pg-07 .pg-07-nv-title {
   flex: 1 1 auto;
+  min-width: 0; /* Claude: cho phép co + dấu … thay vì tràn khỏi thẻ */
   font-size: 12px;
   font-weight: 600;
   color: var(--at-ink, #212529);
@@ -2628,4 +2628,10 @@
   .pg-07, .pg-10, .pg-11, .pg-12 {
     max-width: 100%;
   }
+}
+
+/* Claude: màn 768–1199px — khối #1 hai cột (điểm | lý do), M1–M5 xuống hàng riêng */
+@media (max-width: 1199.98px) {
+  .pg-07 .pg-07-top1-body { grid-template-columns: 160px minmax(0, 1fr); }
+  .pg-07 .pg-07-top1-body > :last-child { grid-column: 1 / -1; }
 }

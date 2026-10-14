@@ -125,8 +125,7 @@
 
 /* Hành trình 4 bước */
 .pg-07 .pg-07-journey-panel {
-  min-height: 125px;
-  max-height: 135px;
+  min-height: 125px; /* Claude: bỏ max-height — mô tả bước dài bị cắt */
   padding: 10px 16px 12px;
   border-radius: 6px;
   border: 1px solid var(--at-line, #DDE4EF);
@@ -338,8 +337,7 @@
 
 /* Khối Top 1 */
 .pg-07 .pg-07-top1 {
-  min-height: 160px;
-  max-height: 175px;
+  min-height: 160px; /* Claude: bỏ max-height — khối #1 đè lên hàng #2 */
   background: #FFFFFF;
   border: 1px solid var(--at-line, #DDE4EF);
   border-radius: 6px;
@@ -409,7 +407,7 @@
 
 .pg-07 .pg-07-top1-body {
   display: grid;
-  grid-template-columns: 28% 32% 40%;
+  grid-template-columns: 180px minmax(0, 1fr) minmax(280px, 1fr); /* Claude: cột M1–M5 đủ chỗ cho giá trị + "Chưa đánh giá" */
   gap: 10px;
   align-items: stretch;
 }
@@ -487,10 +485,10 @@
 
 .pg-07 .pg-07-m-row {
   display: grid;
-  grid-template-columns: 24px 76px minmax(40px, 1fr) 28px;
+  grid-template-columns: 24px 92px minmax(40px, 1fr) minmax(28px, max-content); /* Claude: đủ "Đánh giá LLM" */
   align-items: center;
   gap: 6px;
-  height: 23px;
+  min-height: 23px;
   font-size: 12px;
 }
 
@@ -529,6 +527,7 @@
   color: var(--at-ink, #212529);
 }
 
+.pg-07 .pg-07-m-row:has(.pg-07-m-val--none) .pg-07-m-track { display: none; }
 .pg-07 .pg-07-m-val--none {
   font-size: 12px;
   font-weight: 400;
@@ -770,6 +769,7 @@
 
 .pg-10 .pg-10-filter-bar {
   display: flex;
+  flex-wrap: wrap; /* Claude: 768px không đủ 1 hàng → xuống hàng, không tràn */
   align-items: flex-end;
   gap: 12px;
   margin-top: 12px;
@@ -874,7 +874,7 @@
   border-radius: 6px;
   border: 1px solid var(--at-line, #DDE4EF);
   background: var(--at-surface, #FFFFFF);
-  overflow: hidden;
+  overflow-x: auto; /* Claude: bảng rộng cuộn trong khung thay vì bị cắt */
   margin-bottom: 0;
 }
 

@@ -66,7 +66,7 @@ capstone-advisor/
 
 ## Kiểm thử
 ```bash
-python manage.py test        # 156 ca: nghiệp vụ SV/GV/Khoa, phân quyền, AHP, ILP, nhập Excel, giao diện chính
+python manage.py test        # 161 ca: nghiệp vụ SV/GV/Khoa, phân quyền, AHP, ILP, nhập Excel, giao diện chính
 ruff check .                 # kiểm tra phong cách mã + độ phức tạp hàm (McCabe ≤ 10)
 ```
 Thực nghiệm cho báo cáo: xem `experiments/README.md`.

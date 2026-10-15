@@ -80,7 +80,7 @@
                     </span>
                   </td>
                   <td class="at-num text-center">{{ t.capacity }}</td>
-                  <td class="at-num text-center">{{ t.preference_set.count }}</td>
+                  <td class="at-num text-center">{{ t.n_registered }}</td>
                   <td class="text-center">
                     {% if t.status == 'OPEN' %}
                       <span class="at-badge at-badge--success">{% include "components/icon.html" with name="circle-dot" size=12 %} Đang mở</span>
@@ -142,7 +142,7 @@
               {% endif %}
               <dl class="at-kv at-mt-2">
                 <dt>Chỉ tiêu</dt><dd class="at-num">{{ t.capacity }}</dd>
-                <dt>SV đăng ký</dt><dd class="at-num">{{ t.preference_set.count }}</dd>
+                <dt>SV đăng ký</dt><dd class="at-num">{{ t.n_registered }}</dd>
               </dl>
               <div class="at-form-actions at-mt-3">
                 <a href="{% url 'topic_detail' t.pk %}" class="btn btn-secondary btn-sm">Xem</a>

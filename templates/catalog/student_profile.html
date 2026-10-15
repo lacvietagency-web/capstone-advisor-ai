@@ -56,18 +56,18 @@
           <div class="student-info-grid">
             {# Hàng 1: Họ tên / GPA #}
             <div class="info-field">
-              <label class="form-label">Họ và tên</label>
-              <input type="text" class="form-control" value="{{ student.user.get_full_name|default:student.user.username }}" readonly>
+              <label class="form-label" for="ro_name">Họ và tên</label>
+              <input type="text" class="form-control" value="{{ student.user.get_full_name|default:student.user.username }}" id="ro_name" readonly>
             </div>
             <div class="info-field">
-              <label class="form-label">GPA tích lũy</label>
-              <input type="text" class="form-control at-num" value="{{ student.gpa|floatformat:2 }} / 4.00" readonly>
+              <label class="form-label" for="ro_gpa">GPA tích lũy</label>
+              <input type="text" class="form-control at-num" value="{{ student.gpa|floatformat:2 }} / 4.00" id="ro_gpa" readonly>
             </div>
 
             {# Hàng 2: MSSV / Email #}
             <div class="info-field">
-              <label class="form-label">Mã sinh viên</label>
-              <input type="text" class="form-control at-num" value="{{ student.student_code }}" readonly>
+              <label class="form-label" for="ro_code">Mã sinh viên</label>
+              <input type="text" class="form-control at-num" value="{{ student.student_code }}" id="ro_code" readonly>
             </div>
             <div class="info-field">
               <label class="form-label" for="id_email">Email</label>
@@ -81,8 +81,8 @@
 
             {# Hàng 3: Ngành / Số điện thoại #}
             <div class="info-field">
-              <label class="form-label">Ngành</label>
-              <input type="text" class="form-control" value="{{ student.major.name|default:student.major }}" readonly>
+              <label class="form-label" for="ro_major">Ngành</label>
+              <input type="text" class="form-control" value="{{ student.major.name|default:student.major }}" id="ro_major" readonly>
             </div>
             <div class="info-field">
               <label class="form-label" for="id_phone">Số điện thoại</label>

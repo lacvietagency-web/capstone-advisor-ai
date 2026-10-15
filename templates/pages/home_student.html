@@ -156,6 +156,9 @@
   {% if not recommendations and completeness < 100 %}
     {% include "components/profile_missing.html" with completeness_items=completeness_items period=allocation_result.period %}
   {% else %}
+    {% if completeness_hint %}
+      {% include "components/banner.html" with kind="warning" title="Hồ sơ năng lực chưa hoàn tất" text=completeness_hint %}
+    {% endif %}
     <div class="pg-07-main-grid">
       <!-- Panel Đề tài phù hợp nhất (8/12) -->
       <section class="at-panel pg-07-panel-topics">

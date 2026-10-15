@@ -37,6 +37,12 @@ class StudentContactForm(forms.Form):
 
 
 class StudentAboutForm(forms.ModelForm):
+    def clean_about(self):  # giao diện giới hạn 500 ký tự → máy chủ kiểm cùng giới hạn
+        about = self.cleaned_data["about"]
+        if len(about) > 500:
+            raise forms.ValidationError("Giới thiệu bản thân tối đa 500 ký tự.")
+        return about
+
     class Meta:
         model = Student
         fields = ["about"]

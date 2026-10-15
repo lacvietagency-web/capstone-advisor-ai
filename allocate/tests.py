@@ -586,7 +586,9 @@ class StudentAllocationResultTests(TestCase):
         r2 = self.client.get(f"/ket-qua/?period_id={period2.pk}")
         self.assertEqual(r2.status_code, 200)
         self.assertFalse(r2.context["is_published"])
-        self.assertIn("Hội đồng Khoa đang thẩm định phân công", r2.content.decode("utf-8"))
+        html2 = r2.content.decode("utf-8")  # đợt 2 đang mở, chưa phân công → nói đúng giai đoạn, không "đã công bố"
+        self.assertIn(r2.context["status_text"], html2)
+        self.assertNotIn("đã được công bố cho sinh viên", html2)
 
     def test_service_when_no_period_exists(self):
         """Khi hệ thống chưa có đợt nào, service trả về is_published=False và period=None."""

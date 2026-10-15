@@ -1834,3 +1834,6 @@
     border-color: #344564;
   }
 }
+
+/* Claude: điện thoại — thanh Lưu/Nộp thay thanh điều hướng đáy (không chồng 2 thanh) */
+@media (max-width: 767.98px) { body:has(.pg-09 .pref-save-bar) .at-bottomnav { display: none; } }

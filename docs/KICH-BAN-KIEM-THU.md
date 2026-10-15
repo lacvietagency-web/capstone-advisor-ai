@@ -38,7 +38,7 @@ Quy ước chung (áp dụng cho MỌI trang, vi phạm ở đâu ghi lỗi ở 
 | A10 | GV | Sửa/xem đăng ký đề tài của GV KHÁC: `/de-tai/<id của GV khác>/sua/`, `/de-tai/<id>/dang-ky/`; POST duyệt nguyện vọng của đề tài GV khác | 403/404; CSDL không đổi |
 | A11 | Khoa | Mở trang SV/GV (`/ho-so/`, `/nguyen-vong/`, `/de-tai/`) | Báo thiếu hồ sơ hoặc 403 rõ ràng, không lỗi 500 |
 | A12 | Mọi vai | URL không tồn tại `/abc/`, đề tài không tồn tại `/danh-sach-de-tai/999999/` | Trang 404 tiếng Việt, có nút về trang chủ |
-| A13 | SV | Xem chi tiết đề tài đang ở trạng thái nháp/đã đóng | 404 (SV chỉ xem đề tài đang mở) |
+| A13 | SV | Xem chi tiết đề tài đang ở trạng thái nháp; đề tài đã đóng | Nháp → 404. Đã đóng → xem được (SV cần mở lại đề tài được phân sau khi đợt đóng), không có nút đăng ký |
 | A14 | Mọi vai | Menu tài khoản → Giao diện Sáng / Tối / Theo hệ thống → tải lại trang | Giữ lựa chọn; mọi trang đổi theo |
 
 ## 2. Sinh viên
@@ -52,7 +52,7 @@ Quy ước chung (áp dụng cho MỌI trang, vi phạm ở đâu ghi lỗi ở 
 | S05 | Hồ sơ: thêm kỹ năng mới, đổi mức 1–5, xoá kỹ năng, chọn trùng một kỹ năng hai lần | Thêm/sửa/xoá đúng; trùng kỹ năng bị chặn kèm thông báo |
 | S06 | Hồ sơ: tick 4 lĩnh vực quan tâm | Bị chặn "Chọn tối đa 3 lĩnh vực", không lưu gì |
 | S07 | Hồ sơ: bỏ tick một lĩnh vực cũ, tick một lĩnh vực mới (≤ 3) | Lĩnh vực cũ giữ mức cũ, lĩnh vực mới mức 3; gợi ý được tính lại (điểm M3 đổi theo) |
-| S08 | Hồ sơ: giới thiệu dài 600 ký tự; chèn `<script>alert(1)</script>` | Bộ đếm ký tự đúng; chuỗi script hiển thị dạng chữ ở mọi nơi (không chạy) |
+| S08 | Hồ sơ: giới thiệu 500 ký tự; 501 ký tự (gửi thẳng); chèn `<script>alert(1)</script>` | 500 lưu được, bộ đếm đúng; 501 bị chặn ở cả giao diện và máy chủ; chuỗi script hiển thị dạng chữ (không chạy) |
 | S09 | Danh sách đề tài: tab "Đủ điều kiện" / "Chưa đủ điều kiện" | Số đếm trên tab = số dòng; đề tài chưa đủ ghi rõ "cần …, bạn có …" / "bạn chưa có điểm"; nút Đăng ký bị khoá với đề tài chưa đủ |
 | S10 | Danh sách: lọc lĩnh vực, giảng viên, độ khó, từ khoá; sắp xếp theo điểm/tên/độ khó/sức chứa/NV1; sang trang 2 | Kết quả đúng; bộ lọc giữ khi chuyển trang; không tìm thấy → minh hoạ "không tìm thấy" + nút Xoá bộ lọc |
 | S11 | Từ khoá có dấu, có ký tự đặc biệt `%`, `'`, `"` | Không lỗi 500; tìm có dấu đúng |

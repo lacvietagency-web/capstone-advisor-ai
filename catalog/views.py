@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import F
+from django.db.models import Count, F, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -106,7 +106,9 @@ def profile_completeness(student):
         ("Lĩnh vực quan tâm", student.interests.exists()),
         ("Điểm các môn đã học", student.course_results.exists()),
     ]
-    return {"completeness": 25 * sum(ok for _, ok in items), "completeness_items": items}
+    missing = ", ".join(label.lower() for label, ok in items if not ok)
+    hint = f"Còn thiếu: {missing}. Bổ sung ở trang Hồ sơ năng lực để gợi ý chính xác hơn." if missing else ""
+    return {"completeness": 25 * sum(ok for _, ok in items), "completeness_items": items, "completeness_hint": hint}
 
 
 def _initial_preferences(request, student, period):
@@ -240,7 +242,11 @@ def _submitted_preferences(student):
 @login_required
 def lecturer_topics(request):
     lec = _lecturer(request)
-    topics = lec.topics.prefetch_related("fields").order_by("title")
+    topics = (
+        lec.topics.prefetch_related("fields")
+        .annotate(n_registered=Count("preference", filter=Q(preference__submitted=True)))  # chỉ NV đã nộp
+        .order_by("title")
+    )
     return render(request, "catalog/lecturer_topics.html", {"lecturer": lec, "topics": topics})
 
 
@@ -268,6 +274,9 @@ def lecturer_topic_edit(request, pk=None):
                 prereqs.instance = t
                 prereqs.save()
             AuditLog.objects.create(user=request.user, action="save_topic", entity="Topic", entity_id=t.pk)
+            # Đề tài mới/sửa đổi điểm của mọi SV → xoá gợi ý cũ; ensure_recommendations tính lại M1–M4 khi SV mở trang.
+            # ponytail: xoá toàn bộ (≈100 SV × 50 đề tài); dữ liệu lớn thì chỉ xoá SV bị ảnh hưởng + tính nền.
+            Recommendation.objects.all().delete()
         messages.success(request, "Đã lưu đề tài.")
         return redirect("lecturer_topics")
     return render(
@@ -604,6 +613,7 @@ def topic_detail(request, pk=None, id=None):
         "checklist": _checklist(student, topic, remaining_capacity(topic, _open_period())),
         "open_period": _open_period(),
         "remaining": remaining_capacity(topic, _open_period()),
+        "taken": topic.capacity - remaining_capacity(topic, _open_period()),  # "x/y — còn z chỗ"
         "topic": topic,
         "nv1_count": nv1_count,
         "is_student": is_student,

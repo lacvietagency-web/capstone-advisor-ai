@@ -436,3 +436,45 @@ class V37CoreTests(TestCase):
 
         bad = [p for p in pathlib.Path("templates").rglob("*.html") if ".svg#icon" in p.read_text(encoding="utf-8")]
         self.assertEqual(bad, [], "icon Lucide không có id=icon — dùng components/icon.html")
+
+    def test_gemini_qa_fixes(self):
+        from catalog.models import Preference, Student, Topic
+        from recommend.models import Recommendation
+
+        self.client.login(username="sv001", password="123456")
+        html = self.client.get("/ket-qua/").content.decode()  # đợt đang mở
+        self.assertNotIn("đã được công bố cho sinh viên", html)
+        st = Student.objects.get(user__username="sv001")
+        st.skills.all().delete()
+        self.assertIn("Hồ sơ năng lực chưa hoàn tất", self.client.get("/trang-chu/").content.decode())
+        r = self._profile_post(about="x" * 501)
+        self.assertIn("about", r.context["about_form"].errors)
+        pref = Preference.objects.filter(submitted=True).select_related("topic__lecturer__user")[0]
+        Preference.objects.filter(pk=pref.pk).update(submitted=False)
+        self.client.force_login(pref.topic.lecturer.user)
+        topics = self.client.get("/de-tai/").context["topics"]
+        t = next(t for t in topics if t.pk == pref.topic_id)
+        self.assertEqual(t.n_registered, Preference.objects.filter(topic=t, submitted=True).count())
+        self.assertTrue(Recommendation.objects.exists())
+        topic = Topic.objects.get(pk=pref.topic_id)
+        ctx = self.client.get(f"/de-tai/{topic.pk}/sua/").context
+        data = {k: v for k, v in ctx["form"].initial.items() if v is not None and not isinstance(v, list)}
+        data.update(
+            title=topic.title, description=topic.description + " (sửa)", fields=[f.pk for f in topic.fields.all()]
+        )
+        fs = ctx["skill_formset"]
+        data.update({f"{fs.prefix}-{k}": v for k, v in fs.management_form.initial.items()})
+        for f in fs.forms:  # gửi như trình duyệt: mọi dòng kèm giá trị ban đầu (dòng trống giữ mặc định)
+            for name, field in f.fields.items():
+                v = f.initial.get(name, field.initial)
+                if v is not None and v is not False and name != "DELETE":
+                    data[f.add_prefix(name)] = v.pk if hasattr(v, "pk") else v
+        r = self.client.post(f"/de-tai/{topic.pk}/sua/", data)
+        self.assertEqual(
+            r.status_code,
+            302,
+            r.context and (r.context["skill_formset"].errors, r.context["skill_formset"].non_form_errors()),
+        )
+        self.assertFalse(Recommendation.objects.exists())  # gợi ý cũ bị xoá để tính lại
+        self.client.login(username="khoa01", password="123456")
+        self.assertEqual(self.client.get("/quan-tri/").status_code, 200)

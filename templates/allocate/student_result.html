@@ -37,7 +37,11 @@
 
   <div class="at-stack">
     {% if period %}
-      {% include "components/period.html" with period=period text="Kết quả phân công chính thức đã được công bố cho sinh viên." %}
+      {% if is_published %}
+        {% include "components/period.html" with period=period text="Kết quả phân công chính thức đã được công bố cho sinh viên." %}
+      {% else %}
+        {% include "components/period.html" with period=period text=status_text %}
+      {% endif %}
     {% endif %}
 
     {% if journey %}
@@ -104,7 +108,7 @@
           </div>
           {% include "components/status.html" with status=period.status label=period.get_status_display %}
         </div>
-        {% include "components/empty.html" with illustration="empty-result" title="Hội đồng Khoa đang thẩm định phân công" desc="Hội đồng Khoa đang thẩm định phân công và chạy thuật toán tối ưu. Kết quả chính thức sẽ được công bố tại đây khi hoàn tất xét duyệt." primary_url="/trang-chu/" primary_label="Về trang chủ" %}
+        {% include "components/empty.html" with illustration="empty-result" title="Kết quả phân công chưa công bố" desc=status_text primary_url="/trang-chu/" primary_label="Về trang chủ" %}
       </section>
     {% elif unassigned or not topic %}
       <section class="at-panel">

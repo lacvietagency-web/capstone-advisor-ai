@@ -84,7 +84,7 @@
         <div class="pg-11-bar-val">
           <strong class="at-num">
             {% if remaining is not None %}
-              0/{{ topic.capacity }} — còn {{ remaining }} chỗ
+              {{ taken }}/{{ topic.capacity }} — còn {{ remaining }} chỗ
             {% else %}
               {{ topic.capacity }} chỗ
             {% endif %}
@@ -119,7 +119,7 @@
               <h2>Mô tả đề tài</h2>
             </div>
             {% if topic.code %}
-              <span class="visually-hidden">Mã: {{ topic.code }}</span>
+              <span class="at-secondary at-num">Mã: {{ topic.code }}</span>
             {% endif %}
           </div>
           <div class="pg-11-desc-body">

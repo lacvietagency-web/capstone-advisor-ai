@@ -160,7 +160,14 @@ class Command(BaseCommand):
         # tài khoản Khoa demo (khớp gợi ý ở trang đăng nhập); admin superuser vẫn giữ nguyên
         kh, _ = User.objects.update_or_create(
             username="khoa01",
-            defaults=dict(role=User.Role.ADMIN, last_name="Cán bộ", first_name="Khoa", is_active=True),
+            defaults=dict(
+                role=User.Role.ADMIN,
+                last_name="Cán bộ",
+                first_name="Khoa",
+                is_active=True,
+                is_staff=True,
+                is_superuser=True,
+            ),
         )
         kh.set_password("123456")
         kh.save()

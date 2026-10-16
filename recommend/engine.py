@@ -145,7 +145,7 @@ def _num(x):
     return f"{x:.2f}".rstrip("0").rstrip(".") if x is not None else "—"
 
 
-def condition_checklist(p: Profile, topic: Topic, remaining=None):
+def condition_checklist(p: Profile, topic: Topic, remaining=None, held=False):
     """Khối "Kiểm tra điều kiện" (ảnh duyệt 09/11/16): GPA · kỹ năng · lĩnh vực quan tâm · chỉ tiêu (+ môn tiên quyết).
 
     Mỗi mục {label, state: ok|warn|fail, value}. fail = vi phạm luật lọc cứng (cùng luật eligible());
@@ -190,7 +190,9 @@ def condition_checklist(p: Profile, topic: Topic, remaining=None):
             "value": "Phù hợp" if match else "Ngoài lĩnh vực quan tâm",
         }
     )
-    if remaining is not None:
+    if held:  # chính SV này đang giữ một chỗ (đã được GV nhận) — chỗ đó là của SV, không phải "hết chỗ"
+        rows.append({"label": "Chỉ tiêu còn chỗ", "state": "ok", "value": "Bạn đã được nhận"})
+    elif remaining is not None:
         rows.append(
             {
                 "label": "Chỉ tiêu còn chỗ",

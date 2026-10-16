@@ -194,6 +194,23 @@ class TopicForm(forms.ModelForm):
             "review_note": "Lưu ý khi xét sinh viên đăng ký (sinh viên không thấy).",
         }
 
+    def clean_capacity(self):
+        """Không giảm sức chứa xuống dưới số SV đã được đồng ý ở đợt chưa công bố (không thì đề tài thành quá chỗ)."""
+        cap = self.cleaned_data["capacity"]
+        if self.instance.pk:
+            from .models import Preference, RegistrationPeriod
+
+            n = (
+                Preference.objects.filter(topic=self.instance, status=Preference.Status.ACCEPTED)
+                .exclude(period__status=RegistrationPeriod.Status.PUBLISHED)
+                .count()
+            )
+            if cap is not None and cap < n:
+                raise forms.ValidationError(
+                    f"Đã đồng ý {n} sinh viên cho đề tài này — sức chứa không được nhỏ hơn {n}."
+                )
+        return cap
+
 
 TopicSkillFormSet = inlineformset_factory(
     Topic,

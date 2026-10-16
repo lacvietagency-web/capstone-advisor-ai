@@ -478,3 +478,135 @@ class V37CoreTests(TestCase):
         self.assertFalse(Recommendation.objects.exists())  # gợi ý cũ bị xoá để tính lại
         self.client.login(username="khoa01", password="123456")
         self.assertEqual(self.client.get("/quan-tri/").status_code, 200)
+
+
+@override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
+class V39HeldSeatTests(TestCase):
+    """Lỗi 16/10: SV đã được GV nhận vào đề tài 1 chỗ vẫn thấy mục chỉ tiêu "Hết chỗ" (chỗ còn trừ cả chỗ của chính SV)
+    — ở chi tiết đề tài, trang nguyện vọng của SV và danh sách SV đăng ký của GV."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from catalog.models import Preference, Student, Topic
+
+        call_command("seed_demo", students=6, lecturers=2, topics=4, verbosity=0)
+        cls.period = RegistrationPeriod.objects.get(status=RegistrationPeriod.Status.OPEN)
+        cls.topic = Topic.objects.filter(status=Topic.Status.OPEN).first()
+        cls.topic.capacity = 1
+        cls.topic.save(update_fields=["capacity"])
+        holder = Student.objects.get(user__username="sv001")
+        Preference.objects.filter(topic=cls.topic).delete()
+        Preference.objects.filter(student=holder, period=cls.period).delete()
+        Preference.objects.create(
+            student=holder,
+            topic=cls.topic,
+            period=cls.period,
+            rank=1,
+            status=Preference.Status.ACCEPTED,
+            submitted=True,
+        )
+
+    def _cap_row(self, checklist):
+        return next(r for r in checklist if r["label"] == "Chỉ tiêu còn chỗ")
+
+    def test_holder_sees_accepted_not_full(self):
+        self.client.login(username="sv001", password="123456")
+        row = self._cap_row(self.client.get(f"/danh-sach-de-tai/{self.topic.pk}/").context["checklist"])
+        self.assertEqual((row["state"], row["value"]), ("ok", "Bạn đã được nhận"))
+
+    def test_other_student_still_sees_full(self):
+        self.client.login(username="sv002", password="123456")
+        row = self._cap_row(self.client.get(f"/danh-sach-de-tai/{self.topic.pk}/").context["checklist"])
+        self.assertEqual((row["state"], row["value"]), ("warn", "Hết chỗ"))
+
+    def test_preferences_page_marks_held_seat(self):
+        self.client.login(username="sv001", password="123456")
+        r = self.client.get("/nguyen-vong/")
+        rows = [x for x in r.context["pref_rows"] if x["pref"].topic_id == self.topic.pk]
+        self.assertTrue(rows and rows[0]["held"])
+        self.assertEqual(self._cap_row(rows[0]["checklist"])["value"], "Bạn đã được nhận")
+        self.assertContains(r, '"held": true')
+
+
+@override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
+class V39AcceptGuardTests(TestCase):
+    """Lỗi 16/10: GV đồng ý được quá sức chứa đề tài / chỉ tiêu GV, đổi được trạng thái sau khi Khoa đã công bố,
+    và duyệt được nguyện vọng nháp (SV chưa nộp) — giờ chặn ở máy chủ như manual_assign."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from catalog.models import Lecturer, Preference, Student, Topic
+
+        call_command("seed_demo", students=8, lecturers=2, topics=4, verbosity=0)
+        cls.period = RegistrationPeriod.objects.get(status=RegistrationPeriod.Status.OPEN)
+        cls.lec = Lecturer.objects.get(user__username="gv001")
+        cls.topic = Topic.objects.filter(lecturer=cls.lec).first()
+        cls.topic.capacity = 1
+        cls.topic.save(update_fields=["capacity"])
+        Preference.objects.filter(topic__lecturer=cls.lec).delete()
+        studs = list(Student.objects.order_by("user__username")[:3])
+        Preference.objects.filter(student__in=studs, period=cls.period).delete()
+
+        def mk(s, **kw):
+            return Preference.objects.create(student=s, topic=cls.topic, period=cls.period, rank=1, **kw)
+
+        cls.a = mk(studs[0], status=Preference.Status.PENDING, submitted=True)
+        cls.b = mk(studs[1], status=Preference.Status.PENDING, submitted=True)
+        cls.draft = mk(studs[2], status=Preference.Status.PENDING, submitted=False)
+
+    def _post(self, pref, action="ACCEPT", **extra):
+        self.client.login(username="gv001", password="123456")
+        self.client.post(f"/de-tai/{self.topic.pk}/dang-ky/", {"pref_id": pref.pk, "action": action, **extra})
+        pref.refresh_from_db()
+        return pref.status
+
+    def test_accept_with_room_works_then_full_blocks(self):
+        self.assertEqual(self._post(self.a), "ACCEPTED")
+        self.assertEqual(self._post(self.b), "PENDING")  # đề tài 1 chỗ đã có người
+
+    def test_lecturer_quota_blocks(self):
+        type(self.lec).objects.filter(pk=self.lec.pk).update(max_students=0)
+        self.assertEqual(self._post(self.a), "PENDING")
+
+    def test_draft_cannot_be_reviewed(self):
+        self.assertEqual(self._post(self.draft), "PENDING")
+
+    def test_withdraw_keeps_seat_no_overbooking(self):
+        self.assertEqual(self._post(self.a), "ACCEPTED")
+        self.client.logout()
+        self.client.login(username=self.a.student.user.username, password="123456")
+        self.client.post("/nguyen-vong/", {"action": "withdraw"})  # A rút về nháp để sửa NV khác
+        self.a.refresh_from_db()
+        self.assertEqual((self.a.status, self.a.submitted), ("ACCEPTED", False))
+        self.assertEqual(self._post(self.b), "PENDING")  # chỗ vẫn của A → không nhận thêm B (A nộp lại sẽ quá chỗ)
+
+    def test_capacity_cannot_drop_below_accepted(self):
+        from catalog.forms import TopicForm
+        from catalog.models import Preference
+
+        Preference.objects.filter(pk__in=[self.a.pk]).update(status=Preference.Status.ACCEPTED)
+        type(self.topic).objects.filter(pk=self.topic.pk).update(capacity=2)
+        self.topic.refresh_from_db()
+        Preference.objects.filter(pk=self.b.pk).update(status=Preference.Status.ACCEPTED)
+        form = TopicForm(instance=self.topic)
+        data = {k: v for k, v in form.initial.items() if v is not None and k != "fields"}
+        data.update(capacity=1, fields=[f.pk for f in self.topic.fields.all()])
+        bad = TopicForm(data=data, instance=self.topic)
+        self.assertFalse(bad.is_valid())
+        self.assertIn("capacity", bad.errors)
+        data["capacity"] = 2
+        self.assertNotIn("capacity", TopicForm(data=data, instance=self.topic).errors)
+
+    def test_bad_ids_do_not_crash(self):
+        self.client.login(username="gv001", password="123456")
+        for d in ({"pref_id": "abc", "action": "ACCEPT"}, {"student_id": "1 OR 1=1", "action": "ACCEPT"}):
+            self.assertLess(self.client.post(f"/de-tai/{self.topic.pk}/dang-ky/", d).status_code, 500)
+        self.client.login(username="khoa01", password="123456")
+        self.assertEqual(self.client.get("/khoa/phan-cong/?suggest_student_id=abc").status_code, 200)
+        bad = {"action": "manual_assign", "period_id": self.period.pk, "student_id": "abc"}
+        r = self.client.post("/khoa/phan-cong/", bad)
+        self.assertEqual(r.status_code, 404)
+
+    def test_locked_after_publish(self):
+        RegistrationPeriod.objects.filter(pk=self.period.pk).update(status=RegistrationPeriod.Status.PUBLISHED)
+        self.assertEqual(self._post(self.a, "REJECT", reason="Không phù hợp hướng nghiên cứu"), "PENDING")

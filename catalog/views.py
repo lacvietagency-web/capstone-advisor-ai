@@ -212,7 +212,8 @@ def _preference_rows(student, period, scores):
             "rec": scores.get(p.topic_id),
             "eligibility": _eligibility(student, p.topic),
             "remaining": remaining_capacity(p.topic, period),
-            "checklist": _checklist(student, p.topic, remaining_capacity(p.topic, period)),
+            "held": p.status == Preference.Status.ACCEPTED,
+            "checklist": _checklist(student, p.topic, remaining_capacity(p.topic, period), period),
         }
         for p in prefs
     ]
@@ -286,6 +287,27 @@ def lecturer_topic_edit(request, pk=None):
     )
 
 
+def _review_blocked(pref, topic, new_status):
+    """Lý do không cho GV đổi trạng thái duyệt; None nếu được.
+    Chặn ở máy chủ (không chỉ giao diện), cùng luật với allocate.services.manual_assign."""
+    if not pref.submitted:  # nháp: SV chưa nộp chính thức thì GV chưa duyệt
+        return "Nguyện vọng này sinh viên chưa nộp chính thức."
+    if pref.period.status == RegistrationPeriod.Status.PUBLISHED:  # đổi lúc này sẽ lệch với kết quả đã công bố
+        return "Khoa đã công bố kết quả phân công của đợt này — không đổi được trạng thái duyệt."
+    if new_status != Preference.Status.ACCEPTED or pref.status == Preference.Status.ACCEPTED:
+        return None
+    # "đã đồng ý" = đang giữ một chỗ của đề tài (SV thấy "Bạn đã được nhận"), kể cả lúc SV rút về nháp để sửa NV khác
+    # → không đồng ý quá sức chứa đề tài / chỉ tiêu GV.
+    # ponytail: đếm rồi ghi không khoá dòng — 2 lần bấm đồng thời có thể lọt 1 chỗ; cần chặt thì khoá theo đề tài
+    accepted = Preference.objects.filter(period=pref.period, status=Preference.Status.ACCEPTED)
+    if accepted.filter(topic=topic).count() >= topic.capacity:
+        return f"Đề tài đã đủ {topic.capacity} sinh viên được đồng ý — từ chối bớt hoặc tăng sức chứa trước."
+    lec = topic.lecturer
+    if accepted.filter(topic__lecturer=lec).count() >= lec.max_students:
+        return f"Bạn đã đồng ý đủ chỉ tiêu {lec.max_students} sinh viên trong đợt."
+    return None
+
+
 def _handle_preference_action(request, topic):
     """Cập nhật trạng thái duyệt nguyện vọng (Đồng ý / Từ chối) và ghi AuditLog.
 
@@ -295,8 +317,8 @@ def _handle_preference_action(request, topic):
     Ghi vết kiểm toán:
         AuditLog(user, action, entity='Preference', entity_id=p.id)
     """
-    pref_id = request.POST.get("preference_id") or request.POST.get("pref_id")
-    student_id = request.POST.get("student_id")
+    pref_id = int_param(request.POST.get("preference_id") or request.POST.get("pref_id"))  # chữ / rỗng → None
+    student_id = int_param(request.POST.get("student_id"))
     if pref_id:
         pref = get_object_or_404(Preference, pk=pref_id, topic=topic)
     elif student_id:
@@ -319,6 +341,11 @@ def _handle_preference_action(request, topic):
             return redirect("lecturer_registrations", pk=topic.pk)
     else:
         messages.error(request, "Thao tác không hợp lệ.")
+        return redirect("lecturer_registrations", pk=topic.pk)
+
+    blocked = _review_blocked(pref, topic, new_status)
+    if blocked:
+        messages.error(request, blocked)
         return redirect("lecturer_registrations", pk=topic.pk)
 
     note = (request.POST.get("note") or "").strip()[:1000]  # nhận xét GV (tuỳ chọn), SV xem sau khi đã duyệt
@@ -378,7 +405,7 @@ def lecturer_registrations(request, pk):
             "pref": p,
             "rec": scores.get(p.student_id),
             "eligibility": _eligibility(p.student, topic),
-            "checklist": _checklist(p.student, topic, left),
+            "checklist": _checklist(p.student, topic, left, _open_period()),
         }
         for p in prefs
     ]
@@ -554,15 +581,20 @@ def _eligibility(student, topic):
     return eligibility_reasons(student._profile, topic)
 
 
-def _checklist(student, topic, remaining=None):
-    """Khối "Kiểm tra điều kiện" 4 mục (recommend.engine.condition_checklist) cho SV; [] nếu không phải SV."""
+def _checklist(student, topic, remaining=None, period=None):
+    """Khối "Kiểm tra điều kiện" 4 mục (recommend.engine.condition_checklist) cho SV; [] nếu không phải SV.
+    `remaining` = chỗ còn của đề tài (đã trừ cả chỗ SV này đang giữ) → nếu chính SV đã được nhận vào đề tài
+    (trong đợt `period` nếu có) thì mục chỉ tiêu báo "Bạn đã được nhận", không báo "Hết chỗ"."""
     if student is None:
         return []
     from recommend.engine import Profile, condition_checklist
 
     if not hasattr(student, "_profile"):
         student._profile = Profile(student)
-    return condition_checklist(student._profile, topic, remaining)
+    held = Preference.objects.filter(student=student, topic=topic, status=Preference.Status.ACCEPTED)
+    if period is not None:
+        held = held.filter(period=period)
+    return condition_checklist(student._profile, topic, remaining, held.exists())
 
 
 def _ineligible_reason(student, topic):
@@ -610,7 +642,7 @@ def topic_detail(request, pk=None, id=None):
     context = {
         "ineligible_reason": _ineligible_reason(student, topic),
         "eligibility": _eligibility(student, topic),
-        "checklist": _checklist(student, topic, remaining_capacity(topic, _open_period())),
+        "checklist": _checklist(student, topic, remaining_capacity(topic, _open_period()), _open_period()),
         "open_period": _open_period(),
         "remaining": remaining_capacity(topic, _open_period()),
         "taken": topic.capacity - remaining_capacity(topic, _open_period()),  # "x/y — còn z chỗ"

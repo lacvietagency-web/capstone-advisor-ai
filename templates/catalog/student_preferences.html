@@ -570,7 +570,8 @@
         "submitted": {% if r.pref.submitted %}true{% else %}false{% endif %},
         "reject_reason": "{{ r.pref.reject_reason|default:''|escapejs }}",
         "lecturer_note": "{{ r.pref.lecturer_note|default:''|escapejs }}",
-        "remaining": {{ r.remaining }}
+        "remaining": {{ r.remaining }},
+        "held": {% if r.held %}true{% else %}false{% endif %}
       }{% if not forloop.last %},{% endif %}
     {% endfor %}
   }
@@ -789,8 +790,9 @@ document.addEventListener("DOMContentLoaded", function () {
     var gpaValue = gpaOk ? ('Đạt (' + studentGpa.toFixed(2) + ')') : ('Chưa đạt (' + studentGpa.toFixed(2) + ')');
 
     var remaining = (isSavedMatch && saved.remaining !== undefined) ? saved.remaining : capacity;
-    var remOk = remaining > 0;
-    var remValue = remOk ? ('Còn ' + remaining + '/' + capacity) : 'Hết chỗ';
+    var held = isSavedMatch && saved.held === true;  // SV đã được nhận: chỗ đó là của SV
+    var remOk = held || remaining > 0;
+    var remValue = held ? 'Bạn đã được nhận' : (remOk ? ('Còn ' + remaining + '/' + capacity) : 'Hết chỗ');
 
     var checklistHtml =
       '<div class="eligibility-title">Kiểm tra điều kiện</div>' +

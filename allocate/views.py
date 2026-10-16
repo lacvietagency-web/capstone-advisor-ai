@@ -46,10 +46,9 @@ def _handle_run(request, period, algorithm):
 
 def _handle_manual(request, period):
     """Xử lý Khoa chỉnh tay gán đề tài cho sinh viên (Pha 2)."""
-    student_id = request.POST.get("student_id")
+    student = get_object_or_404(Student, pk=int_param(request.POST.get("student_id"), 0))  # chữ / rỗng → 404
     topic_id = request.POST.get("topic_id")
-    student = get_object_or_404(Student, pk=student_id)
-    topic = get_object_or_404(Topic, pk=topic_id) if topic_id and topic_id != "none" else None
+    topic = get_object_or_404(Topic, pk=int_param(topic_id, 0)) if topic_id and topic_id != "none" else None
     manual_assign(period, student, topic, user=request.user)
     action_text = f"vào đề tài '{topic.title}'" if topic else "thành chưa xếp"
     messages.success(request, f"Đã cập nhật phân công cho sinh viên {student.student_code} {action_text}.")
@@ -155,7 +154,7 @@ def _get_allocations_and_suggestions(period, request):
 
     suggest_student = None
     suggestions = []
-    suggest_student_id = request.GET.get("suggest_student_id")
+    suggest_student_id = int_param(request.GET.get("suggest_student_id"))
     if suggest_student_id:
         suggest_student = Student.objects.filter(pk=suggest_student_id).first()
         if suggest_student:

@@ -278,8 +278,11 @@ def save_lecturer_profile(lecturer, form, user=None, is_locked=False, is_faculty
 
 
 def remaining_capacity(topic, period=None):
-    """Chỗ còn của đề tài = sức chứa − số nguyện vọng đã được GV đồng ý (trong đợt nếu có). Không âm."""
-    qs = Preference.objects.filter(topic=topic, status=Preference.Status.ACCEPTED, submitted=True)
+    """Chỗ còn của đề tài = sức chứa − số nguyện vọng đã được GV đồng ý (trong đợt nếu có). Không âm.
+    "Đã đồng ý" = đang giữ chỗ dù SV vừa rút về nháp để sửa NV khác (không thì GV nhận thêm người,
+    SV nộp lại → quá chỗ);
+    chỉ khi SV bỏ hẳn đề tài khỏi nguyện vọng (bản ghi bị xoá) thì chỗ mới được nhả."""
+    qs = Preference.objects.filter(topic=topic, status=Preference.Status.ACCEPTED)
     if period is not None:
         qs = qs.filter(period=period)
     return max(topic.capacity - qs.count(), 0)

@@ -191,7 +191,7 @@ def condition_checklist(p: Profile, topic: Topic, remaining=None, held=False):
         }
     )
     if held:  # chính SV này đang giữ một chỗ (đã được GV nhận) — chỗ đó là của SV, không phải "hết chỗ"
-        rows.append({"label": "Chỉ tiêu còn chỗ", "state": "ok", "value": "Bạn đã được nhận"})
+        rows.append({"label": "Chỉ tiêu còn chỗ", "state": "ok", "value": "Giảng viên đã đồng ý"})
     elif remaining is not None:
         rows.append(
             {

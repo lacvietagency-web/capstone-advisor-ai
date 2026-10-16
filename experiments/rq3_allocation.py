@@ -12,7 +12,8 @@ Các cấu hình tham số thỏa dụng U(s, t) = alpha * (score / 100) + beta 
 
 So sánh thuật toán:
 - Greedy: Sắp xếp SV theo điểm cao nhất của NV (hòa điểm xét GPA), gán lần lượt NV1 -> NV2 -> NV3.
-- ILP (PuLP/CBC): Tối ưu hóa hàm mục tiêu toàn cục, ưu tiên tối đa số lượng SV được xếp (lam = 2.0).
+- ILP (PuLP/CBC): Tối ưu hóa hàm mục tiêu toàn cục, ưu tiên tối đa số lượng SV được xếp
+  (lam = 1 + n·(alpha + beta + eps), xem allocate.solver.solve_ilp).
 
 Chỉ số đánh giá:
 - assigned_rate: Tỷ lệ sinh viên được xếp thành công (%)

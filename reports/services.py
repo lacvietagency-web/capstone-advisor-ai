@@ -13,7 +13,7 @@ import time
 from django.db.models import Count
 
 from allocate.models import Allocation
-from allocate.services import _prepare_solver_data
+from allocate.services import _prepare_solver_data, real_ranks
 from allocate.solver import metrics as calculate_metrics
 from allocate.solver import solve_greedy, solve_ilp
 from catalog.models import Field, Lecturer, Preference, RegistrationPeriod, Student
@@ -332,15 +332,16 @@ def compare_algorithms(period: RegistrationPeriod | None) -> dict:
 
     # 1. Chạy ILP (mô phỏng)
     t0_ilp = time.perf_counter()
-    assign_ilp = solve_ilp(prefs, scores, cap, owner, quota, gpa)
+    ranks = real_ranks(period)
+    assign_ilp = solve_ilp(prefs, scores, cap, owner, quota, gpa, ranks=ranks)
     elapsed_ilp = round(time.perf_counter() - t0_ilp, 3)
-    raw_ilp = calculate_metrics(assign_ilp, prefs, scores, cap, owner, quota)
+    raw_ilp = calculate_metrics(assign_ilp, prefs, scores, cap, owner, quota, ranks=ranks)
 
     # 2. Chạy Greedy (mô phỏng)
     t0_greedy = time.perf_counter()
     assign_greedy = solve_greedy(prefs, scores, cap, owner, quota, gpa)
     elapsed_greedy = round(time.perf_counter() - t0_greedy, 3)
-    raw_greedy = calculate_metrics(assign_greedy, prefs, scores, cap, owner, quota)
+    raw_greedy = calculate_metrics(assign_greedy, prefs, scores, cap, owner, quota, ranks=ranks)
 
     # 3. Tính toán và so sánh
     total_st = len(students)

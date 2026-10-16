@@ -62,16 +62,22 @@ def _prepare_solver_data(period, students):
     return prefs, scores, cap, owner, quota, gpa
 
 
-def _save_allocation_results(period, students, assign, prefs, scores, algorithm):
-    """Lưu kết quả phân công nháp vào bảng Allocation và cập nhật trạng thái đợt."""
-    topics_map = {t.id: t for t in Topic.objects.filter(id__in=[t_id for t_id in assign.values() if t_id])}
-    source = Allocation.Source.ILP if algorithm == "ILP" else Allocation.Source.GREEDY
-    real_rank = {
+def real_ranks(period):
+    """{(sv, đề tài): thứ tự NV thật} của các NV đã nộp.
+    prefs của bộ giải đã bỏ NV bị loại nên vị trí trong prefs không phải thứ tự thật."""
+    return {
         (sid, tid): rank
         for sid, tid, rank in Preference.objects.filter(period=period, submitted=True).values_list(
             "student_id", "topic_id", "rank"
         )
     }
+
+
+def _save_allocation_results(period, students, assign, prefs, scores, algorithm):
+    """Lưu kết quả phân công nháp vào bảng Allocation và cập nhật trạng thái đợt."""
+    topics_map = {t.id: t for t in Topic.objects.filter(id__in=[t_id for t_id in assign.values() if t_id])}
+    source = Allocation.Source.ILP if algorithm == "ILP" else Allocation.Source.GREEDY
+    real_rank = real_ranks(period)
 
     with transaction.atomic():
         for s in students:
@@ -117,14 +123,15 @@ def run_allocation(period: RegistrationPeriod, algorithm: str = "ILP", user=None
 
     prefs, scores, cap, owner, quota, gpa = _prepare_solver_data(period, students)
 
+    ranks = real_ranks(period)
     t0 = time.perf_counter()
     if algorithm == "ILP":
-        assign = solve_ilp(prefs, scores, cap, owner, quota, gpa)
+        assign = solve_ilp(prefs, scores, cap, owner, quota, gpa, ranks=ranks)
     else:
         assign = solve_greedy(prefs, scores, cap, owner, quota, gpa)
     elapsed_time = round(time.perf_counter() - t0, 3)
 
-    metrics_result = calculate_metrics(assign, prefs, scores, cap, owner, quota)
+    metrics_result = calculate_metrics(assign, prefs, scores, cap, owner, quota, ranks=ranks)
     metrics_result["elapsed_time"] = elapsed_time
 
     _save_allocation_results(period, students, assign, prefs, scores, algorithm)
@@ -159,7 +166,7 @@ def calculate_period_metrics(period: RegistrationPeriod) -> dict:
     prefs, scores, cap, owner, quota, _ = _prepare_solver_data(period, students)
     assign = {a.student_id: (a.topic_id if a.topic else None) for a in allocations}
 
-    return calculate_metrics(assign, prefs, scores, cap, owner, quota)
+    return calculate_metrics(assign, prefs, scores, cap, owner, quota, ranks=real_ranks(period))
 
 
 def _check_topic_capacity(topic, period, cap_usage, quota_usage):
@@ -367,8 +374,10 @@ def get_student_allocation_result(student: Student, period_id: int | None = None
     if not period or period.status != RegistrationPeriod.Status.PUBLISHED:
         if not period:
             status_text = "Chưa có đợt đăng ký nào"
-        elif period.status == RegistrationPeriod.Status.OPEN and not period.allocations.exists():
+        elif period.is_accepting and not period.allocations.exists():
             status_text = "Đợt đang mở đăng ký — kết quả được công bố sau khi đợt đóng và Khoa chạy phân công"
+        elif period.is_expired and not period.allocations.exists():
+            status_text = "Đã hết hạn đăng ký — kết quả được công bố sau khi Khoa chạy phân công"
         else:
             status_text = "Hội đồng Khoa đang thẩm định phân công"
         return {

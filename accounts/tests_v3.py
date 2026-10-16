@@ -512,7 +512,7 @@ class V39HeldSeatTests(TestCase):
     def test_holder_sees_accepted_not_full(self):
         self.client.login(username="sv001", password="123456")
         row = self._cap_row(self.client.get(f"/danh-sach-de-tai/{self.topic.pk}/").context["checklist"])
-        self.assertEqual((row["state"], row["value"]), ("ok", "Bạn đã được nhận"))
+        self.assertEqual((row["state"], row["value"]), ("ok", "Giảng viên đã đồng ý"))
 
     def test_other_student_still_sees_full(self):
         self.client.login(username="sv002", password="123456")
@@ -524,7 +524,7 @@ class V39HeldSeatTests(TestCase):
         r = self.client.get("/nguyen-vong/")
         rows = [x for x in r.context["pref_rows"] if x["pref"].topic_id == self.topic.pk]
         self.assertTrue(rows and rows[0]["held"])
-        self.assertEqual(self._cap_row(rows[0]["checklist"])["value"], "Bạn đã được nhận")
+        self.assertEqual(self._cap_row(rows[0]["checklist"])["value"], "Giảng viên đã đồng ý")
         self.assertContains(r, '"held": true')
 
 
@@ -610,3 +610,119 @@ class V39AcceptGuardTests(TestCase):
     def test_locked_after_publish(self):
         RegistrationPeriod.objects.filter(pk=self.period.pk).update(status=RegistrationPeriod.Status.PUBLISHED)
         self.assertEqual(self._post(self.a, "REJECT", reason="Không phù hợp hướng nghiên cứu"), "PENDING")
+
+
+@override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
+class V39RealRankTests(TestCase):
+    """Lỗi 16/10: NV1 bị GV từ chối → SV được xếp vào NV2 nhưng chỉ số đếm là "đạt NV1" (thứ hạng tính theo vị trí
+    trong danh sách đã bỏ NV bị từ chối) và điểm thoả dụng cộng thưởng NV1 — lệch định nghĩa Bonus(thứ tự NV)
+    của báo cáo."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from catalog.models import Preference, Student
+        from recommend.models import Recommendation
+
+        call_command("seed_demo", students=6, lecturers=4, topics=16, verbosity=0)
+        cls.period = RegistrationPeriod.objects.get(status=RegistrationPeriod.Status.OPEN)
+        Preference.objects.filter(period=cls.period).delete()
+        cls.st = Student.objects.get(user__username="sv001")
+        from catalog.views import ensure_recommendations
+
+        ensure_recommendations(cls.st)
+        recs = Recommendation.objects.filter(student=cls.st).order_by("-final_score")
+        ok = list(recs.values_list("topic_id", flat=True))
+        cls.nv1, cls.nv2 = ok[0], ok[1]
+        Preference.objects.create(
+            student=cls.st,
+            topic_id=cls.nv1,
+            period=cls.period,
+            rank=1,
+            status=Preference.Status.REJECTED,
+            reject_reason="Không phù hợp",
+            submitted=True,
+        )
+        Preference.objects.create(student=cls.st, topic_id=cls.nv2, period=cls.period, rank=2, submitted=True)
+
+    def test_metrics_use_real_preference_rank(self):
+        r = run_allocation(self.period)
+        self.assertEqual(r["assign"][self.st.pk], self.nv2)
+        self.assertEqual(r["metrics"]["nv1_rate"], 0.0)  # được NV2, không phải NV1
+        self.assertEqual(r["metrics"]["mean_rank"], 2.0)
+
+    def test_utility_bonus_uses_real_rank(self):
+        from allocate.solver import compute_utility
+
+        got = compute_utility("s", "t", 2, {("s", "t"): 50.0}, {"s": 3.0})
+        from allocate.solver import solve_ilp
+
+        # NV2 thật (NV1 bị từ chối) chịu thưởng NV2 = 0.6, không phải 1.0: SV khác có NV1 cùng điểm phải thắng
+        prefs = {"a": ["t"], "b": ["t"]}
+        scores = {("a", "t"): 50.0, ("b", "t"): 50.0}
+        ranks = {("a", "t"): 2, ("b", "t"): 1}
+        out = solve_ilp(prefs, scores, {"t": 1}, {"t": "g"}, {"g": 1}, {"a": 4.0, "b": 0.0}, ranks=ranks)
+        self.assertEqual(out, {"a": None, "b": "t"})
+        self.assertGreater(got, 0)
+
+
+@override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
+class V39DeadlineTests(TestCase):
+    """Lỗi 16/10: hạn chót của đợt chỉ để hiển thị — quá hạn (hoặc chưa tới ngày mở) SV vẫn nộp / rút / sửa nguyện vọng
+    tới khi Khoa đổi trạng thái tay. Giờ: đợt "mở" nhưng ngoài khung [bắt đầu, hạn chót] = hết nộp được."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", students=6, lecturers=3, topics=10, verbosity=0)
+        cls.period = RegistrationPeriod.objects.get(status=RegistrationPeriod.Status.OPEN)
+
+    def _shift(self, start_days, end_days):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        now = timezone.now()
+        RegistrationPeriod.objects.filter(pk=self.period.pk).update(
+            start_at=now + timedelta(days=start_days), end_at=now + timedelta(days=end_days)
+        )
+
+    def _withdraw(self):
+        from catalog.models import Preference
+
+        self.client.login(username="sv001", password="123456")
+        self.client.post("/nguyen-vong/", {"action": "withdraw"})
+        return Preference.objects.filter(student__user__username="sv001", period=self.period, submitted=True).count()
+
+    def test_after_deadline_student_cannot_change(self):
+        self._shift(-20, -1)
+        self.assertGreater(self._withdraw(), 0)  # vẫn còn nguyên các NV đã nộp
+        r = self.client.get("/trang-chu/")
+        self.assertContains(r, "Hết hạn đăng ký")
+        t = r.context["user"].student.preferences.first().topic
+        self.assertIsNone(self.client.get(f"/danh-sach-de-tai/{t.pk}/").context["open_period"])
+
+    def test_before_start_student_cannot_change(self):
+        self._shift(2, 10)
+        self.assertGreater(self._withdraw(), 0)
+
+    def test_within_window_still_works(self):
+        self._shift(-1, 5)
+        self.assertEqual(self._withdraw(), 0)  # rút được: không còn NV nào ở trạng thái đã nộp
+        self.assertTrue(RegistrationPeriod.objects.get(pk=self.period.pk).is_accepting)
+
+
+class V39MaxCoverageTests(TestCase):
+    """Lỗi 16/10: lam = 2 không bảo đảm "tối đa số SV được xếp" như báo cáo cam kết — chuỗi 4 SV phải lùi NV1 → NV3 để
+    nhường chỗ cho SV thứ 5 thì ILP bỏ 1 SV (8/9) dù xếp đủ 9/9 được."""
+
+    def test_ilp_assigns_everyone_when_possible(self):
+        from allocate.solver import solve_ilp
+
+        prefs = {"s1": ["A", "D1", "B"], "s2": ["B", "D2", "C"], "s3": ["C", "D3", "D"], "s4": ["D", "D4", "E"],
+                 "s5": ["A"], "d1": ["D1"], "d2": ["D2"], "d3": ["D3"], "d4": ["D4"]}  # fmt: skip
+        topics = ["A", "B", "C", "D", "E", "D1", "D2", "D3", "D4"]
+        cap = {t: 1 for t in topics}
+        owner = {t: "g" + t for t in topics}
+        quota = {"g" + t: 9 for t in topics}
+        scores = {(s, t): (100.0 if ts.index(t) == 0 else 0.0) for s, ts in prefs.items() for t in ts}
+        out = solve_ilp(prefs, scores, cap, owner, quota, {s: 3.0 for s in prefs})
+        self.assertEqual(sum(v is not None for v in out.values()), 9)

@@ -792,7 +792,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var remaining = (isSavedMatch && saved.remaining !== undefined) ? saved.remaining : capacity;
     var held = isSavedMatch && saved.held === true;  // SV đã được nhận: chỗ đó là của SV
     var remOk = held || remaining > 0;
-    var remValue = held ? 'Bạn đã được nhận' : (remOk ? ('Còn ' + remaining + '/' + capacity) : 'Hết chỗ');
+    var remValue = held ? 'Giảng viên đã đồng ý' : (remOk ? ('Còn ' + remaining + '/' + capacity) : 'Hết chỗ');
 
     var checklistHtml =
       '<div class="eligibility-title">Kiểm tra điều kiện</div>' +

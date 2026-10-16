@@ -92,7 +92,7 @@ def student_journey(student, has_preferences, period):
     template chỉ hiển thị. Ví dụ đợt đã đóng mà SV chưa nộp nguyện vọng → "Chưa nộp trong đợt này" (missed).
     """
     status = period.status if period else None
-    is_open = status == RegistrationPeriod.Status.OPEN
+    is_open = bool(period and period.is_accepting)  # quá hạn chót = hết sửa được dù trạng thái còn "mở"
     is_published = status == RegistrationPeriod.Status.PUBLISHED
     has_profile = student.skills.exists()
     has_recs = student.recommendations.filter(rank__isnull=False).exists()

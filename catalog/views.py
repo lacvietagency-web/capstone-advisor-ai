@@ -55,6 +55,17 @@ def _lecturer(request):
 
 
 def _open_period():
+    """Đợt SV nộp nguyện vọng được NGAY LÚC NÀY (đang mở và trong hạn) — quyết định nút "Đăng ký" và việc lưu NV."""
+    now = timezone.now()
+    return (
+        RegistrationPeriod.objects.filter(status=RegistrationPeriod.Status.OPEN, start_at__lte=now, end_at__gte=now)
+        .order_by("-start_at")
+        .first()
+    )
+
+
+def _current_open_period():
+    """Đợt đang ghi trạng thái "mở" (kể cả đã quá hạn chót) — dùng để đếm chỗ / duyệt cho đúng đợt."""
     return RegistrationPeriod.objects.filter(status=RegistrationPeriod.Status.OPEN).order_by("-start_at").first()
 
 
@@ -296,7 +307,8 @@ def _review_blocked(pref, topic, new_status):
         return "Khoa đã công bố kết quả phân công của đợt này — không đổi được trạng thái duyệt."
     if new_status != Preference.Status.ACCEPTED or pref.status == Preference.Status.ACCEPTED:
         return None
-    # "đã đồng ý" = đang giữ một chỗ của đề tài (SV thấy "Bạn đã được nhận"), kể cả lúc SV rút về nháp để sửa NV khác
+    # "đã đồng ý" = đang giữ một chỗ của đề tài (SV thấy "Giảng viên đã đồng ý"),
+    # kể cả lúc SV rút về nháp để sửa NV khác
     # → không đồng ý quá sức chứa đề tài / chỉ tiêu GV.
     # ponytail: đếm rồi ghi không khoá dòng — 2 lần bấm đồng thời có thể lọt 1 chỗ; cần chặt thì khoá theo đề tài
     accepted = Preference.objects.filter(period=pref.period, status=Preference.Status.ACCEPTED)
@@ -399,13 +411,13 @@ def lecturer_registrations(request, pk):
     for p in prefs:
         ensure_recommendations(p.student)
     scores = {r.student_id: r for r in Recommendation.objects.filter(topic=topic)}
-    left = remaining_capacity(topic, _open_period())
+    left = remaining_capacity(topic, _current_open_period())
     rows = [
         {
             "pref": p,
             "rec": scores.get(p.student_id),
             "eligibility": _eligibility(p.student, topic),
-            "checklist": _checklist(p.student, topic, left, _open_period()),
+            "checklist": _checklist(p.student, topic, left, _current_open_period()),
         }
         for p in prefs
     ]
@@ -508,7 +520,7 @@ def topic_list(request):
         topic.match_score = topic.recommendation.final_score if topic.recommendation else None
         topic.ineligible_reason = _ineligible_reason(student, topic)
         topic.eligibility = _eligibility(student, topic)
-        topic.remaining = remaining_capacity(topic, _open_period())
+        topic.remaining = remaining_capacity(topic, _current_open_period())
 
     get_params = request.GET.copy()
     get_params.pop("page", None)
@@ -584,7 +596,7 @@ def _eligibility(student, topic):
 def _checklist(student, topic, remaining=None, period=None):
     """Khối "Kiểm tra điều kiện" 4 mục (recommend.engine.condition_checklist) cho SV; [] nếu không phải SV.
     `remaining` = chỗ còn của đề tài (đã trừ cả chỗ SV này đang giữ) → nếu chính SV đã được nhận vào đề tài
-    (trong đợt `period` nếu có) thì mục chỉ tiêu báo "Bạn đã được nhận", không báo "Hết chỗ"."""
+    (trong đợt `period` nếu có) thì mục chỉ tiêu báo "Giảng viên đã đồng ý", không báo "Hết chỗ"."""
     if student is None:
         return []
     from recommend.engine import Profile, condition_checklist
@@ -638,14 +650,15 @@ def topic_detail(request, pk=None, id=None):
     if student:
         ensure_recommendations(student)
     recommendation = get_student_match_score(student, topic)
+    cur = _current_open_period()
 
     context = {
         "ineligible_reason": _ineligible_reason(student, topic),
         "eligibility": _eligibility(student, topic),
-        "checklist": _checklist(student, topic, remaining_capacity(topic, _open_period()), _open_period()),
+        "checklist": _checklist(student, topic, remaining_capacity(topic, cur), cur),
         "open_period": _open_period(),
-        "remaining": remaining_capacity(topic, _open_period()),
-        "taken": topic.capacity - remaining_capacity(topic, _open_period()),  # "x/y — còn z chỗ"
+        "remaining": remaining_capacity(topic, cur),
+        "taken": topic.capacity - remaining_capacity(topic, cur),  # "x/y — còn z chỗ"
         "topic": topic,
         "nv1_count": nv1_count,
         "is_student": is_student,

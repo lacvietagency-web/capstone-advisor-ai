@@ -56,16 +56,25 @@ def _build_ilp_constraints(prob, prefs, x, u, cap, owner, quota):
             prob += pulp.lpSum(vars_list) <= quota[g]
 
 
-def solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=2.0, eps=1e-3):
+def solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=None, eps=1e-3, ranks=None):
     """Phân công đề tài bằng quy hoạch nguyên tuyến tính (PuLP + CBC).
+
+    `ranks[(s, t)]` = thứ tự NV thật của SV (1–3). prefs đã bỏ NV bị GV từ chối / không đủ điều kiện, nên vị trí
+    trong prefs có thể nhỏ hơn thứ tự thật (NV1 bị từ chối → NV2 đứng đầu); Bonus tính theo thứ tự thật như báo cáo.
+    Không truyền ranks (dữ liệu thực nghiệm không có NV bị loại) thì dùng vị trí trong prefs.
 
     Mục tiêu:
         max sum_{s, t} x[s, t] * U(s, t) - lam * sum_s u[s]
-    với U(s, t) = alpha * (score / 100) + beta * Bonus + eps * (gpa / 4).
-    Điều kiện lam > 1 + eps đảm bảo ưu tiên tối đa số lượng SV được xếp.
+    với U(s, t) = alpha * (score / 100) + beta * Bonus + eps * (gpa / 4) ≤ alpha + beta + eps.
+    Ưu tiên tối đa số SV được xếp (rồi mới tới độ thoả dụng) cần lam > n·(alpha + beta + eps), n = số SV: xếp thêm 1 SV
+    (+lam) khi đó luôn hơn mọi phần thoả dụng có thể mất khi dời các SV khác. lam cố định = 2 KHÔNG đủ: chuỗi 4 SV phải
+    lùi NV1 → NV3 để nhường chỗ (mất 4 × 0,82 > 2 + 1) thì ILP bỏ 1 SV dù xếp được hết (test V39MaxCoverage).
+    Mặc định lam = 1 + n·(alpha + beta + eps); truyền lam để tái lập thí nghiệm cũ.
     """
     if not prefs:
         return {}
+    if lam is None:
+        lam = 1.0 + len(prefs) * (alpha + beta + eps)
 
     prob = pulp.LpProblem("Topic_Allocation", pulp.LpMaximize)
 
@@ -78,7 +87,7 @@ def solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=2.
         obj_terms.append(-lam * u[s])
         for j, t in enumerate(topic_list):
             x[s, t] = pulp.LpVariable(f"x_{i}_{j}", cat=pulp.LpBinary)
-            rank = j + 1
+            rank = ranks.get((s, t), j + 1) if ranks else j + 1
             utility = compute_utility(s, t, rank, scores, gpa, alpha, beta, eps)
             obj_terms.append(x[s, t] * utility)
 
@@ -165,8 +174,8 @@ def _count_quota_violations(topic_counts, cap, owner, quota):
     return violations
 
 
-def metrics(assign, prefs, scores, cap, owner, quota):
-    """Tính toán các chỉ số đánh giá phân công đề tài.
+def metrics(assign, prefs, scores, cap, owner, quota, ranks=None):
+    """Tính toán các chỉ số đánh giá phân công đề tài. `ranks[(s, t)]` = thứ tự NV thật (xem solve_ilp).
 
     Trả về dictionary gồm:
         - assigned_rate: Số SV được xếp / Tổng số SV
@@ -194,15 +203,15 @@ def metrics(assign, prefs, scores, cap, owner, quota):
 
     num_nv1 = 0
     num_top3 = 0
-    ranks = []
+    rank_list = []
     match_scores = []
     topic_counts = {}
 
     for s, t in assigned_pairs:
         st_prefs = prefs.get(s, [])
         if t in st_prefs:
-            r = st_prefs.index(t) + 1
-            ranks.append(r)
+            r = ranks.get((s, t), st_prefs.index(t) + 1) if ranks else st_prefs.index(t) + 1
+            rank_list.append(r)
             if r == 1:
                 num_nv1 += 1
             if r <= 3:
@@ -213,7 +222,7 @@ def metrics(assign, prefs, scores, cap, owner, quota):
     assigned_rate = num_assigned / total_students
     nv1_rate = num_nv1 / total_students
     top3_rate = num_top3 / total_students
-    mean_rank = (sum(ranks) / len(ranks)) if ranks else 0.0
+    mean_rank = (sum(rank_list) / len(rank_list)) if rank_list else 0.0
     avg_match = (sum(match_scores) / len(match_scores)) if match_scores else 0.0
     p10_match = _percentile(match_scores, 10) if match_scores else 0.0
     quota_violations = _count_quota_violations(topic_counts, cap, owner, quota)

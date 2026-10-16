@@ -236,9 +236,20 @@ class RegistrationPeriod(models.Model):
         return self.name
 
     @property
+    def is_accepting(self):
+        """SV nộp / sửa / rút nguyện vọng được: đợt đang mở VÀ đang trong khung [bắt đầu, hạn chót].
+        Quá hạn chót thì coi như đã đóng dù Khoa chưa đổi trạng thái (trước đây hạn chót chỉ để hiển thị)."""
+        return self.status == self.Status.OPEN and self.start_at <= timezone.now() <= self.end_at
+
+    @property
+    def is_expired(self):
+        """Còn ghi "đang mở" nhưng đã quá hạn chót — thẻ đợt báo "Hết hạn đăng ký"."""
+        return self.status == self.Status.OPEN and timezone.now() > self.end_at
+
+    @property
     def days_left(self):
-        """Số ngày còn lại tới hạn đóng khi đợt đang mở (thẻ đợt: "còn N ngày"); None nếu không áp dụng."""
-        if self.status != self.Status.OPEN:
+        """Số ngày còn lại tới hạn chót khi SV còn nộp được (thẻ đợt: "còn N ngày"); None nếu không áp dụng."""
+        if not self.is_accepting:
             return None
         return max((self.end_at.date() - timezone.localdate()).days, 0)
 

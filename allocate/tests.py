@@ -4,7 +4,7 @@ Giao diện bắt buộc của module allocate/solver.py (dữ liệu thuần Py
     prefs:  {sv: [đề_tài_NV1, NV2, NV3]}        scores: {(sv, đề_tài): 0..100}
     cap:    {đề_tài: sức chứa}                  owner:  {đề_tài: giảng_viên}
     quota:  {giảng_viên: chỉ tiêu}              gpa:    {sv: GPA}
-    solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=2.0, eps=1e-3) -> {sv: đề_tài hoặc None}
+    solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=None, eps=1e-3, ranks=None) -> {sv: đề_tài hoặc None}
     solve_greedy(prefs, scores, cap, owner, quota, gpa) -> {sv: đề_tài hoặc None}
     metrics(assign, prefs, scores, cap, owner, quota) -> dict: assigned_rate, nv1_rate, top3_rate, mean_rank,
                                                                avg_match, p10_match, quota_violations

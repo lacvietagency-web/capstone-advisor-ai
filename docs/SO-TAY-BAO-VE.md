@@ -236,10 +236,11 @@
   - $\beta = 0.6$: Trọng số tôn trọng nguyện vọng chủ quan của sinh viên ($\text{Bonus}: \text{NV1}=1.0, \text{NV2}=0.6, \text{NV3}=0.3$).
   - $\varepsilon = 10^{-3}$: Thành phần siêu nhỏ dùng để phân giải hòa điểm (Tie-breaking) dựa trên GPA, đảm bảo minh bạch tuyệt đối khi có cạnh tranh ngang điểm."
 
-#### Câu 49: Trọng số phạt $\lambda = 2.0$ trong hàm mục tiêu có ý nghĩa sống còn như thế nào?
+#### Câu 49: Trọng số phạt $\lambda$ trong hàm mục tiêu được chọn thế nào, và vì sao không dùng một hằng số như $\lambda = 2$?
 - **Trả lời ngắn:** "Dạ, hàm mục tiêu là:
   $$\max \left( \sum x_{s,t} \cdot U(s, t) - \lambda \sum u_s \right)$$
-  Điểm thỏa dụng tối đa của 1 cặp ghép không bao giờ vượt quá $1.0 + \varepsilon \approx 1.001$. Khi ta chọn $\lambda = 2.0 > 1.001$, việc để sót 1 sinh viên không có đề tài ($u_s = 1$) sẽ bị trừ thẳng 2 điểm. Điều này ép buộc Solver toán học **phải ưu tiên tối đa việc xếp chỗ cho sinh viên trước**, tuyệt đối không bao giờ được phép hy sinh một sinh viên để tăng điểm số cho người khác."
+  Mỗi cặp ghép có $U(s,t) \le \alpha + \beta + \varepsilon \approx 1{,}001$. Mục tiêu nghiệp vụ là **xếp được nhiều sinh viên nhất trước, rồi mới tối ưu độ hài lòng**. Để bảo đảm điều đó tuyệt đối, phạt cho mỗi sinh viên chưa xếp phải lớn hơn **tổng** thỏa dụng tối đa mà cả hệ thống có thể mất khi dời các sinh viên khác để nhường chỗ, tức $\lambda > n(\alpha + \beta + \varepsilon)$ với $n$ là số sinh viên. Hệ thống đặt $\lambda = 1 + n(\alpha + \beta + \varepsilon)$.
+  Một hằng số nhỏ như $\lambda = 2$ chỉ đủ khi việc nhường chỗ làm dời ít người. Em đã dựng phản ví dụ 9 sinh viên: muốn xếp sinh viên thứ 5 thì một chuỗi 4 sinh viên phải lùi từ NV1 xuống NV3 (mất $4 \times 0{,}82 > 2 + 1$). Với $\lambda = 2$ bộ giải chỉ xếp 8/9; với $\lambda$ tính theo $n$ thì xếp đủ 9/9 — có kiểm thử tự động. Trên dữ liệu thực nghiệm RQ3 (100–1.000 sinh viên) hai cách cho kết quả giống hệt, vì chuỗi dài như vậy rất hiếm, nhưng hệ thống không dựa vào may rủi."
 
 #### Câu 50: Hệ thống quản lý các ràng buộc cứng (Hard Constraints) nào?
 - **Trả lời ngắn:** "Dạ, 3 ràng buộc cứng tuyến tính bắt buộc:

@@ -7,7 +7,7 @@
     <div>
       <div class="at-period-head">
         <span class="at-period-name">{{ period.name }}</span>
-        {% include "components/status.html" with status=period.status label=period.get_status_display %}
+        {% if period.is_expired %}{% include "components/status.html" with status="CLOSED" label="Hết hạn đăng ký" %}{% else %}{% include "components/status.html" with status=period.status label=period.get_status_display %}{% endif %}
       </div>
       <div class="at-period-time">
         Thời gian: <span class="at-num">{{ period.start_at|date:"d/m/Y" }} – {{ period.end_at|date:"d/m/Y" }}</span>{% if period.days_left is not None %} (còn {{ period.days_left }} ngày){% endif %}

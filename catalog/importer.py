@@ -225,7 +225,8 @@ def _parse_giang_vien_sheet(ws, errors: list[str]) -> list[dict]:
             errors.append(f"Sheet GiangVien, dòng {r_idx}: Thiếu mã giảng viên bắt buộc.")
         elif code.lower() in seen_codes:
             errors.append(f"Sheet GiangVien, dòng {r_idx}: Mã giảng viên '{code}' bị trùng lặp trong tệp Excel.")
-        elif User.objects.filter(username=code).exists():
+        # gv001 ≡ GV001 (trong tệp cũng so không phân biệt hoa thường)
+        elif User.objects.filter(username__iexact=code).exists():
             errors.append(f"Sheet GiangVien, dòng {r_idx}: Tên đăng nhập/Mã GV '{code}' đã tồn tại trong hệ thống.")
         seen_codes.add(code.lower() if code else "")
 
@@ -263,8 +264,8 @@ def _parse_de_tai_sheet(ws, available_lecturer_codes: set[str], errors: list[str
             errors.append(f"Sheet DeTai, dòng {r_idx}: Thiếu mã giảng viên hướng dẫn.")
         elif (
             lec_code.lower() not in available_lecturer_codes
-            and not Lecturer.objects.filter(user__username=lec_code).exists()
-            and not Lecturer.objects.filter(user__email=lec_code).exists()
+            and not Lecturer.objects.filter(user__username__iexact=lec_code).exists()
+            and not Lecturer.objects.filter(user__email__iexact=lec_code).exists()
         ):
             errors.append(f"Sheet DeTai, dòng {r_idx}: Không tìm thấy giảng viên với mã '{lec_code}'.")
 
@@ -304,7 +305,10 @@ def _parse_sinh_vien_sheet(ws, errors: list[str]) -> list[dict]:
             errors.append(f"Sheet SinhVien, dòng {r_idx}: Thiếu mã sinh viên bắt buộc.")
         elif code.lower() in seen_codes:
             errors.append(f"Sheet SinhVien, dòng {r_idx}: Mã sinh viên '{code}' bị trùng lặp trong tệp Excel.")
-        elif Student.objects.filter(student_code=code).exists() or User.objects.filter(username=code).exists():
+        elif (
+            Student.objects.filter(student_code__iexact=code).exists()
+            or User.objects.filter(username__iexact=code).exists()
+        ):
             errors.append(f"Sheet SinhVien, dòng {r_idx}: Mã sinh viên '{code}' đã tồn tại trong hệ thống.")
         seen_codes.add(code.lower() if code else "")
 
@@ -374,8 +378,8 @@ def _save_imported_topics(items: list[dict], new_lecturers: dict[str, Lecturer])
         lec = new_lecturers.get(code_lower)
         if not lec:
             lec = (
-                Lecturer.objects.filter(user__username=item["lecturer_code"]).first()
-                or Lecturer.objects.filter(user__email=item["lecturer_code"]).first()
+                Lecturer.objects.filter(user__username__iexact=item["lecturer_code"]).first()
+                or Lecturer.objects.filter(user__email__iexact=item["lecturer_code"]).first()
             )
         topic = Topic.objects.create(
             lecturer=lec,
@@ -514,10 +518,10 @@ def create_sample_excel(output_path: str | Path | None = None) -> bytes | Path:
         ws_sv: {
             "headers": ["Mã sinh viên", "Họ đệm", "Tên", "GPA", "Email", "Chuyên ngành", "Ghi chú"],
             "rows": [
-                ["SV001", "Nguyễn Văn", "An", 3.50, "an.nv@eaut.edu.vn", "Công nghệ thông tin", "Định hướng AI"],
-                ["SV002", "Trần Thị", "Bình", 3.20, "binh.tt@eaut.edu.vn", "Công nghệ thông tin", "Định hướng Web"],
+                ["20269001", "Nguyễn Văn", "An", 3.50, "an.nv@eaut.edu.vn", "Công nghệ thông tin", "Định hướng AI"],
+                ["20269002", "Trần Thị", "Bình", 3.20, "binh.tt@eaut.edu.vn", "Công nghệ thông tin", "Định hướng Web"],
                 [
-                    "SV003",
+                    "20269003",
                     "Lê Hoàng",
                     "Cường",
                     2.85,
@@ -531,9 +535,9 @@ def create_sample_excel(output_path: str | Path | None = None) -> bytes | Path:
         ws_gv: {
             "headers": ["Mã giảng viên", "Họ đệm", "Tên", "Email", "Bộ môn", "Chỉ tiêu", "Lĩnh vực"],
             "rows": [
-                ["GV001", "Đặng Khánh", "Trung", "trungdk@eaut.edu.vn", "Khoa CNTT", 5, "Web, Trí tuệ nhân tạo"],
-                ["GV002", "Nguyễn Thị", "Mai", "mainth@eaut.edu.vn", "Khoa CNTT", 6, "Dữ liệu, Trí tuệ nhân tạo"],
-                ["GV003", "Vũ Hoàng", "Long", "longvh@eaut.edu.vn", "Khoa CNTT", 4, "Di động, Web"],
+                ["GV101", "Đặng Khánh", "Trung", "trungdk@eaut.edu.vn", "Khoa CNTT", 5, "Web, Trí tuệ nhân tạo"],
+                ["GV102", "Nguyễn Thị", "Mai", "mainth@eaut.edu.vn", "Khoa CNTT", 6, "Dữ liệu, Trí tuệ nhân tạo"],
+                ["GV103", "Vũ Hoàng", "Long", "longvh@eaut.edu.vn", "Khoa CNTT", 4, "Di động, Web"],
             ],
             "widths": [16, 18, 12, 26, 16, 12, 30],
         },
@@ -542,7 +546,7 @@ def create_sample_excel(output_path: str | Path | None = None) -> bytes | Path:
             "rows": [
                 [
                     "Hệ thống gợi ý đề tài tốt nghiệp bằng học máy",
-                    "GV001",
+                    "GV101",
                     "Xây dựng cổng thông tin khuyến nghị đề tài sử dụng mô hình kết hợp và xử lý ngôn ngữ tự nhiên",
                     "Trí tuệ nhân tạo, Web",
                     2,
@@ -551,7 +555,7 @@ def create_sample_excel(output_path: str | Path | None = None) -> bytes | Path:
                 ],
                 [
                     "Phân tích dữ liệu học tập và dự báo kết quả rèn luyện",
-                    "GV002",
+                    "GV102",
                     "Ứng dụng thuật toán khai phá dữ liệu hỗ trợ cố vấn học tập cảnh báo học vụ",
                     "Dữ liệu, Trí tuệ nhân tạo",
                     2,
@@ -560,7 +564,7 @@ def create_sample_excel(output_path: str | Path | None = None) -> bytes | Path:
                 ],
                 [
                     "Ứng dụng di động quản lý giao việc thông minh",
-                    "GV003",
+                    "GV103",
                     "Xây dựng ứng dụng di động đa nền tảng Flutter tích hợp thông báo thời gian thực",
                     "Di động",
                     1,

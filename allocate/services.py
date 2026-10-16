@@ -43,7 +43,11 @@ def _prepare_solver_data(period, students):
     recs = Recommendation.objects.filter(student__in=students, topic_id__in=all_topic_ids)
     scores = {(r.student_id, r.topic_id): float(r.final_score) for r in recs}
 
-    topics_map = Topic.objects.in_bulk(all_topic_ids)
+    # nạp kèm kỹ năng / môn tiên quyết / lĩnh vực: tính bù điểm ~300 cặp từng truy vấn riêng mỗi đề tài (~2.900 → ~500)
+    # ponytail: còn ~5 truy vấn / SV để dựng hồ sơ năng lực; 1.000 SV ≈ 1,6 s — gom theo lô nếu cần nhanh hơn
+    topics_map = Topic.objects.prefetch_related("skills__skill", "prerequisites__course", "fields").in_bulk(
+        all_topic_ids
+    )
     for s in students:
         missing = [topics_map[t] for t in prefs[s.id] if (s.id, t) not in scores]
         if missing:  # không gọi LLM ở đây: phân công phải nhanh và tái lập được

@@ -726,3 +726,47 @@ class V39MaxCoverageTests(TestCase):
         scores = {(s, t): (100.0 if ts.index(t) == 0 else 0.0) for s, ts in prefs.items() for t in ts}
         out = solve_ilp(prefs, scores, cap, owner, quota, {s: 3.0 for s in prefs})
         self.assertEqual(sum(v is not None for v in out.values()), 9)
+
+
+class V39ImportCaseTests(TestCase):
+    """Lỗi 16/10: nhập Excel so mã với CSDL phân biệt hoa thường (trong tệp thì không) → GV001 lọt qua dù đã có
+    tài khoản gv001: hai tài khoản chỉ khác hoa thường. Giờ báo "đã tồn tại", không ghi gì."""
+
+    def test_code_clash_differs_only_by_case(self):
+        import io
+
+        import openpyxl
+        from django.contrib.auth import get_user_model
+
+        from catalog.importer import create_sample_excel, import_excel_data
+
+        get_user_model().objects.create_user("gv101", password="x", role="LECTURER")
+        wb = openpyxl.load_workbook(io.BytesIO(create_sample_excel()))
+        buf = io.BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        ok, errors, _ = import_excel_data(buf)
+        self.assertFalse(ok)
+        self.assertTrue(any("GV101" in e and "đã tồn tại" in e for e in errors))
+
+
+@override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
+class V39SupervisingCountTests(TestCase):
+    """Lỗi 16/10: "số SV đang hướng dẫn" = (NV được đồng ý) ∪ (phân công chính thức) → sau công bố, SV GV A đã đồng ý
+    nhưng ILP xếp sang GV B bị đếm cho cả A và B."""
+
+    def test_after_publish_only_official_allocations_count(self):
+        from allocate.models import Allocation
+        from catalog.models import Lecturer, Preference, Student, Topic
+        from catalog.views import lecturer_load_stats
+
+        call_command("seed_demo", students=4, lecturers=2, topics=4, verbosity=0)
+        period = RegistrationPeriod.objects.get()
+        a, b = Lecturer.objects.order_by("pk")[:2]
+        ta, tb = Topic.objects.filter(lecturer=a).first(), Topic.objects.filter(lecturer=b).first()
+        st = Student.objects.first()
+        Preference.objects.filter(student=st).delete()
+        Preference.objects.create(student=st, topic=ta, period=period, rank=1, status=Preference.Status.ACCEPTED)
+        Allocation.objects.create(period=period, student=st, topic=tb, status=Allocation.Status.OFFICIAL)
+        RegistrationPeriod.objects.filter(pk=period.pk).update(status=RegistrationPeriod.Status.PUBLISHED)
+        self.assertEqual((lecturer_load_stats(a)["n_guided"], lecturer_load_stats(b)["n_guided"]), (0, 1))

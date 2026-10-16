@@ -685,7 +685,7 @@ class ExcelImportTests(TestCase):
         self.assertEqual(stats["skills"], 6)
 
         # Kiểm tra tính toàn vẹn dữ liệu sinh viên trong CSDL
-        sv = Student.objects.get(student_code="SV001")
+        sv = Student.objects.get(student_code="20269001")
         self.assertEqual(sv.user.first_name, "An")
         self.assertEqual(sv.user.last_name, "Nguyễn Văn")
         self.assertEqual(float(sv.gpa), 3.50)
@@ -693,7 +693,7 @@ class ExcelImportTests(TestCase):
         self.assertEqual(sv.user.role, User.Role.STUDENT)
 
         # Kiểm tra giảng viên và đề tài
-        gv = Lecturer.objects.get(user__username="GV001")
+        gv = Lecturer.objects.get(user__username="GV101")
         self.assertEqual(gv.department, "Khoa CNTT")
         self.assertEqual(gv.max_students, 5)
 
@@ -710,7 +710,7 @@ class ExcelImportTests(TestCase):
         out = StringIO()
         call_command("import_excel", str(self.sample_path), stdout=out)
         self.assertIn("Đã nhập thành công", out.getvalue())
-        self.assertTrue(Student.objects.filter(student_code="SV001").exists())
+        self.assertTrue(Student.objects.filter(student_code="20269001").exists())
 
     def test_import_command_file_not_found(self):
         """Kiểm tra lệnh import_excel báo lỗi khi file không tồn tại."""
@@ -843,7 +843,7 @@ class ExcelImportTests(TestCase):
             resp_post = self.client.post(url_import, {"excel_file": upload_file}, follow=True)
             self.assertEqual(resp_post.status_code, 200)
             self.assertContains(resp_post, "Nhập dữ liệu thành công")
-            self.assertTrue(Student.objects.filter(student_code="SV001").exists())
+            self.assertTrue(Student.objects.filter(student_code="20269001").exists())
             self.assertTrue(AuditLog.objects.filter(action="import_excel").exists())
 
     def test_admin_action_direct_call(self):
@@ -875,7 +875,7 @@ class ExcelImportTests(TestCase):
             st_admin = StudentAdmin(Student, site)
             res = st_admin.import_excel(req, Student.objects.none())
             self.assertEqual(res.status_code, 302)
-            self.assertTrue(Student.objects.filter(student_code="SV001").exists())
+            self.assertTrue(Student.objects.filter(student_code="20269001").exists())
 
 
 class CoreMosaicTests(TestCase):

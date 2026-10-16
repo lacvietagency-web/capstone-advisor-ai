@@ -793,10 +793,11 @@ def lecturer_load_stats(lecturer):
 
     from allocate.models import Allocation
 
+    # đợt đã công bố: chỉ phân công chính thức mới là "đang hướng dẫn" — SV GV đã đồng ý có thể được xếp sang GV khác
     accepted = set(
-        Preference.objects.filter(
-            topic__lecturer=lecturer, status=Preference.Status.ACCEPTED, submitted=True
-        ).values_list("student_id", flat=True)
+        Preference.objects.filter(topic__lecturer=lecturer, status=Preference.Status.ACCEPTED, submitted=True)
+        .exclude(period__status=RegistrationPeriod.Status.PUBLISHED)
+        .values_list("student_id", flat=True)
     )
     official = set(
         Allocation.objects.filter(topic__lecturer=lecturer, status=Allocation.Status.OFFICIAL).values_list(

@@ -101,11 +101,10 @@ Mục tiêu của bài toán là tối đa hóa tổng mức độ thỏa dụng
 $$\mathbf{\max \left( \sum_{s \in S} \sum_{t \in \text{prefs}[s]} x_{s, t} \cdot U(s, t) \; - \; \lambda \sum_{s \in S} u_s \right)}$$
 
 #### 🔑 Ý nghĩa sống còn của Trọng số phạt $\lambda$ (Hội đồng rất hay hỏi!):
-- Vì sao hệ thống đặt $\mathbf{\lambda = 2.0}$?
-- Nhận thấy giá trị thỏa dụng tối đa của 1 cặp ghép là:
-  $$U_{\max} \le \alpha \cdot 1.0 + \beta \cdot 1.0 + \varepsilon \cdot 1.0 = 1.0 + \varepsilon \approx 1.001$$
-- Nếu ta chọn $\mathbf{\lambda > 1 + \varepsilon}$ (ở đây $\lambda = 2.0 > 1.001$), thì việc để 1 sinh viên bị trượt ($u_s = 1$) sẽ bị trừ thẳng **2 điểm** vào hàm mục tiêu.
-- Do $2.0 > 1.001$, Solver toán học sẽ **tuyệt đối không bao giờ hy sinh một sinh viên để tăng điểm số thỏa dụng cho các sinh viên khác**. Thuật toán luôn bị ép buộc toán học phải **xếp chỗ cho tối đa số lượng sinh viên trước**, rồi sau đó mới tối ưu hóa điểm nguyện vọng!
+- Giá trị thỏa dụng tối đa của 1 cặp ghép là:
+  $$U_{\max} \le \alpha \cdot 1.0 + \beta \cdot 1.0 + \varepsilon \cdot 1.0 = \alpha + \beta + \varepsilon \approx 1.001$$
+- Mục tiêu là **xếp tối đa số sinh viên trước**, rồi mới tối ưu nguyện vọng. Muốn vậy tuyệt đối, phần phạt cho mỗi sinh viên trượt phải lớn hơn **tổng** thỏa dụng mà cả hệ thống có thể mất khi dời các sinh viên khác để nhường một chỗ, tức $\mathbf{\lambda > n(\alpha + \beta + \varepsilon)}$ với $n$ là số sinh viên. Hệ thống đặt $\mathbf{\lambda = 1 + n(\alpha + \beta + \varepsilon)}$.
+- Vì sao **không** để $\lambda = 2$ cố định? Khi việc nhường một chỗ chỉ dời ít sinh viên thì $\lambda = 2$ là đủ. Nhưng tồn tại chuỗi nhiều sinh viên cùng phải lùi từ NV1 xuống NV3 để nhường một chỗ (tổng thỏa dụng mất đi vượt $2$) — lúc đó $\lambda = 2$ sẽ bỏ sót một sinh viên dù có phép gán đủ. Cho $\lambda$ tỉ lệ theo $n$ khử triệt để khe hở này, đúng cam kết "100% sinh viên được xếp khi khả thi".
 
 ---
 

@@ -5,11 +5,13 @@ Bao gồm:
 """
 
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
+from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404, render
 
 from allocate.models import Allocation
-from catalog.models import RegistrationPeriod
+from catalog.models import AuditLog, Preference, RegistrationPeriod
 from catalog.services import int_param
 
 from .services import (
@@ -99,6 +101,17 @@ def _prepare_chart_data(reg_stats, topic_nv1_list, field_list, comparison, lectu
     }
 
 
+def _cached_comparison(period):
+    """compare_algorithms chạy cả ILP lẫn Greedy (~2 s ở 1.000 SV) — trước đây chạy lại mỗi lần mở trang, nhiều người
+    cùng mở là dồn hàng (đo tải 20/10: trung bình 26 s). Lưu tạm theo dấu dữ liệu: mọi thao tác làm đổi kết quả
+    (nộp/duyệt NV, sửa đề tài, phân công) đều ghi AuditLog hoặc đổi số NV, nên khoá tự đổi khi dữ liệu đổi."""
+    if period is None:
+        return compare_algorithms(period)
+    prefs = Preference.objects.filter(period=period).aggregate(n=Count("id"), m=Max("id"))
+    key = f"cmp:{period.pk}:{AuditLog.objects.aggregate(m=Max('id'))['m']}:{prefs['n']}:{prefs['m']}"
+    return cache.get_or_set(key, lambda: compare_algorithms(period), 600)
+
+
 @login_required
 def faculty_statistics(request):
     """Màn hình báo cáo thống kê dành riêng cho Giáo vụ Khoa (UC17, UC21)."""
@@ -110,7 +123,7 @@ def faculty_statistics(request):
     reg_stats = get_registration_stats(period)
     topic_nv1_list = get_topic_nv1_distribution(period, limit=10)
     field_list = get_field_distribution(period)
-    comparison = compare_algorithms(period)
+    comparison = _cached_comparison(period)
 
     has_saved_allocations = (
         period is not None and Allocation.objects.filter(period=period, topic__isnull=False).exists()

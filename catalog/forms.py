@@ -145,7 +145,11 @@ class PreferenceForm(forms.Form):
 
             profile = Profile(student)
             qs = qs.filter(
-                pk__in=[t.pk for t in qs.prefetch_related("skills", "prerequisites") if eligible(profile, t)[0]]
+                pk__in=[
+                    t.pk
+                    for t in qs.prefetch_related("skills__skill", "prerequisites__course")  # lý do cần tên kỹ năng/môn
+                    if eligible(profile, t)[0]
+                ]
             )
         for f in ("nv1", "nv2", "nv3"):
             self.fields[f].queryset = qs

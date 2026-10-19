@@ -198,7 +198,8 @@ def student_preferences(request):
         else:
             messages.success(request, "Đã lưu nháp nguyện vọng — giảng viên chưa thấy cho tới khi bạn nộp chính thức.")
         return redirect("student_preferences")
-    scores = {r.topic_id: r for r in Recommendation.objects.filter(student=st)}
+    # bảng điểm mọi đề tài cho JS của trang (≈100 dòng): nạp kèm đề tài + GV, tránh 3 truy vấn mỗi dòng (N+1)
+    scores = {r.topic_id: r for r in Recommendation.objects.filter(student=st).select_related("topic__lecturer__user")}
     top5 = Recommendation.objects.filter(student=st, rank__isnull=False).select_related("topic").order_by("rank")[:5]
     return render(
         request,
@@ -555,7 +556,7 @@ def _eligibility_tab(request, student, qs):
     from recommend.engine import Profile, eligible
 
     profile = Profile(student)
-    ok_ids = [t.pk for t in qs.prefetch_related("skills", "prerequisites") if eligible(profile, t)[0]]
+    ok_ids = [t.pk for t in qs.prefetch_related("skills__skill", "prerequisites__course") if eligible(profile, t)[0]]
     counts = {"all": qs.count(), "ok": len(ok_ids)}
     counts["no"] = counts["all"] - counts["ok"]
     tab = request.GET.get("dk", "")

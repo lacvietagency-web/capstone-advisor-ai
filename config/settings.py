@@ -27,7 +27,8 @@ load_dotenv(BASE_DIR / ".env")  # đọc cấu hình từ file .env (không đư
 
 def _secret_key():
     """Khoá bí mật: biến môi trường DJANGO_SECRET_KEY; không có thì tự tạo một lần, lưu ở .secret_key
-    (không đưa lên git). Trước đây dùng một khoá cố định ghi trong mã nguồn — ai có mã nguồn đều giả được phiên đăng nhập."""
+    (không đưa lên git). Trước đây dùng một khoá cố định ghi trong mã nguồn — ai có mã nguồn đều giả được
+    phiên đăng nhập."""
     if os.getenv("DJANGO_SECRET_KEY"):
         return os.environ["DJANGO_SECRET_KEY"]
     path = BASE_DIR / ".secret_key"

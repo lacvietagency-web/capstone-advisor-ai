@@ -9,3 +9,6 @@ staticfiles/
 ui-review/
 graphify-out/
 tmp/
+.coverage
+htmlcov/
+.secret_key

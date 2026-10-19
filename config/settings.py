@@ -23,13 +23,39 @@ load_dotenv(BASE_DIR / ".env")  # đọc cấu hình từ file .env (không đư
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or "django-insecure-c#pe4h*wb-rk--w_51jwveu%yc+u%!zazq-+xlr@kvm0fgfyb!"
+
+
+def _secret_key():
+    """Khoá bí mật: biến môi trường DJANGO_SECRET_KEY; không có thì tự tạo một lần, lưu ở .secret_key
+    (không đưa lên git). Trước đây dùng một khoá cố định ghi trong mã nguồn — ai có mã nguồn đều giả được phiên đăng nhập."""
+    if os.getenv("DJANGO_SECRET_KEY"):
+        return os.environ["DJANGO_SECRET_KEY"]
+    path = BASE_DIR / ".secret_key"
+    if not path.exists():
+        from django.core.management.utils import get_random_secret_key
+
+        path.write_text(get_random_secret_key())
+        path.chmod(0o600)
+    return path.read_text().strip()
+
+
+SECRET_KEY = _secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+
+# Triển khai sau HTTPS (máy chủ thật): DJANGO_HTTPS=1 bật HSTS, chuyển hướng SSL và cookie chỉ gửi qua HTTPS.
+# Bản demo chạy http://localhost nên để tắt (manage.py check --deploy sẽ nhắc 4 mục này — đúng như mong đợi).
+if os.getenv("DJANGO_HTTPS") == "1":
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 
 # Application definition

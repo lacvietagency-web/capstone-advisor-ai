@@ -88,7 +88,13 @@ class _NoDuplicateFieldFormSet(_NoDuplicateFormSet):
 
 
 StudentSkillFormSet = inlineformset_factory(
-    Student, StudentSkill, formset=_NoDuplicateFormSet, fields=["skill", "level"], extra=2, can_delete=True
+    Student,
+    StudentSkill,
+    formset=_NoDuplicateFormSet,
+    fields=["skill", "level"],
+    extra=2,
+    can_delete=True,
+    widgets={"skill": forms.Select(attrs={"aria-label": "Kỹ năng"})},  # bảng không có nhãn từng ô (axe select-name)
 )
 StudentInterestFormSet = inlineformset_factory(
     Student, StudentInterest, formset=_NoDuplicateFieldFormSet, fields=["field", "level"], extra=1, can_delete=True

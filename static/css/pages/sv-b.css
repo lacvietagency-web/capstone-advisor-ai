@@ -734,7 +734,7 @@
 [data-bs-theme="dark"] .pg-08 .interest-chip.is-selected {
   background: #2A4878;
   border-color: #5B8BE0;
-  color: #8BB2EF;
+  color: #BBD3F8;
 }
 :root[data-theme="dark"] .pg-08 .progress-track,
 [data-bs-theme="dark"] .pg-08 .progress-track {
@@ -815,7 +815,7 @@
   :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-08 .interest-chip.is-selected {
     background: #2A4878;
     border-color: #5B8BE0;
-    color: #8BB2EF;
+    color: #BBD3F8;
   }
   :root:not([data-theme="light"]):not([data-bs-theme="light"]) .pg-08 .progress-track {
     background: #243653;

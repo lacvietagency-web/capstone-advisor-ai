@@ -13,14 +13,14 @@
   {% endif %}
   {% if page_obj.paginator.num_pages > 1 %}
   <nav aria-label="Phân trang">
-    {% if page_obj.has_previous %}<a class="at-page" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Trước</a>{% else %}<span class="at-page disabled">Trước</span>{% endif %}
+    {% if page_obj.has_previous %}<a class="at-page" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Trước</a>{% else %}<span class="at-page disabled" aria-disabled="true">Trước</span>{% endif %}
     <span class="at-page-mobile at-num">Trang {{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
     {% for n in page_obj.paginator.page_range %}
       {% if n == page_obj.number %}<span class="at-page at-page-num active" aria-current="page">{{ n }}</span>
       {% elif n == 1 or n == page_obj.paginator.num_pages or n >= page_obj.number|add:"-1" and n <= page_obj.number|add:"1" %}<a class="at-page at-page-num" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ n }}">{{ n }}</a>
       {% elif n == page_obj.number|add:"-2" or n == page_obj.number|add:"2" %}<span class="at-page at-page--gap">…</span>{% endif %}
     {% endfor %}
-    {% if page_obj.has_next %}<a class="at-page" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Sau</a>{% else %}<span class="at-page disabled">Sau</span>{% endif %}
+    {% if page_obj.has_next %}<a class="at-page" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Sau</a>{% else %}<span class="at-page disabled" aria-disabled="true">Sau</span>{% endif %}
   </nav>
   {% endif %}
 </div>

@@ -88,8 +88,8 @@
           </div>
 
           <div class="at-field">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" value="{{ lecturer.user.email|default:'Chưa có email' }}" readonly disabled>
+            <label class="form-label" for="lecEmail">Email</label>
+            <input type="email" id="lecEmail" class="form-control" value="{{ lecturer.user.email|default:'Chưa có email' }}" readonly disabled>
             <div class="form-text">Email hệ thống cấp, liên kết với tài khoản.</div>
           </div>
 
@@ -189,14 +189,14 @@
           <div class="at-divider"></div>
 
           <div class="at-field">
-            <label class="form-label">Số lượng đề tài hiện tại</label>
-            <input type="text" class="form-control at-num" value="{{ n_topics|default:0 }}" readonly disabled>
+            <label class="form-label" for="lecTopics">Số lượng đề tài hiện tại</label>
+            <input type="text" id="lecTopics" class="form-control at-num" value="{{ n_topics|default:0 }}" readonly disabled>
             <div class="form-text">Số đề tài bạn đã tạo trong đợt này.</div>
           </div>
 
           <div class="at-field">
-            <label class="form-label">Số sinh viên đang hướng dẫn</label>
-            <input type="text" class="form-control at-num" value="{{ n_guided|default:0 }}" readonly disabled>
+            <label class="form-label" for="lecGuided">Số sinh viên đang hướng dẫn</label>
+            <input type="text" id="lecGuided" class="form-control at-num" value="{{ n_guided|default:0 }}" readonly disabled>
             <div class="form-text">Tổng số sinh viên đã được chấp thuận hoặc phân công chính thức.</div>
           </div>
         </section>

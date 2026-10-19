@@ -53,8 +53,8 @@
       </div>
 
       <div class="at-col-4 at-field">
-        <label class="form-label">Mã đề tài</label>
-        <input type="text" class="form-control" value="{{ topic.code|default:'Hệ thống tự cấp khi lưu' }}" readonly disabled>
+        <label class="form-label" for="topicCode">Mã đề tài</label>
+        <input type="text" id="topicCode" class="form-control" value="{{ topic.code|default:'Hệ thống tự cấp khi lưu' }}" readonly disabled>
         <div class="form-text">Mã đề tài do hệ thống tự sinh, chỉ dùng hiển thị.</div>
       </div>
 

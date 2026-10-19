@@ -55,8 +55,8 @@ def start_server():
 
 
 def django(env, code):
-    return subprocess.run([PY, "manage.py", "shell", "-c", code], cwd=REPO, env=env, capture_output=True,
-                          text=True).stdout.strip()
+    out = subprocess.run([PY, "manage.py", "shell", "-c", code], cwd=REPO, env=env, capture_output=True, text=True).stdout
+    return (out.strip().splitlines() or [""])[-1]  # bỏ các dòng log, lấy dòng in cuối
 
 
 def login(page, base, user):
@@ -68,10 +68,12 @@ def login(page, base, user):
 
 
 OVERFLOW_JS = "() => document.documentElement.scrollWidth - document.documentElement.clientWidth"
-SMALL_TEXT_JS = """() => { let n = 0; for (const e of document.querySelectorAll('body *')) {
+SMALL_TEXT_JS = """() => { const out = []; for (const e of document.querySelectorAll('body *')) {
   if (!e.childNodes.length || ![...e.childNodes].some(c => c.nodeType === 3 && c.textContent.trim())) continue;
   const r = e.getBoundingClientRect(); if (!r.width || !r.height) continue;
-  if (parseFloat(getComputedStyle(e).fontSize) < 12) n++; } return n; }"""
+  const fs = parseFloat(getComputedStyle(e).fontSize);
+  if (fs < 12) out.push(e.tagName.toLowerCase() + (e.className ? '.' + String(e.className).split(' ').join('.') : '') + '=' + fs + 'px "' + e.textContent.trim().slice(0, 20) + '"'); }
+  return out; }"""
 
 
 def page_set(base, env):
@@ -129,9 +131,9 @@ def check_theme(br, base, name):
     login(p, base, "sv001")
     p.evaluate("() => localStorage.setItem('atlas-theme', 'dark')")
     p.reload()
-    dark1 = p.evaluate("() => document.documentElement.dataset.theme || document.documentElement.className")
+    dark1 = p.evaluate("() => document.documentElement.getAttribute('data-bs-theme')")
     p.goto(base + "/danh-sach-de-tai/")
-    dark2 = p.evaluate("() => document.documentElement.dataset.theme || document.documentElement.className")
+    dark2 = p.evaluate("() => document.documentElement.getAttribute('data-bs-theme')")
     ok = "dark" in str(dark1) and "dark" in str(dark2)
     shot = str(OUT / f"{name}-A14-toi.png")
     p.screenshot(path=shot)
@@ -201,9 +203,9 @@ def check_pages(br, base, env, name, axe_src):
                     tag = f"{user or 'khach'} {url} {width}px {theme}"
                     if p.evaluate(OVERFLOW_JS) > 1:
                         overflow.append(tag)
-                    n_small = p.evaluate(SMALL_TEXT_JS)
-                    if n_small:
-                        small.append(f"{tag}: {n_small}")
+                    tiny = p.evaluate(SMALL_TEXT_JS)
+                    if tiny:
+                        small.append(f"{tag}: {len(tiny)} ({'; '.join(sorted(set(tiny))[:3])})")
                     if axe_src and width == 1440:
                         p.add_script_tag(content=axe_src)
                         res = p.evaluate("async () => (await axe.run(document, {runOnly: ['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']})).violations.map(v => [v.id, v.impact, v.nodes.length])")
@@ -217,7 +219,7 @@ def check_pages(br, base, env, name, axe_src):
     record("U01", name, "ĐẠT" if not overflow and not small else "KHÔNG ĐẠT",
            f"{len(overflow)} trang tràn ngang; {len(small)} trang có chữ < 12px. " + "; ".join((overflow + small)[:6]))
     record("G1", name, "ĐẠT" if not console_err and not http_err else "KHÔNG ĐẠT",
-           f"{len(console_err)} lỗi console, {len(http_err)} tài nguyên lỗi. " + "; ".join((console_err + http_err)[:4]))
+           f"{len(console_err)} lỗi console, {len(http_err)} tài nguyên lỗi. " + "; ".join(sorted(set(http_err))[:6] + sorted(set(console_err))[:3]))
     record("U06", name, "ĐẠT" if not external else "KHÔNG ĐẠT",
            f"{len(set(external))} địa chỉ ngoài máy được gọi khi ASSETS_FROM_CDN=0. " + "; ".join(sorted(set(external))[:4]))
     if axe_src:

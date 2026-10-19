@@ -84,6 +84,18 @@
       .catch(function () { body.innerHTML = '<div class="at-banner at-banner--danger" role="alert"><div>Không tải được dữ liệu. Đóng ngăn kéo và thử lại.</div></div>'; });
   });
 
+  /* Ngăn kéo mở không lớp phủ (data-bs-backdrop=false) thì Bootstrap không đưa focus vào trong, nên phím Esc
+     (Bootstrap chỉ nghe khi focus nằm trong ngăn kéo) không đóng được — kiểm thử U03 ngày 20/10/2026.
+     Mở xong: đưa focus vào nút Đóng (trình đọc màn hình đọc ngay tiêu đề); Esc ở bất kỳ đâu đóng ngăn kéo đang mở. */
+  document.addEventListener("shown.bs.offcanvas", function (e) {
+    var close = e.target.querySelector("[data-bs-dismiss=offcanvas]");
+    if (close && !e.target.contains(document.activeElement)) close.focus();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || document.querySelector(".modal.show")) return;
+    document.querySelectorAll(".offcanvas.show").forEach(function (o) { bootstrap.Offcanvas.getOrCreateInstance(o).hide(); });
+  });
+
   /* Biểu đồ: đọc màu từ biến CSS, vẽ lại khi đổi sáng/tối */
   function cssVar(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
   function resolve(x) {

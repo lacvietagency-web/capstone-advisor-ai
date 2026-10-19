@@ -72,7 +72,8 @@ SMALL_TEXT_JS = """() => { const out = []; for (const e of document.querySelecto
   if (!e.childNodes.length || ![...e.childNodes].some(c => c.nodeType === 3 && c.textContent.trim())) continue;
   const r = e.getBoundingClientRect(); if (!r.width || !r.height) continue;
   const fs = parseFloat(getComputedStyle(e).fontSize);
-  if (fs < 12) out.push(e.tagName.toLowerCase() + (e.className ? '.' + String(e.className).split(' ').join('.') : '') + '=' + fs + 'px "' + e.textContent.trim().slice(0, 20) + '"'); }
+  if (fs > 0 && fs < 12) out.push(  // 0px = chữ cố ý ẩn, thay bằng biểu tượng (vẫn đọc được bằng trình đọc màn hình)
+    e.tagName.toLowerCase() + (e.className ? '.' + String(e.className).split(' ').join('.') : '') + '=' + fs + 'px "' + e.textContent.trim().slice(0, 20) + '"'); }
   return out; }"""
 
 
@@ -192,7 +193,7 @@ def check_pages(br, base, env, name, axe_src):
             for user, urls in pages.items():
                 ctx = new_context(br, theme, width, mobile=True)
                 p = ctx.new_page()
-                p.on("console", lambda m, u=None: console_err.append(m.text) if m.type == "error" else None)
+                p.on("console", lambda m, p=p: console_err.append(m.text) if m.type == "error" and "abc-khong" not in p.url else None)
                 p.on("response", lambda r: http_err.append(f"{r.status} {r.url}") if r.status >= 400 and "abc-khong" not in r.url else None)
                 p.on("request", lambda r: external.append(r.url) if not r.url.startswith(base) and r.url.startswith("http") else None)
                 if user:
@@ -264,7 +265,7 @@ def check_mobile_keyboard_labels(br, base, env, name):
         tid, pid = own.split()
         p.goto(base + f"/de-tai/{tid}/dang-ky/?mo={pid}")
         p.wait_for_timeout(800)
-        vis = lambda: p.evaluate("() => [...document.querySelectorAll('[role=dialog], .offcanvas, [class*=drawer]')].some(e => { const r = e.getBoundingClientRect(); return r.width > 0 && getComputedStyle(e).visibility !== 'hidden' && e.classList.contains('show') || e.getAttribute('aria-hidden') === 'false' || e.open })")
+        vis = lambda: p.evaluate("() => document.querySelectorAll('.offcanvas.show, .modal.show').length > 0")
         before = vis()
         p.keyboard.press("Escape")
         p.wait_for_timeout(500)

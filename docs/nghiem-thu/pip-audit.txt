@@ -1,0 +1,32 @@
+Found 25 known vulnerabilities in 3 packages
+Name       Version ID              Fix Versions
+---------- ------- --------------- ------------------
+django     5.1.15  PYSEC-2026-3717 5.2.17,6.0.8,6.1.1
+django     5.1.15  PYSEC-2026-198  5.2.15,6.0.6
+django     5.1.15  PYSEC-2026-199  5.2.15,6.0.6
+django     5.1.15  PYSEC-2026-201  5.2.15,6.0.6
+django     5.1.15  PYSEC-2026-2090 5.2.16,6.0.7
+django     5.1.15  PYSEC-2026-2091 5.2.16,6.0.7
+django     5.1.15  PYSEC-2026-2092 5.2.16,6.0.7
+django     5.1.15  PYSEC-2026-3717 5.2.17,6.0.8
+django     5.1.15  PYSEC-2026-4035 5.2.17,6.0.8
+pip        24.0    PYSEC-2026-1795 25.3
+pip        24.0    PYSEC-2026-1796 26.0
+pip        24.0    PYSEC-2026-2875 26.1
+pip        24.0    PYSEC-2026-2876 26.1
+pip        24.0    PYSEC-2026-196  26.1.2
+pip        24.0    PYSEC-2026-1795 25.3
+pip        24.0    PYSEC-2026-1796 26.0
+pip        24.0    PYSEC-2026-196  26.1.2
+pip        24.0    PYSEC-2026-2875 26.1
+pip        24.0    PYSEC-2026-2876 26.1
+pip        24.0    PYSEC-2026-3721 26.2
+pip        24.0    PYSEC-2026-3721 26.2.0
+setuptools 78.1.0  PYSEC-2025-49   78.1.1
+setuptools 78.1.0  PYSEC-2025-49   78.1.1
+setuptools 78.1.0  PYSEC-2026-3447 83.0.0
+setuptools 78.1.0  PYSEC-2026-3447 83.0.0
+
+Name  Skip Reason
+----- -------------------------------------------------------------------------
+torch Dependency not found on PyPI and could not be audited: torch (2.14.1+cpu)

@@ -50,7 +50,9 @@ def _check_feasible(tc, assign, prefs, cap, owner, quota):
 
 
 def _objective(assign, prefs, scores, gpa):
-    return sum(compute_utility(s, t, prefs[s].index(t) + 1, scores, gpa, ALPHA, BETA, EPS) for s, t in assign.items() if t)
+    return sum(
+        compute_utility(s, t, prefs[s].index(t) + 1, scores, gpa, ALPHA, BETA, EPS) for s, t in assign.items() if t
+    )
 
 
 def _brute_force(prefs, scores, cap, owner, quota, gpa):

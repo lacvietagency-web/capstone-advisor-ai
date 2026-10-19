@@ -6,6 +6,7 @@ view và command chỉ đóng vai trò điều phối.
 
 import re
 import unicodedata
+import zipfile
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
 from pathlib import Path
@@ -424,6 +425,37 @@ def _save_imported_students(items: list[dict]) -> int:
 
 
 # ---------------------------------------------------------------- Điểm nhập dữ liệu chính
+# Tệp .xlsx là tệp nén: giới hạn 5 MB lúc tải lên không chặn được tệp nhỏ bung ra hàng trăm MB (zip bomb), mà
+# openpyxl đọc toàn bộ vào bộ nhớ. Dữ liệu một khoa thật chỉ vài MB khi bung.
+# ponytail: tin kích thước ghi trong mục lục zip; tệp cố ý ghi sai kích thước cần giới hạn bộ nhớ ở tầng tiến trình
+MAX_UNZIPPED_BYTES = 50 * 1024 * 1024
+
+
+def _unzipped_size(file_or_path):
+    """Tổng dung lượng các thành phần sau khi bung; None nếu không phải tệp zip (để openpyxl báo lỗi định dạng)."""
+    try:
+        with zipfile.ZipFile(file_or_path) as z:
+            return sum(i.file_size for i in z.infolist())
+    except (zipfile.BadZipFile, OSError):
+        return None
+    finally:
+        if hasattr(file_or_path, "seek"):
+            file_or_path.seek(0)
+
+
+def _open_workbook(file_or_path):
+    """(workbook, None) hoặc (None, câu báo lỗi): chặn tệp bung quá lớn rồi mới để openpyxl đọc."""
+    unzipped = _unzipped_size(file_or_path)
+    if unzipped is not None and unzipped > MAX_UNZIPPED_BYTES:
+        mb = 1024 * 1024
+        return None, f"Tệp bung ra {unzipped // mb} MB, quá giới hạn {MAX_UNZIPPED_BYTES // mb} MB — không xử lý."
+    try:
+        src = file_or_path if hasattr(file_or_path, "read") else str(file_or_path)
+        return openpyxl.load_workbook(src, data_only=True), None
+    except Exception as e:
+        return None, f"Tệp không đúng định dạng Excel (.xlsx) hợp lệ: {e}"
+
+
 def import_excel_data(file_or_path, dry_run: bool = False) -> tuple[bool, list[str], dict[str, int]]:
     """Nhập dữ liệu từ tệp Excel với bảo toàn giao dịch ACID (UC15).
 
@@ -437,13 +469,9 @@ def import_excel_data(file_or_path, dry_run: bool = False) -> tuple[bool, list[s
     stats = {"students": 0, "lecturers": 0, "topics": 0, "skills": 0}
     errors = []
 
-    try:
-        if hasattr(file_or_path, "read"):
-            wb = openpyxl.load_workbook(file_or_path, data_only=True)
-        else:
-            wb = openpyxl.load_workbook(str(file_or_path), data_only=True)
-    except Exception as e:
-        return False, [f"Tệp không đúng định dạng Excel (.xlsx) hợp lệ: {e}"], stats
+    wb, open_error = _open_workbook(file_or_path)
+    if open_error:
+        return False, [open_error], stats
 
     sheet_map = {}
     for name in wb.sheetnames:

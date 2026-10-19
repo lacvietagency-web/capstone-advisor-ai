@@ -119,7 +119,8 @@ class AcceptanceAuthzMatrix(TestCase):
         anon = self._client("anon")
         self.assertEqual(anon.get(f"/danh-sach-de-tai/{draft.pk}/").status_code, 404)
         self.assertNotIn("Đề tài nháp kín", anon.get("/danh-sach-de-tai/").content.decode())
-        html = anon.get("/danh-sach-de-tai/").content.decode() + anon.get(f"/danh-sach-de-tai/{self.topic.pk}/").content.decode()
+        pages = ("/danh-sach-de-tai/", f"/danh-sach-de-tai/{self.topic.pk}/")
+        html = "".join(anon.get(u).content.decode() for u in pages)
         for st in Student.objects.select_related("user"):
             for secret in (st.user.email, st.student_code):
                 if secret:

@@ -22,7 +22,7 @@
       </div>
     </div>
     <div class="at-page-actions">
-      {% if is_student and not ineligible_reason and open_period %}
+      {% if is_student and not ineligible_reason and open_period and topic.status == "OPEN" %}
         <a href="{% url 'student_preferences' %}?topic={{ topic.id }}" class="btn btn-primary pg-11-btn-register">
           {% include "components/icon.html" with name="file-text" size=15 %}Đăng ký nguyện vọng
         </a>

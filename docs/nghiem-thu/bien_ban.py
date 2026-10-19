@@ -3,7 +3,7 @@
   - ca trình duyệt → đọc <thư mục>/ket-qua.json do browser_checks.py ghi.
 Ca không có bằng chứng nào → "Chưa kiểm chứng" (không bao giờ tự ghi Đạt).
 
-  python docs/nghiem-thu/bien_ban.py <ket-qua-trinh-duyet.json> > docs/nghiem-thu/BIEN-BAN-84-CA.md
+  python docs/nghiem-thu/bien_ban.py <ket-qua-trinh-duyet.json> docs/nghiem-thu/BIEN-BAN-84-CA.md
 """
 
 import io
@@ -123,11 +123,28 @@ SERVER = {
     "B10": [AC + "test_b10_audit_log_for_main_actions"],
     "B12": [AL + "CommandTests.test_allocate_period_saves_drafts", AC + "test_b12_allocate_period_refuses_published"],
 }
+# Use case chỉ làm qua trang quản trị: test riêng, mã "UCxx" dùng trong ma trận truy vết bên dưới
+SERVER.update({f"UC{n}": [AC + t] for n, t in (
+    ("14", "test_uc14_faculty_moves_period_through_states_in_admin"),
+    ("16", "test_uc16_faculty_adjusts_capacity_and_closes_topic_in_admin"),
+    ("22", "test_uc22_audit_log_searchable_and_read_only"),
+    ("23", "test_uc23_activate_weight_set_from_admin_keeps_one_active"))})
+# Ma trận truy vết (kế hoạch #9): use case trong docs/USE-CASE.md → mã ca
+TRACE = {
+    "UC01": "A01 A02 A03 A05 A08 A09 A10 A11 K14", "UC02": "A07", "UC03": "A06", "UC04": "S03 S04 S05 S06 S07 S08 B06",
+    "UC05": "S01 S02 B01 B02 B03 B04", "UC06": "S09 S10 S11 S12 S13 A12 A13", "UC07": "S14 S15 S16 S17 S18 S19 S20",
+    "UC08": "S21 S22 S23 S24", "UC09": "L12 L13", "UC10": "L05 L06 B08", "UC11": "L04 L07",
+    "UC12": "L09 L10 L11 B07 B09", "UC13": "L01 L02 L03 L08", "UC14": "UC14 S19 S21 K11", "UC15": "K02 K03 K04 K05",
+    "UC16": "UC16 K14", "UC17": "K01 K13", "UC18": "K06 K07", "UC19": "K08 K09", "UC20": "K10 K11 K12",
+    "UC21": "K13", "UC22": "UC22 B10", "UC23": "UC23 B05",
+}
 # Ca chỉ kiểm được trên trình duyệt → mã trong ket-qua.json của browser_checks.py
 BROWSER = {"A03": ["A03"], "A04": ["A04"], "A14": ["A14"], "K10": ["K10"], "K13": ["K13"], "U01": ["U01", "G1"],
            "U02": ["U02"], "U03": ["U03"], "U04": ["AXE"], "U05": ["U05"], "U06": ["U06"], "U07": ["U07"]}
 # Ca đo bằng công cụ riêng (ghi tay kết quả đo, có tệp bằng chứng)
-MEASURED = {"B11": "docs/nghiem-thu/locust/ (Locust, CSDL 1.000 SV) — xem mục Hiệu năng của báo cáo"}
+# Đo ngày 20/10/2026, CSDL 1.000 SV / 60 GV / 300 đề tài, Locust 3 phút mỗi lượt, 0 lỗi (docs/nghiem-thu/locust/).
+MEASURED = {"B11": "1 người: mọi trang 6–110 ms (Thống kê lần đầu 1,03 s, có bộ đệm 21 ms); Locust 50 người p95 390 ms "
+                   "(runserver), 100 người p95 110 ms, 28,4 yêu cầu/s (gunicorn 8 tiến trình); 0 lỗi — docs/nghiem-thu/locust/"}
 
 
 def run_tests(labels):
@@ -138,13 +155,17 @@ def run_tests(labels):
     django.setup()
     runner = get_runner(settings)(verbosity=0, interactive=False)
     suite = runner.build_suite(sorted(set(labels)))
+    ran = {t.id() for t in _iter(suite)}  # lấy trước khi chạy: unittest dọn suite sau khi chạy xong
+    runner.setup_test_environment()  # như manage.py test: ALLOWED_HOSTS "testserver", hộp thư giả…
     old = runner.setup_databases()
     try:
         result = unittest.TextTestRunner(stream=io.StringIO(), verbosity=0).run(suite)
     finally:
         runner.teardown_databases(old)
+        runner.teardown_test_environment()
     bad = {t.id() for t, _ in result.failures + result.errors}
-    ran = {t.id() for t in _iter(suite)}
+    for t, tb in (result.failures + result.errors)[:3]:
+        print("LỖI", t.id(), tb.strip().splitlines()[-1][:200], file=sys.stderr)
     return ran, bad
 
 
@@ -158,7 +179,9 @@ def main():
     ran, bad = run_tests([t for ts in SERVER.values() for t in ts])
     spec = (REPO / "docs/KICH-BAN-KIEM-THU.md").read_text()
     cases = re.findall(r"^\| ([ASLKBU]\d{2}) \|(.+)$", spec, re.M)
-    rows, tally = [], {}
+    rows, tally, statuses = [], {}, {}
+    for code in [c for c in SERVER if c.startswith("UC")]:
+        statuses[code] = "Không đạt" if set(SERVER[code]) & bad else ("Đạt" if set(SERVER[code]) <= ran else "Chưa kiểm chứng")
     for code, rest in cases:
         cells = [c.strip() for c in rest.split("|") if c.strip()]
         what = cells[-2] if len(cells) >= 2 else cells[0]
@@ -175,16 +198,26 @@ def main():
                 "Không đạt" if "KHÔNG ĐẠT" in res else "Đạt")
             ev = "Trình duyệt: " + "; ".join(f"{r['trinh_duyet']} {r['ket_qua']}" for r in hits) if hits else "chưa chạy"
         elif code in MEASURED:
-            status, ev = "Xem số đo", MEASURED[code]
+            status, ev = "Đạt", MEASURED[code]
         else:
             status, ev = "Chưa kiểm chứng", "chưa có bằng chứng"
+        statuses[code] = status
         tally[status] = tally.get(status, 0) + 1
         rows.append(f"| {code} | {what[:90]} | {status} | {ev} |")
-    print(f"# Biên bản thực hiện 84 ca kiểm thử — Capstone Advisor AI\n\nNgày chạy: {datetime.now():%d/%m/%Y %H:%M}. "
+    out = [f"# Biên bản thực hiện 84 ca kiểm thử — Capstone Advisor AI\n\nNgày chạy: {datetime.now():%d/%m/%Y %H:%M}. "
           f"Nguồn: chạy lại {len(ran)} test tự động được ánh xạ (lỗi: {len(bad)}) + kết quả trình duyệt "
-          f"({len(browser)} mục). Tổng hợp: " + ", ".join(f"{k} {v}" for k, v in sorted(tally.items())) + ".\n")
-    print("| Mã | Ca | Kết quả | Bằng chứng |\n|---|---|---|---|")
-    print("\n".join(rows))
+          f"({len(browser)} mục). Tổng hợp: " + ", ".join(f"{k} {v}" for k, v in sorted(tally.items())) + ".\n",
+           "| Mã | Ca | Kết quả | Bằng chứng |", "|---|---|---|---|", *rows]
+    names = dict(re.findall(r"^### (UC\d{2}): (.+)$", (REPO / "docs/USE-CASE.md").read_text(), re.M))
+    out += ["\n## Ma trận truy vết use case ↔ ca kiểm thử\n",
+            "Use case đạt khi MỌI ca ánh xạ đều đạt. Mã `UCxx` là test riêng cho thao tác qua trang quản trị `/quan-tri/`.\n",
+            "| Use case | Tên | Ca kiểm thử | Kết quả |", "|---|---|---|---|"]
+    for uc, codes in TRACE.items():
+        res = {statuses.get(c, "Chưa kiểm chứng") for c in codes.split()}
+        verdict = "Không đạt" if "Không đạt" in res else ("Chưa kiểm chứng" if res - {"Đạt"} else "Đạt")
+        out.append(f"| {uc} | {names.get(uc, '')} | {', '.join(codes.split())} | {verdict} |")
+    Path(sys.argv[2]).write_text("\n".join(out) + "\n", encoding="utf-8")
+    print(out[0].splitlines()[-1] if out else "")
 
 
 if __name__ == "__main__":

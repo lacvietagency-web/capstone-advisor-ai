@@ -3,8 +3,10 @@
 KHÔNG phải khảo sát người dùng thật. Cách làm:
  1. Playwright làm THẬT từng nhiệm vụ của 6 nhân vật trên bản sao CSDL demo → nhiệm vụ có hoàn thành không, bao nhiêu
     thao tác, ảnh chụp từng bước;
- 2. ghép ảnh mỗi nhân vật thành 1 tấm, ChatGPT đóng vai nhân vật đó: chấm độ khó từng nhiệm vụ, chỉ chỗ khó hiểu theo
-    10 nguyên tắc Nielsen, trả lời 10 câu SUS (Brooke 1996) — điểm SUS ghi là "mô phỏng".
+ 2. ChatGPT đóng vai nhân vật đó, đọc CHỮ trên từng màn hình (+ cỡ chữ, cỡ nút đo được): chấm độ khó từng nhiệm vụ,
+    chỉ chỗ khó hiểu theo 10 nguyên tắc Nielsen, trả lời 10 câu SUS (Brooke 1996) — điểm SUS ghi là "mô phỏng".
+    Gửi chữ chứ không gửi ảnh: ngày 20/10/2026 tài khoản ChatGPT báo "storage is full", không nhận tệp; ảnh ghép
+    <nhân vật>-tong.jpg vẫn được lưu làm bằng chứng.
 
   python docs/nghiem-thu/persona_walkthrough.py <thư mục kết quả>
 """
@@ -43,10 +45,20 @@ PERSONAS = [
 ]
 
 
+SCREEN_JS = """() => {
+  const main = document.querySelector('main') || document.body;
+  const sizes = [...main.querySelectorAll('*')].filter(e => e.offsetWidth && [...e.childNodes].some(c => c.nodeType === 3 && c.textContent.trim()))
+    .map(e => parseFloat(getComputedStyle(e).fontSize));
+  const btns = [...main.querySelectorAll('button, a.btn')].filter(b => b.offsetWidth).map(b => b.getBoundingClientRect().height);
+  return {chu: main.innerText.replace(/\\n{2,}/g, '\\n').slice(0, 1500), co_chu_nho_nhat: Math.min(...sizes),
+          co_chu_pho_bien: sizes.sort((a, b) => a - b)[sizes.length >> 1], nut_thap_nhat: Math.round(Math.min(...btns))};
+}"""
+
+
 def shot(p, name, i, label, shots):
     path = OUT / f"{name}-{i:02d}.png"
     p.screenshot(path=str(path), full_page=False)
-    shots.append((label, path))
+    shots.append((label, path, p.evaluate(SCREEN_JS)))
 
 
 def do_tasks(p, base, name, user, shots, log):
@@ -63,21 +75,20 @@ def do_tasks(p, base, name, user, shots, log):
     if name == "sv-gioi":
         step("Xem gợi ý", lambda: p.wait_for_selector("text=/gợi ý|Gợi ý/"), 1)
         def open_top1():
-            link = p.locator("a[href*='/danh-sach-de-tai/']").first
-            link.click()
+            p.locator("a.pg-07-btn-detail").click()
             p.wait_for_url(re.compile(r".*/danh-sach-de-tai/\d+/"))
         step("Mở chi tiết đề tài số 1", open_top1, 1)
         def register():
-            p.locator("a:has-text('Đăng ký')").first.click()
+            p.locator("a.pg-11-btn-register").click()
             p.wait_for_url(re.compile(r".*/nguyen-vong/.*"))
-            p.locator("button[value=submit], button:has-text('Nộp')").first.click()
+            p.locator("button[name=action][value=submit]").click()
             p.wait_for_load_state("networkidle")
         step("Đăng ký NV1 và nộp", register, 3)
     elif name == "sv-it-ranh":
         def phone():
             p.goto(base + "/ho-so/")
             p.fill("input[name=phone]", "0912345678")
-            p.locator("button[type=submit]").first.click()
+            p.locator("#btn-save-profile").click()
             p.wait_for_load_state("networkidle")
         step("Cập nhật SĐT trong Hồ sơ", phone, 3)
         def search():
@@ -91,16 +102,17 @@ def do_tasks(p, base, name, user, shots, log):
         step("Xem SV chờ duyệt", lambda: p.goto(base + "/trang-chu/"), 1)
         def review():
             p.goto(base + "/de-tai/")
-            p.locator("a[href*='/dang-ky/']").first.click()
-            p.wait_for_load_state("networkidle")
-        step("Mở trang duyệt đăng ký", review, 2)
+            p.locator("button.at-btn-more:visible").first.click()  # nút ⋮ của đề tài đầu
+            p.locator("a.dropdown-item[href*='/dang-ky/']:visible").first.click()
+            p.wait_for_url(re.compile(r".*/de-tai/\d+/dang-ky/"))
+        step("Mở trang duyệt đăng ký", review, 3)
         step("Mở form thêm đề tài", lambda: p.goto(base + "/de-tai/them/"), 2)
     elif name == "gv-lon-tuoi":
         step("Xem đề tài của mình", lambda: p.goto(base + "/de-tai/"), 1)
         def bio():
             p.goto(base + "/ho-so-giang-vien/")
             p.fill("textarea[name=bio]", "Hướng dẫn đề tài hệ thống thông tin quản lý.")
-            p.locator("button[type=submit]").first.click()
+            p.locator("#lecturerProfileForm button[type=submit]").click()
             p.wait_for_load_state("networkidle")
         step("Sửa giới thiệu hồ sơ GV", bio, 3)
     elif name == "giao-vu":
@@ -122,7 +134,7 @@ def do_tasks(p, base, name, user, shots, log):
 
 
 def contact_sheet(shots, path):
-    imgs = [Image.open(s).convert("RGB") for _, s in shots]
+    imgs = [Image.open(s).convert("RGB") for _, s, _ in shots]
     w = 1000
     imgs = [im.resize((w, int(im.height * w / im.width))) for im in imgs]
     sheet = Image.new("RGB", (w, sum(im.height for im in imgs) + 10 * len(imgs)), "white")
@@ -135,11 +147,14 @@ def contact_sheet(shots, path):
 
 PROMPT = """Bạn đóng vai NGƯỜI DÙNG sau, lần đầu dùng hệ thống "Capstone Advisor AI" (hệ thống gợi ý và phân công đề tài
 đồ án tốt nghiệp của một khoa). Nhân vật: {who}.
-Ảnh đính kèm là các màn hình theo thứ tự trên xuống, ứng với các nhiệm vụ: {tasks}.
-Máy đã làm thử các nhiệm vụ này: {log}.
+Nhiệm vụ: {tasks}. Máy đã làm thử các nhiệm vụ này: {log}.
+Dưới đây là NỘI DUNG CHỮ của từng màn hình sau mỗi bước (kèm cỡ chữ nhỏ nhất / phổ biến và chiều cao nút thấp nhất,
+đơn vị px, màn hình 1366×768):
+{screens}
 Hãy trả lời ĐÚNG GIỌNG nhân vật, tiếng Việt, ngắn gọn, theo đúng 4 phần:
 1. Mỗi nhiệm vụ: độ khó 1 (rất dễ) – 5 (rất khó) và 1 câu lý do, dựa vào những gì thấy trên màn hình.
 2. Tối đa 5 chỗ làm nhân vật bối rối hoặc dễ bấm nhầm; mỗi chỗ ghi màn hình số mấy và nguyên tắc Nielsen bị vi phạm.
+   Chỉ nêu điều suy ra được từ nội dung trên, không bịa chi tiết giao diện không có trong đó.
 3. Trả lời 10 câu SUS (thang 1–5) theo cảm nhận của nhân vật, dạng: SUS: 4,2,5,1,4,2,5,1,4,2
 4. Một câu: nhân vật có muốn dùng lại hệ thống không.
 Đây là ĐÁNH GIÁ MÔ PHỎNG phục vụ kiểm thử, không phải ý kiến người thật — đừng khen chung chung, hãy chỉ ra vấn đề cụ thể."""
@@ -152,6 +167,8 @@ def sus_score(answers):
 
 def main():
     proc, base, env = bc.start_server()
+    # Nhân vật "SV giỏi" là SV CHƯA đăng ký: xoá nguyện vọng của sv001 trên BẢN SAO CSDL (không đụng CSDL demo).
+    bc.django(env, "from catalog.models import Preference; Preference.objects.filter(student__user__username='sv001').delete()")
     results = []
     try:
         with sync_playwright() as pw:
@@ -164,13 +181,16 @@ def main():
                 ctx.close()
                 sheet = OUT / f"{name}-tong.jpg"
                 contact_sheet(shots, sheet)
-                res = P.chatgpt(OUT, f"persona-{name}", PROMPT.format(who=who, tasks="; ".join(tasks),
-                                log=json.dumps(log, ensure_ascii=False)), image=sheet, new_chat=True, timeout=600)
+                screens = "\n".join(f"--- Màn hình {i} ({label}): chữ nhỏ nhất {m['co_chu_nho_nhat']}, phổ biến "
+                                    f"{m['co_chu_pho_bien']}, nút thấp nhất {m['nut_thap_nhat']}\n{m['chu']}"
+                                    for i, (label, _, m) in enumerate(shots, 1))
+                res = P.chatgpt(OUT, f"persona-{name}", PROMPT.format(who=who, tasks="; ".join(tasks), screens=screens,
+                                log=json.dumps(log, ensure_ascii=False)), new_chat=True, timeout=600)
                 text = res.get("text", "")
                 m = re.search(r"SUS[^0-9]*((?:[1-5]\s*,\s*){9}[1-5])", text)
                 answers = [int(x) for x in re.findall(r"[1-5]", m.group(1))] if m else []
                 results.append({"nhan_vat": name, "mo_ta": who, "nhiem_vu": log, "sus_mo_phong": sus_score(answers) if len(answers) == 10 else None,
-                                "danh_gia": text})
+                                "danh_gia": text, "loi_chatgpt": "" if text else str(res.get("error") or res)[:300]})
                 print(f"{name}: {sum(t['hoan_thanh'] for t in log)}/{len(log)} nhiệm vụ, SUS mô phỏng = {results[-1]['sus_mo_phong']}", flush=True)
             br.close()
     finally:

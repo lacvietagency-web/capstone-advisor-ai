@@ -24,7 +24,6 @@ load_dotenv(BASE_DIR / ".env")  # đọc cấu hình từ file .env (không đư
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 
-
 def _secret_key():
     """Khoá bí mật: biến môi trường DJANGO_SECRET_KEY; không có thì tự tạo một lần, lưu ở .secret_key
     (không đưa lên git). Trước đây dùng một khoá cố định ghi trong mã nguồn — ai có mã nguồn đều giả được

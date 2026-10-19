@@ -4,14 +4,18 @@ Tên test bắt đầu bằng mã ca (test_a02_…, test_s08_…) để biên b�
 test từ trước; ánh xạ đầy đủ ở docs/nghiem-thu/BIEN-BAN-84-CA.md.
 """
 
+from datetime import datetime
 from io import StringIO
 
+from django.contrib.admin.widgets import AdminSplitDateTime
 from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
+from django.utils import timezone
 
 from accounts.models import User
 from allocate.services import run_allocation
 from catalog.models import AuditLog, Lecturer, Preference, RegistrationPeriod, Student, Topic
+from recommend.models import WeightSet
 
 
 @override_settings(RECOMMEND_SEMANTIC=False, RECOMMEND_LLM=False)
@@ -203,3 +207,69 @@ class AcceptanceCases(TestCase):
         RegistrationPeriod.objects.filter(pk=self.period.pk).update(status=RegistrationPeriod.Status.PUBLISHED)
         with self.assertRaises(CommandError):
             call_command("allocate_period", period=self.period.pk, stdout=StringIO())
+
+    # ------------------------------------------------------------------ 6. giáo vụ qua trang quản trị (UC14/16/22/23)
+    def _admin_save(self, url, **changes):
+        """Gửi lại form sửa của trang quản trị, chỉ đổi vài trường — như giáo vụ sửa rồi bấm Lưu."""
+        r = self.client.get(url)
+        forms = [r.context["adminform"].form]
+        for inline in r.context["inline_admin_formsets"]:
+            forms += [inline.formset.management_form, *inline.formset.forms]
+        data = {}
+        for f in forms:
+            for bf in f:
+                v = changes.get(bf.name, bf.value()) if f is forms[0] else bf.value()
+                if v is None or v is False:
+                    continue
+                if isinstance(bf.field.widget, AdminSplitDateTime):
+                    v = timezone.localtime(v) if isinstance(v, datetime) else v
+                    data[bf.html_name + "_0"] = v.strftime("%Y-%m-%d")
+                    data[bf.html_name + "_1"] = v.strftime("%H:%M:%S")
+                elif isinstance(v, (list, tuple)):
+                    data[bf.html_name] = [str(getattr(x, "pk", x)) for x in v]
+                else:
+                    data[bf.html_name] = "on" if v is True else str(v)
+        return self.client.post(url, data)
+
+    def test_uc14_faculty_moves_period_through_states_in_admin(self):
+        self.login("khoa01")
+        url = f"/quan-tri/catalog/registrationperiod/{self.period.pk}/change/"
+        for status in ("CLOSED", "OPEN"):
+            r = self._admin_save(url, status=status)
+            self.assertEqual(r.status_code, 302, r.context and r.context["adminform"].form.errors)
+            self.period.refresh_from_db()
+            self.assertEqual(self.period.status, status)
+
+    def test_uc16_faculty_adjusts_capacity_and_closes_topic_in_admin(self):
+        self.login("khoa01")
+        r = self._admin_save(f"/quan-tri/catalog/topic/{self.topic.pk}/change/", capacity=3, status="CLOSED")
+        self.assertEqual(r.status_code, 302, r.context and r.context["adminform"].form.errors)
+        self.topic.refresh_from_db()
+        self.assertEqual((self.topic.capacity, self.topic.status), (3, "CLOSED"))
+        bad = self._admin_save(f"/quan-tri/catalog/topic/{self.topic.pk}/change/", capacity=0)
+        self.assertEqual(bad.status_code, 200)  # sức chứa 0 bị chặn, không lưu
+
+    def test_uc22_audit_log_searchable_and_read_only(self):
+        run_allocation(self.period, algorithm="GREEDY")
+        log = AuditLog.objects.latest("pk")
+        self.login("khoa01")
+        r = self.client.get("/quan-tri/catalog/auditlog/")
+        self.assertContains(r, log.action)
+        r = self.client.get(f"/quan-tri/catalog/auditlog/{log.pk}/change/")
+        self.assertEqual(r.status_code, 200)
+        self.assertNotContains(r, 'name="action"')  # chỉ đọc: không có ô sửa
+        self.client.logout()
+        self.login("sv001")
+        self.assertEqual(self.client.get("/quan-tri/catalog/auditlog/").status_code, 302)
+
+    def test_uc23_activate_weight_set_from_admin_keeps_one_active(self):
+        w = {"skill": 0.4, "academic": 0.2, "field": 0.2, "semantic": 0.1, "llm": 0.1}
+        a = WeightSet.objects.create(name="A", weights=w, matrix=[[1] * 5] * 5, cr=0.0, is_active=True)
+        b = WeightSet.objects.create(name="B", weights=w, matrix=[[1] * 5] * 5, cr=0.05)
+        self.login("khoa01")
+        url = "/quan-tri/recommend/weightset/"
+        self.client.post(url, {"action": "activate_weight_set", "_selected_action": [b.pk]})
+        a.refresh_from_db()
+        b.refresh_from_db()
+        self.assertEqual((a.is_active, b.is_active), (False, True))
+        self.assertEqual(WeightSet.objects.filter(is_active=True).count(), 1)

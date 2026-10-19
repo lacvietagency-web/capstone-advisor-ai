@@ -1,0 +1,184 @@
+[
+ {
+  "ma": "A03",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "3 nút điền đúng, focus ô mật khẩu, không tự đăng nhập",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/chromium-A03.png"
+ },
+ {
+  "ma": "A04",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "bấm chuột → text; Enter → password; giá trị giữ nguyên",
+  "anh": null
+ },
+ {
+  "ma": "A14",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "sau tải lại: dark; trang khác: dark",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/chromium-A14-toi.png"
+ },
+ {
+  "ma": "K10",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "trống→khoá=True, gõ sai→khoá=True, gõ đúng→mở=True",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/chromium-K10.png"
+ },
+ {
+  "ma": "K13",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "light: 4 biểu đồ, 4 bảng; dark: 4 biểu đồ, 4 bảng",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/chromium-K13-dark.png"
+ },
+ {
+  "ma": "U02",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "1 thanh cố định ở đáy màn hình trang Nguyện vọng 390 px",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/chromium-U02.png"
+ },
+ {
+  "ma": "U03",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "Tab qua 24 phần tử, 0 không có viền focus (); ngăn kéo mở=True, sau Esc còn mở=False",
+  "anh": null
+ },
+ {
+  "ma": "U05",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "trang Nguyện vọng của SV chưa có NV có khối trạng thái rỗng: True",
+  "anh": null
+ },
+ {
+  "ma": "U07",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "mã 404, 2 liên kết về trang chủ, tiếng Việt có dấu",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/chromium-U07.png"
+ },
+ {
+  "ma": "U01",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "0 trang tràn ngang; 0 trang có chữ < 12px. ",
+  "anh": null
+ },
+ {
+  "ma": "G1",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "0 lỗi console, 0 tài nguyên lỗi. ",
+  "anh": null
+ },
+ {
+  "ma": "U06",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "0 địa chỉ ngoài máy được gọi khi ASSETS_FROM_CDN=0. ",
+  "anh": null
+ },
+ {
+  "ma": "AXE",
+  "trinh_duyet": "chromium",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "0 vi phạm serious/critical. Tất cả: không có",
+  "anh": null
+ },
+ {
+  "ma": "A03",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "3 nút điền đúng, focus ô mật khẩu, không tự đăng nhập",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/firefox-A03.png"
+ },
+ {
+  "ma": "A04",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "bấm chuột → text; Enter → password; giá trị giữ nguyên",
+  "anh": null
+ },
+ {
+  "ma": "A14",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "sau tải lại: dark; trang khác: dark",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/firefox-A14-toi.png"
+ },
+ {
+  "ma": "K10",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "trống→khoá=True, gõ sai→khoá=True, gõ đúng→mở=True",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/firefox-K10.png"
+ },
+ {
+  "ma": "K13",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "light: 4 biểu đồ, 4 bảng; dark: 4 biểu đồ, 4 bảng",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/firefox-K13-dark.png"
+ },
+ {
+  "ma": "U02",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "1 thanh cố định ở đáy màn hình trang Nguyện vọng 390 px",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/firefox-U02.png"
+ },
+ {
+  "ma": "U03",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "Tab qua 25 phần tử, 0 không có viền focus (); ngăn kéo mở=True, sau Esc còn mở=False",
+  "anh": null
+ },
+ {
+  "ma": "U05",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "trang Nguyện vọng của SV chưa có NV có khối trạng thái rỗng: True",
+  "anh": null
+ },
+ {
+  "ma": "U07",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "mã 404, 2 liên kết về trang chủ, tiếng Việt có dấu",
+  "anh": "/tmp/claude-1000/-opt-lucifer-agent/c0798260-564a-4532-99dc-91a757a04edb/scratchpad/trinh-duyet/firefox-U07.png"
+ },
+ {
+  "ma": "U01",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "0 trang tràn ngang; 0 trang có chữ < 12px. ",
+  "anh": null
+ },
+ {
+  "ma": "G1",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "0 lỗi console, 0 tài nguyên lỗi. ",
+  "anh": null
+ },
+ {
+  "ma": "U06",
+  "trinh_duyet": "firefox",
+  "ket_qua": "ĐẠT",
+  "chi_tiet": "0 địa chỉ ngoài máy được gọi khi ASSETS_FROM_CDN=0. ",
+  "anh": null
+ },
+ {
+  "ma": "BROWSER",
+  "trinh_duyet": "webkit",
+  "ket_qua": "CHƯA KIỂM CHỨNG",
+  "chi_tiet": "không mở được trình duyệt: BrowserType.launch: ",
+  "anh": null
+ }
+]

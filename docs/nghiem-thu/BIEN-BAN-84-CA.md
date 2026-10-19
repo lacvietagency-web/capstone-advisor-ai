@@ -1,6 +1,6 @@
 # Biên bản thực hiện 84 ca kiểm thử — Capstone Advisor AI
 
-Ngày chạy: 20/10/2026 03:33. Nguồn: chạy lại 116 test tự động được ánh xạ (lỗi: 0) + kết quả trình duyệt (26 mục). Tổng hợp: Đạt 84.
+Ngày chạy: 20/10/2026 03:50. Nguồn: chạy lại 116 test tự động được ánh xạ (lỗi: 0) + kết quả trình duyệt (26 mục). Tổng hợp: Đạt 84.
 
 | Mã | Ca | Kết quả | Bằng chứng |
 |---|---|---|---|

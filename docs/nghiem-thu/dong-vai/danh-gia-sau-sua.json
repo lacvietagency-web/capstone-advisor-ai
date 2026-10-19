@@ -1,0 +1,136 @@
+[
+ {
+  "nhan_vat": "sv-gioi",
+  "mo_ta": "Minh, SV năm 4 ngành CNTT, dùng máy tính thành thạo, muốn chọn nhanh đề tài AI phù hợp",
+  "nhiem_vu": [
+   {
+    "nhiem_vu": "Xem gợi ý",
+    "hoan_thanh": true,
+    "thao_tac": 1
+   },
+   {
+    "nhiem_vu": "Mở chi tiết đề tài số 1",
+    "hoan_thanh": true,
+    "thao_tac": 1
+   },
+   {
+    "nhiem_vu": "Đăng ký NV1 và nộp",
+    "hoan_thanh": true,
+    "thao_tac": 3
+   }
+  ],
+  "sus_mo_phong": 75.0,
+  "danh_gia": "1. Đánh giá độ khó từng nhiệm vụ\n\nNhiệm vụ 1 – Xem 5 đề tài gợi ý: 1/5. Tôi thấy đủ 5 đề tài và điểm phù hợp ngay trên trang chủ, nhưng đề tài đứng đầu là quản lý bãi đỗ xe chứ không phải AI như tôi mong muốn.\n\nNhiệm vụ 2 – Mở chi tiết đề tài số 1: 1/5. Có thể mở chi tiết và xem điểm phù hợp, kỹ năng yêu cầu, nhưng thông tin có 5 người đăng ký NV1 trong khi chỉ còn 1 chỗ khiến tôi phân vân.\n\nNhiệm vụ 3 – Đăng ký NV1 và nộp: 2/5. Tôi chọn được đề tài và nộp thành công sau 3 thao tác, nhưng thông báo đã nộp xuất hiện cùng trạng thái chờ duyệt nên cần đọc kỹ để biết mình đã hoàn tất đến đâu.\n\n2. Những điểm gây bối rối hoặc dễ bấm nhầm\n\nMàn hình 1 – Phù hợp với nhu cầu (Match between system and the real world): Tôi muốn tìm đề tài AI nhưng đề tài được gợi ý số 1 là phần mềm quản lý bãi đỗ xe, không thể hiện rõ mức độ liên quan đến AI.\n\nMàn hình 1 – Tính nhất quán và tiêu chuẩn (Consistency and standards): Phần đầu ghi gợi ý AI đã hoàn thành, nhưng phần nguyện vọng bên dưới lại ghi chưa nộp, khiến tôi phải tự phân biệt hai trạng thái.\n\nMàn hình 2 – Khả năng ghi nhớ thay vì phải nhớ (Recognition rather than recall): Điểm 79,6/100 được gọi là điểm sơ bộ M1–M4 trong khi M4 chưa đánh giá và M5 cũng chưa đánh giá, dễ khiến tôi hiểu nhầm điểm đã phản ánh đầy đủ mức độ phù hợp.\n\nMàn hình 2 – Khả năng hiển thị trạng thái hệ thống (Visibility of system status): Thông tin chỉ tiêu còn 1 chỗ đi cùng số người đăng ký NV1 là 5, nhưng chưa giải thích rõ số người đăng ký vượt quá sức chứa sẽ được xử lý thế nào.\n\nMàn hình 3 – Phòng ngừa lỗi (Error prevention): Sau khi nộp chính thức, nút rút về nháp vẫn cho phép sửa; nếu tôi không đọc kỹ, tôi có thể tưởng rằng nguyện vọng vẫn chưa được nộp hoặc vô tình thay đổi trạng thái đã nộp.\n\n3. Điểm SUS (10 câu, thang 1–5)\n\nSUS: 4,2,4,2,4,2,4,2,4,2\n\n4. Có muốn dùng lại hệ thống không?\n\nCó, nhưng tôi chỉ muốn dùng lại khi hệ thống cải thiện khả năng gợi ý đúng đề tài AI, giải thích rõ điểm phù hợp và làm minh bạch trạng thái đăng ký cũng như khả năng được phân công.",
+  "loi_chatgpt": ""
+ },
+ {
+  "nhan_vat": "sv-it-ranh",
+  "mo_ta": "Lan, SV năm 4, ít dùng web ngoài Facebook, lo sợ bấm nhầm, đọc chậm",
+  "nhiem_vu": [
+   {
+    "nhiem_vu": "Cập nhật SĐT trong Hồ sơ",
+    "hoan_thanh": true,
+    "thao_tac": 3
+   },
+   {
+    "nhiem_vu": "Tìm đề tài chữ 'web'",
+    "hoan_thanh": true,
+    "thao_tac": 3
+   },
+   {
+    "nhiem_vu": "Xem Kết quả phân công",
+    "hoan_thanh": true,
+    "thao_tac": 1
+   }
+  ],
+  "sus_mo_phong": 67.5,
+  "danh_gia": "1. Đánh giá độ khó từng nhiệm vụ\n\nNhiệm vụ 1 – Cập nhật SĐT trong Hồ sơ: 3/5. Em tìm được mục Số điện thoại nhưng trang có quá nhiều kỹ năng lặp lại, chữ nhỏ 12 px nên em sợ đọc nhầm hoặc sửa nhầm chỗ.\n\nNhiệm vụ 2 – Tìm đề tài có chữ “web”: 2/5. Em tìm được 4 đề tài có chữ Web, nhưng nhiều đề tài báo thiếu kỹ năng và có nút Đăng ký ngay cạnh Chi tiết nên em sợ bấm nhầm.\n\nNhiệm vụ 3 – Xem Kết quả phân công: 1/5. Em tìm được trang kết quả ngay, nhưng chưa thấy kết quả chính thức vì đợt đăng ký vẫn đang mở.\n\n2. Những chỗ làm em bối rối hoặc dễ bấm nhầm\n\n1. Màn hình 1: Danh sách kỹ năng xuất hiện lặp lại nhiều lần, nội dung dài và chữ chỉ 12 px. Em khó biết mình đang ở phần nào.\nVi phạm Nielsen: Thiết kế thẩm mỹ và tối giản.\n\n2. Màn hình 1: Nhiều trường thông tin và danh sách kỹ năng khiến em lo sửa nhầm khi chỉ muốn cập nhật số điện thoại.\nVi phạm Nielsen: Phòng ngừa lỗi.\n\n3. Màn hình 2: Nút Chi tiết và Đăng ký xuất hiện cạnh nhau ở từng đề tài. Em sợ bấm Đăng ký khi chỉ muốn xem thông tin.\nVi phạm Nielsen: Phòng ngừa lỗi.\n\n4. Màn hình 2: Các thông báo thiếu kỹ năng như “cần 3, bạn có 0” khá khó hiểu; em không biết mình cần làm gì tiếp theo để đủ điều kiện.\nVi phạm Nielsen: Giúp người dùng nhận biết, chẩn đoán và khắc phục lỗi.\n\n5. Màn hình 3: Phần “Kết quả phân công” vừa ghi “Chờ công bố”, vừa ghi “Kết quả phân công chính thức đã được công bố” trong bước 4. Em không biết kết quả đã có hay chưa.\nVi phạm Nielsen: Tính nhất quán và tiêu chuẩn.\n\n3. Điểm SUS (mô phỏng)\n\nSUS: 3,2,4,2,3,2,4,2,3,2\n\n4. Em có muốn dùng lại hệ thống không?\n\nEm chưa muốn dùng lại nếu giao diện vẫn như vậy, vì chữ nhỏ, trang hồ sơ quá dài và thông báo kết quả phân công chưa nhất quán khiến em sợ thao tác sai.",
+  "loi_chatgpt": ""
+ },
+ {
+  "nhan_vat": "gv-tre",
+  "mo_ta": "Anh Tuấn, GV trẻ, quen công nghệ, muốn duyệt nhanh SV đăng ký",
+  "nhiem_vu": [
+   {
+    "nhiem_vu": "Xem SV chờ duyệt",
+    "hoan_thanh": true,
+    "thao_tac": 1
+   },
+   {
+    "nhiem_vu": "Mở trang duyệt đăng ký",
+    "hoan_thanh": true,
+    "thao_tac": 2
+   },
+   {
+    "nhiem_vu": "Mở form thêm đề tài",
+    "hoan_thanh": true,
+    "thao_tac": 2
+   }
+  ],
+  "sus_mo_phong": 75.0,
+  "danh_gia": "1. Đánh giá độ khó từng nhiệm vụ\n\nNhiệm vụ 1 – Xem sinh viên chờ duyệt: 1/5. Trang chủ có số lượng chờ duyệt là 15 và bảng liệt kê sinh viên khá rõ, nhưng chữ 12px hơi nhỏ khi phải quét nhiều dòng.\n\nNhiệm vụ 2 – Mở trang duyệt đăng ký: 2/5. Tôi tìm được danh sách sinh viên theo đề tài, nhưng nút “Phân tích” chưa nói rõ đây có phải nơi để duyệt đồng ý hoặc từ chối hay không.\n\nNhiệm vụ 3 – Mở form thêm đề tài: 2/5. Tôi mở được form sau 2 thao tác, nhưng form có nhiều trường thông tin và danh sách kỹ năng dài, nên nhập nhanh vẫn hơi mất thời gian.\n\n2. Tối đa 5 chỗ gây bối rối hoặc dễ bấm nhầm\n\nMàn hình 1 – Chữ phổ biến chỉ 12px: Khó quét nhanh bảng có nhiều sinh viên. Vi phạm Recognition rather than recall ở mức hỗ trợ nhận diện chưa tốt.\n\nMàn hình 1 – Có 4 trạng thái lọc: “Chờ duyệt”, “Đồng ý”, “Từ chối”, “Tất cả” chiếm sự chú ý khi tôi chỉ cần xử lý hồ sơ đang chờ. Vi phạm Aesthetic and minimalist design nếu các lựa chọn không cần thiết làm tăng tải nhận thức.\n\nMàn hình 2 – Thao tác ghi “Phân tích”: Tên này không thể hiện rõ hành động tiếp theo là xem chi tiết hay duyệt đăng ký. Vi phạm Match between system and the real world.\n\nMàn hình 2 – Nút thấp nhất 28px: Khó bấm chính xác hơn khi thao tác nhanh, nhất là nếu có nhiều nút gần nhau. Liên quan đến Error prevention.\n\nMàn hình 3 – Form nhiều trường và danh sách kỹ năng dài: Tôi phải đọc, chọn lĩnh vực, nhập thông tin và tìm kỹ năng phù hợp; mục kỹ năng còn có “Pyth” bị cắt chữ trong nội dung hiển thị. Vi phạm Aesthetic and minimalist design và có nguy cơ ảnh hưởng Error prevention.\n\n3. Đánh giá SUS (thang 1–5)\n\nSUS: 4,2,4,2,4,2,4,2,4,2\n\n4. Có muốn dùng lại hệ thống không?\n\nCó, nhưng tôi muốn dùng lại thuận tiện hơn nếu thao tác duyệt được đặt tên rõ ràng, nút dễ bấm và form thêm đề tài gọn hơn.",
+  "loi_chatgpt": ""
+ },
+ {
+  "nhan_vat": "gv-lon-tuoi",
+  "mo_ta": "Cô Hạnh, GV 58 tuổi, ít dùng web, cần chữ to rõ, sợ thao tác sai",
+  "nhiem_vu": [
+   {
+    "nhiem_vu": "Xem đề tài của mình",
+    "hoan_thanh": true,
+    "thao_tac": 1
+   },
+   {
+    "nhiem_vu": "Sửa giới thiệu hồ sơ GV",
+    "hoan_thanh": true,
+    "thao_tac": 3
+   }
+  ],
+  "sus_mo_phong": 57.5,
+  "danh_gia": "1. Đánh giá độ khó từng nhiệm vụ\n\nNhiệm vụ 1 – Xem đề tài của mình: 1/5 (Rất dễ). Tôi chỉ cần xem danh sách 5 đề tài, nhưng chữ hơi nhỏ, nhiều cột nên phải đọc kỹ mới biết thông tin.\n\nNhiệm vụ 2 – Sửa giới thiệu hồ sơ giảng viên: 3/5 (Trung bình). Tôi mất 3 thao tác, có nhiều mục thông tin và lĩnh vực chuyên môn, nên hơi lo sửa nhầm mục hoặc quên bấm “Lưu thay đổi”.\n\n2. Những chỗ khiến tôi bối rối hoặc dễ bấm nhầm\n\n1. Màn hình 1: Chữ nhỏ nhất chỉ 12 px, phổ biến 12 px, bảng có nhiều cột. Khó đọc rõ khi nhìn lâu.\nNguyên tắc Nielsen: Thẩm mỹ và thiết kế tối giản; cần giảm tải thông tin không cần thiết.\n\n2. Màn hình 1: Các thao tác “Xem”, “Sửa”, “SV đăng ký” nằm cạnh nhau, tôi có thể bấm nhầm khi muốn mở thông tin đề tài.\nNguyên tắc Nielsen: Phòng ngừa lỗi.\n\n3. Màn hình 2: Nhiều nhóm thông tin, từ thông tin cá nhân đến chuyên môn, chỉ tiêu và thống kê; tôi dễ mất thời gian tìm đúng mục “Giới thiệu bản thân”.\nNguyên tắc Nielsen: Nhận diện thay vì ghi nhớ.\n\n4. Màn hình 2: Phần “Giới thiệu bản thân” có mô tả hướng dẫn nhưng nội dung trường cần sửa không được thể hiện trong phần chữ cung cấp; tôi chưa chắc mình đang sửa đúng chỗ.\nNguyên tắc Nielsen: Tương thích giữa hệ thống và thế giới thực.\n\n5. Màn hình 2: Nút “Lưu thay đổi” và “Quay lại trang chủ” cùng xuất hiện; tôi lo bấm quay lại sẽ mất nội dung vừa sửa.\nNguyên tắc Nielsen: Phòng ngừa lỗi và hỗ trợ người dùng nhận biết, khắc phục lỗi.\n\n3. Điểm SUS (mô phỏng)\n\nSUS: 3,3,2,2,3,2,3,2,3,2\n\n4. Có muốn dùng lại hệ thống không?\n\nTôi vẫn muốn dùng lại nếu được hướng dẫn rõ hơn, chữ lớn hơn và có thông báo xác nhận khi lưu thành công, vì hiện tại tôi còn sợ đọc nhầm hoặc làm mất thông tin đã sửa.",
+  "loi_chatgpt": ""
+ },
+ {
+  "nhan_vat": "giao-vu",
+  "mo_ta": "Chị Hoa, giáo vụ Khoa, làm việc với Excel hằng ngày, cần chạy phân công đúng quy trình",
+  "nhiem_vu": [
+   {
+    "nhiem_vu": "Tải tệp Excel mẫu",
+    "hoan_thanh": true,
+    "thao_tac": 2
+   },
+   {
+    "nhiem_vu": "Chạy phân công ILP",
+    "hoan_thanh": true,
+    "thao_tac": 2
+   },
+   {
+    "nhiem_vu": "Xem bảng kết quả",
+    "hoan_thanh": true,
+    "thao_tac": 1
+   }
+  ],
+  "sus_mo_phong": 72.5,
+  "danh_gia": "1. Đánh giá độ khó từng nhiệm vụ\n\nTải tệp Excel mẫu: 1/5. Tôi làm Excel hằng ngày nên thấy nút tải mẫu và hướng dẫn 4 bước là dễ hiểu, không mất nhiều thao tác.\n\nChạy phân công ILP: 2/5. Có nút “Chạy tối ưu ILP” khá rõ, nhưng tôi chưa chắc kết quả chạy nháp đã đủ điều kiện để chốt hay chưa.\n\nXem bảng kết quả phân công: 1/5. Bảng có tên sinh viên, đề tài, giảng viên và trạng thái nên tôi dễ kiểm tra kết quả.\n\n2. Những chỗ làm tôi bối rối hoặc dễ bấm nhầm\n\n1. Màn hình 1: Có hai nút “Tải tệp mẫu (.xlsx)” và phần “Tải mẫu” cũng có nút cùng tên, khiến tôi hơi phân vân không biết nên bấm ở đâu.\nNguyên tắc Nielsen: Nhất quán và tiêu chuẩn.\n\n2. Màn hình 1: Hướng dẫn nhập dữ liệu gồm 4 bước nhưng nút tải lên và kiểm tra nằm ở phần riêng, có thể khiến tôi không chắc mình đã làm đúng thứ tự chưa.\nNguyên tắc Nielsen: Phù hợp giữa hệ thống và thế giới thực.\n\n3. Màn hình 2: Hai nút “Chạy Greedy” và “Chạy tối ưu ILP” nằm cạnh nhau; nếu vội, tôi có thể chọn nhầm phương pháp phân công.\nNguyên tắc Nielsen: Phòng ngừa lỗi.\n\n4. Màn hình 2: Trạng thái “Đã chạy phân công (nháp)” xuất hiện cùng nút “Chốt & công bố”, nhưng chưa thấy giải thích rõ điều kiện cần kiểm tra trước khi chốt. Tôi sợ công bố nhầm kết quả.\nNguyên tắc Nielsen: Phòng ngừa lỗi và giúp người dùng nhận biết trạng thái hệ thống.\n\n5. Màn hình 2 và 3: Chữ nhỏ nhất 12 px, phổ biến 12 px; bảng có nhiều cột và tên đề tài dài. Tôi phải đọc kỹ để tránh nhầm thông tin sinh viên khi đối soát.\nNguyên tắc Nielsen: Thiết kế thẩm mỹ và tối giản.\n\n3. Điểm SUS (mô phỏng)\n\nSUS: 4,2,4,2,3,2,4,2,4,2\n\n4. Có muốn dùng lại hệ thống không?\n\nTôi có muốn dùng lại, nhưng cần làm rõ quy trình kiểm tra trước khi chốt và công bố kết quả để tôi yên tâm phân công đúng quy định.",
+  "loi_chatgpt": ""
+ },
+ {
+  "nhan_vat": "truong-khoa",
+  "mo_ta": "Thầy Bình, trưởng khoa, chỉ xem số liệu tổng hợp để ra quyết định",
+  "nhiem_vu": [
+   {
+    "nhiem_vu": "Xem bảng điều khiển",
+    "hoan_thanh": true,
+    "thao_tac": 1
+   },
+   {
+    "nhiem_vu": "Xem Thống kê",
+    "hoan_thanh": true,
+    "thao_tac": 1
+   }
+  ],
+  "sus_mo_phong": 70.0,
+  "danh_gia": "1. Đánh giá độ khó từng nhiệm vụ\n\nNhiệm vụ 1 – Xem bảng điều khiển Khoa: 1/5 (Rất dễ). Tôi thấy ngay các số liệu tổng quan như 100 sinh viên, 50 đề tài, 15 giảng viên và trạng thái phân công nháp, nhưng chưa thấy số liệu về mức độ hoàn thành phân công.\n\nNhiệm vụ 2 – Xem Thống kê và biểu đồ so sánh ILP/Greedy: 3/5 (Trung bình). Tôi tìm được các chỉ số ILP và bảng xếp hạng đề tài, nhưng chưa thấy biểu đồ so sánh ILP/Greedy trong nội dung màn hình; số liệu “Đã xếp 43,0%” và “Chờ pha 2: 57” cũng cần được giải thích rõ hơn.\n\n2. Những điểm dễ gây bối rối hoặc bấm nhầm\n\nMàn hình 1 – Trạng thái phân công: Cụm “Đã chạy phân công (nháp)” có thể khiến tôi tưởng đã hoàn tất, trong khi vẫn cần kiểm tra và chốt kết quả. Vi phạm Nguyên tắc 2 – Phù hợp giữa hệ thống và thế giới thực.\n\nMàn hình 1 – Lối tắt thao tác: Có nhiều mục như “Mở trang phân công”, “Phân công đề tài” và “Thống kê & Báo cáo”, khiến tôi phải cân nhắc đường đi phù hợp. Vi phạm Nguyên tắc 6 – Nhận diện thay vì nhớ lại.\n\nMàn hình 2 – Số liệu phân công: “Đã xếp 43,0%” và “Chờ pha 2: 57” chưa nói rõ 57 là số sinh viên hay số trường hợp phân công. Vi phạm Nguyên tắc 2 – Phù hợp giữa hệ thống và thế giới thực.\n\nMàn hình 2 – So sánh thuật toán: Phần mô tả nhiệm vụ yêu cầu xem biểu đồ so sánh ILP/Greedy, nhưng nội dung được cung cấp chưa thể hiện kết quả Greedy. Tôi chưa đủ thông tin để quyết định thuật toán nào hiệu quả hơn. Vi phạm Nguyên tắc 1 – Hiển thị trạng thái hệ thống.\n\nCả hai màn hình – Cỡ chữ: Chữ nhỏ nhất là 12 px, phổ biến 12–13 px; với vai trò trưởng khoa cần đọc nhanh số liệu tổng hợp, cỡ chữ này có thể khiến việc quét thông tin lâu hơn. Vi phạm Nguyên tắc 8 – Thiết kế thẩm mỹ và tối giản.\n\n3. Đánh giá SUS (thang điểm 1–5)\n\nSUS: 4,2,4,2,3,2,4,2,3,2\n\n4. Có muốn dùng lại hệ thống không?\n\nCó, nhưng tôi chỉ muốn dùng lại khi số liệu phân công được giải thích rõ ràng và biểu đồ ILP/Greedy thể hiện đủ thông tin để tôi ra quyết định.",
+  "loi_chatgpt": ""
+ }
+]

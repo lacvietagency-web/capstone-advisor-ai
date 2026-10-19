@@ -24,7 +24,16 @@
     {# Dải trạng thái đợt đăng ký gần nhất #}
     {% if periods %}
       {% with current_period=periods.0 %}
-        {% include "components/period.html" with period=current_period text="Khoa đang trong giai đoạn sinh viên đăng ký đề tài khóa luận tốt nghiệp. Sau khi kết thúc, khoa sẽ tiến hành phân công giảng viên hướng dẫn." %}
+        {# Câu giải thích theo trạng thái đợt (trước 20/10/2026 luôn ghi "đang đăng ký", kể cả khi đã phân công) #}
+        {% if current_period.status == "OPEN" and not current_period.is_expired %}
+          {% include "components/period.html" with period=current_period text="Sinh viên đang đăng ký đề tài. Khi hết hạn, Khoa đóng đợt rồi chạy phân công giảng viên hướng dẫn." %}
+        {% elif current_period.status == "PUBLISHED" %}
+          {% include "components/period.html" with period=current_period text="Kết quả phân công đã công bố cho sinh viên và giảng viên." %}
+        {% elif current_period.status == "OPTIMIZED" %}
+          {% include "components/period.html" with period=current_period text="Đã có bảng phân công NHÁP: kiểm tra, xếp tay sinh viên còn lại, rồi chốt và công bố." %}
+        {% else %}
+          {% include "components/period.html" with period=current_period text="Đợt đã hết hạn đăng ký: Khoa có thể chạy phân công giảng viên hướng dẫn." %}
+        {% endif %}
       {% endwith %}
     {% endif %}
 

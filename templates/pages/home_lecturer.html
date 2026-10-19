@@ -54,16 +54,6 @@
           <div class="at-ledger-note">Số đăng ký đã đồng ý</div>
         </div>
       </div>
-      {# Tương thích kiểm thử tự động #}
-      <div class="visually-hidden">
-        <span>Số đề tài</span>
-        <span>Tổng SV đăng ký</span>
-        <span>Số NV đang chờ duyệt</span>
-        <span>Số đã đồng ý</span>
-        {% for t in topics %}
-          <a href="{% url 'lecturer_registrations' t.pk %}">Duyệt ngay</a>
-        {% endfor %}
-      </div>
     </section>
 
     <div class="at-grid">

@@ -26,12 +26,8 @@ class RoleAccessTests(TestCase):
         resp = self.client.get("/trang-chu/")
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Đề tài của tôi")
-        self.assertContains(resp, "Số đề tài")
-        self.assertContains(resp, "Tổng SV đăng ký")
-        self.assertContains(resp, "Số NV đang chờ duyệt")
-        self.assertContains(resp, "Số đã đồng ý")
-        self.assertContains(resp, "Chờ duyệt")
-        self.assertContains(resp, "Duyệt ngay")
+        for label in ("Đề tài", "SV đăng ký", "Chờ duyệt", "Đã đồng ý"):  # nhãn thẻ số liệu đang hiển thị
+            self.assertContains(resp, f'<div class="at-ledger-label">{label}</div>', html=True)
         self.assertIn("n_topics", resp.context)
         self.assertIn("n_students", resp.context)
         self.assertIn("n_pending", resp.context)
@@ -352,28 +348,25 @@ class LecturerHomeDashboardTests(TestCase):
         self.assertEqual(resp.context["n_accepted"], 2)
 
         # Kiểm tra hiển thị các thẻ số liệu
-        self.assertContains(resp, "Số đề tài")
-        self.assertContains(resp, "Tổng SV đăng ký")
-        self.assertContains(resp, "Số NV đang chờ duyệt")
-        self.assertContains(resp, "Số đã đồng ý")
+        for label in ("Đề tài", "SV đăng ký", "Chờ duyệt", "Đã đồng ý"):  # nhãn thẻ số liệu đang hiển thị
+            self.assertContains(resp, f'<div class="at-ledger-label">{label}</div>', html=True)
         self.assertContains(resp, "Chờ duyệt")
         self.assertContains(resp, "Đã đồng ý")
 
     def test_topics_table_pending_column_and_review_links(self):
-        """Kiểm tra bảng đề tài hiển thị cột 'Chờ duyệt' và nút 'Duyệt ngay' trỏ tới /de-tai/<id>/dang-ky/."""
+        """Trang chủ đếm SV chờ duyệt theo đề tài; trang Đề tài của tôi có nút 'SV đăng ký' hiện sẵn (không giấu trong menu)."""
         self.client.login(username="gv_main", password="Password123!")
+        topics_page = self.client.get("/de-tai/")
+        for t in (self.t1, self.t2):
+            self.assertContains(
+                topics_page,
+                f'<a href="/de-tai/{t.pk}/dang-ky/" class="btn btn-secondary btn-sm">SV đăng ký</a>',
+                count=2,  # một nút ở bảng (máy tính), một ở thẻ (điện thoại)
+                html=True,
+            )
         resp = self.client.get("/trang-chu/")
         self.assertEqual(resp.status_code, 200)
-
-        # Bảng có cột 'Chờ duyệt' trong thead
         self.assertContains(resp, "Chờ duyệt")
-
-        # Bảng có nút 'Duyệt ngay'
-        self.assertContains(resp, "Duyệt ngay")
-
-        # Đường dẫn nút 'Duyệt ngay' trỏ tới /de-tai/<id>/dang-ky/
-        self.assertContains(resp, f"/de-tai/{self.t1.pk}/dang-ky/")
-        self.assertContains(resp, f"/de-tai/{self.t2.pk}/dang-ky/")
 
         # Kiểm tra số lượng chờ duyệt của từng đề tài trong context
         topics = list(resp.context["topics"])

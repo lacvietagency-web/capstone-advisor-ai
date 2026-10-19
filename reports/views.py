@@ -11,7 +11,7 @@ from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404, render
 
 from allocate.models import Allocation
-from catalog.models import AuditLog, Preference, RegistrationPeriod
+from catalog.models import AuditLog, Preference, RegistrationPeriod, Topic
 from catalog.services import int_param
 
 from .services import (
@@ -142,6 +142,7 @@ def faculty_statistics(request):
         "period": period,
         "reg_stats": reg_stats,
         "topic_nv1_list": topic_nv1_list,
+        "n_topics": Topic.objects.count(),  # như Bảng điều khiển; trước đây đếm danh sách top 10 nên tối đa 10
         "field_list": field_list,
         "lecturer_load": lecturer_load,
         "load_source": load_source,

@@ -273,3 +273,15 @@ class AcceptanceCases(TestCase):
         b.refresh_from_db()
         self.assertEqual((a.is_active, b.is_active), (False, True))
         self.assertEqual(WeightSet.objects.filter(is_active=True).count(), 1)
+
+    def test_k01_period_note_follows_status(self):
+        """Câu giải thích trên Bảng điều khiển đổi theo trạng thái đợt (phát hiện khi đóng vai trưởng khoa)."""
+        self.login("khoa01")
+        for status, text in (
+            ("OPEN", "Sinh viên đang đăng ký"),
+            ("OPTIMIZED", "bảng phân công NHÁP"),
+            ("PUBLISHED", "đã công bố"),
+            ("CLOSED", "hết hạn đăng ký"),
+        ):
+            RegistrationPeriod.objects.filter(pk=self.period.pk).update(status=status)
+            self.assertContains(self.client.get("/trang-chu/"), text)

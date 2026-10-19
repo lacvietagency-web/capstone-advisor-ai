@@ -95,14 +95,7 @@
                   <td class="at-td-actions">
                     <a href="{% url 'topic_detail' t.pk %}" class="btn btn-secondary btn-sm">Xem</a>
                     <a href="{% url 'lecturer_topic_edit' t.pk %}" class="btn btn-secondary btn-sm">Sửa</a>
-                    <div class="dropdown d-inline-block">
-                      <button type="button" class="btn btn-secondary btn-sm at-btn-more" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Thao tác khác">
-                        {% include "components/icon.html" with name="more-vertical" size=16 %}
-                      </button>
-                      <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'lecturer_registrations' t.pk %}">Xem sinh viên đăng ký</a></li>
-                      </ul>
-                    </div>
+                    <a href="{% url 'lecturer_registrations' t.pk %}" class="btn btn-secondary btn-sm">SV đăng ký</a>
                   </td>
                 </tr>
               {% endfor %}

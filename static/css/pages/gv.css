@@ -865,31 +865,6 @@
   background-color: var(--at-brand-soft, #EAF4FF);
   color: var(--at-brand-hover, #1D4496);
 }
-.pg-14 .at-td-actions .at-btn-more {
-  width: 28px;
-  min-width: 28px;
-  padding: 0;
-}
-.pg-14 .at-td-actions .dropdown {
-  display: inline-flex;
-}
-.pg-14 .dropdown-menu {
-  font-size: 12px;
-  border-radius: 6px;
-  border: 1px solid var(--at-line, #D9E2EF);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 4px 0;
-}
-.pg-14 .dropdown-item {
-  font-size: 12px;
-  padding: 6px 14px;
-  color: var(--at-ink-muted, #344054);
-}
-.pg-14 .dropdown-item:hover {
-  background-color: var(--at-brand-soft, #F3F7FC);
-  color: var(--at-brand, #176BFF);
-}
-
 .pg-14 #topicsMobileList {
   padding: 0;
 }

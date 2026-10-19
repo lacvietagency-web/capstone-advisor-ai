@@ -102,10 +102,9 @@ def do_tasks(p, base, name, user, shots, log):
         step("Xem SV chờ duyệt", lambda: p.goto(base + "/trang-chu/"), 1)
         def review():
             p.goto(base + "/de-tai/")
-            p.locator("button.at-btn-more:visible").first.click()  # nút ⋮ của đề tài đầu
-            p.locator("a.dropdown-item[href*='/dang-ky/']:visible").first.click()
+            p.locator("a[href*='/dang-ky/']:visible").first.click()  # nút "SV đăng ký" (trước 20/10 giấu trong menu ⋮)
             p.wait_for_url(re.compile(r".*/de-tai/\d+/dang-ky/"))
-        step("Mở trang duyệt đăng ký", review, 3)
+        step("Mở trang duyệt đăng ký", review, 2)
         step("Mở form thêm đề tài", lambda: p.goto(base + "/de-tai/them/"), 2)
     elif name == "gv-lon-tuoi":
         step("Xem đề tài của mình", lambda: p.goto(base + "/de-tai/"), 1)

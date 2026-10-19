@@ -292,6 +292,15 @@ class FacultyStatisticsViewTestCase(TestCase):
         res = self.client.get("/khoa/thong-ke/")
         self.assertEqual(res.status_code, 403)
 
+    def test_topic_count_not_capped_at_top10(self):
+        """Ô "Đề tài" khớp Bảng điều khiển, không phải độ dài danh sách top 10 (phát hiện khi đóng vai trưởng khoa)."""
+        lec = Lecturer.objects.get()
+        Topic.objects.bulk_create(Topic(lecturer=lec, title=f"Đề tài {i}", description="x") for i in range(12))
+        self.client.force_login(self.admin_user)
+        res = self.client.get("/khoa/thong-ke/")
+        self.assertEqual(res.context["n_topics"], 12)
+        self.assertContains(res, '<div class="at-ledger-value">12</div>', html=True)
+
     def test_faculty_admin_can_access_dashboard(self):
         """Giáo vụ Khoa đăng nhập thành công vào trang thống kê."""
         self.client.force_login(self.admin_user)

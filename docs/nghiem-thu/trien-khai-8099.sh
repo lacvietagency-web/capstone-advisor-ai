@@ -7,7 +7,8 @@ cd /opt/lucifer-agent/workspace/projects/capstone-advisor/code
 
 cp db.sqlite3 "db.sqlite3.truoc-trien-khai-$(date +%Y%m%d-%H%M)"   # sao lưu CSDL demo
 git merge --ff-only ui/v3                                            # chỉ tiến thẳng, không gộp đè
-.venv/bin/pip install -q -r requirements.txt                         # Django 5.2 LTS + defusedxml
+.venv/bin/pip install -q -U "pip>=26.2" "setuptools>=83"             # vá lỗ hổng của chính công cụ cài đặt (pip-audit)
+.venv/bin/pip install -q "Django>=5.2.17,<5.3" "defusedxml>=0.7"       # chỉ gói mới; requirements.txt có mysqlclient, máy này không build được
 DJANGO_DEBUG=0 .venv/bin/python manage.py migrate
 DJANGO_DEBUG=0 .venv/bin/python manage.py check --fail-level ERROR
 

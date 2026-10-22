@@ -32,7 +32,6 @@ def _save(student, c, rank, weights, weights_version):
         topic=c.topic,
         rank=rank,
         m1_skill=c.scores["skill"],
-        m2_academic=c.scores["academic"],
         m3_field=c.scores["field"],
         m4_semantic=c.scores["semantic"],
         m5_llm=c.scores["llm"],
@@ -68,7 +67,6 @@ def score_preferences(student):
             rec.topic,
             {
                 "skill": rec.m1_skill,
-                "academic": rec.m2_academic,
                 "field": rec.m3_field,
                 "semantic": rec.m4_semantic,
                 "llm": res.total,

@@ -200,7 +200,7 @@
                       <span class="pg-07-score-num">{{ r.final_score|floatformat:1 }}</span>
                       <span class="pg-07-score-denom">/100</span>
                     </div>
-                    <span class="pg-07-score-caption">{% if r.m5_llm is None %}Điểm sơ bộ M1–M4{% else %}Đánh giá mức độ phù hợp đề tài{% endif %}</span>
+                    <span class="pg-07-score-caption">{% if r.m5_llm is None %}Điểm sơ bộ (chưa có AI){% else %}Đánh giá mức độ phù hợp đề tài{% endif %}</span>
                   </div>
 
                   <div class="pg-07-reason-box">
@@ -214,12 +214,6 @@
                         <span class="pg-07-m-name">Kỹ năng</span>
                         <span class="pg-07-m-track"><span style="--v:{{ r.m1_skill|floatformat:0 }}%;"></span></span>
                         <span class="pg-07-m-val">{{ r.m1_skill|floatformat:0 }}</span>
-                      </li>
-                      <li class="pg-07-m-row">
-                        <span class="pg-07-m-code">M2</span>
-                        <span class="pg-07-m-name">Học lực</span>
-                        <span class="pg-07-m-track"><span style="--v:{{ r.m2_academic|floatformat:0 }}%;"></span></span>
-                        <span class="pg-07-m-val">{{ r.m2_academic|floatformat:0 }}</span>
                       </li>
                       <li class="pg-07-m-row">
                         <span class="pg-07-m-code">M3</span>

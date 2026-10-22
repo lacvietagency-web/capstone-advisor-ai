@@ -1,4 +1,4 @@
-"""Biến dùng chung cho mọi template: bộ trọng số AHP đang áp dụng (để giải thích điểm M1–M5)."""
+"""Biến dùng chung cho mọi template: bộ trọng số AHP đang áp dụng (để giải thích điểm M1, M3, M4, M5)."""
 
 from django.utils.functional import SimpleLazyObject
 
@@ -6,7 +6,6 @@ from recommend.engine import get_active_weights, get_active_weights_version
 
 CRITERIA = [
     ("skill", "M1", "Kỹ năng"),
-    ("academic", "M2", "Học lực"),
     ("field", "M3", "Lĩnh vực"),
     ("semantic", "M4", "Ngữ nghĩa"),
     ("llm", "M5", "Đánh giá LLM"),

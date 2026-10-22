@@ -17,5 +17,5 @@
     </ol>
     {% if can_edit|default_if_none:True %}<a href="{% url 'student_profile' %}" class="btn btn-primary at-w-100 at-mt-4">{% include "components/icon.html" with name="arrow-right" %}Đi đến Hồ sơ năng lực</a>{% endif %}
   </section>
-  <div class="at-col-12">{% include "components/note.html" with title="Lưu ý về đánh giá và gợi ý đề tài" text="Sau khi hồ sơ đủ, hệ thống chấm mức phù hợp với từng đề tài theo 5 tiêu chí: M1 Kỹ năng (25%), M2 Học lực (20%), M3 Lĩnh vực (15%), M4 Ngữ nghĩa (20%), M5 Đánh giá LLM (20%), trọng số theo phương pháp AHP." %}</div>
+  <div class="at-col-12">{% include "components/note.html" with title="Lưu ý về đánh giá và gợi ý đề tài" text="Sau khi hồ sơ đủ, hệ thống chấm mức phù hợp với từng đề tài theo 4 tiêu chí: M1 Kỹ năng (42%), M3 Lĩnh vực (12%), M4 Ngữ nghĩa (23%), M5 Đánh giá LLM (23%), trọng số theo phương pháp AHP." %}</div>
 </div>

@@ -451,7 +451,6 @@ class TopicPermissionAndDetailTests(TestCase):
             student=student,
             topic=topic,
             m1_skill=80.0,
-            m2_academic=75.0,
             m3_field=90.0,
             final_score=82.0,
             reason="Kỹ năng phù hợp tốt với yêu cầu đề tài.",

@@ -19,7 +19,7 @@ class WeightSet(models.Model):
     """
 
     name = models.CharField("Tên bộ trọng số", max_length=100, unique=True)
-    weights = models.JSONField("Trọng số (JSON)", help_text="Từ điển 5 phần tử: skill, academic, field, semantic, llm.")
+    weights = models.JSONField("Trọng số (JSON)", help_text="Từ điển 4 phần tử: skill, field, semantic, llm.")
     matrix = models.JSONField("Ma trận so sánh cặp (JSON)", help_text="Ma trận 5x5 dạng danh sách 2 chiều.")
     cr = models.FloatField("Tỷ số nhất quán (CR)")
     is_active = models.BooleanField("Đang sử dụng", default=False)
@@ -46,7 +46,7 @@ class WeightSet(models.Model):
                 {"cr": f"Tỷ số nhất quán CR = {self.cr:.4f} >= 0.1 (không đạt tính nhất quán AHP, bị từ chối)."}
             )
         if self.weights:
-            expected = {"skill", "academic", "field", "semantic", "llm"}
+            expected = {"skill", "field", "semantic", "llm"}
             missing = expected - set(self.weights.keys())
             if missing:
                 raise ValidationError({"weights": f"Thiếu các tiêu chí thành phần: {missing}"})
@@ -71,7 +71,6 @@ class Recommendation(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="recommendations")
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     m1_skill = models.FloatField("M1 kỹ năng")
-    m2_academic = models.FloatField("M2 học lực")
     m3_field = models.FloatField("M3 lĩnh vực")
     m4_semantic = models.FloatField("M4 ngữ nghĩa", null=True, blank=True)
     m5_llm = models.FloatField("M5 LLM", null=True, blank=True)  # trống nếu đề tài ngoài Top-K hoặc LLM lỗi

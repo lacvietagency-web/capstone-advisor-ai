@@ -22,15 +22,15 @@ __all__ = [
     "eligible",
     "explain",
     "m1_skill",
-    "m2_academic",
     "m3_field",
     "m4_semantic",
     "score_pair",
     "score_student",
 ]
 
-# Trọng số w1..w5 (kỹ năng, học lực, lĩnh vực, ngữ nghĩa, LLM). Bản chính thức sẽ lấy từ AHP do GVHD so sánh cặp.
-DEFAULT_WEIGHTS = {"skill": 0.25, "academic": 0.20, "field": 0.15, "semantic": 0.20, "llm": 0.20}
+# Trọng số w1,w3,w4,w5 (kỹ năng, lĩnh vực, ngữ nghĩa, LLM) — lấy từ AHP do GVHD so sánh cặp.
+# Bỏ M2 (học lực) theo ý kiến GVHD 22/10/2026: điểm học lực không phân biệt được mức phù hợp đề tài.
+DEFAULT_WEIGHTS = {"skill": 0.42, "field": 0.12, "semantic": 0.23, "llm": 0.23}
 WEIGHTS_VERSION = "expert-v0"
 
 
@@ -63,7 +63,7 @@ def get_active_weights_version():
 @dataclass
 class Candidate:
     topic: Topic
-    scores: dict = field(default_factory=dict)  # skill, academic, field, semantic, llm → 0..100 (None = chưa có)
+    scores: dict = field(default_factory=dict)  # skill, field, semantic, llm → 0..100 (None = chưa có)
     reasons: list = field(default_factory=list)
     llm_reason: str = ""
 
@@ -215,20 +215,6 @@ def m1_skill(p: Profile, topic: Topic):
     return (100 * num / total_w if total_w > 0 else 100.0), missing
 
 
-# ---------------------------------------------------------------- M2: học lực
-def m2_academic(p: Profile, topic: Topic):
-    """M2 = 100 · (0,4·GPA/4 + 0,6·điểm TB các môn liên quan/10).
-    Môn liên quan = môn tiên quyết + môn cùng lĩnh vực đề tài.
-    Thang cố định theo quy chế (không chuẩn hoá theo dữ liệu) để điểm không đổi khi thêm sinh viên."""
-    topic_fields = {f.id for f in topic.fields.all()}
-    related = {pre.course_id for pre in topic.prerequisites.all()} | {
-        c for c, f in p.course_fields.items() if f in topic_fields
-    }
-    scores = [p.courses[c] for c in related if c in p.courses]
-    avg = sum(scores) / len(scores) if scores else p.gpa * 2.5  # không có môn liên quan → quy đổi từ GPA
-    return 100 * (0.4 * p.gpa / 4 + 0.6 * avg / 10)
-
-
 # ---------------------------------------------------------------- M3: khớp lĩnh vực quan tâm
 def m3_field(p: Profile, topic: Topic):
     """M3 = 100 · trung bình trên các lĩnh vực của đề tài của (mức quan tâm của SV / 3).
@@ -307,9 +293,7 @@ def compute_stage1_candidates(
         if not ok:
             continue
         s1, missing = m1_skill(p, t)
-        c = Candidate(
-            t, {"skill": s1, "academic": m2_academic(p, t), "field": m3_field(p, t), "semantic": None, "llm": None}
-        )
+        c = Candidate(t, {"skill": s1, "field": m3_field(p, t), "semantic": None, "llm": None})
         if missing:
             c.reasons.append("Cần bổ sung: " + ", ".join(missing))
         out.append(c)
@@ -376,8 +360,6 @@ def explain_heuristic(c: Candidate) -> str:
         parts.append("đề tài thuộc lĩnh vực bạn quan tâm")
     if (s.get("semantic") or 0) >= 35:
         parts.append("mô tả đề tài gần với định hướng bạn tự giới thiệu")
-    if s["academic"] >= 70:
-        parts.append("kết quả các môn liên quan của bạn tốt")
     text = ("Phù hợp vì " + ", ".join(parts) + ".") if parts else "Mức phù hợp trung bình."
     return " ".join([text] + c.reasons)
 

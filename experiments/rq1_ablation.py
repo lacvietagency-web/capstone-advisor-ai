@@ -1,7 +1,7 @@
 """Thực nghiệm RQ1: Nghiên cứu cắt bỏ thành phần (Ablation Study) cho hệ thống gợi ý.
 
 Mục tiêu:
-Đánh giá đóng góp của từng thành phần gợi ý (M1 kỹ năng, M2 học lực, M3 lĩnh vực,
+Đánh giá đóng góp của từng thành phần gợi ý (M1 kỹ năng, M3 lĩnh vực,
 M4 ngữ nghĩa, M5 LLM) trên tập dữ liệu mô phỏng có nhãn giả.
 
 Nhãn giả (Pseudo Ground Truth):
@@ -15,7 +15,6 @@ nhãn thật trong thực tế được thu thập từ khảo sát và phản h
 Các cấu hình đánh giá:
 1. Đủ M1–M5 (Full model): w = (0.25, 0.20, 0.15, 0.20, 0.20)
 2. Bỏ M1 (No skill): w1 = 0
-3. Bỏ M2 (No academic): w2 = 0
 4. Bỏ M3 (No field): w3 = 0
 5. Bỏ M4 (No semantic): w4 = 0
 6. Bỏ M5 (No LLM): w5 = 0
@@ -54,7 +53,6 @@ from recommend.engine import (  # noqa: E402
     SemanticModel,
     eligible,
     m1_skill,
-    m2_academic,
     m3_field,
     m4_semantic,
 )
@@ -64,13 +62,12 @@ from recommend.models import LLMScore  # noqa: E402
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 DEFAULT_CONFIGS = [
-    ("Đủ M1–M5", {"skill": 0.25, "academic": 0.20, "field": 0.15, "semantic": 0.20, "llm": 0.20}),
-    ("Bỏ M1 (Kỹ năng)", {"skill": 0.0, "academic": 0.20, "field": 0.15, "semantic": 0.20, "llm": 0.20}),
-    ("Bỏ M2 (Học lực)", {"skill": 0.25, "academic": 0.0, "field": 0.15, "semantic": 0.20, "llm": 0.20}),
-    ("Bỏ M3 (Lĩnh vực)", {"skill": 0.25, "academic": 0.20, "field": 0.0, "semantic": 0.20, "llm": 0.20}),
-    ("Bỏ M4 (Embedding)", {"skill": 0.25, "academic": 0.20, "field": 0.15, "semantic": 0.0, "llm": 0.20}),
-    ("Bỏ M5 (LLM)", {"skill": 0.25, "academic": 0.20, "field": 0.15, "semantic": 0.20, "llm": 0.0}),
-    ("Trọng số đều", {"skill": 0.20, "academic": 0.20, "field": 0.20, "semantic": 0.20, "llm": 0.20}),
+    ("Đủ M1,M3,M4,M5", {"skill": 0.42, "field": 0.12, "semantic": 0.23, "llm": 0.23}),
+    ("Bỏ M1 (Kỹ năng)", {"skill": 0.0, "field": 0.12, "semantic": 0.23, "llm": 0.23}),
+    ("Bỏ M3 (Lĩnh vực)", {"skill": 0.42, "field": 0.0, "semantic": 0.23, "llm": 0.23}),
+    ("Bỏ M4 (Embedding)", {"skill": 0.42, "field": 0.12, "semantic": 0.0, "llm": 0.23}),
+    ("Bỏ M5 (LLM)", {"skill": 0.42, "field": 0.12, "semantic": 0.23, "llm": 0.0}),
+    ("Trọng số đều", {"skill": 0.25, "field": 0.25, "semantic": 0.25, "llm": 0.25}),
 ]
 
 
@@ -133,7 +130,6 @@ def compute_student_candidate_scores(
         if not is_ok:
             continue
         s1, _ = m1_skill(profile, topic)
-        s2 = m2_academic(profile, topic)
         s3 = m3_field(profile, topic)
         s4 = m4_semantic(student_vec, topic_vecs[idx]) if student_vec is not None else 0.0
         s5 = None  # M5 điền sau, chỉ cho Top-K giống hệ thống thật
@@ -145,7 +141,7 @@ def compute_student_candidate_scores(
         candidate_records.append(
             {
                 "topic_id": topic.id,
-                "scores": {"skill": s1, "academic": s2, "field": s3, "semantic": s4, "llm": s5},
+                "scores": {"skill": s1, "field": s3, "semantic": s4, "llm": s5},
                 "tfidf": s_tfidf,
                 "embedding": s4,
             }

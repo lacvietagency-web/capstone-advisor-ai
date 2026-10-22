@@ -44,7 +44,6 @@ from recommend.engine import (
     get_active_weights,
     get_active_weights_version,
     m1_skill,
-    m2_academic,
     m3_field,
     score_student,
 )
@@ -78,9 +77,6 @@ class EngineTests(TestCase):
         self.assertAlmostEqual(score, 75.0)  # (1 + 0.5) / 2
         self.assertEqual(missing, ["SQL"])
 
-    def test_m2_academic(self):
-        self.assertAlmostEqual(m2_academic(Profile(self.st), self.t), 100 * (0.4 * 3.2 / 4 + 0.6 * 8 / 10))  # 80.0
-
     def test_m3_field(self):
         self.assertAlmostEqual(m3_field(Profile(self.st), self.t), 100.0)  # SV quan tâm Web mức 3/3
 
@@ -99,18 +95,17 @@ class AHPTests(TestCase):
     """Kiểm thử đặc tả AHP: tính trọng số, kiểm tra tính nhất quán, model WeightSet và lệnh ahp_weights."""
 
     def setUp(self):
-        # Ma trận nhất quán hoàn hảo từ tỉ lệ mong đợi [0.25, 0.20, 0.15, 0.20, 0.20]
+        # Ma trận nhất quán hoàn hảo từ tỉ lệ mong đợi 4 tiêu chí [0.42, 0.12, 0.23, 0.23]
         # a_ij = w_i / w_j
-        self.target_weights = [0.25, 0.20, 0.15, 0.20, 0.20]
+        self.target_weights = [0.42, 0.12, 0.23, 0.23]
         self.perfect_matrix = [[w_i / w_j for w_j in self.target_weights] for w_i in self.target_weights]
 
         # Ma trận thiếu nhất quán với các so sánh mâu thuẫn (CR >= 0.1)
         self.inconsistent_matrix = [
-            [1.0, 5.0, 1.0 / 5.0, 7.0, 1.0 / 3.0],
-            [1.0 / 5.0, 1.0, 4.0, 1.0 / 6.0, 3.0],
-            [5.0, 1.0 / 4.0, 1.0, 1.0 / 2.0, 6.0],
-            [1.0 / 7.0, 6.0, 2.0, 1.0, 1.0 / 4.0],
-            [3.0, 1.0 / 3.0, 1.0 / 6.0, 4.0, 1.0],
+            [1.0, 5.0, 1.0 / 5.0, 7.0],
+            [1.0 / 5.0, 1.0, 4.0, 1.0 / 6.0],
+            [5.0, 1.0 / 4.0, 1.0, 1.0 / 2.0],
+            [1.0 / 7.0, 6.0, 2.0, 1.0],
         ]
 
     def test_perfect_consistency_eigen_method(self):
@@ -118,7 +113,7 @@ class AHPTests(TestCase):
         result = calculate_ahp(self.perfect_matrix)
         self.assertLess(result.cr, 1e-4)
         self.assertTrue(result.is_consistent)
-        self.assertAlmostEqual(result.lambda_max, 5.0, places=4)
+        self.assertAlmostEqual(result.lambda_max, 4.0, places=4)
         self.assertAlmostEqual(result.ci, 0.0, places=4)
 
         for criterion, expected_w in zip(CRITERIA, self.target_weights, strict=True):
@@ -132,7 +127,7 @@ class AHPTests(TestCase):
         result = calculate_ahp_geometric(self.perfect_matrix)
         self.assertLess(result.cr, 1e-4)
         self.assertTrue(result.is_consistent)
-        self.assertAlmostEqual(result.lambda_max, 5.0, places=4)
+        self.assertAlmostEqual(result.lambda_max, 4.0, places=4)
 
         for criterion, expected_w in zip(CRITERIA, self.target_weights, strict=True):
             self.assertAlmostEqual(result.weights[criterion], expected_w, places=4)
@@ -194,7 +189,7 @@ class AHPTests(TestCase):
         ws = WeightSet.objects.get(name="Chuyên gia mẫu v1")
         self.assertTrue(ws.is_active)
         self.assertLess(ws.cr, 0.1)
-        self.assertEqual(len(ws.weights), 5)
+        self.assertEqual(len(ws.weights), 4)
         for c in CRITERIA:
             self.assertIn(c, ws.weights)
 
@@ -214,7 +209,7 @@ class AHPTests(TestCase):
         self.assertEqual(get_active_weights(), DEFAULT_WEIGHTS)
         self.assertEqual(get_active_weights_version(), "expert-v0")
 
-        custom_w = {"skill": 0.40, "academic": 0.20, "field": 0.20, "semantic": 0.10, "llm": 0.10}
+        custom_w = {"skill": 0.40, "field": 0.30, "semantic": 0.15, "llm": 0.15}
         WeightSet.objects.create(name="Tùy biến Khoa", weights=custom_w, matrix=[], cr=0.01, is_active=True)
 
         self.assertEqual(get_active_weights(), custom_w)

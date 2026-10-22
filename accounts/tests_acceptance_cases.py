@@ -263,7 +263,7 @@ class AcceptanceCases(TestCase):
         self.assertEqual(self.client.get("/quan-tri/catalog/auditlog/").status_code, 302)
 
     def test_uc23_activate_weight_set_from_admin_keeps_one_active(self):
-        w = {"skill": 0.4, "academic": 0.2, "field": 0.2, "semantic": 0.1, "llm": 0.1}
+        w = {"skill": 0.42, "field": 0.12, "semantic": 0.23, "llm": 0.23}
         a = WeightSet.objects.create(name="A", weights=w, matrix=[[1] * 5] * 5, cr=0.0, is_active=True)
         b = WeightSet.objects.create(name="B", weights=w, matrix=[[1] * 5] * 5, cr=0.05)
         self.login("khoa01")

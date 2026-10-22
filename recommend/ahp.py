@@ -1,7 +1,7 @@
 """Mô-đun tính toán trọng số theo phương pháp Phân tích Thứ bậc (AHP - Analytic Hierarchy Process).
 
 Phương pháp AHP của Thomas L. Saaty (1980):
-1. Nhận ma trận so sánh cặp A kích thước n×n (n=5 tương ứng với 5 tiêu chí: skill, academic, field, semantic, llm)
+1. Nhận ma trận so sánh cặp A kích thước n×n (n=4: skill, field, semantic, llm — bỏ M2 học lực theo GVHD)
    trên thang điểm Saaty 1–9, thoả mãn tính nghịch đảo a_ij = 1 / a_ji và a_ii = 1.
 2. Xác định vector trọng số w:
    - Phương pháp trị riêng chính (Principal Eigenvector):
@@ -15,7 +15,7 @@ Phương pháp AHP của Thomas L. Saaty (1980):
    CI = (λ_max - n) / (n - 1)
 4. Tính tỷ số nhất quán (Consistency Ratio - CR):
    CR = CI / RI
-   Với n = 5, chỉ số ngẫu nhiên chuẩn RI = 1.12.
+   Với n = 4, chỉ số ngẫu nhiên chuẩn RI = 0.90.
 5. Kiểm tra tính nhất quán:
    Nếu CR < 0.1: ma trận đạt độ nhất quán tin cậy.
    Nếu CR >= 0.1: ma trận thiếu nhất quán, bị từ chối.
@@ -26,8 +26,8 @@ from typing import NamedTuple
 
 import numpy as np
 
-# 5 tiêu chí đánh giá đề tài tốt nghiệp
-CRITERIA = ("skill", "academic", "field", "semantic", "llm")
+# 4 tiêu chí đánh giá đề tài tốt nghiệp (M1 kỹ năng, M3 lĩnh vực, M4 ngữ nghĩa, M5 LLM)
+CRITERIA = ("skill", "field", "semantic", "llm")
 
 # Chỉ số ngẫu nhiên RI (Random Index) theo Saaty cho kích thước ma trận n = 1..10
 RI_TABLE = {
@@ -82,10 +82,10 @@ def parse_matrix(data) -> np.ndarray:
     return np.array(raw_list, dtype=float)
 
 
-def validate_matrix(matrix: np.ndarray, expected_n: int = 5) -> None:
+def validate_matrix(matrix: np.ndarray, expected_n: int = 4) -> None:
     """Kiểm tra tính hợp lệ của ma trận so sánh cặp n×n:
 
-    - Đúng kích thước expected_n × expected_n (mặc định 5x5).
+    - Đúng kích thước expected_n × expected_n (mặc định 4x4).
     - Mọi phần tử đều mang giá trị dương (> 0).
     - Đường chéo chính đều bằng 1.0 (a_ii = 1).
     - Tính nghịch đảo a_ij · a_ji = 1.
@@ -109,7 +109,7 @@ def calculate_ahp(matrix, criteria: tuple[str, ...] = CRITERIA, raise_on_inconsi
     Công thức:
         A * w = λ_max * w  (w > 0, ∑ w_i = 1)
         CI = (λ_max - n) / (n - 1)
-        CR = CI / RI  (với n=5 thì RI=1.12)
+        CR = CI / RI  (với n=4 thì RI=0.90)
 
     Nếu raise_on_inconsistent=True và CR >= 0.1, hàm sẽ ném ngoại lệ ValueError.
     """

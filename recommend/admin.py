@@ -10,15 +10,12 @@ class WeightSetAdmin(admin.ModelAdmin):
     search_fields = ("name",)
     actions = ["activate_weight_set"]
 
-    @admin.display(description="Trọng số (skill / acad / field / sem / llm)")
+    @admin.display(description="Trọng số (skill / field / sem / llm)")
     def weights_summary(self, obj):
         if not obj.weights:
             return "-"
         w = obj.weights
-        return (
-            f"{w.get('skill', 0):.2f} / {w.get('academic', 0):.2f} / "
-            f"{w.get('field', 0):.2f} / {w.get('semantic', 0):.2f} / {w.get('llm', 0):.2f}"
-        )
+        return f"{w.get('skill', 0):.2f} / {w.get('field', 0):.2f} / {w.get('semantic', 0):.2f} / {w.get('llm', 0):.2f}"
 
     @admin.action(description="Chọn làm bộ trọng số đang dùng")
     def activate_weight_set(self, request, queryset):
@@ -40,7 +37,6 @@ class RecommendationAdmin(admin.ModelAdmin):
         "topic",
         "final_score",
         "m1_skill",
-        "m2_academic",
         "m3_field",
         "m4_semantic",
         "m5_llm",

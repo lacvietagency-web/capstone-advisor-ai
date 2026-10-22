@@ -149,10 +149,9 @@ class LLMScoringTests(TestCase):
             # m5 phải là None vì JSON lỗi
             self.assertIsNone(c.scores["llm"])
 
-            # Điểm cuối phải bằng tổng có trọng số chia lại cho (w_skill + w_academic + w_field)
+            # Điểm cuối phải bằng tổng có trọng số chia lại cho (w_skill + w_field)
             w = {
                 "skill": DEFAULT_WEIGHTS["skill"],
-                "academic": DEFAULT_WEIGHTS["academic"],
                 "field": DEFAULT_WEIGHTS["field"],
             }
             expected_total_w = sum(w.values())
@@ -233,7 +232,7 @@ class LLMScoringTests(TestCase):
         """Kiểm tra: format lý do hiển thị = lý do LLM + 'Cần bổ sung: …' từ M1."""
         c1 = Candidate(
             self.t1,
-            scores={"skill": 60, "academic": 75, "field": 50, "llm": 80},
+            scores={"skill": 60, "field": 50, "llm": 80},
             reasons=["Cần bổ sung: Python"],
             llm_reason="Đề tài phù hợp với định hướng làm việc trong ngành phần mềm.",
         )
@@ -245,7 +244,7 @@ class LLMScoringTests(TestCase):
 
         c2 = Candidate(
             self.t1,
-            scores={"skill": 90, "academic": 85, "field": 70, "llm": 90},
+            scores={"skill": 90, "field": 70, "llm": 90},
             reasons=[],
             llm_reason="Bạn có nền tảng rất vững chắc cho đề tài này.",
         )
@@ -255,7 +254,7 @@ class LLMScoringTests(TestCase):
         # Khi không có LLM reason, dùng mẫu câu heuristic
         c3 = Candidate(
             self.t1,
-            scores={"skill": 85, "academic": 75, "field": 60, "semantic": 40},
+            scores={"skill": 85, "field": 60, "semantic": 40},
             reasons=["Cần bổ sung: Docker"],
             llm_reason="",
         )

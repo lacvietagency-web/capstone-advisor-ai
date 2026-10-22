@@ -299,18 +299,11 @@
                       <span class="pg-11-m-weight">{{ ahp.criteria.0.ratio|floatformat:2 }}</span>
                     </li>
                     <li>
-                      <span class="pg-11-m-code">M2</span>
-                      <span class="pg-11-m-name">Học lực</span>
-                      <span class="pg-11-m-track"><span style="--v:{{ recommendation.m2_academic|floatformat:0 }}%;"></span></span>
-                      <span class="pg-11-m-val">{{ recommendation.m2_academic|floatformat:0 }}</span>
-                      <span class="pg-11-m-weight">{{ ahp.criteria.1.ratio|floatformat:2 }}</span>
-                    </li>
-                    <li>
                       <span class="pg-11-m-code">M3</span>
                       <span class="pg-11-m-name">Lĩnh vực</span>
                       <span class="pg-11-m-track"><span style="--v:{{ recommendation.m3_field|floatformat:0 }}%;"></span></span>
                       <span class="pg-11-m-val">{{ recommendation.m3_field|floatformat:0 }}</span>
-                      <span class="pg-11-m-weight">{{ ahp.criteria.2.ratio|floatformat:2 }}</span>
+                      <span class="pg-11-m-weight">{{ ahp.criteria.1.ratio|floatformat:2 }}</span>
                     </li>
                     <li>
                       <span class="pg-11-m-code">M4</span>
@@ -322,7 +315,7 @@
                         <span class="pg-11-m-track pg-11-m-track--empty"></span>
                         <span class="pg-11-m-val pg-11-m-val--none">Chưa đánh giá</span>
                       {% endif %}
-                      <span class="pg-11-m-weight">{{ ahp.criteria.3.ratio|floatformat:2 }}</span>
+                      <span class="pg-11-m-weight">{{ ahp.criteria.2.ratio|floatformat:2 }}</span>
                     </li>
                     <li>
                       <span class="pg-11-m-code">M5</span>
@@ -334,7 +327,7 @@
                         <span class="pg-11-m-track pg-11-m-track--empty"></span>
                         <span class="pg-11-m-val pg-11-m-val--none">Chưa đánh giá</span>
                       {% endif %}
-                      <span class="pg-11-m-weight">{{ ahp.criteria.4.ratio|floatformat:2 }}</span>
+                      <span class="pg-11-m-weight">{{ ahp.criteria.3.ratio|floatformat:2 }}</span>
                     </li>
                   </ul>
                 </div>

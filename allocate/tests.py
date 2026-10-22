@@ -617,7 +617,6 @@ class StudentAllocationResultTests(TestCase):
             topic=self.topic,
             final_score=83.5,
             m1_skill=80,
-            m2_academic=85,
             m3_field=90,
         )
 

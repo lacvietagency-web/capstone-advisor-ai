@@ -24,7 +24,7 @@ from .forms import (
     TopicPrerequisiteFormSet,
     TopicSkillFormSet,
 )
-from .models import AuditLog, Field, Lecturer, Preference, RegistrationPeriod, Student, Topic
+from .models import ArchivedTopic, AuditLog, Field, Lecturer, Preference, RegistrationPeriod, Student, Topic
 from .services import (
     annotate_topics_nv1,
     check_topic_view_permission,
@@ -40,6 +40,7 @@ from .services import (
     remaining_capacity,
     save_lecturer_profile,
 )
+from .similarity import duplicate_pairs, improvement_advice, similar_archived, similar_open_topics
 
 
 def _student(request):
@@ -292,11 +293,29 @@ def lecturer_topic_edit(request, pk=None):
             Recommendation.objects.all().delete()
         messages.success(request, "Đã lưu đề tài.")
         return redirect("lecturer_topics")
+    dup, archive = _topic_advisory(topic) if topic.pk else (None, None)
     return render(
         request,
         "catalog/lecturer_topic_form.html",
-        {"form": form, "skill_formset": skills, "prereq_formset": prereqs, "topic": topic},
+        {
+            "form": form,
+            "skill_formset": skills,
+            "prereq_formset": prereqs,
+            "topic": topic,
+            "similar_topics": dup,
+            "archive_advice": archive,
+        },
     )
+
+
+def _topic_advisory(topic):
+    """(danh sách đề tài đang mở gần trùng, tư vấn cải tiến so với khoá trước) — rỗng khi tắt mô hình ngữ nghĩa."""
+    if not getattr(settings, "RECOMMEND_SEMANTIC", True):
+        return [], None
+    others = Topic.objects.filter(status=Topic.Status.OPEN).exclude(pk=topic.pk).select_related("lecturer__user")
+    dup = similar_open_topics(topic, others)
+    archive = improvement_advice(topic, similar_archived(topic, ArchivedTopic.objects.all()))
+    return dup, archive
 
 
 def _review_blocked(pref, topic, new_status):
@@ -816,3 +835,23 @@ def lecturer_load_stats(lecturer):
         "n_guided": len(accepted | official),
         "field_stats": list(fields),
     }
+
+
+@login_required
+def faculty_duplicates(request):
+    """Khoa rà soát đề tài trùng/gần trùng toàn khoa (UC16) — mỗi cặp kèm độ giống để gộp hoặc yêu cầu đổi hướng."""
+    if not (getattr(request.user, "is_faculty_admin", False) or request.user.is_superuser):
+        raise PermissionDenied("Chỉ tài khoản Khoa mới xem được trang này.")
+    topics = list(
+        Topic.objects.filter(status=Topic.Status.OPEN).select_related("lecturer__user").prefetch_related("fields")
+    )
+    if getattr(settings, "RECOMMEND_SEMANTIC", True):
+        pairs = duplicate_pairs(topics)
+        enabled = True
+    else:
+        pairs, enabled = [], False
+    return render(
+        request,
+        "catalog/faculty_duplicates.html",
+        {"pairs": pairs, "enabled": enabled, "n_topics": len(topics), "nav": "faculty_duplicates"},
+    )

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Rà soát đề tài trùng — Capstone AI{% endblock %}
+{% block content %}
+<header class="at-page-header">
+  <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí"><a href="{% url 'home' %}">Trang chủ</a><span>Rà soát trùng lặp</span></nav>
+    <h1>Rà soát đề tài trùng/gần trùng</h1>
+    <p class="at-page-desc">Hệ thống đo độ giống ngữ nghĩa giữa {{ n_topics }} đề tài đang mở. Mỗi cặp bên dưới có nội dung gần nhau — Khoa cân nhắc gộp hoặc yêu cầu một bên đổi hướng.</p>
+  </div>
+</header>
+
+{% if not enabled %}
+  <div class="at-note at-note--neutral">{% include "components/icon.html" with name="info" %}<div><div class="at-pre">Tính năng so khớp ngữ nghĩa đang tắt (RECOMMEND_SEMANTIC=0).</div></div></div>
+{% elif pairs %}
+  <div class="at-table-wrap">
+    <table class="at-table">
+      <thead><tr><th>Đề tài A</th><th>Đề tài B</th><th class="at-num">Độ giống</th></tr></thead>
+      <tbody>
+        {% for a, b, score in pairs %}
+          <tr>
+            <td><a href="{% url 'topic_detail' a.pk %}">{{ a.title }}</a><br><span class="at-secondary">{{ a.lecturer.user.get_full_name }}</span></td>
+            <td><a href="{% url 'topic_detail' b.pk %}">{{ b.title }}</a><br><span class="at-secondary">{{ b.lecturer.user.get_full_name }}</span></td>
+            <td class="at-num"><strong>{% widthratio score 1 100 %}%</strong></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="at-note at-note--success">{% include "components/icon.html" with name="circle-check-big" %}<div><div class="at-note-title">Không có đề tài trùng</div><div class="at-pre">Các đề tài đang mở đủ khác biệt về nội dung.</div></div></div>
+{% endif %}
+{% endblock %}

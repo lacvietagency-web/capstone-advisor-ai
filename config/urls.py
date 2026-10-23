@@ -58,6 +58,7 @@ urlpatterns = [
     path("khoa/nhap-excel/", cv.faculty_import, name="faculty_import"),
     path("khoa/nhap-excel/mau.xlsx", cv.faculty_import_sample, name="faculty_import_sample"),
     path("khoa/thong-ke/", rv.faculty_statistics, name="faculty_statistics"),
+    path("khoa/ra-soat-trung-lap/", cv.faculty_duplicates, name="faculty_duplicates"),
     path("ho-so-giang-vien/", cv.lecturer_profile, name="lecturer_profile"),
     path("ho-so-giang-vien/<int:pk>/", cv.lecturer_profile, name="lecturer_profile_detail"),
     path("danh-sach-de-tai/", cv.topic_list, name="topic_list"),

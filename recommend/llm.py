@@ -360,6 +360,33 @@ def process_llm_items(
     return valid_scores, invalid_topic_ids
 
 
+def advise_text(system_prompt: str, user_prompt: str, provider: str = "", model: str = "") -> str | None:
+    """Gọi LLM sinh văn bản tư vấn tự do. Trả None khi tắt LLM hoặc lỗi (bên gọi tự có bản thay thế)."""
+    if not getattr(settings, "RECOMMEND_LLM", True):
+        return None
+    provider = (provider or getattr(settings, "LLM_PROVIDER", "groq")).lower()
+    model = model or getattr(settings, "LLM_MODEL", "openai/gpt-oss-120b")
+    api_key = getattr(settings, "LLM_API_KEY", "")
+    try:
+        url = get_endpoint_url(provider)
+        headers = get_request_headers(provider, api_key)
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            "temperature": 0,
+        }
+        req = urllib.request.Request(url=url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=getattr(settings, "LLM_TIMEOUT", 30)) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        text = data["choices"][0]["message"]["content"].strip()
+        return text or None
+    except Exception:
+        return None
+
+
 def batch_score_llm(
     student: Student,
     topics: list[Topic],

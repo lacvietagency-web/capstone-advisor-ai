@@ -14,6 +14,7 @@ from django.urls import path, reverse
 
 from .importer import create_sample_excel, import_excel_data
 from .models import (
+    ArchivedTopic,
     AuditLog,
     Course,
     Field,
@@ -124,6 +125,13 @@ class ExcelImportAdminMixin:
 
 for model in (Major, Field, Course):
     admin.site.register(model)
+
+
+@admin.register(ArchivedTopic)
+class ArchivedTopicAdmin(admin.ModelAdmin):
+    list_display = ("title", "year", "lecturer_name", "technologies")
+    list_filter = ("year",)
+    search_fields = ("title", "description")
 
 
 @admin.register(Skill)

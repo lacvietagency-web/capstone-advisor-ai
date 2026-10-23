@@ -126,6 +126,7 @@
         <a href="{% url 'home' %}" class="{% if nav == 'home' %}active{% endif %}">{% include "components/icon.html" with name="layout-dashboard" size=22 %}Tổng quan</a>
         <a href="{% url 'allocation_dashboard' %}" class="{% if nav == 'allocation_dashboard' %}active{% endif %}">{% include "components/icon.html" with name="route" size=22 %}Phân công</a>
         <a href="{% url 'faculty_statistics' %}" class="{% if nav == 'faculty_statistics' %}active{% endif %}">{% include "components/icon.html" with name="chart-line" size=22 %}Thống kê</a>
+        <a href="{% url 'faculty_duplicates' %}" class="{% if nav == 'faculty_duplicates' %}active{% endif %}">{% include "components/icon.html" with name="git-compare" size=22 %}Rà soát trùng</a>
         <button type="button" data-bs-toggle="offcanvas" data-bs-target="#atNavDrawer" aria-controls="atNavDrawer">{% include "components/icon.html" with name="layers-3" size=22 %}Thêm</button>
       {% endif %}
     </nav>

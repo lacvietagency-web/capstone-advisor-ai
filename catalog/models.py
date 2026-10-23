@@ -283,6 +283,24 @@ class Preference(models.Model):
         return f"{self.student} · NV{self.rank}: {self.topic}"
 
 
+class ArchivedTopic(models.Model):
+    """Đề tài các khoá trước — dùng để phát hiện đề tài mới trùng/giống và tư vấn hướng cải tiến."""
+
+    title = models.CharField("Tên đề tài", max_length=255)
+    description = models.TextField("Mô tả")
+    technologies = models.CharField("Công nghệ đã dùng", max_length=255, blank=True)
+    year = models.PositiveIntegerField("Năm học")
+    lecturer_name = models.CharField("Giảng viên hướng dẫn", max_length=120, blank=True)
+    result_note = models.CharField("Kết quả/ghi chú", max_length=255, blank=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = "Đề tài khoá trước"
+        ordering = ["-year", "title"]
+
+    def __str__(self):
+        return f"{self.title} ({self.year})"
+
+
 class AuditLog(models.Model):
     """Nhật ký: ai sửa gì, lúc nào — để Khoa truy vết khi có khiếu nại."""
 

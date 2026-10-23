@@ -17,6 +17,7 @@ from django.utils import timezone
 
 from accounts.models import User
 from catalog.models import (
+    ArchivedTopic,
     Course,
     Field,
     Lecturer,
@@ -184,6 +185,7 @@ class Command(BaseCommand):
         )
         for i in range(1, o["students"] + 1):
             self._student(i, topics, hotness, period)
+        self._seed_duplicate_and_archive(topics, lecturers)
         top = sorted(((Preference.objects.filter(topic=t, rank=1).count(), t.title) for t in topics), reverse=True)[:5]
         self.stdout.write(
             self.style.SUCCESS(
@@ -239,6 +241,67 @@ class Command(BaseCommand):
         while Topic.objects.filter(title=candidate).exists():
             candidate, k = f"{title} — hướng {skill}, nhóm {k}", k + 1
         return candidate
+
+    def _seed_duplicate_and_archive(self, topics, lecturers):
+        """Dữ liệu minh hoạ cho tính năng phát hiện trùng: 1 đề tài gần trùng đề tài đang có + vài đề tài khoá trước."""
+        if topics:
+            base = topics[0]
+            other = next((lc for lc in lecturers if lc.pk != base.lecturer.pk), base.lecturer)
+            dup = Topic.objects.create(
+                lecturer=other,
+                title=self._unique_title(base.title, "biến thể"),
+                difficulty=base.difficulty,
+                description=base.description + " (hướng tiếp cận tương tự).",
+                min_gpa=base.min_gpa,
+                capacity=1,
+            )
+            dup.fields.set(base.fields.all())
+            fill_topic_details(dup)
+            # đề tài khoá trước sao từ base → tính năng "giống đề tài khoá trước" luôn có ví dụ minh hoạ
+            ArchivedTopic.objects.create(
+                title=base.title,
+                description=base.description,
+                technologies=base.technologies or "",
+                year=2024,
+                lecturer_name="ThS. Khoá trước",
+                result_note="Đã bảo vệ",
+            )
+        ArchivedTopic.objects.bulk_create(
+            [
+                ArchivedTopic(
+                    title="Website thương mại điện tử bán sách trực tuyến",
+                    description="Xây dựng website thương mại điện tử bán sách, giỏ hàng và thanh toán cơ bản.",
+                    technologies="PHP, MySQL",
+                    year=2023,
+                    lecturer_name="ThS. Nguyễn Văn A",
+                    result_note="Khá",
+                ),
+                ArchivedTopic(
+                    title="Chatbot hỗ trợ tư vấn tuyển sinh ứng dụng LLM",
+                    description="Chatbot trả lời câu hỏi tuyển sinh dựa trên FAQ và mô hình ngôn ngữ.",
+                    technologies="Python, Rasa",
+                    year=2024,
+                    lecturer_name="ThS. Trần Thị B",
+                    result_note="Giỏi",
+                ),
+                ArchivedTopic(
+                    title="Hệ thống gợi ý phim bằng học máy",
+                    description="Gợi ý phim theo lịch sử xem bằng lọc cộng tác và nội dung.",
+                    technologies="Python, scikit-learn",
+                    year=2023,
+                    lecturer_name="ThS. Lê Văn C",
+                    result_note="Khá",
+                ),
+                ArchivedTopic(
+                    title="Ứng dụng di động quản lý chi tiêu cá nhân",
+                    description="Ứng dụng di động ghi chép và thống kê chi tiêu cá nhân theo tháng.",
+                    technologies="Java, SQLite",
+                    year=2024,
+                    lecturer_name="ThS. Phạm Thị D",
+                    result_note="Trung bình",
+                ),
+            ]
+        )
 
     def _topic(self, i, lec):
         rnd = self.rnd

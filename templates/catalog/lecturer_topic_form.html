@@ -22,6 +22,34 @@
   {% if current_period %}
     {% include "components/period.html" with period=current_period text="Giảng viên có thể thêm mới hoặc chỉnh sửa đề tài trong thời gian đăng ký. Thông tin sẽ được công bố đến sinh viên sau khi lưu và ở trạng thái mở." %}
   {% endif %}
+  {% if similar_topics %}
+    <div class="at-banner at-banner--warning" role="status">
+      {% include "components/icon.html" with name="triangle-alert" %}
+      <div>
+        <div class="at-banner-title">Đề tài này gần giống {{ similar_topics|length }} đề tài đang có</div>
+        <ul>
+          {% for t, score in similar_topics %}
+            <li><a href="{% url 'topic_detail' t.pk %}">{{ t.title }}</a> — GVHD {{ t.lecturer.user.get_full_name }} · giống {% widthratio score 1 100 %}%</li>
+          {% endfor %}
+        </ul>
+        <p class="at-secondary">Gợi ý: điều chỉnh phạm vi, công nghệ hoặc mục tiêu để đề tài khác biệt rõ, tránh trùng với đồng nghiệp.</p>
+      </div>
+    </div>
+  {% endif %}
+  {% if archive_advice %}
+    <div class="at-note at-note--neutral">
+      {% include "components/icon.html" with name="book-open" %}
+      <div>
+        <div class="at-note-title">Giống đề tài khoá trước ({% widthratio archive_advice.score 1 100 %}%): {{ archive_advice.match.title }} ({{ archive_advice.match.year }})</div>
+        {% if archive_advice.llm %}
+          <div class="at-pre">{{ archive_advice.llm }}</div>
+        {% else %}
+          <p class="at-secondary">Gợi ý hướng cải tiến so với đề tài đã làm:</p>
+          <ul>{% for p in archive_advice.points %}<li>{{ p }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
 
   {% if form.non_field_errors %}
     <div class="at-banner at-banner--danger" role="alert">

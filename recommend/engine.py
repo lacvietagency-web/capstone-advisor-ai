@@ -250,6 +250,17 @@ class SemanticModel:
     def encode(cls, texts):
         return cls.model().encode(list(texts), normalize_embeddings=True, show_progress_bar=False)
 
+    _text_vecs: dict = {}
+
+    @classmethod
+    def text_vectors(cls, items):
+        """items = [(khoá, câu)]; trả vector 384 chiều đã chuẩn hoá, nhớ theo khoá (dùng cho đề tài khoá trước)."""
+        todo = [(k, t) for k, t in items if k not in cls._text_vecs]
+        if todo:
+            for (k, _), v in zip(todo, cls.encode(t for _, t in todo), strict=True):
+                cls._text_vecs[k] = v
+        return [cls._text_vecs[k] for k, _ in items]
+
     @classmethod
     def topic_vectors(cls, topics):
         todo = [t for t in topics if (t.id, t.version) not in cls._topic_vecs]

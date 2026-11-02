@@ -28,20 +28,6 @@ urlpatterns = [
         ),
         name="password_change_done",
     ),
-    path(
-        "doi-mat-khau/",
-        auth_views.PasswordChangeView.as_view(
-            template_name="registration/password_change_form.html",
-        ),
-        name="doi_mat_khau",
-    ),
-    path(
-        "doi-mat-khau/xong/",
-        auth_views.PasswordChangeDoneView.as_view(
-            template_name="registration/password_change_done.html",
-        ),
-        name="doi_mat_khau_done",
-    ),
     path("ho-so/", cv.student_profile, name="student_profile"),
     path("nguyen-vong/", cv.student_preferences, name="student_preferences"),
     path("ket-qua/", av.student_allocation_result, name="student_allocation_result"),

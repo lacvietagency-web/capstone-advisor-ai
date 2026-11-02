@@ -283,9 +283,8 @@ def compute_stage1_candidates(
     top_k: int = 15,
     semantic: bool = True,
 ) -> list[Candidate]:
-    """Giai đoạn 1: Lọc cứng (BR1) và tính điểm M1-M4 để chọn ra Top-K ứng viên (mặc định 15 đề tài).
+    """Giai đoạn 1: Lọc cứng (BR1) và tính điểm M1, M3, M4 để chọn ra Top-K ứng viên (mặc định 15 đề tài).
     - M1: Khớp kỹ năng (0..100)
-    - M2: Học lực và môn liên quan (0..100)
     - M3: Khớp lĩnh vực quan tâm (0..100)
     - M4: Độ gần nghĩa ngữ nghĩa qua embedding MiniLM (0..100, nếu semantic=True)
     """

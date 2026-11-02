@@ -4,6 +4,7 @@ Dùng mô hình ngữ nghĩa GIẢ (bag-of-words chuẩn hoá) để chạy nhan
 hai câu cùng từ → cosine 1, không chung từ → 0. Nhờ đó kiểm được logic ngưỡng và xếp hạng.
 """
 
+import io
 import re
 
 import numpy as np
@@ -94,3 +95,15 @@ class DuplicatesViewTests(TestCase):
         r = self.client.get("/khoa/ra-soat-trung-lap/")
         self.assertEqual(r.status_code, 200)
         self.assertFalse(r.context["enabled"])  # SEMANTIC tắt → không tải mô hình
+
+    def test_them_de_tai_khoa_truoc_idempotent(self):
+        from django.core.management import call_command
+
+        ArchivedTopic.objects.all().delete()
+        t = Topic.objects.first()
+        call_command("them_de_tai_khoa_truoc", tu_de_tai=t.pk, stdout=io.StringIO())
+        n = ArchivedTopic.objects.count()
+        self.assertEqual(n, 5)
+        call_command("them_de_tai_khoa_truoc", tu_de_tai=t.pk, stdout=io.StringIO())  # chạy lại: không trùng
+        self.assertEqual(ArchivedTopic.objects.count(), n)
+        self.assertTrue(ArchivedTopic.objects.filter(title=t.title, year=2024).exists())

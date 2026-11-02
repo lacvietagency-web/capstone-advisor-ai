@@ -142,6 +142,43 @@ BUSINESS_MODELS = (
 )
 
 
+# Đề tài khoá trước mẫu — dùng chung cho seed_demo và lệnh them_de_tai_khoa_truoc
+ARCHIVE_SAMPLES = [
+    dict(
+        title="Website thương mại điện tử bán sách trực tuyến",
+        description="Xây dựng website thương mại điện tử bán sách, giỏ hàng và thanh toán cơ bản.",
+        technologies="PHP, MySQL",
+        year=2023,
+        lecturer_name="ThS. Nguyễn Văn A",
+        result_note="Khá",
+    ),
+    dict(
+        title="Chatbot hỗ trợ tư vấn tuyển sinh ứng dụng LLM",
+        description="Chatbot trả lời câu hỏi tuyển sinh dựa trên FAQ và mô hình ngôn ngữ.",
+        technologies="Python, Rasa",
+        year=2024,
+        lecturer_name="ThS. Trần Thị B",
+        result_note="Giỏi",
+    ),
+    dict(
+        title="Hệ thống gợi ý phim bằng học máy",
+        description="Gợi ý phim theo lịch sử xem bằng lọc cộng tác và nội dung.",
+        technologies="Python, scikit-learn",
+        year=2023,
+        lecturer_name="ThS. Lê Văn C",
+        result_note="Khá",
+    ),
+    dict(
+        title="Ứng dụng di động quản lý chi tiêu cá nhân",
+        description="Ứng dụng di động ghi chép và thống kê chi tiêu cá nhân theo tháng.",
+        technologies="Java, SQLite",
+        year=2024,
+        lecturer_name="ThS. Phạm Thị D",
+        result_note="Trung bình",
+    ),
+]
+
+
 class Command(BaseCommand):
     help = "Tạo dữ liệu mô phỏng (xoá dữ liệu nghiệp vụ cũ, giữ tài khoản admin)."
 
@@ -266,42 +303,7 @@ class Command(BaseCommand):
                 lecturer_name="ThS. Khoá trước",
                 result_note="Đã bảo vệ",
             )
-        ArchivedTopic.objects.bulk_create(
-            [
-                ArchivedTopic(
-                    title="Website thương mại điện tử bán sách trực tuyến",
-                    description="Xây dựng website thương mại điện tử bán sách, giỏ hàng và thanh toán cơ bản.",
-                    technologies="PHP, MySQL",
-                    year=2023,
-                    lecturer_name="ThS. Nguyễn Văn A",
-                    result_note="Khá",
-                ),
-                ArchivedTopic(
-                    title="Chatbot hỗ trợ tư vấn tuyển sinh ứng dụng LLM",
-                    description="Chatbot trả lời câu hỏi tuyển sinh dựa trên FAQ và mô hình ngôn ngữ.",
-                    technologies="Python, Rasa",
-                    year=2024,
-                    lecturer_name="ThS. Trần Thị B",
-                    result_note="Giỏi",
-                ),
-                ArchivedTopic(
-                    title="Hệ thống gợi ý phim bằng học máy",
-                    description="Gợi ý phim theo lịch sử xem bằng lọc cộng tác và nội dung.",
-                    technologies="Python, scikit-learn",
-                    year=2023,
-                    lecturer_name="ThS. Lê Văn C",
-                    result_note="Khá",
-                ),
-                ArchivedTopic(
-                    title="Ứng dụng di động quản lý chi tiêu cá nhân",
-                    description="Ứng dụng di động ghi chép và thống kê chi tiêu cá nhân theo tháng.",
-                    technologies="Java, SQLite",
-                    year=2024,
-                    lecturer_name="ThS. Phạm Thị D",
-                    result_note="Trung bình",
-                ),
-            ]
-        )
+        ArchivedTopic.objects.bulk_create([ArchivedTopic(**r) for r in ARCHIVE_SAMPLES])
 
     def _topic(self, i, lec):
         rnd = self.rnd

@@ -285,7 +285,7 @@ def student_allocation_result(request):
     """Màn hình xem kết quả phân công đồ án tốt nghiệp dành cho sinh viên (UC08).
 
     Công thức điểm tổng hợp:
-        S(s, t) = sum(w_k * M_k) theo chuẩn AHP (kỹ năng, học lực, lĩnh vực, ngữ nghĩa, AI).
+        S(s, t) = sum(w_k * M_k) theo chuẩn AHP (kỹ năng, lĩnh vực, ngữ nghĩa, AI).
     Khi đợt PUBLISHED: hiển thị đề tài được phân, GVHD, NV đạt, điểm phù hợp.
     Khi chưa công bố: hiển thị trạng thái chờ 'Hội đồng Khoa đang thẩm định phân công'.
     """

@@ -354,10 +354,9 @@ def get_student_allocation_result(student: Student, period_id: int | None = None
     """Tra cứu kết quả phân công đồ án tốt nghiệp cho sinh viên (UC08).
 
     Công thức tính điểm phù hợp tổng thể giữa sinh viên s và đề tài t:
-        S(s, t) = w_1 * M_1(s, t) + w_2 * M_2(s, t) + w_3 * M_3(s, t) + w_4 * M_4(s, t) + w_5 * M_5(s, t)
+        S(s, t) = w_1 * M_1(s, t) + w_3 * M_3(s, t) + w_4 * M_4(s, t) + w_5 * M_5(s, t)
     trong đó:
         - M_1: Điểm tương đồng kỹ năng (Skill Match)
-        - M_2: Điểm học lực & kết quả môn học (Academic Match)
         - M_3: Điểm phù hợp lĩnh vực quan tâm (Field Match)
         - M_4: Điểm tương đồng ngữ nghĩa qua TF-IDF / Embedding (Semantic Match)
         - M_5: Điểm đánh giá AI từ mô hình ngôn ngữ lớn LLM (LLM Evaluation)

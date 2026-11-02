@@ -12,7 +12,7 @@ from catalog.models import Student, Topic
 
 
 class WeightSet(models.Model):
-    """Bộ trọng số AHP cho 5 tiêu chí: kỹ năng, học lực, lĩnh vực, ngữ nghĩa, LLM.
+    """Bộ trọng số AHP cho 4 tiêu chí: kỹ năng, lĩnh vực, ngữ nghĩa, LLM (đã bỏ M2 học lực).
 
     Lưu trữ vector trọng số đã chuẩn hoá, ma trận so sánh cặp gốc và tỷ số nhất quán CR.
     Chỉ một bộ trọng số duy nhất có is_active=True tại một thời điểm để hệ thống sử dụng.
@@ -20,7 +20,10 @@ class WeightSet(models.Model):
 
     name = models.CharField("Tên bộ trọng số", max_length=100, unique=True)
     weights = models.JSONField("Trọng số (JSON)", help_text="Từ điển 4 phần tử: skill, field, semantic, llm.")
-    matrix = models.JSONField("Ma trận so sánh cặp (JSON)", help_text="Ma trận 5x5 dạng danh sách 2 chiều.")
+    matrix = models.JSONField(
+        "Ma trận so sánh cặp (JSON)",
+        help_text="Ma trận 4x4 dạng danh sách 2 chiều (thứ tự skill, field, semantic, llm).",
+    )
     cr = models.FloatField("Tỷ số nhất quán (CR)")
     is_active = models.BooleanField("Đang sử dụng", default=False)
     created_at = models.DateTimeField("Thời điểm tạo", auto_now_add=True)

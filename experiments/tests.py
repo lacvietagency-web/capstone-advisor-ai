@@ -81,3 +81,38 @@ class AllocationBenchmarkTests(TestCase):
         m_ilp = run_benchmark_trial(prefs, scores, cap, owner, quota, gpa, algorithm="ILP", alpha=0.4, beta=0.6)
         self.assertEqual(m_ilp["quota_violations"], 0)
         self.assertGreaterEqual(m_ilp["assigned_rate"], m_greedy["assigned_rate"])
+
+
+class BaselineAlgorithmTests(TestCase):
+    """RQ3b: Gale-Shapley phải ổn định (0 cặp chặn) và hợp lệ; GA hợp lệ và không vượt nghiệm tối ưu ILP."""
+
+    def test_gale_shapley_stable_and_feasible(self):
+        from allocate.solver import metrics
+        from experiments.baselines import blocking_pairs, solve_gale_shapley
+
+        for seed in (1, 2, 3):
+            inst = generate_benchmark_instance(60, seed=seed)
+            a = solve_gale_shapley(*inst)
+            self.assertEqual(metrics(a, *inst[:5])["quota_violations"], 0)
+            self.assertEqual(blocking_pairs(a, *inst), 0)
+
+    def test_blocking_pairs_detects_instability(self):
+        from experiments.baselines import blocking_pairs
+
+        # 1 đề tài 1 chỗ; GV thích s2 (điểm cao hơn) nhưng đề tài lại giao s1 → (s2, t) là cặp chặn
+        prefs, scores = {1: ["t"], 2: ["t"]}, {(1, "t"): 50.0, (2, "t"): 90.0}
+        inst = (prefs, scores, {"t": 1}, {"t": "g"}, {"g": 1}, {1: 3.0, 2: 3.0})
+        self.assertEqual(blocking_pairs({1: "t", 2: None}, *inst), 1)
+        self.assertEqual(blocking_pairs({1: None, 2: "t"}, *inst), 0)
+
+    def test_genetic_feasible_and_not_above_ilp(self):
+        from allocate.solver import metrics, solve_ilp
+        from experiments.baselines import solve_genetic
+        from experiments.rq3b_four_algorithms import objective
+
+        inst = generate_benchmark_instance(40, seed=5)
+        ga = solve_genetic(*inst, generations=40, seed=1)
+        self.assertEqual(metrics(ga, *inst[:5])["quota_violations"], 0)
+        ilp = solve_ilp(*inst)
+        prefs, scores, gpa = inst[0], inst[1], inst[5]
+        self.assertLessEqual(objective(ga, prefs, scores, gpa), objective(ilp, prefs, scores, gpa) + 1e-6)

@@ -12,3 +12,6 @@ tmp/
 .coverage
 htmlcov/
 .secret_key
+
+# Script vận hành máy chủ riêng, không thuộc mã nguồn
+docs/nghiem-thu/trien-khai-8099.sh

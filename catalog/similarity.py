@@ -7,8 +7,9 @@ Hai việc, cùng một lõi là độ gần nghĩa Sentence-BERT (cosine của 
 
 from recommend.engine import SemanticModel
 
-DUP_THRESHOLD = 0.75  # cosine ≥ 0.75: coi là trùng/gần trùng đề tài đang mở
-ARCHIVE_THRESHOLD = 0.70  # cosine ≥ 0.70: giống đề tài khoá trước, đáng tư vấn cải tiến
+# Hiệu chỉnh 17/11/2026: kho thật 449 đề tài khoá trước, 300 cặp mẫu phân tầng có nhãn (experiments/rq4b_nguong.py)
+DUP_THRESHOLD = 0.70  # F1 "trùng" cao nhất (P 0,46 · R 0,52); 0,75 cũ chỉ bắt 33% — chỉ CẢNH BÁO, GV/Khoa quyết
+ARCHIVE_THRESHOLD = 0.625  # F1 "cùng chủ đề" cao nhất (P 0,72 · R 0,58); 0,70 cũ bỏ sót 67% đề cùng chủ đề
 
 
 def _topic_text(t):

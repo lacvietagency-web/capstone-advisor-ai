@@ -87,7 +87,9 @@ def main():
         w.writerows(out)
 
     years = collections.Counter(r["year"] for r in rows)
-    fields = collections.Counter(r.get("result_note", "").removeprefix("Lĩnh vực: ") or "?" for r in rows)
+    fields = collections.Counter(
+        r.get("result_note", "").removeprefix("Lĩnh vực: ").split(" · ")[0] or "?" for r in rows
+    )
     tech = collections.Counter(t.strip() for r in rows for t in r.get("technologies", "").split(",") if t.strip())
     md = [
         f"# RQ4 — Đề tài khoá trước (kho thật, {n} đề tài sau khi bỏ bản trùng)",

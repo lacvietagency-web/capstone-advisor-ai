@@ -50,6 +50,8 @@ def improvement_advice(topic, matches):
 def _heuristic_points(topic, past):
     """Gợi ý cải tiến không cần LLM: so công nghệ và phạm vi với đề tài khoá trước."""
     out = []
+    if past.future_work:
+        out.append(f"Chính khoá trước đề xuất hướng phát triển: {past.future_work} — chọn một hướng làm điểm mới.")
     new_tech = {x.strip().lower() for x in (topic.technologies or "").replace(";", ",").split(",") if x.strip()}
     old_tech = {x.strip().lower() for x in (past.technologies or "").replace(";", ",").split(",") if x.strip()}
     if old_tech and old_tech == new_tech:
@@ -79,7 +81,8 @@ def _llm_advice(topic, past):
         f"ĐỀ TÀI MỚI:\nTên: {topic.title}\nMô tả: {topic.description}\n"
         f"Công nghệ: {topic.technologies or '(chưa ghi)'}\n\n"
         f"ĐỀ TÀI KHOÁ TRƯỚC (năm {past.year}):\nTên: {past.title}\nMô tả: {past.description}\n"
-        f"Công nghệ: {past.technologies or '(không rõ)'}\n\n"
+        f"Công nghệ: {past.technologies or '(không rõ)'}\n"
+        f"Hướng phát triển khoá trước tự đề xuất: {past.future_work or '(không ghi)'}\n\n"
         "Hãy đề xuất hướng cải tiến để đề tài mới khác biệt và có giá trị hơn."
     )
     return advise_text(_SYS, user)

@@ -74,6 +74,12 @@ class SimilarityTests(TestCase):
         self.assertIsNone(adv["llm"])  # LLM tắt
         self.assertTrue(adv["points"])  # có gợi ý heuristic
 
+    def test_advice_uses_past_future_work(self):
+        self.arch.future_work = "Thêm thanh toán trực tuyến"
+        self.arch.save()
+        adv = improvement_advice(self.t1, similar_archived(self.t1, ArchivedTopic.objects.all()))
+        self.assertIn("Thêm thanh toán trực tuyến", adv["points"][0])
+
     def test_no_false_positive(self):
         self.assertEqual(similar_archived(self.t3, ArchivedTopic.objects.all()), [])
 
@@ -107,3 +113,22 @@ class DuplicatesViewTests(TestCase):
         call_command("them_de_tai_khoa_truoc", tu_de_tai=t.pk, stdout=io.StringIO())  # chạy lại: không trùng
         self.assertEqual(ArchivedTopic.objects.count(), n)
         self.assertTrue(ArchivedTopic.objects.filter(title=t.title, year=2024).exists())
+
+    def test_them_de_tai_khoa_truoc_tu_file(self):
+        import json
+        import tempfile
+
+        from django.core.management import CommandError, call_command
+
+        ArchivedTopic.objects.all().delete()
+        row = {"title": "Website bán sách", "description": "Bán sách.", "technologies": "PHP", "year": 2025}
+        with tempfile.NamedTemporaryFile("w", suffix=".jsonl", encoding="utf-8", delete=False) as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n\n")
+        call_command("them_de_tai_khoa_truoc", tu_file=f.name, stdout=io.StringIO())
+        call_command("them_de_tai_khoa_truoc", tu_file=f.name, stdout=io.StringIO())  # chạy lại: không trùng
+        got = list(ArchivedTopic.objects.values_list("title", "year", "lecturer_name"))
+        self.assertEqual(got, [("Website bán sách", 2025, "")])
+        with open(f.name, "w", encoding="utf-8") as g:
+            g.write(json.dumps({"title": "Thiếu năm"}) + "\n")
+        with self.assertRaises(CommandError):
+            call_command("them_de_tai_khoa_truoc", tu_file=f.name, stdout=io.StringIO())

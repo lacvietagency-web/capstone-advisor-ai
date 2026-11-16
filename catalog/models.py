@@ -292,6 +292,8 @@ class ArchivedTopic(models.Model):
     year = models.PositiveIntegerField("Năm học")
     lecturer_name = models.CharField("Giảng viên hướng dẫn", max_length=120, blank=True)
     result_note = models.CharField("Kết quả/ghi chú", max_length=255, blank=True)
+    # phần CUỐI báo cáo (gợi ý GVHD 17/11: key nằm ở đầu và cuối) — dùng cho tư vấn cải tiến, không dùng để đo độ giống
+    future_work = models.TextField("Hướng phát triển khoá trước đề xuất", blank=True)
 
     class Meta:
         verbose_name = verbose_name_plural = "Đề tài khoá trước"

@@ -193,3 +193,16 @@ Kết quả lưu tại: `experiments/results/rq3_allocation.csv`, `experiments/r
 | `rq3_allocation.csv` | CSV | Bảng số liệu chi tiết phân công Greedy vs ILP theo 3 quy mô N |
 | `rq3_allocation_time.png` | PNG | Biểu đồ thời gian chạy (Runtime vs N) giữa Greedy và ILP |
 | `rq3_allocation.png` | PNG | Biểu đồ so sánh Tỷ lệ xếp, Đạt NV1 và Điểm TB giữa Greedy và ILP |
+
+---
+
+## RQ4: Đề tài khoá trước trên kho thật (17/11/2026)
+
+Kho 449 đề tài khoá trước (báo cáo ĐATN 2024–2025 do GVHD cung cấp, đã che thông tin sinh viên; **dữ liệu không kèm trong repo**).
+
+- `rq4_khoa_truoc.py --file <kho.jsonl>`: tỷ lệ đề tài có đề tài khác giống ≥ 0,70 … 0,90; mô phỏng khoá 2025 so với kho các năm trước.
+- `rq4b_nguong.py --mau <cap_mau.jsonl> --nhan <nhan_A.jsonl> <nhan_B.jsonl> --kho <kho.jsonl>`: 300 cặp lấy mẫu phân tầng theo cosine,
+  hai AI gán nhãn độc lập (kappa), precision/recall có trọng số tầng theo ngưỡng; so Sentence-BERT / TF-IDF / lai.
+- Kết quả (chỉ số tổng hợp, không có tên đề tài): `results/rq4_khoa_truoc.*`, `results/rq4b_nguong.*`.
+  Ngưỡng mới: cảnh báo trùng 0,70; tư vấn khoá trước 0,625 (`catalog/similarity.py`).
+

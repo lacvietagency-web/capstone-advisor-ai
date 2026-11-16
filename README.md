@@ -11,7 +11,8 @@ Khoa CNTT, Trường Đại học Công nghệ Đông Á (EAUT).
   xem kết quả phân công chính thức.
 - **Giảng viên:** đăng / sửa đề tài (mã tự sinh, mục tiêu, công nghệ, kỹ năng yêu cầu, môn tiên quyết, sức chứa),
   bảng sinh viên chờ duyệt, ngăn kéo phân tích từng sinh viên, đồng ý (kèm nhận xét) hoặc từ chối (bắt buộc lý do), hồ sơ giảng viên;
-  cảnh báo đề tài gần trùng với giảng viên khác và gợi ý hướng cải tiến khi giống đề tài khoá trước.
+  cảnh báo đề tài gần trùng với giảng viên khác và gợi ý hướng cải tiến khi giống đề tài khoá trước
+  (dùng cả hướng phát triển mà chính khoá trước đề xuất).
 - **Khoa:** bảng điều khiển, nhập Excel 2 bước (kiểm tra → xác nhận), phân công tối ưu ILP / Greedy, xếp tay pha 2,
   chốt & công bố (đợt đã công bố chỉ còn chế độ xem), thống kê có biểu đồ và bảng số liệu, rà soát đề tài trùng lặp toàn khoa.
 
@@ -31,6 +32,9 @@ python manage.py migrate
 python manage.py seed_demo        # dữ liệu mô phỏng: 100 SV, 15 GV, 50 đề tài, 1 đợt đang mở
 python manage.py runserver
 ```
+Kho đề tài khoá trước: `seed_demo` có 5 đề tài mẫu; kho thật nạp bằng
+`python manage.py them_de_tai_khoa_truoc --tu-file <file.jsonl>` (dữ liệu của trường không kèm trong repo).
+
 Mở http://127.0.0.1:8000 — tài khoản demo (mật khẩu `123456`): `sv001` sinh viên · `gv001` giảng viên · `khoa01` cán bộ Khoa.
 
 Biến môi trường chính (`.env`): `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DB_ENGINE=mysql` + `DB_*` (dùng MySQL),
@@ -63,14 +67,14 @@ capstone-advisor/
 │   ├── js/atlas.js    Hành vi chung: chế độ sáng/tối, biểu đồ, chống bấm lặp, xác nhận công bố
 │   ├── brand/ icons/ illus/   Logo, biểu tượng Lucide, minh hoạ trạng thái rỗng
 │   └── vendor/        Bootstrap, Chart.js, phông Be Vietnam Pro lưu sẵn (dự phòng khi không tải được CDN)
-├── experiments/       RQ1 (ablation), RQ2 (độ ổn định LLM), RQ3 (ILP – Greedy), RQ3b (Greedy, Gale-Shapley, GA, ILP)
-├── docs/              Giải thích từng phần, use case, sổ tay bảo vệ, phiếu khảo sát AHP
-└── .webby/v3/         Hồ sơ thiết kế giao diện: ảnh tham chiếu đã duyệt, đặc tả, danh sách chỉnh sửa từng vòng
+├── experiments/       RQ1 (ablation), RQ2 (độ ổn định LLM), RQ3 (ILP – Greedy), RQ3b (Greedy, Gale-Shapley, GA, ILP),
+│                      RQ4 (độ trùng và hiệu chỉnh ngưỡng trên kho đề tài khoá trước thật)
+└── docs/              Giải thích từng phần, use case, sổ tay bảo vệ, phiếu khảo sát AHP, biên bản nghiệm thu
 ```
 
 ## Kiểm thử
 ```bash
-python manage.py test        # 228 ca: nghiệp vụ SV/GV/Khoa, phân quyền, AHP, ILP, nhập Excel, đề tài trùng, giao diện
+python manage.py test        # 230 ca: nghiệp vụ SV/GV/Khoa, phân quyền, AHP, ILP, nhập Excel, đề tài trùng, giao diện
 ruff check .                 # kiểm tra phong cách mã + độ phức tạp hàm (McCabe ≤ 10)
 ```
 Thực nghiệm cho báo cáo: xem `experiments/README.md`.

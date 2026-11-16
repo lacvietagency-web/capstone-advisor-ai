@@ -15,3 +15,10 @@ htmlcov/
 
 # Script vận hành máy chủ riêng, không thuộc mã nguồn
 docs/nghiem-thu/trien-khai-8099.sh
+
+# Hồ sơ nháp quy trình thiết kế giao diện (ảnh tham chiếu, ảnh cổng thông tin trường) — chỉ giữ trên máy
+.webby/
+# Dữ liệu của trường (kho đồ án khoá trước, nhãn thực nghiệm) không đưa lên repo công khai
+*.jsonl
+*.rar
+*.zip

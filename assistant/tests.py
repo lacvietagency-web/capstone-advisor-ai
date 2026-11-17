@@ -150,6 +150,8 @@ class AssistantTests(TestCase):
         a.save()
         self.assertNotIn("Người Hướng Dẫn", chat._source("archived", a, None, None, set(), "STUDENT")[2])
         self.assertIn("Người Hướng Dẫn", chat._source("archived", a, None, None, set(), "ADMIN")[2])
+        a.future_work = ""  # báo cáo không ghi hướng phát triển → vẫn có gợi ý cải tiến chung (không chỉ "không ghi")
+        self.assertIn("nêu rõ phần MỚI", chat._source("archived", a, None, None, set(), "STUDENT")[2])
 
     def test_verify_cleans_citations(self):
         self.assertEqual(chat.verify("A [[Hệ thống]] B [Vai] C [3, h] D [Bạn]"), "A [Hệ thống] B C [3] D [Bạn]")

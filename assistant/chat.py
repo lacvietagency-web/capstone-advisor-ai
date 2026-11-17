@@ -217,6 +217,14 @@ def _topic_text(t, profile, period):
     return line
 
 
+# Báo cáo khoá trước không ghi hướng phát triển → đưa đúng 2 gợi ý chung mà màn hình GV đang dùng
+# (catalog.similarity._heuristic_points), để "nên cải tiến gì" vẫn có câu trả lời có nguồn, không để mô hình tự bịa.
+NO_FUTURE_WORK = (
+    "báo cáo không ghi. Gợi ý chung của hệ thống khi làm lại đề tài này: nêu rõ phần MỚI so với đồ án khoá trước "
+    "(phạm vi, dữ liệu, thuật toán hoặc công nghệ mới hơn); bổ sung so sánh định lượng với kết quả khoá trước"
+)
+
+
 def _source(kind, obj, profile, period, pages_ok=frozenset(), rk="STUDENT"):
     """(nhãn hiển thị, đường dẫn hoặc "", đoạn văn đưa cho LLM). pages_ok = các trang người hỏi mở được, rk = vai."""
     if kind == "guide":
@@ -247,7 +255,7 @@ def _source(kind, obj, profile, period, pages_ok=frozenset(), rk="STUDENT"):
     text = (
         f'ĐỒ ÁN KHOÁ TRƯỚC (năm {obj.year}, đã làm xong, chỉ để tham khảo): "{obj.title}" — {obj.description[:300]} '
         f"Công nghệ: {obj.technologies or 'không rõ'}. "
-        f"Hướng phát triển khoá trước đề xuất: {obj.future_work or 'không ghi'}"
+        f"Hướng phát triển khoá trước đề xuất: {obj.future_work or NO_FUTURE_WORK}"
     )
     if rk == "ADMIN" and obj.lecturer_name:  # tên GVHD khoá trước chỉ vai Khoa thấy (như trang Thống kê)
         text += f". GVHD: {obj.lecturer_name}"

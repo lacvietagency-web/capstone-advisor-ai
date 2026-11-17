@@ -35,7 +35,7 @@ def record(code, browser, status, detail="", shot=None):
 
 def start_server():
     db = OUT / "browser.sqlite3"
-    shutil.copy(REPO.parent / "webby-v3" / "db" / "open.sqlite3", db)
+    shutil.copy(os.environ.get("QA_DB") or REPO.parent / "webby-v3" / "db" / "open.sqlite3", db)  # QA_DB: CSDL nguồn khác
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         port = s.getsockname()[1]

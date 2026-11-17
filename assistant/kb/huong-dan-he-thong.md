@@ -74,3 +74,6 @@ Bấm "Công bố" sẽ chuyển toàn bộ kết quả phân công nháp thành
 
 ## Mẫu Excel để nhập dữ liệu {faculty_import}
 Ở trang "Nhập Excel" của Khoa có nút "Tải tệp mẫu (.xlsx)". Tệp mẫu có 4 sheet: SinhVien (Mã sinh viên, Họ đệm, Tên, GPA, Email, Chuyên ngành, Ghi chú), GiangVien (Mã giảng viên, Họ đệm, Tên, Email, Bộ môn, Chỉ tiêu, Lĩnh vực), DeTai (Tên đề tài, Mã giảng viên, Mô tả, Lĩnh vực, Độ khó, GPA tối thiểu, Số lượng) và KyNang. Nhập theo 2 bước: kiểm tra lỗi, rồi xác nhận mới ghi; có lỗi ở bất kỳ dòng nào thì không ghi dòng nào.
+
+## Ghi chú xét duyệt và nhận xét của giảng viên {student_preferences lecturer_topics}
+Ghi chú xét duyệt là lưu ý riêng của giảng viên ra đề khi xét sinh viên đăng ký; chỉ giảng viên đó xem được, sinh viên không xem được ở bất kỳ trang nào và trợ lý cũng không cung cấp. Khác với ghi chú xét duyệt, nhận xét giảng viên ghi khi đồng ý hoặc từ chối một nguyện vọng thì chính sinh viên đó xem được ở mục "Nguyện vọng" sau khi được duyệt.

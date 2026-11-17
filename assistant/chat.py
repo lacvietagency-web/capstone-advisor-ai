@@ -388,9 +388,9 @@ def _llm(messages):
         return None, "chưa cấu hình khoá API"
     from recommend.llm import get_endpoint_url, get_request_headers
 
-    err = ""
+    err, cut = "", None
     for model in settings.CHAT_MODELS:
-        payload = {"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 700}
+        payload = {"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 2048}
         req = urllib.request.Request(
             get_endpoint_url(provider),
             json.dumps(payload).encode("utf-8"),
@@ -399,11 +399,17 @@ def _llm(messages):
         )
         try:
             with urllib.request.urlopen(req, timeout=settings.CHAT_TIMEOUT) as resp:
-                text = json.loads(resp.read().decode("utf-8"))["choices"][0]["message"]["content"].strip()
+                choice = json.loads(resp.read().decode("utf-8"))["choices"][0]
+            text = (choice["message"].get("content") or "").strip()
+            if text and choice.get("finish_reason") == "length":  # bị cắt giữa chừng (mô hình "nghĩ" ăn hết token)
+                cut, err = (cut or (text, model)), f"{model}: bị cắt"
+                continue
             if text:
                 return text, model
         except Exception as e:  # 503 quá tải, hết hạn mức, mạng — thử mô hình kế tiếp
             err = f"{model}: {type(e).__name__}"
+    if cut:  # mọi mô hình đều bị cắt: trả phần đã có, nói rõ là chưa trọn
+        return cut[0] + "…\n\n_(Câu trả lời bị ngắt giữa chừng, bạn hỏi lại ngắn hơn giúp mình nhé.)_", cut[1]
     return None, err or "mô hình trả rỗng"
 
 

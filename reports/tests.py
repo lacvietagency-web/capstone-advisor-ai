@@ -353,6 +353,7 @@ class TrinhBayGopYTests(TestCase):
         r = self.client.get("/trinh-bay/")
         self.assertEqual(r.status_code, 200)  # không cần đăng nhập
         self.assertContains(r, 'var ENDPOINT = "/gop-y/"')
+        self.assertContains(r, 'src="/static/trinh-bay/anh/sv-goi-y.jpg"')  # ảnh trỏ đúng tệp tĩnh
         post = lambda body, **kw: self.client.post("/gop-y/", data=body, content_type="application/json", **kw)  # noqa: E731
         ok = post(json.dumps({"ten": "GVHD", "quyet_dinh": {"Kho": {"chon": "Dùng chung"}}, "gop_y": "Tốt", "x": 1}))
         self.assertEqual(ok.status_code, 200)

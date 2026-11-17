@@ -59,8 +59,10 @@ def guide_chunks():
     for f in sorted(KB_DIR.glob("*.md")):
         for part in re.split(r"^## ", f.read_text(encoding="utf-8"), flags=re.M)[1:]:
             head, _, body = part.partition("\n")
+            m = re.match(r"(.*?)\s*\{([\w\s]+)\}\s*$", head)
+            title, pages = (m.group(1), m.group(2).split()) if m else (head.strip(), [])
             out.append(
-                {"kind": "guide", "key": ("g", f.stem, head.strip()), "title": head.strip(), "text": body.strip()}
+                {"kind": "guide", "key": ("g", f.stem, title), "title": title, "text": body.strip(), "pages": pages}
             )
     return out
 
@@ -101,6 +103,35 @@ def retrieve(query):
     return sorted(out, key=lambda r: -r[1])
 
 
+# Trang mỗi vai mở được (đo bằng đăng nhập thử 3 vai, 17/11; test_role_pages giữ đúng):
+# nút nguồn chỉ dẫn tới trang người hỏi mở được.
+ROLE_PAGES = {
+    "STUDENT": {
+        "home",
+        "student_profile",
+        "student_preferences",
+        "student_allocation_result",
+        "topic_list",
+        "password_change",
+    },
+    "LECTURER": {"home", "lecturer_topics", "lecturer_topic_new", "lecturer_profile", "topic_list", "password_change"},
+    "ADMIN": {
+        "home",
+        "allocation_dashboard",
+        "faculty_import",
+        "faculty_statistics",
+        "faculty_duplicates",
+        "lecturer_profile",
+        "topic_list",
+        "password_change",
+    },
+}
+
+
+def role_key(user):
+    return "ADMIN" if getattr(user, "is_faculty_admin", False) else getattr(user, "role", "STUDENT")
+
+
 # ---------------------------------------------------------------- đoạn ngữ cảnh
 def _current_period():
     return RegistrationPeriod.objects.order_by("-start_at").first()
@@ -131,10 +162,11 @@ def _topic_text(t, profile, period):
     return line
 
 
-def _source(kind, obj, profile, period):
-    """(nhãn hiển thị, đường dẫn hoặc "", đoạn văn đưa cho LLM)."""
+def _source(kind, obj, profile, period, pages_ok=frozenset()):
+    """(nhãn hiển thị, đường dẫn hoặc "", đoạn văn đưa cho LLM). pages_ok = các trang người hỏi mở được."""
     if kind == "guide":
-        return obj["title"], "", f"Hướng dẫn hệ thống — {obj['title']}: {obj['text']}"
+        url = next((reverse(p) for p in obj["pages"] if p in pages_ok), "")
+        return obj["title"], url, f"Hướng dẫn hệ thống — {obj['title']}: {obj['text']}"
     if kind == "topic":
         return f"{obj.code} · {obj.title}", reverse("topic_detail", args=[obj.pk]), _topic_text(obj, profile, period)
     if kind == "lecturer":
@@ -143,7 +175,13 @@ def _source(kind, obj, profile, period):
             f"{_fields(obj) or 'chưa ghi'}; từ khoá nghiên cứu: {obj.keywords or 'chưa ghi'}; "
             f"đang có {obj.topics.filter(status=Topic.Status.OPEN).count()} đề tài mở. {obj.bio[:300]}"
         )
-        return f"GV {obj}", reverse("lecturer_profile_detail", args=[obj.pk]), text
+        # SV không được xem trang hồ sơ GV (403) → dẫn tới danh sách đề tài của GV đó
+        url = (
+            reverse("lecturer_profile_detail", args=[obj.pk])
+            if "lecturer_profile" in pages_ok
+            else f"{reverse('topic_list')}?lecturer={obj.pk}"
+        )
+        return f"GV {obj}", url, text
     text = (
         f'Đề tài KHOÁ TRƯỚC (năm {obj.year}): "{obj.title}" — {obj.description[:300]} '
         f"Công nghệ: {obj.technologies or 'không rõ'}. "
@@ -311,7 +349,7 @@ def answer(user, question, history=()):
     query = " ".join([h[0] for h in list(history)[-1:]] + [question])  # câu hỏi nối tiếp ("còn đề tài nào khác?")
     sources = []
     for kind, _, obj in retrieve(query):
-        title, url, text = _source(kind, obj, profile, period)
+        title, url, text = _source(kind, obj, profile, period, ROLE_PAGES.get(role_key(user), set()))
         sources.append({"n": len(sources) + 1, "kind": kind, "title": title, "url": url, "text": text})
     ctx = [_overview(period)] + [f"[{s['n']}] {s['text']}" for s in sources]
     mine = personal_context(user, period)

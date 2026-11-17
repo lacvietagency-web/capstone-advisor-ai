@@ -1,5 +1,5 @@
 {# Trợ lý ảo — nút nổi + khung chat trên mọi trang khi đã đăng nhập (assistant/, static/js/tro-ly.js) #}
-<div class="tl" id="tlRoot" data-url="{% url 'assistant_ask' %}" data-user="{{ user.pk }}">
+{% load static %}<div class="tl" id="tlRoot" data-url="{% url 'assistant_ask' %}" data-user="{{ user.pk }}" data-icons="{% static 'icons/' %}">
   {% csrf_token %}
   <button type="button" class="tl-fab" id="tlFab" aria-expanded="false" aria-controls="tlPanel">
     <span class="tl-fab-bot">{% include "assistant/_bot.html" with size=44 %}</span><span class="tl-fab-label">Hỏi trợ lý AI</span>

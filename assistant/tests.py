@@ -118,6 +118,21 @@ class AssistantTests(TestCase):
         mixed = f"- {c1} “Chatbot tư vấn bán hàng” [h]"  # tên ghép bịa → lấy tên thật theo mã, bỏ [h]
         self.assertEqual(chat.verify(mixed), f'- {c1} "Chatbot tư vấn"')
 
+    def test_role_pages_open_and_guide_links(self):
+        """ROLE_PAGES khớp quyền thật: mọi trang khai cho vai mở được (200) — nút nguồn không dẫn vào trang 403."""
+        from django.urls import reverse
+
+        User.objects.create_user("k", password="x", role=User.Role.ADMIN)
+        User.objects.filter(username="gv").update(password=User.objects.get(username="sv1").password)
+        for name, role in (("sv1", "STUDENT"), ("gv", "LECTURER"), ("k", "ADMIN")):
+            self.client.login(username=name, password="x")
+            for page in chat.ROLE_PAGES[role]:
+                self.assertEqual(self.client.get(reverse(page)).status_code, 200, (role, page))
+        g = next(c for c in chat.guide_chunks() if c["title"] == "Hồ sơ năng lực của sinh viên")
+        self.assertEqual(chat._source("guide", g, None, None, chat.ROLE_PAGES["STUDENT"])[1], "/ho-so/")
+        self.assertEqual(chat._source("guide", g, None, None, chat.ROLE_PAGES["LECTURER"])[1], "")
+        self.assertIn("?lecturer=", chat._source("lecturer", self.gv, None, None, chat.ROLE_PAGES["STUDENT"])[1])
+
     def test_widget_on_pages_when_logged_in(self):
         self.client.login(username="sv1", password="x")
         self.assertContains(self.client.get("/trang-chu/"), 'id="tlRoot"')

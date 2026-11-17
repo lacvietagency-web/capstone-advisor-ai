@@ -10,6 +10,13 @@
 
   function load() { try { return JSON.parse(sessionStorage.getItem(KEY)) || { open: false, msgs: [] }; } catch (e) { return { open: false, msgs: [] }; } }
   function save() { try { sessionStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  var KINDS = { guide: ["route", "Hướng dẫn", "mở trang"], topic: ["book-open", "Đề tài", "xem đề tài"],
+    lecturer: ["user-round", "Giảng viên", "xem"], archived: ["archive", "Khoá trước", ""] };
+  function icon(name, size) {
+    var i = document.createElement("span"); i.className = "at-icon"; i.setAttribute("aria-hidden", "true");
+    i.style.setProperty("--i", "url('" + root.dataset.icons + name + ".svg')"); i.style.setProperty("--s", size + "px");
+    return i;
+  }
   function esc(s) { return s.replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function inline(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\[((?:\d+|Bạn|Hệ thống)(?:\s*,\s*(?:\d+|Bạn|Hệ thống))*)\]/g, '<sup class="tl-ref">$1</sup>'); }
   function format(text) {
@@ -26,12 +33,23 @@
     var div = document.createElement("div");
     div.className = "tl-msg " + (m.who === "me" ? "tl-me" : "tl-bot") + (m.err ? " tl-err" : "");
     if (m.who === "me") div.textContent = m.text; else div.innerHTML = format(m.text);
-    if (m.sources && m.sources.length) {
+    if (m.sources && m.sources.length) {  // thẻ nguồn gọn: icon theo loại + tên 1 dòng; có đường dẫn thì bấm được
       var src = document.createElement("div"); src.className = "tl-src";
       m.sources.forEach(function (s) {
-        var a = document.createElement(s.url ? "a" : "span");
-        if (s.url) a.href = s.url;
-        a.textContent = s.n + " · " + s.title; a.title = s.title; src.appendChild(a);
+        var k = KINDS[s.kind] || KINDS.guide, el = document.createElement(s.url ? "a" : "div");
+        el.className = "tl-thumb tl-thumb--" + (KINDS[s.kind] ? s.kind : "guide");
+        if (s.url) el.href = s.url;
+        el.title = s.title;
+        var ic = document.createElement("span"); ic.className = "tl-thumb-ic";
+        ic.appendChild(icon(k[0], 16));
+        var num = document.createElement("b"); num.textContent = s.n; ic.appendChild(num);
+        var tx = document.createElement("span"); tx.className = "tl-thumb-tx";
+        var parts = s.title.replace(/^GV /, "").split(" · "), name = parts.pop();  // "DT-2026-316 · Tên" → mã lên dòng nhỏ
+        var kd = document.createElement("small"); kd.textContent = (parts[0] || k[1]) + (s.url ? " · " + k[2] : "");
+        var tt = document.createElement("span"); tt.textContent = name;
+        tx.appendChild(kd); tx.appendChild(tt); el.appendChild(ic); el.appendChild(tx);
+        if (s.url) el.appendChild(icon("chevron-right", 16));
+        src.appendChild(el);
       });
       div.appendChild(src);
     }

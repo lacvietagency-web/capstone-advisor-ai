@@ -335,3 +335,33 @@ class FacultyStatisticsViewTestCase(TestCase):
         res = self.client.get(f"/khoa/thong-ke/?period_id={other_period.pk}")
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context["period"], other_period)
+
+
+class TrinhBayGopYTests(TestCase):
+    """Trang trình bày công khai cho GVHD + nhận góp ý (Hermes đọc bảng GopY để báo chủ dự án)."""
+
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
+
+    def test_trang_cong_khai_va_gop_y(self):
+        import json
+
+        from reports.models import GopY
+
+        r = self.client.get("/trinh-bay/")
+        self.assertEqual(r.status_code, 200)  # không cần đăng nhập
+        self.assertContains(r, 'var ENDPOINT = "/gop-y/"')
+        post = lambda body, **kw: self.client.post("/gop-y/", data=body, content_type="application/json", **kw)  # noqa: E731
+        ok = post(json.dumps({"ten": "GVHD", "quyet_dinh": {"Kho": {"chon": "Dùng chung"}}, "gop_y": "Tốt", "x": 1}))
+        self.assertEqual(ok.status_code, 200)
+        g = GopY.objects.get()
+        self.assertEqual((g.ten, g.noi_dung["gop_y"]), ("GVHD", "Tốt"))
+        self.assertNotIn("x", g.noi_dung)  # chỉ giữ 3 khoá đã biết
+        self.assertEqual(post("{}").status_code, 400)  # không có nội dung
+        self.assertEqual(post("không phải json").status_code, 400)
+        self.assertEqual(post("x" * 20_001).status_code, 413)
+        self.assertEqual(post(json.dumps({"gop_y": "a"}), HTTP_ORIGIN="https://khac.example").status_code, 403)
+        self.assertEqual(self.client.get("/gop-y/").status_code, 405)
+        self.assertEqual(GopY.objects.count(), 1)

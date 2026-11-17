@@ -1,0 +1,856 @@
+{% load static %}<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><title>Capstone AI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lexend:wght@500;600;700&display=swap">
+<style>
+/* Bố cục: một mạch trình bày dọc, mỗi phần một ý + một hình lớn; ảnh màn hình thật đặt trong khung trình duyệt mang đúng địa chỉ link demo */
+:root {
+  --bg: #F3F6FB; --surface: #FFFFFF; --ink: #18213A; --muted: #566279; --line: #DAE2EE;
+  --brand: #2454B8; --brand-soft: #E8EFFC; --on-brand: #FFFFFF;
+  --navy: #13254D; --on-navy: #FFFFFF; --on-navy-muted: #BCC8E4;
+  --c1: #2454B8; --c2: #C2701E; --track: #E6EBF3;
+  --good: #1D7A52; --good-soft: #E2F3EA; --danger: #B42332; --wait: #8A5A1C; --wait-soft: #FBEFE0;
+  --f-display: "Lexend", "Be Vietnam Pro", system-ui, sans-serif;
+  --f-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --shadow: 0 1px 2px rgba(19, 37, 77, .06), 0 8px 24px rgba(19, 37, 77, .08);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0D1526; --surface: #16213A; --ink: #E7EDF8; --muted: #A3AFC5; --line: #2A3A5A;
+  --brand: #8EB0F5; --brand-soft: #1E2F55; --on-brand: #0D1526;
+  --navy: #0A1430; --on-navy: #FFFFFF; --on-navy-muted: #AEBBD8;
+  --c1: #5F86D8; --c2: #BE7A2F; --track: #22304D;
+  --good: #63C99D; --good-soft: #153A2C; --danger: #F4A9A2; --wait: #E3AE6C; --wait-soft: #3A2B18;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35);
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0D1526; --surface: #16213A; --ink: #E7EDF8; --muted: #A3AFC5; --line: #2A3A5A;
+  --brand: #8EB0F5; --brand-soft: #1E2F55; --on-brand: #0D1526;
+  --navy: #0A1430; --on-navy: #FFFFFF; --on-navy-muted: #AEBBD8;
+  --c1: #5F86D8; --c2: #BE7A2F; --track: #22304D;
+  --good: #63C99D; --good-soft: #153A2C; --danger: #F4A9A2; --wait: #E3AE6C; --wait-soft: #3A2B18;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35);
+  color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+h2 { font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.1rem); line-height: 1.2; }
+h3 { font-size: 1.15rem; line-height: 1.3; }
+p { margin: 0; }
+a { color: var(--brand); }
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+.eyebrow { font: 600 .78rem/1.2 var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--brand); }
+.lead { color: var(--muted); max-width: 62ch; }
+section { padding-block: clamp(48px, 7vw, 84px); }
+section + section { border-top: 1px solid var(--line); }
+.sec-head { display: grid; gap: 10px; margin-bottom: 32px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Hero */
+.hero { background: var(--navy); color: var(--on-navy); padding-block: clamp(36px, 6vw, 72px) 0; overflow: hidden; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(24px, 4vw, 56px); align-items: end; }
+.hero .eyebrow { color: var(--on-navy-muted); }
+.hero h1 { font-size: clamp(2.6rem, 1.6rem + 4vw, 4.4rem); line-height: 1; margin-top: 12px; }
+.hero .sub { font-size: 1.15rem; color: var(--on-navy); opacity: .92; margin-top: 14px; max-width: 34ch; }
+.hero .meta { color: var(--on-navy-muted); font-size: .92rem; margin-top: 18px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 26px; }
+.stat { border: 1px solid rgba(255, 255, 255, .16); border-radius: 12px; padding: 12px 14px; }
+.stat b { display: block; font: 600 1.7rem/1.1 var(--f-display); }
+.stat span { font-size: .82rem; color: var(--on-navy-muted); }
+.cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 24px; padding-bottom: clamp(28px, 5vw, 56px); }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 10px; font-weight: 600; text-decoration: none; border: 1px solid transparent; }
+.btn-main { background: #FFFFFF; color: #13254D; }
+.btn-ghost { color: var(--on-navy); border-color: rgba(255, 255, 255, .35); }
+.acc { font-size: .85rem; color: var(--on-navy-muted); width: 100%; }
+.acc code { font: 600 .85rem/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--on-navy); background: rgba(255, 255, 255, .1); padding: 3px 6px; border-radius: 5px; }
+.hero .shot { margin-bottom: -2px; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+/* Khung ảnh như cửa sổ trình duyệt */
+.shot { display: block; width: 100%; padding: 0; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); cursor: zoom-in; font: inherit; color: inherit; }
+.shot .bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.shot .bar i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.shot .bar span { margin-left: 8px; font: 500 .74rem/1 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
+.shot img { display: block; width: 100%; height: auto; }
+
+/* Luồng hệ thống */
+.flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; position: relative; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 8px; align-content: start; position: relative; }
+.step + .step::before { content: ""; position: absolute; left: -14px; top: 38px; width: 14px; height: 2px; background: var(--brand); }
+.step .who { display: flex; align-items: center; gap: 10px; }
+.step .n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: var(--on-brand); font: 600 .95rem/1 var(--f-display); flex: none; }
+.role { font: 600 .74rem/1 var(--f-body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.step h3 { font-size: 1.05rem; }
+.step ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: .92rem; display: grid; gap: 2px; }
+.assist { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; background: var(--brand-soft); border-radius: 14px; padding: 14px 18px; }
+.assist b { font-family: var(--f-display); }
+.assist span { color: var(--muted); font-size: .92rem; }
+
+/* Bốn bộ máy */
+.engine { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(20px, 4vw, 48px); align-items: center; }
+.engine + .engine { margin-top: clamp(40px, 6vw, 72px); }
+.engine:nth-of-type(even) .viz-side { order: 2; }
+.viz-side { display: grid; gap: 14px; min-width: 0; }
+.viz-side .tag { justify-self: start; }
+.viz-side p { color: var(--muted); }
+.tag { display: inline-block; font: 600 .74rem/1 var(--f-body); letter-spacing: .05em; text-transform: uppercase; padding: 6px 9px; border-radius: 6px; background: var(--brand-soft); color: var(--brand); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-size: .84rem; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.chip b { font-weight: 700; }
+
+/* Biểu đồ thanh ngang */
+.hbars { display: grid; gap: 10px; }
+.hb { display: grid; grid-template-columns: 7.5em minmax(0, 1fr) 3.4em; gap: 10px; align-items: center; font-size: .88rem; }
+.hb .lbl { color: var(--ink); }
+.hb .lbl small { display: block; color: var(--muted); font-size: .74rem; }
+.hb .trk { height: 14px; background: var(--track); border-radius: 4px; position: relative; }
+.hb .fill { position: absolute; inset: 0 auto 0 0; border-radius: 0 4px 4px 0; background: var(--c1); }
+.hb .val { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.legend { display: flex; gap: 14px; font-size: .82rem; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.grp { display: grid; gap: 4px; }
+.grp .name { font-size: .86rem; font-weight: 600; }
+.pair { display: grid; grid-template-columns: 4.6em minmax(0, 1fr) 3.6em; gap: 8px; align-items: center; font-size: .82rem; }
+.pair .trk { height: 12px; background: var(--track); border-radius: 4px; position: relative; }
+.pair .fill { position: absolute; inset: 0 auto 0 0; border-radius: 0 4px 4px 0; }
+.pair .val { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Thang độ giống: mỗi phép so một thanh, cùng trục 0,5 → 1,0 */
+.sims { display: grid; gap: 14px; }
+.sim { display: grid; gap: 6px; font-size: .84rem; }
+.sim .what { color: var(--muted); }
+.sim .what b { color: var(--ink); }
+.sim .trk { position: relative; height: 12px; border-radius: 4px; background: var(--track); }
+.sim .on { position: absolute; top: 0; bottom: 0; right: 0; border-radius: 0 4px 4px 0; }
+.sim .on::before { content: ""; position: absolute; left: -1px; top: -5px; bottom: -5px; width: 2px; background: var(--ink); }
+.sim-axis { position: relative; height: 16px; font-size: .74rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sim-axis span { position: absolute; top: 0; transform: translateX(-50%); }
+.sim-axis span:first-child { transform: none; }
+.sim-axis span:last-child { transform: translateX(-100%); }
+
+/* Trợ lý ảo */
+.jump { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.jump b { font: 600 2.6rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.jump .from { color: var(--muted); }
+.jump .arrow { color: var(--brand); font: 600 1.6rem/1 var(--f-display); }
+.matrix { width: 100%; border-collapse: collapse; font-size: .86rem; }
+.matrix th, .matrix td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: center; }
+.matrix th:first-child, .matrix td:first-child { text-align: left; }
+.matrix thead th { font-weight: 600; color: var(--muted); font-size: .76rem; }
+.yes { color: var(--good); font-weight: 600; }
+.no { color: var(--muted); }
+
+/* Thư viện ảnh */
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.gallery figure { margin: 0; display: grid; gap: 10px; min-width: 0; }
+.gallery figcaption { font-size: .92rem; color: var(--muted); }
+.gallery figcaption b { color: var(--ink); }
+.phone-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 200px); gap: 22px; align-items: start; }
+.phone { border-radius: 28px; border-width: 6px; border-color: var(--ink); max-width: 200px; }
+
+/* Tiến độ */
+.prog { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: clamp(20px, 4vw, 48px); align-items: start; }
+.big { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: grid; gap: 6px; }
+.big b { font: 600 3.6rem/1 var(--f-display); color: var(--brand); font-variant-numeric: tabular-nums; }
+.big span { color: var(--muted); font-size: .9rem; }
+.rows { display: grid; gap: 12px; }
+.row { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr) 3em 7.2em; gap: 12px; align-items: center; font-size: .9rem; }
+.row .trk { height: 12px; background: var(--track); border-radius: 4px; position: relative; }
+.row .fill { position: absolute; inset: 0 auto 0 0; background: var(--c1); border-radius: 0 4px 4px 0; }
+.row .val { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pill { justify-self: start; font-size: .74rem; font-weight: 600; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.p-done { background: var(--good-soft); color: var(--good); }
+.p-doing { background: var(--brand-soft); color: var(--brand); }
+.p-next { background: var(--track); color: var(--muted); }
+.p-done::before { content: "✓ "; }
+.p-doing::before { content: "◐ "; }
+.p-next::before { content: "○ "; }
+
+/* Mốc thời gian */
+.rail { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; }
+.rail li { display: grid; grid-template-columns: 4.2em 14px minmax(0, 1fr); gap: 12px; padding-block: 10px; border-bottom: 1px dashed var(--line); align-items: start; }
+.rail time { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--brand); }
+.rail .dot { width: 12px; height: 12px; border-radius: 50%; border: 3px solid var(--brand); margin-top: 6px; }
+.rail .meet .dot { background: var(--c2); border-color: var(--c2); }
+.rail .meet em { font-style: normal; font-size: .72rem; font-weight: 700; color: var(--wait); background: var(--wait-soft); padding: 2px 7px; border-radius: 999px; margin-left: 6px; white-space: nowrap; }
+
+/* Kiểm thử */
+.tests { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.test { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 6px; align-content: start; }
+.test b { font: 600 2rem/1.05 var(--f-display); font-variant-numeric: tabular-nums; }
+.test b small { font-size: .55em; color: var(--muted); }
+.test span { color: var(--muted); font-size: .88rem; }
+.test .ok { color: var(--good); font-weight: 600; font-size: .8rem; }
+
+/* Lộ trình */
+.gantt { display: grid; gap: 10px; }
+.g-row { display: grid; grid-template-columns: minmax(0, 13em) minmax(0, 1fr); gap: 14px; align-items: center; font-size: .9rem; }
+.g-row .lbl b { font-family: var(--f-display); margin-right: 6px; }
+.g-row .lbl span { color: var(--muted); }
+.g-trk { position: relative; height: 26px; background: var(--track); border-radius: 6px; }
+.g-bar { position: absolute; top: 4px; bottom: 4px; border-radius: 4px; background: var(--c1); }
+.g-bar.done { background: var(--good); }
+.g-axis { display: grid; grid-template-columns: minmax(0, 13em) minmax(0, 1fr); gap: 14px; font-size: .76rem; color: var(--muted); }
+.g-months { position: relative; height: 18px; }
+.g-months span { position: absolute; top: 0; }
+.today { position: absolute; top: -6px; bottom: -6px; width: 2px; background: var(--c2); }
+.today-wrap { position: relative; }
+.g-key { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .82rem; color: var(--muted); margin-bottom: 4px; }
+.g-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.g-key .t { width: 2px; height: 12px; border-radius: 0; vertical-align: -2px; }
+
+/* Chân trang */
+footer { background: var(--navy); color: var(--on-navy); padding-block: 40px; }
+.foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 32px; }
+.foot a { color: var(--on-navy); }
+.foot ol { margin: 8px 0 0; padding-left: 20px; color: var(--on-navy-muted); font-size: .88rem; display: grid; gap: 2px; }
+.foot p { color: var(--on-navy-muted); font-size: .9rem; }
+
+/* Phóng to ảnh + chú thích biểu đồ */
+dialog { border: 0; padding: 0; background: transparent; max-width: min(1280px, 96vw); width: 100%; }
+dialog::backdrop { background: rgba(8, 14, 30, .82); }
+dialog img { width: 100%; height: auto; border-radius: 10px; display: block; }
+dialog .lb-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: #FFFFFF; padding: 8px 2px; font-size: .9rem; }
+dialog button { font: 600 .9rem/1 var(--f-body); background: #FFFFFF; color: #13254D; border: 0; border-radius: 8px; padding: 9px 14px; cursor: pointer; }
+#tip { position: fixed; z-index: 20; pointer-events: none; background: var(--ink); color: var(--bg); font-size: .8rem; padding: 6px 9px; border-radius: 7px; max-width: 260px; box-shadow: var(--shadow); }
+[data-tip] { cursor: default; }
+
+
+/* Tóm tắt 3 cột */
+.sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.sum-col { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 14px; align-content: start; }
+.sum-col h3 { display: flex; align-items: center; gap: 10px; }
+.sum-col h3 .ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 1rem; flex: none; }
+.ic-done { background: var(--good-soft); color: var(--good); }
+.ic-todo { background: var(--track); color: var(--muted); }
+.ic-ask { background: var(--wait-soft); color: var(--wait); }
+.sum-col ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; font-size: .93rem; }
+.sum-col li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; }
+.sum-col li::before { font-weight: 700; }
+.done li::before { content: "✓"; color: var(--good); }
+.todo li::before { content: "○"; color: var(--muted); }
+.need li::before { content: "?"; color: var(--wait); }
+.sum-col li small { display: block; color: var(--muted); font-size: .8rem; }
+.sum-col .go { justify-self: start; font-weight: 600; text-decoration: none; }
+
+/* Phương án */
+.plan { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.plan-box { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 8px; align-content: start; position: relative; }
+.plan-box + .plan-box::before { content: "→"; position: absolute; left: -9px; top: 50%; transform: translate(-50%, -50%); color: var(--brand); font: 600 1.1rem/1 var(--f-display); }
+.plan-box .k { font: 600 .74rem/1 var(--f-body); letter-spacing: .06em; text-transform: uppercase; color: var(--brand); }
+.plan-box p { color: var(--muted); font-size: .92rem; }
+
+/* Kiến trúc nhiều tầng */
+.arch { display: grid; gap: 12px; }
+.layer { display: grid; grid-template-columns: minmax(0, 13em) minmax(0, 1fr); gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; position: relative; }
+.layer + .layer::before { content: ""; position: absolute; top: -13px; left: 50%; width: 2px; height: 12px; background: var(--brand); }
+.layer .nm b { display: block; font-family: var(--f-display); }
+.layer .nm span { color: var(--muted); font-size: .82rem; }
+.layer.ai { border-color: var(--brand); background: var(--brand-soft); }
+.techs { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.tech { font-size: .84rem; padding: 6px 10px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); }
+.tech b { font-weight: 600; }
+.layer.ai .tech { background: var(--surface); }
+
+/* Form góp ý */
+.fb { display: grid; gap: 20px; }
+.fb-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: clamp(16px, 3vw, 24px); display: grid; gap: 6px; }
+.fb-card > h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.fb-card > h3 small { font: 500 .82rem/1.2 var(--f-body); color: var(--muted); }
+.rate { display: grid; grid-template-columns: minmax(0, 12em) auto minmax(0, 1fr); gap: 10px 14px; align-items: center; padding-block: 10px; border-top: 1px solid var(--line); }
+.rate > b { font-weight: 600; font-size: .95rem; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg label, .opt { position: relative; }
+.seg input, .opt input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 7px 12px; font-size: .86rem; cursor: pointer; border-left: 1px solid var(--line); white-space: nowrap; }
+.seg label:first-child span { border-left: 0; }
+.seg input:checked + span { font-weight: 700; }
+.seg input[value="on"]:checked + span { background: var(--good-soft); color: var(--good); }
+.seg input[value="can-chinh"]:checked + span { background: var(--wait-soft); color: var(--wait); }
+.seg input[value="chua-xem"]:checked + span { background: var(--track); color: var(--ink); }
+.seg input:focus-visible + span, .opt input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: -3px; }
+.fld { width: 100%; min-width: 0; font: inherit; font-size: .9rem; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); }
+.fld::placeholder { color: var(--muted); opacity: .8; }
+textarea.fld { min-height: 130px; resize: vertical; line-height: 1.5; }
+.dec { display: grid; gap: 10px; padding-block: 14px; border-top: 1px solid var(--line); }
+.dec .q { font-weight: 600; }
+.dec .q small { display: block; color: var(--muted); font-weight: 400; font-size: .84rem; }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: .88rem; cursor: pointer; background: var(--bg); }
+.opt span::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--muted); flex: none; box-sizing: border-box; }
+.opt input:checked + span { border-color: var(--brand); background: var(--brand-soft); font-weight: 600; }
+.opt input:checked + span::before { border-color: var(--brand); background: radial-gradient(circle, var(--brand) 0 3px, transparent 3.5px); }
+.lbl-row { display: grid; gap: 6px; font-size: .9rem; font-weight: 600; }
+.send { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn-send { background: var(--brand); color: var(--on-brand); border: 0; cursor: pointer; font: 600 1rem/1 var(--f-body); padding: 14px 22px; border-radius: 10px; }
+.btn-send[disabled] { opacity: .6; cursor: wait; }
+.btn-copy { background: transparent; color: var(--brand); border: 1px solid var(--line); cursor: pointer; font: 600 .95rem/1 var(--f-body); padding: 13px 16px; border-radius: 10px; }
+.count { font-size: .86rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+#fbStatus { font-size: .95rem; min-height: 1.5em; }
+.st-ok { color: var(--good); font-weight: 600; }
+.st-err { color: var(--danger); font-weight: 600; }
+#fbBackup { display: grid; gap: 6px; }
+
+@media (max-width: 900px) {
+  .hero-grid, .engine, .prog, .foot { grid-template-columns: minmax(0, 1fr); }
+  .engine:nth-of-type(even) .viz-side { order: 0; }
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .step + .step::before { display: none; }
+  .tests { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rail { grid-template-columns: minmax(0, 1fr); }
+  .sum, .plan { grid-template-columns: minmax(0, 1fr); }
+  .plan-box + .plan-box::before { display: none; }
+  .layer { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .rate { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .flow, .gallery, .phone-pair { grid-template-columns: minmax(0, 1fr); }
+  .stats { grid-template-columns: minmax(0, 1fr); }
+  .row { grid-template-columns: minmax(0, 1fr) 3em; }
+  .row .trk { grid-column: 1 / -1; grid-row: 2; }
+  .row .pill { grid-column: 1 / -1; grid-row: 3; }
+  .g-row, .g-axis { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .g-axis > span:first-child { display: none; }
+  .hb { grid-template-columns: 6.5em minmax(0, 1fr) 3.2em; }
+  .phone { max-width: 220px; justify-self: center; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .shot { transition: transform .2s ease, box-shadow .2s ease; }
+  .shot:hover { transform: translateY(-2px); }
+}
+</style></head><body>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Đề tài NCKH · Báo cáo tiến độ 18/11/2026</p>
+      <h1>Capstone AI</h1>
+      <p class="sub">Hệ thống thông minh tư vấn và tối ưu hoá đăng ký đồ án tốt nghiệp</p>
+      <p class="meta">SV Trịnh Hoàng Thành (DCCNTT14.4) · GVHD ThS. Đặng Khánh Trung</p>
+      <div class="stats">
+        <div class="stat"><b class="num">≈ 60%</b><span>khối lượng theo thuyết minh</span></div>
+        <div class="stat"><b class="num">449</b><span>đồ án thật của khoá trước</span></div>
+        <div class="stat"><b class="num">250/250</b><span>ca kiểm thử tự động đạt</span></div>
+      </div>
+      <div class="cta">
+        <a class="btn btn-main" href="https://capstone-ai.tail56c979.ts.net" target="_blank" rel="noopener">Mở bản demo ↗</a>
+        <a class="btn btn-ghost" href="https://github.com/lacvietagency-web/capstone-advisor-ai" target="_blank" rel="noopener">Mã nguồn GitHub ↗</a>
+        <a class="btn btn-ghost" href="#gop-y">Thầy góp ý ↓</a>
+        <p class="acc">Tài khoản: <code>sv001</code> <code>gv001</code> <code>khoa01</code> · mật khẩu <code>123456</code></p>
+      </div>
+    </div>
+    <button class="shot" type="button" data-zoom=\"{% static 'trinh-bay/anh/sv-goi-y.jpg' %}\" data-cap="Trang chủ sinh viên: Top 5 đề tài phù hợp, kèm điểm từng thành phần">
+      <span class="bar"><i></i><i></i><i></i><span>capstone-ai.tail56c979.ts.net/trang-chu/</span></span>
+      <img src=\"{% static 'trinh-bay/anh/sv-goi-y.jpg' %}\" alt="Trang chủ sinh viên với khối đề tài phù hợp nhất và điểm M1, M3, M4, M5" width="1280" height="800">
+    </button>
+  </div>
+</header>
+
+<main>
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Tóm tắt</p>
+      <h2>Đã làm được gì, còn gì, cần thầy quyết gì</h2>
+    </div>
+    <div class="sum">
+      <div class="sum-col done">
+        <h3><span class="ic ic-done" aria-hidden="true">✓</span>Đã làm được</h3>
+        <ul>
+          <li><span>Hệ thống web 3 vai chạy thật<small>Sinh viên, Giảng viên, Khoa · link demo cố định</small></span></li>
+          <li><span>Gợi ý đề tài có giải thích<small>AHP + Sentence-BERT + LLM chấm rubric</small></span></li>
+          <li><span>Phân công tối ưu ILP<small>đã so với Greedy, Gale-Shapley, GA</small></span></li>
+          <li><span>Lọc trùng, tư vấn từ khoá trước<small>theo ý kiến thầy 22/10 · 449 đồ án thật</small></span></li>
+          <li><span>Trợ lý ảo bản đầu, có phân quyền<small>làm sớm từ Giai đoạn 2</small></span></li>
+          <li><span>250 ca kiểm thử tự động đều đạt</span></li>
+        </ul>
+      </div>
+      <div class="sum-col todo">
+        <h3><span class="ic ic-todo" aria-hidden="true">○</span>Chưa làm</h3>
+        <ul>
+          <li><span>Trợ lý trả lời quy chế có trích dẫn<small>chờ văn bản quy chế · GĐ2</small></span></li>
+          <li><span>Bộ câu hỏi đánh giá có người duyệt<small>khoảng 150 câu · GĐ2</small></span></li>
+          <li><span>Quản lý tiến độ động, nhắc việc<small>GĐ3</small></span></li>
+          <li><span>Ứng dụng Android cho sinh viên<small>GĐ4</small></span></li>
+          <li><span>Thử nghiệm với người dùng thật<small>đo SUS, thời gian · GĐ5</small></span></li>
+        </ul>
+      </div>
+      <div class="sum-col need">
+        <h3><span class="ic ic-ask" aria-hidden="true">?</span>Cần thầy quyết định</h3>
+        <ul>
+          <li><span>Văn bản quy chế đồ án tốt nghiệp</span></li>
+          <li><span>ILP làm thuật toán phân công chính</span></li>
+          <li><span>Có bắt buộc xếp vào đề tài GV đã đồng ý</span></li>
+          <li><span>Giảng viên có được hỏi danh tính SV</span></li>
+          <li><span>Ai duyệt nhãn trùng và bộ câu hỏi</span></li>
+          <li><span>Kho đồ án khoá trước, ứng dụng di động</span></li>
+        </ul>
+        <a class="go" href="#gop-y">Thầy chọn nhanh ở cuối trang ↓</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Phương án</p>
+      <h2>Từ bài toán đến kiểm chứng</h2>
+    </div>
+    <div class="plan">
+      <div class="plan-box"><span class="k">Bài toán</span><h3>Đăng ký đồ án còn thủ công</h3><p>Sinh viên chọn đề tài theo cảm tính, đề tài dễ trùng nhau, phân công khó cân bằng.</p></div>
+      <div class="plan-box"><span class="k">Giải pháp</span><h3>Web 3 vai + 4 bộ máy AI</h3><p>Gợi ý, phân công, lọc trùng, trợ lý ảo, chạy trên cùng một hệ thống.</p></div>
+      <div class="plan-box"><span class="k">Đo lường</span><h3>5 câu hỏi nghiên cứu</h3><p>RQ1–RQ5, mọi số liệu lấy từ chạy thật, so với phương án cơ sở.</p></div>
+      <div class="plan-box"><span class="k">Kiểm chứng</span><h3>Người dùng thật</h3><p>Thử nghiệm với sinh viên, giảng viên ở GĐ5 (04/2027).</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Cấu trúc</p>
+      <h2>Hệ thống gồm những tầng nào, dùng công nghệ gì</h2>
+    </div>
+    <div class="arch">
+      <div class="layer"><div class="nm"><b>Người dùng</b><span>3 vai</span></div><div class="techs"><span class="tech">Sinh viên</span><span class="tech">Giảng viên</span><span class="tech">Cán bộ Khoa</span><span class="tech">Máy tính, điện thoại</span></div></div>
+      <div class="layer"><div class="nm"><b>Giao diện</b><span>theo cổng SV của trường</span></div><div class="techs"><span class="tech"><b>Django Templates</b></span><span class="tech">CSS riêng, sáng / tối</span><span class="tech">Chart.js</span><span class="tech">Trợ lý ảo nổi ở mọi trang</span></div></div>
+      <div class="layer"><div class="nm"><b>Nghiệp vụ</b><span>Python 3.12 · Django 5.2</span></div><div class="techs"><span class="tech">Tài khoản, phân quyền</span><span class="tech">Đề tài, nguyện vọng</span><span class="tech">Gợi ý</span><span class="tech">Phân công</span><span class="tech">Trợ lý ảo</span><span class="tech">Thống kê, nhập Excel</span></div></div>
+      <div class="layer ai"><div class="nm"><b>AI và thuật toán</b><span>lõi nghiên cứu</span></div><div class="techs"><span class="tech"><b>Sentence-BERT</b> đa ngôn ngữ</span><span class="tech"><b>AHP</b> trọng số</span><span class="tech"><b>LLM</b> chấm rubric (gpt-oss-120b)</span><span class="tech"><b>ILP</b> PuLP + CBC</span><span class="tech"><b>RAG</b> + Gemini API</span><span class="tech">Tìm kiếm lai từ khoá</span></div></div>
+      <div class="layer"><div class="nm"><b>Dữ liệu</b><span>demo và triển khai</span></div><div class="techs"><span class="tech">SQLite (demo) · MySQL</span><span class="tech">449 đồ án khoá trước</span><span class="tech">Nhập Excel (openpyxl)</span><span class="tech">Nhật ký hỏi đáp</span></div></div>
+      <div class="layer"><div class="nm"><b>Chất lượng, triển khai</b><span>kiểm thử tự động</span></div><div class="techs"><span class="tech">250 ca Django test</span><span class="tech">Hypothesis</span><span class="tech">Playwright + axe</span><span class="tech">Ruff · GitHub Actions</span><span class="tech">Máy chủ Ubuntu, HTTPS</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Luồng hệ thống</p>
+      <h2>Một đợt đăng ký đi qua hệ thống</h2>
+    </div>
+    <div class="flow">
+      <div class="step">
+        <div class="who"><span class="n">1</span><span class="role">Sinh viên</span></div>
+        <h3>Nhận gợi ý, nộp nguyện vọng</h3>
+        <ul><li>Hồ sơ năng lực</li><li>Top 5 đề tài kèm lý do</li><li>Nộp NV1–NV3</li></ul>
+      </div>
+      <div class="step">
+        <div class="who"><span class="n">2</span><span class="role">Giảng viên</span></div>
+        <h3>Đăng đề tài, duyệt sinh viên</h3>
+        <ul><li>Cảnh báo đề tài trùng</li><li>Tư vấn từ đồ án khoá trước</li><li>Đồng ý hoặc từ chối có lý do</li></ul>
+      </div>
+      <div class="step">
+        <div class="who"><span class="n">3</span><span class="role">Khoa</span></div>
+        <h3>Phân công tối ưu</h3>
+        <ul><li>Chạy ILP một lần bấm</li><li>Xếp tay phần còn lại</li><li>Chốt và công bố</li></ul>
+      </div>
+      <div class="step">
+        <div class="who"><span class="n">4</span><span class="role">Sinh viên</span></div>
+        <h3>Xem kết quả</h3>
+        <ul><li>Đề tài và giảng viên được xếp</li><li>Nguyện vọng đạt được</li></ul>
+      </div>
+    </div>
+    <div class="assist">
+      <b>Trợ lý ảo đi cùng mọi bước</b>
+      <span>Hỏi bằng tiếng Việt, có dấu hay không dấu · trả lời bằng dữ liệu thật, ghi nguồn bấm được · mỗi vai chỉ thấy đúng phần của mình</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Bên trong</p>
+      <h2>Bốn bộ máy AI, mỗi cái đều có số đo</h2>
+    </div>
+
+    <div class="engine">
+      <div class="viz-side">
+        <span class="tag">RQ1 · RQ2</span>
+        <h3>Gợi ý đề tài có giải thích</h3>
+        <p>Lọc cứng theo điều kiện, rồi chấm 4 thành phần. Trọng số do AHP xác định.</p>
+        <div class="card hbars" role="img" aria-label="Trọng số AHP: kỹ năng 42,4%, gần nghĩa 22,7%, mô hình ngôn ngữ chấm 22,7%, lĩnh vực 12,2%">
+          <div class="hb" tabindex="0" data-tip="M1 · so kỹ năng của sinh viên với kỹ năng đề tài yêu cầu"><span class="lbl">Kỹ năng<small>M1</small></span><span class="trk"><span class="fill" style="width:42.4%"></span></span><span class="val">42,4%</span></div>
+          <div class="hb" tabindex="0" data-tip="M4 · Sentence-BERT đo độ gần nghĩa giữa hồ sơ và mô tả đề tài"><span class="lbl">Gần nghĩa<small>M4</small></span><span class="trk"><span class="fill" style="width:22.7%"></span></span><span class="val">22,7%</span></div>
+          <div class="hb" tabindex="0" data-tip="M5 · mô hình ngôn ngữ chấm theo rubric 100 điểm, chỉ 15 đề tài đứng đầu"><span class="lbl">LLM chấm<small>M5</small></span><span class="trk"><span class="fill" style="width:22.7%"></span></span><span class="val">22,7%</span></div>
+          <div class="hb" tabindex="0" data-tip="M3 · khớp lĩnh vực quan tâm của sinh viên"><span class="lbl">Lĩnh vực<small>M3</small></span><span class="trk"><span class="fill" style="width:12.2%"></span></span><span class="val">12,2%</span></div>
+        </div>
+        <div class="chips"><span class="chip">Hit@5 <b>0,883</b></span><span class="chip">AHP nhất quán CR <b>0,004</b></span><span class="chip">Bỏ M2 theo ý kiến thầy</span></div>
+      </div>
+      <button class="shot" type="button" data-zoom=\"{% static 'trinh-bay/anh/sv-dieu-kien.jpg' %}\" data-cap="Chi tiết đề tài: điều kiện nào đạt, điều kiện nào thiếu">
+        <span class="bar"><i></i><i></i><i></i><span>…/danh-sach-de-tai/287/</span></span>
+        <img src=\"{% static 'trinh-bay/anh/sv-dieu-kien.jpg' %}\" alt="Trang chi tiết đề tài báo sinh viên chưa đủ điều kiện vì thiếu kỹ năng Machine Learning" width="1280" height="800">
+      </button>
+    </div>
+
+    <div class="engine">
+      <div class="viz-side">
+        <span class="tag">RQ3 · RQ3b</span>
+        <h3>Phân công tối ưu bằng ILP</h3>
+        <p>Xếp được nhiều sinh viên nhất, ưu tiên nguyện vọng cao. Đã so với Greedy, Gale-Shapley và GA.</p>
+        <div class="card" style="display:grid;gap:14px" role="img" aria-label="Ở 1.000 sinh viên: ILP xếp được 39,3% so với Greedy 37,6%; đạt NV1 21,6% so với 14,6%">
+          <div class="legend"><span><i style="background:var(--c1)"></i>ILP</span><span><i style="background:var(--c2)"></i>Greedy</span><span>· 1.000 sinh viên · thang 0–50%</span></div>
+          <div class="grp">
+            <span class="name">Tỉ lệ sinh viên được xếp</span>
+            <div class="pair" tabindex="0" data-tip="ILP xếp được 39,3% sinh viên"><span>ILP</span><span class="trk"><span class="fill" style="width:78.6%;background:var(--c1)"></span></span><span class="val">39,3%</span></div>
+            <div class="pair" tabindex="0" data-tip="Greedy xếp được 37,6% sinh viên"><span>Greedy</span><span class="trk"><span class="fill" style="width:75.2%;background:var(--c2)"></span></span><span class="val">37,6%</span></div>
+          </div>
+          <div class="grp">
+            <span class="name">Đạt nguyện vọng 1</span>
+            <div class="pair" tabindex="0" data-tip="ILP: 21,6% sinh viên đạt NV1"><span>ILP</span><span class="trk"><span class="fill" style="width:43.2%;background:var(--c1)"></span></span><span class="val">21,6%</span></div>
+            <div class="pair" tabindex="0" data-tip="Greedy: 14,6% sinh viên đạt NV1"><span>Greedy</span><span class="trk"><span class="fill" style="width:29.2%;background:var(--c2)"></span></span><span class="val">14,6%</span></div>
+          </div>
+        </div>
+        <div class="chips"><span class="chip"><b>0</b> vi phạm ràng buộc</span><span class="chip">Giải trong <b>0,12 giây</b></span><span class="chip">GA chậm hơn <b>~30 lần</b></span></div>
+      </div>
+      <button class="shot" type="button" data-zoom=\"{% static 'trinh-bay/anh/khoa-phan-cong.jpg' %}\" data-cap="Khoa chạy ILP: số đã xếp, đạt NV1, chờ xếp tay (chụp trên bản sao dữ liệu)">
+        <span class="bar"><i></i><i></i><i></i><span>…/khoa/phan-cong/</span></span>
+        <img src=\"{% static 'trinh-bay/anh/khoa-phan-cong.jpg' %}\" alt="Trang phân công của Khoa sau khi chạy ILP, có biểu đồ kết quả theo nguyện vọng" width="1280" height="800">
+      </button>
+    </div>
+
+    <div class="engine">
+      <div class="viz-side">
+        <span class="tag">RQ4 · ý kiến thầy 22/10</span>
+        <h3>Lọc đề tài trùng, tư vấn từ khoá trước</h3>
+        <p>Hai ngưỡng độ giống hiệu chỉnh trên 449 đồ án thật thầy gửi.</p>
+        <div class="card" role="img" aria-label="Thang độ giống từ 0,5 đến 1: từ 0,625 tư vấn cải tiến từ đồ án khoá trước, từ 0,70 cảnh báo trùng với đề tài đang mở">
+          <div class="sims">
+            <div class="sim" tabindex="0" data-tip="Đề tài mới giống một đồ án khoá trước từ 0,625 trở lên → hệ thống tư vấn điểm cải tiến"><span class="what">So với <b>đồ án khoá trước</b> · từ <b>0,625</b> → tư vấn cải tiến</span><span class="trk"><span class="on" style="left:25%;background:var(--c2)"></span></span></div>
+            <div class="sim" tabindex="0" data-tip="Giống một đề tài đang mở từ 0,70 trở lên → cảnh báo trùng"><span class="what">So với <b>đề tài đang mở</b> · từ <b>0,70</b> → cảnh báo trùng</span><span class="trk"><span class="on" style="left:40%;background:var(--c1)"></span></span></div>
+            <div class="sim-axis"><span style="left:0">0,5</span><span style="left:25%">0,625</span><span style="left:40%">0,70</span><span style="left:100%">1,0</span></div>
+          </div>
+        </div>
+        <div class="chips"><span class="chip"><b>300</b> cặp có nhãn</span><span class="chip">Lai SBERT + từ khoá F1 <b>0,80</b></span><span class="chip">Chỉ cảnh báo, không tự chặn</span></div>
+      </div>
+      <button class="shot" type="button" data-zoom=\"{% static 'trinh-bay/anh/gv-canh-bao.jpg' %}\" data-cap="Giảng viên sửa đề tài: cảnh báo 3 đề tài gần giống và tư vấn từ đồ án chatbot khoá trước">
+        <span class="bar"><i></i><i></i><i></i><span>…/de-tai/277/sua/</span></span>
+        <img src=\"{% static 'trinh-bay/anh/gv-canh-bao.jpg' %}\" alt="Trang sửa đề tài hiện cảnh báo trùng 95%, 93%, 88% và gợi ý cải tiến từ đồ án khoá trước giống 81%" width="1280" height="800">
+      </button>
+    </div>
+
+    <div class="engine">
+      <div class="viz-side">
+        <span class="tag">RQ5 · làm sớm từ Giai đoạn 2</span>
+        <h3>Trợ lý ảo có phân quyền</h3>
+        <p>73 kịch bản khó do 4 mô hình AI soạn; giám khảo AI độc lập chấm.</p>
+        <div class="card" style="display:grid;gap:14px">
+          <div class="jump"><b class="from">63%</b><span class="arrow">→</span><b>70%</b><span class="lead" style="font-size:.86rem">sau 4 vòng sửa · 58 kịch bản chấm cả hai vòng</span></div>
+          <div style="overflow-x:auto">
+            <table class="matrix">
+              <thead><tr><th>Vai hỏi</th><th>Dữ liệu của mình</th><th>Danh tính SV khác</th><th>Số liệu toàn Khoa</th></tr></thead>
+              <tbody>
+                <tr><td>Sinh viên</td><td class="yes">✓ có</td><td class="no">✕ không</td><td class="no">✕ không</td></tr>
+                <tr><td>Giảng viên</td><td class="yes">✓ có</td><td class="no">✕ chỉ số lượng</td><td class="no">✕ không</td></tr>
+                <tr><td>Khoa</td><td class="yes">✓ có</td><td class="no">✕ không</td><td class="yes">✓ có</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="chips"><span class="chip"><b>0</b> lần lộ dữ liệu ngoài quyền</span><span class="chip">Trả lời trung vị <b>1,7 giây</b></span><span class="chip">Chờ văn bản quy chế</span></div>
+      </div>
+      <button class="shot" type="button" data-zoom=\"{% static 'trinh-bay/anh/sv-tro-ly.jpg' %}\" data-cap="Sinh viên hỏi trợ lý: đề tài chatbot nào đủ điều kiện, kèm thẻ nguồn bấm được">
+        <span class="bar"><i></i><i></i><i></i><span>…/trang-chu/ · Trợ lý Capstone AI</span></span>
+        <img src=\"{% static 'trinh-bay/anh/sv-tro-ly.jpg' %}\" alt="Khung trợ lý ảo trả lời câu hỏi về điều kiện đề tài chatbot, có thẻ nguồn" width="1280" height="800">
+      </button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Xem tận mắt</p>
+      <h2>Màn hình thật trên bản demo</h2>
+      <p class="lead">Bấm vào ảnh để phóng to.</p>
+    </div>
+    <div class="gallery">
+      <figure>
+        <button class="shot" type="button" data-zoom=\"{% static 'trinh-bay/anh/khoa-thong-ke.jpg' %}\" data-cap="Thống kê cho Khoa: đề tài nhiều NV1, phân bố theo lĩnh vực">
+          <span class="bar"><i></i><i></i><i></i><span>…/khoa/thong-ke/</span></span>
+          <img src=\"{% static 'trinh-bay/anh/khoa-thong-ke.jpg' %}\" alt="Trang thống kê của Khoa với biểu đồ đề tài nhận nhiều NV1 và phân bố theo lĩnh vực" width="1280" height="800">
+        </button>
+        <figcaption><b>Thống kê cho Khoa.</b> Đề tài hot, tải giảng viên, phân bố lĩnh vực.</figcaption>
+      </figure>
+      <figure>
+        <button class="shot" type="button" data-zoom=\"{% static 'trinh-bay/anh/khoa-trung-lap.jpg' %}\" data-cap="Rà soát trùng lặp: các cặp đề tài đang mở giống nhau từ 70%">
+          <span class="bar"><i></i><i></i><i></i><span>…/khoa/ra-soat-trung-lap/</span></span>
+          <img src=\"{% static 'trinh-bay/anh/khoa-trung-lap.jpg' %}\" alt="Bảng các cặp đề tài gần trùng kèm độ giống" width="1280" height="800">
+        </button>
+        <figcaption><b>Rà soát trùng lặp.</b> Mọi cặp đề tài đang mở giống nhau từ 70%.</figcaption>
+      </figure>
+      <figure>
+        <button class="shot" type="button" data-zoom=\"{% static 'trinh-bay/anh/khoa-tro-ly.jpg' %}\" data-cap="Khoa hỏi trợ lý: tình hình đợt đăng ký, đề tài hot, giảng viên kín chỉ tiêu">
+          <span class="bar"><i></i><i></i><i></i><span>…/trang-chu/ · Trợ lý Capstone AI</span></span>
+          <img src=\"{% static 'trinh-bay/anh/khoa-tro-ly.jpg' %}\" alt="Trợ lý ảo trả lời Khoa bằng số liệu tổng hợp, không có danh tính sinh viên" width="1280" height="800">
+        </button>
+        <figcaption><b>Khoa hỏi trợ lý.</b> Số liệu tổng hợp, không lộ danh tính sinh viên.</figcaption>
+      </figure>
+      <figure class="phone-pair">
+        <div style="display:grid;gap:10px;align-content:center">
+          <figcaption><b>Dùng tốt trên điện thoại.</b> Sinh viên nộp, sửa nguyện vọng ngay trên máy. Có giao diện sáng và tối.</figcaption>
+        </div>
+        <button class="shot phone" type="button" data-zoom=\"{% static 'trinh-bay/anh/dien-thoai.jpg' %}\" data-cap="Trang nguyện vọng trên điện thoại (390 px)">
+          <img src=\"{% static 'trinh-bay/anh/dien-thoai.jpg' %}\" alt="Trang nguyện vọng hiển thị trên màn hình điện thoại" width="780" height="1688">
+        </button>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Tiến độ</p>
+      <h2>Đối chiếu với thuyết minh</h2>
+    </div>
+    <div class="prog">
+      <div class="big"><b>≈ 60%</b><span>khối lượng đề tài đến 17/11/2026 (03/11 là 55%)</span></div>
+      <div class="rows" role="list">
+        <div class="row" role="listitem" tabindex="0" data-tip="Khảo sát quy trình, lập kế hoạch (02/10)"><span>Khảo sát thực trạng</span><span class="trk"><span class="fill" style="width:100%"></span></span><span class="val">100%</span><span class="pill p-done">Xong</span></div>
+        <div class="row" role="listitem" tabindex="0" data-tip="M1, M3, M4, M5 + trọng số AHP; RQ1, RQ2"><span>Gợi ý đề tài theo năng lực</span><span class="trk"><span class="fill" style="width:100%"></span></span><span class="val">100%</span><span class="pill p-done">Xong</span></div>
+        <div class="row" role="listitem" tabindex="0" data-tip="ILP, so đủ 4 thuật toán ở 3 quy mô; RQ3, RQ3b"><span>Tối ưu phân bổ</span><span class="trk"><span class="fill" style="width:100%"></span></span><span class="val">100%</span><span class="pill p-done">Xong</span></div>
+        <div class="row" role="listitem" tabindex="0" data-tip="Theo 3 ý kiến của thầy ngày 22/10; chạy trên 449 đồ án thật"><span>Lọc trùng, tư vấn khoá trước</span><span class="trk"><span class="fill" style="width:100%"></span></span><span class="val">100%</span><span class="pill p-done">Xong</span></div>
+        <div class="row" role="listitem" tabindex="0" data-tip="Thống kê, rà soát trùng, trợ lý cho Khoa"><span>Dashboard cho Khoa</span><span class="trk"><span class="fill" style="width:85%"></span></span><span class="val">85%</span><span class="pill p-doing">Gần xong</span></div>
+        <div class="row" role="listitem" tabindex="0" data-tip="Web xong; ứng dụng Android ở Giai đoạn 4"><span>Web và Mobile</span><span class="trk"><span class="fill" style="width:50%"></span></span><span class="val">50%</span><span class="pill p-doing">Web xong</span></div>
+        <div class="row" role="listitem" tabindex="0" data-tip="Bản đầu đã chạy; chờ văn bản quy chế để trả lời có trích dẫn điều, khoản"><span>Trợ lý ảo (Chatbot RAG)</span><span class="trk"><span class="fill" style="width:35%"></span></span><span class="val">35%</span><span class="pill p-doing">Đang làm</span></div>
+        <div class="row" role="listitem" tabindex="0" data-tip="Mới thử đóng vai bằng AI; người dùng thật ở Giai đoạn 5"><span>Thử nghiệm người dùng thật</span><span class="trk"><span class="fill" style="width:10%"></span></span><span class="val">10%</span><span class="pill p-next">GĐ5</span></div>
+        <div class="row" role="listitem" tabindex="0" data-tip="Theo kế hoạch Giai đoạn 3"><span>Quản lý tiến độ động</span><span class="trk"><span class="fill" style="width:0%"></span></span><span class="val">0%</span><span class="pill p-next">GĐ3</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Hành trình</p>
+      <h2>Các mốc từ 02/10 đến nay</h2>
+    </div>
+    <ol class="rail">
+      <li><time>02/10</time><span class="dot"></span><span>Khảo sát, kế hoạch, khung hệ thống 3 vai</span></li>
+      <li><time>07/10</time><span class="dot"></span><span>Đủ chức năng; chạy thực nghiệm RQ1–RQ3</span></li>
+      <li><time>15/10</time><span class="dot"></span><span>Giao diện theo cổng sinh viên của trường</span></li>
+      <li><time>20/10</time><span class="dot"></span><span>Nghiệm thu 84/84 ca</span></li>
+      <li class="meet"><time>22/10</time><span class="dot"></span><span>Nhận 3 ý kiến: bỏ M2, lọc trùng, tư vấn khoá trước<em>Họp với thầy</em></span></li>
+      <li><time>03/11</time><span class="dot"></span><span>Phương án NCKH; so 4 thuật toán; demo công khai</span></li>
+      <li class="meet"><time>13/11</time><span class="dot"></span><span>Báo cáo tiến độ; công khai mã nguồn<em>Họp trực tuyến</em></span></li>
+      <li><time>17/11</time><span class="dot"></span><span>Nạp 449 đồ án thật; trợ lý ảo có phân quyền</span></li>
+      <li><time>18/11</time><span class="dot"></span><span>Link demo cố định; kiểm thử lại toàn bộ</span></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Kiểm thử</p>
+      <h2>Kiểm lại toàn bộ trước khi gửi thầy</h2>
+    </div>
+    <div class="tests">
+      <div class="test"><span class="ok">✓ Đạt hết</span><b>250<small>/250</small></b><span>ca tự động: nghiệp vụ, phân quyền mọi trang × mọi vai, ILP</span></div>
+      <div class="test"><span class="ok">✓ Đạt hết</span><b>84<small>/84</small></b><span>ca nghiệm thu theo ca sử dụng (20/10)</span></div>
+      <div class="test"><span class="ok">✓ Đạt hết</span><b>25<small>/25</small></b><span>ca trên trình duyệt thật: Chromium 13, Firefox 12; 0 lỗi truy cập nghiêm trọng</span></div>
+      <div class="test"><span class="ok">✓ Đạt hết</span><b>40<small>/40</small></b><span>ca đi qua đúng link demo, như khi thầy mở từ máy của thầy</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Hướng thực hiện</p>
+      <h2>Chặng tiếp theo đến 05/2027</h2>
+    </div>
+    <div class="gantt" role="img" aria-label="Lộ trình: GĐ1 tháng 11/2026 đã xong; GĐ2 01/12/2026 đến 15/01/2027; GĐ3 16/01 đến 28/02/2027; GĐ4 tháng 3; GĐ5 tháng 4; GĐ6 tháng 5/2027">
+      <div class="g-key"><span><i style="background:var(--good)"></i>Đã xong</span><span><i style="background:var(--c1)"></i>Kế hoạch</span><span><i class="t" style="background:var(--c2)"></i>Hôm nay 18/11</span></div>
+      <div class="g-axis"><span></span>
+        <div class="g-months today-wrap">
+          <span style="left:0">11/2026</span><span style="left:14.15%">12</span><span style="left:28.77%">01/2027</span><span style="left:43.4%">02</span><span style="left:56.6%">03</span><span style="left:71.23%">04</span><span style="left:85.38%">05</span>
+        </div>
+      </div>
+      <div class="g-row" tabindex="0" data-tip="GĐ1 · 03/11 – 30/11/2026 · so sánh thuật toán, link demo, báo cáo; còn chờ quy chế"><span class="lbl"><b>GĐ1</b><span>Nền tảng, demo</span></span><div class="g-trk today-wrap"><span class="g-bar done" style="left:0.94%;width:13.2%"></span><span class="today" style="left:8.02%"></span></div></div>
+      <div class="g-row" tabindex="0" data-tip="GĐ2 · 01/12/2026 – 15/01/2027 · nạp quy chế có trích dẫn; ~150 câu đánh giá có người duyệt; thử mô hình chạy tại máy chủ"><span class="lbl"><b>GĐ2</b><span>Trợ lý ảo, quy chế</span></span><div class="g-trk"><span class="g-bar" style="left:14.15%;width:21.7%"></span></div></div>
+      <div class="g-row" tabindex="0" data-tip="GĐ3 · 16/01 – 28/02/2027 · quản lý tiến độ động, nhắc việc; giọng nói"><span class="lbl"><b>GĐ3</b><span>Tiến độ động</span></span><div class="g-trk"><span class="g-bar" style="left:35.85%;width:20.75%"></span></div></div>
+      <div class="g-row" tabindex="0" data-tip="GĐ4 · 03/2027 · API và ứng dụng Android cho sinh viên"><span class="lbl"><b>GĐ4</b><span>Ứng dụng Android</span></span><div class="g-trk"><span class="g-bar" style="left:56.6%;width:14.62%"></span></div></div>
+      <div class="g-row" tabindex="0" data-tip="GĐ5 · 04/2027 · thử nghiệm với người dùng thật; đo SUS, thời gian, độ chính xác"><span class="lbl"><b>GĐ5</b><span>Người dùng thật</span></span><div class="g-trk"><span class="g-bar" style="left:71.23%;width:14.15%"></span></div></div>
+      <div class="g-row" tabindex="0" data-tip="GĐ6 · 05/2027 · báo cáo tổng kết, đóng gói, nghiệm thu"><span class="lbl"><b>GĐ6</b><span>Tổng kết, nghiệm thu</span></span><div class="g-trk"><span class="g-bar" style="left:85.38%;width:14.62%"></span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="gop-y">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Thầy góp ý</p>
+      <h2>Thầy tick và ghi vài dòng cho em</h2>
+      <p class="lead">Bấm “Gửi góp ý cho em” là em nhận được ngay. Không cần đăng nhập; phần nào chưa cần, thầy cứ để trống.</p>
+    </div>
+    <form class="fb" id="fb" novalidate>
+      <div class="fb-card"><h3>Đánh giá nhanh từng phần <small>Ổn · Cần chỉnh · Chưa xem</small></h3><div class="rate" data-label="Gợi ý đề tài"><b id="rl-goi_y">Gợi ý đề tài</b><div class="seg" role="radiogroup" aria-labelledby="rl-goi_y"><label><input type="radio" name="r-goi_y" id="r-goi_y-on" value="on" data-text="Ổn"><span>Ổn</span></label><label><input type="radio" name="r-goi_y" id="r-goi_y-can-chinh" value="can-chinh" data-text="Cần chỉnh"><span>Cần chỉnh</span></label><label><input type="radio" name="r-goi_y" id="r-goi_y-chua-xem" value="chua-xem" data-text="Chưa xem"><span>Chưa xem</span></label></div><input class="fld" id="rn-goi_y" type="text" maxlength="300" placeholder="Ghi chú (nếu có)" aria-label="Ghi chú cho Gợi ý đề tài"></div><div class="rate" data-label="Phân công ILP"><b id="rl-phan_cong">Phân công ILP</b><div class="seg" role="radiogroup" aria-labelledby="rl-phan_cong"><label><input type="radio" name="r-phan_cong" id="r-phan_cong-on" value="on" data-text="Ổn"><span>Ổn</span></label><label><input type="radio" name="r-phan_cong" id="r-phan_cong-can-chinh" value="can-chinh" data-text="Cần chỉnh"><span>Cần chỉnh</span></label><label><input type="radio" name="r-phan_cong" id="r-phan_cong-chua-xem" value="chua-xem" data-text="Chưa xem"><span>Chưa xem</span></label></div><input class="fld" id="rn-phan_cong" type="text" maxlength="300" placeholder="Ghi chú (nếu có)" aria-label="Ghi chú cho Phân công ILP"></div><div class="rate" data-label="Lọc trùng, khoá trước"><b id="rl-loc_trung">Lọc trùng, khoá trước</b><div class="seg" role="radiogroup" aria-labelledby="rl-loc_trung"><label><input type="radio" name="r-loc_trung" id="r-loc_trung-on" value="on" data-text="Ổn"><span>Ổn</span></label><label><input type="radio" name="r-loc_trung" id="r-loc_trung-can-chinh" value="can-chinh" data-text="Cần chỉnh"><span>Cần chỉnh</span></label><label><input type="radio" name="r-loc_trung" id="r-loc_trung-chua-xem" value="chua-xem" data-text="Chưa xem"><span>Chưa xem</span></label></div><input class="fld" id="rn-loc_trung" type="text" maxlength="300" placeholder="Ghi chú (nếu có)" aria-label="Ghi chú cho Lọc trùng, khoá trước"></div><div class="rate" data-label="Trợ lý ảo"><b id="rl-tro_ly">Trợ lý ảo</b><div class="seg" role="radiogroup" aria-labelledby="rl-tro_ly"><label><input type="radio" name="r-tro_ly" id="r-tro_ly-on" value="on" data-text="Ổn"><span>Ổn</span></label><label><input type="radio" name="r-tro_ly" id="r-tro_ly-can-chinh" value="can-chinh" data-text="Cần chỉnh"><span>Cần chỉnh</span></label><label><input type="radio" name="r-tro_ly" id="r-tro_ly-chua-xem" value="chua-xem" data-text="Chưa xem"><span>Chưa xem</span></label></div><input class="fld" id="rn-tro_ly" type="text" maxlength="300" placeholder="Ghi chú (nếu có)" aria-label="Ghi chú cho Trợ lý ảo"></div><div class="rate" data-label="Giao diện, trải nghiệm"><b id="rl-giao_dien">Giao diện, trải nghiệm</b><div class="seg" role="radiogroup" aria-labelledby="rl-giao_dien"><label><input type="radio" name="r-giao_dien" id="r-giao_dien-on" value="on" data-text="Ổn"><span>Ổn</span></label><label><input type="radio" name="r-giao_dien" id="r-giao_dien-can-chinh" value="can-chinh" data-text="Cần chỉnh"><span>Cần chỉnh</span></label><label><input type="radio" name="r-giao_dien" id="r-giao_dien-chua-xem" value="chua-xem" data-text="Chưa xem"><span>Chưa xem</span></label></div><input class="fld" id="rn-giao_dien" type="text" maxlength="300" placeholder="Ghi chú (nếu có)" aria-label="Ghi chú cho Giao diện, trải nghiệm"></div><div class="rate" data-label="Kế hoạch 6 giai đoạn"><b id="rl-ke_hoach">Kế hoạch 6 giai đoạn</b><div class="seg" role="radiogroup" aria-labelledby="rl-ke_hoach"><label><input type="radio" name="r-ke_hoach" id="r-ke_hoach-on" value="on" data-text="Ổn"><span>Ổn</span></label><label><input type="radio" name="r-ke_hoach" id="r-ke_hoach-can-chinh" value="can-chinh" data-text="Cần chỉnh"><span>Cần chỉnh</span></label><label><input type="radio" name="r-ke_hoach" id="r-ke_hoach-chua-xem" value="chua-xem" data-text="Chưa xem"><span>Chưa xem</span></label></div><input class="fld" id="rn-ke_hoach" type="text" maxlength="300" placeholder="Ghi chú (nếu có)" aria-label="Ghi chú cho Kế hoạch 6 giai đoạn"></div></div>
+      <div class="fb-card"><h3>Thầy quyết định <small>chọn một ý mỗi câu</small></h3><div class="dec" data-label="Văn bản quy chế ĐATN"><span class="q" id="dq-d1">1. Văn bản quy chế ĐATN<small>Để trợ lý trả lời có trích dẫn điều, khoản</small></span><div class="opts" role="radiogroup" aria-labelledby="dq-d1"><label class="opt"><input type="radio" name="d-d1" id="d-d1-0" value="0" data-text="Thầy gửi em"><span>Thầy gửi em</span></label><label class="opt"><input type="radio" name="d-d1" id="d-d1-1" value="1" data-text="Em tự xin giáo vụ, Khoa"><span>Em tự xin giáo vụ, Khoa</span></label><label class="opt"><input type="radio" name="d-d1" id="d-d1-2" value="2" data-text="Chưa cần, làm phần khác trước"><span>Chưa cần, làm phần khác trước</span></label></div><input class="fld" id="dn-d1" type="text" maxlength="400" placeholder="Thầy ghi thêm (nếu có)" aria-label="Ghi chú cho câu 1"></div><div class="dec" data-label="Thuật toán phân công chính"><span class="q" id="dq-d2">2. Thuật toán phân công chính<small>Hiện dùng ILP, đã so với GA, Gale-Shapley, Greedy</small></span><div class="opts" role="radiogroup" aria-labelledby="dq-d2"><label class="opt"><input type="radio" name="d-d2" id="d-d2-0" value="0" data-text="Đồng ý ILP là chính"><span>Đồng ý ILP là chính</span></label><label class="opt"><input type="radio" name="d-d2" id="d-d2-1" value="1" data-text="Cần GA hoặc Gale-Shapley là chính"><span>Cần GA hoặc Gale-Shapley là chính</span></label><label class="opt"><input type="radio" name="d-d2" id="d-d2-2" value="2" data-text="Trao đổi thêm"><span>Trao đổi thêm</span></label></div><input class="fld" id="dn-d2" type="text" maxlength="400" placeholder="Thầy ghi thêm (nếu có)" aria-label="Ghi chú cho câu 2"></div><div class="dec" data-label="Bắt buộc xếp SV vào đề tài GV đã đồng ý?"><span class="q" id="dq-d3">3. Bắt buộc xếp SV vào đề tài GV đã đồng ý?<small>Hiện giữ 3 ràng buộc như báo cáo</small></span><div class="opts" role="radiogroup" aria-labelledby="dq-d3"><label class="opt"><input type="radio" name="d-d3" id="d-d3-0" value="0" data-text="Có, bắt buộc"><span>Có, bắt buộc</span></label><label class="opt"><input type="radio" name="d-d3" id="d-d3-1" value="1" data-text="Không, giữ như hiện tại"><span>Không, giữ như hiện tại</span></label><label class="opt"><input type="radio" name="d-d3" id="d-d3-2" value="2" data-text="Trao đổi thêm"><span>Trao đổi thêm</span></label></div><input class="fld" id="dn-d3" type="text" maxlength="400" placeholder="Thầy ghi thêm (nếu có)" aria-label="Ghi chú cho câu 3"></div><div class="dec" data-label="GV hỏi danh tính SV qua trợ lý?"><span class="q" id="dq-d4">4. GV hỏi danh tính SV qua trợ lý?<small>Hiện trợ lý chỉ trả số lượng</small></span><div class="opts" role="radiogroup" aria-labelledby="dq-d4"><label class="opt"><input type="radio" name="d-d4" id="d-d4-0" value="0" data-text="Cho phép, chỉ SV đăng ký đề tài của GV đó"><span>Cho phép, chỉ SV đăng ký đề tài của GV đó</span></label><label class="opt"><input type="radio" name="d-d4" id="d-d4-1" value="1" data-text="Giữ chỉ số lượng"><span>Giữ chỉ số lượng</span></label></div><input class="fld" id="dn-d4" type="text" maxlength="400" placeholder="Thầy ghi thêm (nếu có)" aria-label="Ghi chú cho câu 4"></div><div class="dec" data-label="Duyệt ~50 cặp nhãn trùng và bộ câu hỏi trợ lý"><span class="q" id="dq-d5">5. Duyệt ~50 cặp nhãn trùng và bộ câu hỏi trợ lý<small>Để số liệu đánh giá có người kiểm chứng</small></span><div class="opts" role="radiogroup" aria-labelledby="dq-d5"><label class="opt"><input type="radio" name="d-d5" id="d-d5-0" value="0" data-text="Thầy duyệt"><span>Thầy duyệt</span></label><label class="opt"><input type="radio" name="d-d5" id="d-d5-1" value="1" data-text="Nhờ giáo vụ hoặc GV khác"><span>Nhờ giáo vụ hoặc GV khác</span></label><label class="opt"><input type="radio" name="d-d5" id="d-d5-2" value="2" data-text="Để sau"><span>Để sau</span></label></div><input class="fld" id="dn-d5" type="text" maxlength="400" placeholder="Thầy ghi thêm (nếu có)" aria-label="Ghi chú cho câu 5"></div><div class="dec" data-label="Kho đồ án khoá trước"><span class="q" id="dq-d6">6. Kho đồ án khoá trước<small>449 đồ án thầy gửi, đã bỏ tên sinh viên</small></span><div class="opts" role="radiogroup" aria-labelledby="dq-d6"><label class="opt"><input type="radio" name="d-d6" id="d-d6-0" value="0" data-text="Dùng trong nhóm nghiên cứu"><span>Dùng trong nhóm nghiên cứu</span></label><label class="opt"><input type="radio" name="d-d6" id="d-d6-1" value="1" data-text="Làm kho tra cứu chung của Khoa"><span>Làm kho tra cứu chung của Khoa</span></label></div><input class="fld" id="dn-d6" type="text" maxlength="400" placeholder="Thầy ghi thêm (nếu có)" aria-label="Ghi chú cho câu 6"></div><div class="dec" data-label="Ứng dụng di động (GĐ4)"><span class="q" id="dq-d7">7. Ứng dụng di động (GĐ4)<small>Web hiện đã dùng tốt trên điện thoại</small></span><div class="opts" role="radiogroup" aria-labelledby="dq-d7"><label class="opt"><input type="radio" name="d-d7" id="d-d7-0" value="0" data-text="Bản Android là đủ"><span>Bản Android là đủ</span></label><label class="opt"><input type="radio" name="d-d7" id="d-d7-1" value="1" data-text="Cần cả iOS"><span>Cần cả iOS</span></label><label class="opt"><input type="radio" name="d-d7" id="d-d7-2" value="2" data-text="Web trên điện thoại là đủ"><span>Web trên điện thoại là đủ</span></label></div><input class="fld" id="dn-d7" type="text" maxlength="400" placeholder="Thầy ghi thêm (nếu có)" aria-label="Ghi chú cho câu 7"></div>
+        <div class="dec" data-label="Thử nghiệm GĐ5"><label class="q" for="dn-d8">8. Thử nghiệm GĐ5<small>Khoa hoặc khoá nào; trường có mẫu báo cáo tiến độ, tổng kết không</small></label><input class="fld" id="dn-d8" type="text" maxlength="400" placeholder="Thầy ghi (nếu có)"></div>
+      </div>
+      <div class="fb-card"><h3>Góp ý thêm</h3>
+        <textarea class="fld" id="fbText" maxlength="6000" placeholder="Thầy ghi góp ý về phương án, hệ thống, báo cáo, hoặc việc em nên làm tiếp…" aria-label="Góp ý thêm"></textarea>
+        <label class="lbl-row" for="fbName">Người góp ý<input class="fld" id="fbName" type="text" maxlength="120" placeholder="Ví dụ: ThS. Đặng Khánh Trung"></label>
+      </div>
+      <div class="send"><button type="submit" class="btn-send" id="fbSend">Gửi góp ý cho em</button><button type="button" class="btn-copy" id="fbCopy">Sao chép nội dung</button><span class="count" id="fbCount">Đã chọn 0/13</span></div>
+      <p id="fbStatus" role="status" aria-live="polite"></p>
+      <div id="fbBackup" hidden><label class="lbl-row" for="fbBackupText">Nội dung để dán vào Zalo<textarea class="fld" id="fbBackupText" readonly></textarea></label></div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div style="display:grid;gap:10px;align-content:start">
+      <h3>Capstone AI</h3>
+      <p>Bản demo: <a href="https://capstone-ai.tail56c979.ts.net" target="_blank" rel="noopener">capstone-ai.tail56c979.ts.net</a></p>
+      <p>Mã nguồn: <a href="https://github.com/lacvietagency-web/capstone-advisor-ai" target="_blank" rel="noopener">github.com/lacvietagency-web/capstone-advisor-ai</a></p>
+      <p>Em xin cảm ơn thầy.</p>
+    </div>
+    <div>
+      <p>Chi tiết trong 8 tài liệu PDF gửi kèm:</p>
+      <ol>
+        <li>Báo cáo tiến độ và hướng thực hiện</li>
+        <li>Báo cáo tổng hợp quá trình thực hiện</li>
+        <li>Báo cáo toàn văn v46</li>
+        <li>Phương án triển khai NCKH (03/11)</li>
+        <li>Chuyên đề: kho đồ án khoá trước</li>
+        <li>Chuyên đề: trợ lý ảo</li>
+        <li>Biên bản kiểm thử 84 ca</li>
+        <li>Kết quả kiểm thử bản demo (18/11)</li>
+      </ol>
+    </div>
+  </div>
+</footer>
+
+<dialog id="lb" aria-label="Ảnh phóng to">
+  <div class="lb-bar"><span id="lbCap"></span><button type="button" id="lbClose">Đóng</button></div>
+  <img id="lbImg" alt="">
+</dialog>
+<div id="tip" role="tooltip" hidden></div>
+
+<script>
+var ENDPOINT = "{% url 'gop_y' %}";  // bản tự host trên link demo: điền đường dẫn nhận góp ý; bản xem trước: để trống → chép để dán Zalo
+(function () {
+  var lb = document.getElementById("lb"), img = document.getElementById("lbImg"), cap = document.getElementById("lbCap");
+  document.querySelectorAll("[data-zoom]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      img.src = b.dataset.zoom; img.alt = b.dataset.cap || ""; cap.textContent = b.dataset.cap || "";
+      if (lb.showModal) lb.showModal();
+    });
+  });
+  document.getElementById("lbClose").addEventListener("click", function () { lb.close(); });
+  lb.addEventListener("click", function (e) { if (e.target === lb) lb.close(); });
+
+  var tip = document.getElementById("tip");
+  function show(el, x, y) {
+    tip.textContent = el.dataset.tip; tip.hidden = false;
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.max(8, Math.min(x + 14, window.innerWidth - w - 8)) + "px";
+    tip.style.top = Math.max(8, y - h - 12) + "px";
+  }
+  document.querySelectorAll("[data-tip]").forEach(function (el) {
+    el.addEventListener("pointermove", function (e) { show(el, e.clientX, e.clientY); });
+    el.addEventListener("pointerleave", function () { tip.hidden = true; });
+    el.addEventListener("focus", function () { var r = el.getBoundingClientRect(); show(el, r.left + 20, r.top); });
+    el.addEventListener("blur", function () { tip.hidden = true; });
+  });
+
+  // ---- Form góp ý ----
+  var form = document.getElementById("fb"), status = document.getElementById("fbStatus"), sendBtn = document.getElementById("fbSend");
+  var DRAFT = "capstone-ai-gop-y";
+  var fields = Array.prototype.slice.call(form.querySelectorAll("input, textarea")).filter(function (f) { return f.id && f.id !== "fbBackupText"; });
+  var total = form.querySelectorAll(".rate, .opts").length;
+
+  function saveDraft() {
+    var d = {};
+    fields.forEach(function (f) { d[f.id] = f.type === "radio" ? f.checked : f.value; });
+    try { localStorage.setItem(DRAFT, JSON.stringify(d)); } catch (e) {}
+  }
+  function loadDraft() {
+    var d = null;
+    try { d = JSON.parse(localStorage.getItem(DRAFT) || "null"); } catch (e) {}
+    if (!d) return;
+    fields.forEach(function (f) { if (!(f.id in d)) return; if (f.type === "radio") f.checked = !!d[f.id]; else f.value = d[f.id]; });
+  }
+  function count() {
+    var n = form.querySelectorAll("input[type=radio]:checked").length;
+    document.getElementById("fbCount").textContent = "Đã chọn " + n + "/" + total;
+  }
+  function collect() {
+    var danh_gia = {}, quyet_dinh = {};
+    form.querySelectorAll(".rate").forEach(function (r) {
+      var c = r.querySelector("input:checked"), n = r.querySelector(".fld").value.trim();
+      if (c || n) danh_gia[r.dataset.label] = { muc: c ? c.dataset.text : "", ghi_chu: n };
+    });
+    form.querySelectorAll(".dec").forEach(function (d) {
+      var c = d.querySelector("input:checked"), n = d.querySelector(".fld").value.trim();
+      if (c || n) quyet_dinh[d.dataset.label] = { chon: c ? c.dataset.text : "", ghi_chu: n };
+    });
+    return { ten: document.getElementById("fbName").value.trim(), danh_gia: danh_gia, quyet_dinh: quyet_dinh,
+             gop_y: document.getElementById("fbText").value.trim() };
+  }
+  function isEmpty(d) { return !Object.keys(d.danh_gia).length && !Object.keys(d.quyet_dinh).length && !d.gop_y; }
+  function asText(d) {
+    var out = ["GÓP Ý CHO DỰ ÁN CAPSTONE AI" + (d.ten ? " · " + d.ten : "")];
+    var k;
+    if (Object.keys(d.danh_gia).length) {
+      out.push("", "Đánh giá nhanh:");
+      for (k in d.danh_gia) out.push("- " + k + ": " + (d.danh_gia[k].muc || "—") + (d.danh_gia[k].ghi_chu ? " · " + d.danh_gia[k].ghi_chu : ""));
+    }
+    if (Object.keys(d.quyet_dinh).length) {
+      out.push("", "Quyết định:");
+      for (k in d.quyet_dinh) out.push("- " + k + ": " + (d.quyet_dinh[k].chon || "—") + (d.quyet_dinh[k].ghi_chu ? " · " + d.quyet_dinh[k].ghi_chu : ""));
+    }
+    if (d.gop_y) out.push("", "Góp ý thêm:", d.gop_y);
+    return out.join("\n");
+  }
+  function say(text, cls) { status.textContent = text; status.className = cls || ""; }
+  function backup(text) {
+    var box = document.getElementById("fbBackup"), ta = document.getElementById("fbBackupText");
+    ta.value = text; box.hidden = false; ta.focus(); ta.select();
+  }
+  function copy(text, okMsg) {
+    var done = function () { say(okMsg, "st-ok"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { backup(text); say("Thầy bấm giữ để chép đoạn bên dưới rồi dán vào Zalo giúp em.", ""); });
+    } else { backup(text); say("Thầy chép đoạn bên dưới rồi dán vào Zalo giúp em.", ""); }
+  }
+
+  loadDraft(); count();
+  form.addEventListener("input", function () { saveDraft(); count(); });
+  form.addEventListener("change", function () { saveDraft(); count(); });
+
+  document.getElementById("fbCopy").addEventListener("click", function () {
+    var d = collect();
+    if (isEmpty(d)) { say("Thầy chưa chọn hay ghi nội dung nào.", "st-err"); return; }
+    copy(asText(d), "Đã chép nội dung. Thầy dán vào Zalo gửi em là được ạ.");
+  });
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var d = collect();
+    if (isEmpty(d)) { say("Thầy chưa chọn hay ghi nội dung nào.", "st-err"); return; }
+    if (!ENDPOINT) { copy(asText(d), "Bản xem trước chưa nối máy chủ: nội dung đã được chép, thầy dán vào Zalo gửi em giúp em."); return; }
+    sendBtn.disabled = true; say("Đang gửi…", "");
+    fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.j.ok) throw new Error(res.j.loi || "Máy chủ chưa nhận được.");
+        say("✓ Em đã nhận góp ý lúc " + res.j.luc + ". Em cảm ơn thầy!", "st-ok");
+      })
+      .catch(function (err) {
+        say("Chưa gửi được (" + err.message + "). Thầy bấm “Sao chép nội dung” rồi gửi em qua Zalo giúp em.", "st-err");
+      })
+      .then(function () { sendBtn.disabled = false; });
+  });
+})();
+</script>
+</body></html>

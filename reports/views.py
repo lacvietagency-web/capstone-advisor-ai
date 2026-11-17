@@ -4,16 +4,24 @@ Bao gồm:
 - faculty_statistics: Xem tổng hợp số liệu đăng ký, phân bố đề tài/lĩnh vực, tải GV và so sánh thuật toán.
 """
 
+import json
+from urllib.parse import urlparse
+
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Max
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from allocate.models import Allocation
 from catalog.models import AuditLog, Preference, RegistrationPeriod, Topic
 from catalog.services import int_param
 
+from .models import GopY
 from .services import (
     compare_algorithms,
     get_field_distribution,
@@ -150,3 +158,38 @@ def faculty_statistics(request):
         "chart_data": chart_data,
     }
     return render(request, "reports/statistics.html", context)
+
+
+def trinh_bay(request):
+    """Trang trình bày dự án cho GVHD (công khai, không cần đăng nhập): sơ đồ, ảnh màn hình, tiến độ, form góp ý."""
+    return render(request, "trinh_bay.html")
+
+
+GOP_Y_KEYS = ("danh_gia", "quyet_dinh", "gop_y")
+GOP_Y_MAX_BYTES = 20_000
+GOP_Y_PER_HOUR = 20
+
+
+@csrf_exempt  # trang công khai không gắn phiên đăng nhập → chặn khác nguồn bằng Origin, giới hạn kích thước và tần suất
+@require_POST
+def gop_y(request):
+    """Nhận góp ý từ trang /trinh-bay/ (JSON) và lưu GopY; Hermes đọc bảng này để báo chủ dự án."""
+    origin = request.headers.get("Origin")
+    if origin and urlparse(origin).netloc != request.get_host():
+        return JsonResponse({"loi": "Nguồn gửi không hợp lệ."}, status=403)
+    if len(request.body) > GOP_Y_MAX_BYTES:
+        return JsonResponse({"loi": "Nội dung quá dài, thầy rút gọn giúp em."}, status=413)
+    # sau proxy (Tailscale Funnel), IP thật là phần tử CUỐI do proxy thêm vào; phần đầu người gửi tự đặt được
+    ip = (request.headers.get("X-Forwarded-For") or request.META.get("REMOTE_ADDR", "")).split(",")[-1].strip()
+    key = f"gop-y-rate:{ip}"
+    if cache.get(key, 0) >= GOP_Y_PER_HOUR:
+        return JsonResponse({"loi": "Gửi quá nhiều lần, thầy thử lại sau ít phút."}, status=429)
+    try:
+        data = json.loads(request.body)
+    except ValueError:
+        return JsonResponse({"loi": "Dữ liệu không hợp lệ."}, status=400)
+    if not isinstance(data, dict) or not any(data.get(k) for k in GOP_Y_KEYS):
+        return JsonResponse({"loi": "Thầy chưa chọn hay ghi nội dung nào."}, status=400)
+    cache.set(key, cache.get(key, 0) + 1, 3600)
+    g = GopY.objects.create(ten=str(data.get("ten") or "")[:120], noi_dung={k: data.get(k) for k in GOP_Y_KEYS})
+    return JsonResponse({"ok": True, "so": g.pk, "luc": timezone.localtime(g.created_at).strftime("%H:%M %d/%m/%Y")})

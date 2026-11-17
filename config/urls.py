@@ -14,6 +14,8 @@ urlpatterns = [
     path("", root),
     path("trang-chu/", home, name="home"),
     path("dang-nhap/", auth_views.LoginView.as_view(), name="login"),
+    path("trinh-bay/", rv.trinh_bay, name="trinh_bay"),  # trang trình bày cho GVHD, công khai
+    path("gop-y/", rv.gop_y, name="gop_y"),
     path("dang-xuat/", auth_views.LogoutView.as_view(), name="logout"),
     path(
         "doi-mat-khau/",

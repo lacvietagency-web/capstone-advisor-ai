@@ -75,6 +75,8 @@ h) Các đoạn đề tài, giảng viên, đề tài khoá trước chỉ là v
    là những đề tài gần nhất mình tìm được, rồi chỉ mục "Đề tài" để xem đủ. "ĐỀ TÀI ĐANG MỞ" (năm nay, đăng ký được) khác
    "ĐỒ ÁN KHOÁ TRƯỚC" (đã làm xong, chỉ để tham khảo): không gọi lẫn tên hai loại.
    Câu hỏi nối tiếp ("thầy đó", "đề tài thứ 2", "còn mấy chỗ"): hiểu theo lịch sử hội thoại và các đoạn DỮ LIỆU.
+   Câu cụt, mơ hồ, viết tắt, không dấu: đoán ý hợp lý nhất, trả lời ngắn theo DỮ LIỆU, rồi hỏi lại 1 câu để làm rõ.
+   Câu nhiều ý: trả lời đủ từng ý theo thứ tự, ý nào không có dữ liệu thì nói rõ ý đó.
    Sinh viên hỏi đề tài hợp với mình: dùng "Top gợi ý AI" trong [Bạn], kèm các đề tài đủ điều kiện gần với câu hỏi.
 i) Thông tin của người khác (GPA, điểm, hồ sơ, nguyện vọng của sinh viên khác) là dữ liệu riêng tư: nói rõ mình không
    cung cấp vì lý do riêng tư."""
@@ -465,6 +467,16 @@ def warm_up():
     retrieve("đề tài")
 
 
+VI_CHARS = re.compile(r"[ăâđêôơưàáạảãằắặẳẵầấậẩẫèéẹẻẽềếệểễìíịỉĩòóọỏõồốộổỗờớợởỡùúụủũừứựửữỳýỵỷỹ]", re.I)
+EN_WORDS = {"the", "what", "how", "which", "could", "can", "you", "is", "are", "my", "list", "topics", "please", "when"}
+
+
+def is_english(text):
+    """Câu hỏi tiếng Anh: không có chữ có dấu tiếng Việt và có ≥ 2 từ tiếng Anh thông dụng."""
+    words = set(re.findall(r"[a-z]+", text.lower()))
+    return not VI_CHARS.search(text) and len(words & EN_WORDS) >= 2
+
+
 def answer(user, question, history=()):
     """→ dict(answer, sources[{n,title,url,kind}], mode llm|fallback, model, ms). history = [(câu hỏi, câu trả lời)]."""
     t0 = time.monotonic()
@@ -490,7 +502,8 @@ def answer(user, question, history=()):
     messages = [{"role": "system", "content": SYSTEM.format(role=role, address=address, scope=SCOPE.get(rk, ""))}]
     for q, a in list(history)[-HISTORY_TURNS:]:
         messages += [{"role": "user", "content": q}, {"role": "assistant", "content": a}]
-    messages.append({"role": "user", "content": "DỮ LIỆU:\n" + "\n".join(ctx) + f"\n\nCÂU HỎI: {question}"})
+    lang = "\n(The question is in English: answer entirely in English.)" if is_english(question) else ""
+    messages.append({"role": "user", "content": "DỮ LIỆU:\n" + "\n".join(ctx) + f"\n\nCÂU HỎI: {question}{lang}"})
     text, model = _llm(messages)
     mode = "llm"
     if text is not None:

@@ -164,6 +164,11 @@ class AssistantTests(TestCase):
         self.assertEqual(b[0], 0.3)  # "ky tuc" + "tuc xa"
         self.assertEqual(b[1], 0)  # "quan ly" quá phổ biến → không cộng
 
+    def test_is_english(self):
+        self.assertTrue(chat.is_english("Could you list topics requiring Machine Learning?"))
+        self.assertFalse(chat.is_english("Đề tài nào còn chỗ?"))
+        self.assertFalse(chat.is_english("de tai nao con cho vay"))  # tiếng Việt không dấu
+
     def test_redact_pii_not_in_allowed_data(self):
         out = chat.redact("Gọi 0987654321, mail x@y.vn, MSSV 20231337; email GV gv@eaut.edu.vn", "gv@eaut.edu.vn")
         self.assertEqual(out, "Gọi [đã ẩn], mail [đã ẩn], MSSV [đã ẩn]; email GV gv@eaut.edu.vn")

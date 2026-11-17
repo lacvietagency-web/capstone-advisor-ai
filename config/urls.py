@@ -6,6 +6,7 @@ from django.views.generic import TemplateView
 
 from accounts.views import home, root
 from allocate import views as av
+from assistant import views as asv
 from catalog import views as cv
 from reports import views as rv
 
@@ -49,6 +50,7 @@ urlpatterns = [
     path("ho-so-giang-vien/<int:pk>/", cv.lecturer_profile, name="lecturer_profile_detail"),
     path("danh-sach-de-tai/", cv.topic_list, name="topic_list"),
     path("danh-sach-de-tai/<int:pk>/", cv.topic_detail, name="topic_detail"),
+    path("tro-ly/hoi/", asv.ask, name="assistant_ask"),
     path("quan-tri/", admin.site.urls),
 ]
 

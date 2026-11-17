@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "recommend",
     "allocate",
     "reports",
+    "assistant",
 ]
 
 MIDDLEWARE = [
@@ -190,6 +191,13 @@ RECOMMEND_SEMANTIC = os.getenv("RECOMMEND_SEMANTIC", "1") == "1"
 
 # Tắt M5 LLM khi chạy kiểm thử khác: RECOMMEND_LLM=0
 RECOMMEND_LLM = os.getenv("RECOMMEND_LLM", "1") == "1"
+
+# Trợ lý ảo (chatbot RAG, assistant/) — mặc định dùng chung nhà cung cấp với M5; CHAT_MODELS cách nhau dấu phẩy,
+# mô hình đầu quá tải thì thử mô hình sau. VD: CHAT_PROVIDER=gemini CHAT_MODELS=gemini-3.5-flash-lite,gemini-3.8-flash
+CHAT_PROVIDER = os.getenv("CHAT_PROVIDER", LLM_PROVIDER)
+CHAT_MODELS = [m.strip() for m in os.getenv("CHAT_MODELS", LLM_MODEL).split(",") if m.strip()]
+CHAT_API_KEY = os.getenv("CHAT_API_KEY", LLM_API_KEY)
+CHAT_TIMEOUT = int(os.getenv("CHAT_TIMEOUT", "25"))
 
 # Bootstrap/Chart.js: lấy từ CDN trước (đỡ tải qua đường hầm/LAN chậm), CDN lỗi thì dùng bản static/vendor.
 # ASSETS_FROM_CDN=0: chỉ dùng bản trong dự án (máy kiểm giao diện, máy không có Internet).

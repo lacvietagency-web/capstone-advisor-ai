@@ -1,0 +1,39 @@
+{# Trợ lý ảo — nút nổi + khung chat trên mọi trang khi đã đăng nhập (assistant/, static/js/tro-ly.js) #}
+<div class="tl" id="tlRoot" data-url="{% url 'assistant_ask' %}" data-user="{{ user.pk }}">
+  {% csrf_token %}
+  <button type="button" class="tl-fab" id="tlFab" aria-expanded="false" aria-controls="tlPanel">
+    <span class="tl-fab-bot">{% include "assistant/_bot.html" with size=44 %}</span><span class="tl-fab-label">Hỏi trợ lý AI</span>
+  </button>
+  <section class="tl-panel" id="tlPanel" role="dialog" aria-labelledby="tlTitle" hidden>
+    <header class="tl-head">
+      <span class="tl-avatar">{% include "assistant/_bot.html" with size=34 %}</span>
+      <div class="tl-head-text"><strong id="tlTitle">Trợ lý Capstone AI</strong><small>Trả lời theo dữ liệu của hệ thống, có ghi nguồn</small></div>
+      <button type="button" class="tl-icon" id="tlNew" aria-label="Bắt đầu cuộc trò chuyện mới" title="Cuộc trò chuyện mới">{% include "components/icon.html" with name="refresh-cw" size=16 %}</button>
+      <button type="button" class="tl-icon" id="tlClose" aria-label="Đóng trợ lý">{% include "components/icon.html" with name="x" size=18 %}</button>
+    </header>
+    <div class="tl-log" id="tlLog" aria-live="polite">
+      <div class="tl-msg tl-bot tl-hello">Chào {% if user.is_student %}bạn{% else %}thầy/cô{% endif %}! Mình trả lời về đề tài, giảng viên, nguyện vọng, phân công và cách dùng hệ thống, dựa trên dữ liệu thật của hệ thống.</div>
+    </div>
+    <div class="tl-chips" id="tlChips">
+      {% if user.is_student %}
+        <button type="button">Đề tài nào hợp với mình nhất?</button>
+        <button type="button">Mình có đủ điều kiện làm đề tài chatbot không?</button>
+        <button type="button">Hạn chót nộp nguyện vọng là khi nào?</button>
+        <button type="button">Nộp rồi muốn đổi nguyện vọng thì làm sao?</button>
+      {% elif user.is_lecturer %}
+        <button type="button">Đề tài của tôi có bao nhiêu sinh viên chờ duyệt?</button>
+        <button type="button">Ý tưởng "website bán sách" đã có khoá trước làm chưa?</button>
+        <button type="button">Từ chối sinh viên thì cần làm gì?</button>
+      {% else %}
+        <button type="button">Đợt này bao nhiêu sinh viên đã nộp nguyện vọng?</button>
+        <button type="button">Thuật toán phân công hoạt động thế nào?</button>
+        <button type="button">Nhập danh sách bằng Excel thế nào?</button>
+      {% endif %}
+    </div>
+    <form class="tl-form" id="tlForm">
+      <textarea id="tlInput" rows="1" maxlength="800" placeholder="Hỏi về đề tài, nguyện vọng, quy trình…" aria-label="Câu hỏi cho trợ lý"></textarea>
+      <button type="submit" class="tl-send" aria-label="Gửi câu hỏi">{% include "components/icon.html" with name="send" size=18 %}</button>
+    </form>
+    <p class="tl-note">Thông tin để tham khảo, đối chiếu văn bản chính thức của Khoa.</p>
+  </section>
+</div>

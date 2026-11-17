@@ -47,3 +47,30 @@ Khoa: nhập danh sách sinh viên, giảng viên, đề tài, điểm bằng Ex
 
 ## Quy chế chính thức của trường
 Hệ thống chưa nạp văn bản quy chế đào tạo và quy định đồ án tốt nghiệp chính thức của trường. Các câu hỏi về thang điểm, hội đồng bảo vệ, định dạng quyển báo cáo, thời lượng, học phí, điều kiện được làm đồ án theo quy chế thì trợ lý chưa có căn cứ để trả lời: hãy liên hệ giáo vụ Khoa hoặc giảng viên hướng dẫn. Khi Khoa cung cấp văn bản, trợ lý sẽ trả lời kèm trích dẫn điều, khoản.
+
+## Xem Top 5 đề tài gợi ý ở đâu
+Top 5 đề tài AI gợi ý hiện ở Trang chủ, khối "Đề tài phù hợp nhất" (kèm điểm phù hợp và điểm từng tiêu chí M1, M3, M4, M5). Trang "Nguyện vọng" cũng hiện Top 5 để chọn nhanh. Ở mục "Đề tài" xem được mọi đề tài kèm điểm phù hợp với mình, sắp xếp được theo điểm phù hợp. Muốn gợi ý sát hơn thì cập nhật kỹ năng, lĩnh vực quan tâm và phần tự giới thiệu ở mục "Hồ sơ".
+
+## Được giảng viên đồng ý một nguyện vọng thì các nguyện vọng khác thế nào
+Khi giảng viên đồng ý một nguyện vọng, các nguyện vọng còn lại không tự huỷ. Lúc Khoa chạy phân công, thuật toán xét mọi nguyện vọng đã nộp chính thức và chưa bị từ chối, rồi xếp mỗi sinh viên vào tối đa 1 đề tài. Kết quả cuối cùng là kết quả Khoa công bố ở mục "Kết quả".
+
+## Đăng ký theo nhóm, nhiều sinh viên cùng một đề tài
+Hệ thống không có đăng ký theo nhóm: mỗi sinh viên tự nộp nguyện vọng của mình. Đề tài có số sinh viên tối đa lớn hơn 1 thì nhiều sinh viên cùng chọn được, giảng viên duyệt từng người. Muốn làm chung với bạn thì mỗi người nộp cùng đề tài đó và hỏi ý giảng viên ra đề.
+
+## Không thấy nút nộp nguyện vọng
+Các lý do thường gặp: đợt đăng ký chưa mở hoặc đã quá hạn chót (lúc đó trang Nguyện vọng chỉ cho xem); đã nộp rồi (nút đổi thành "Rút về nháp để sửa"); chưa chọn NV1 (NV1 bắt buộc); đề tài muốn chọn không có trong danh sách vì chưa đủ điều kiện (xem trang chi tiết đề tài để biết thiếu gì). Vẫn lỗi thì liên hệ Khoa.
+
+## Chỉ tiêu hướng dẫn và số đề tài của giảng viên
+Hệ thống không giới hạn số đề tài một giảng viên được đăng. Giới hạn là chỉ tiêu hướng dẫn: số sinh viên tối đa giảng viên nhận trong một đợt (mặc định 5). Giảng viên tự sửa chỉ tiêu ở mục "Hồ sơ" khi đợt đang mở; đợt đã đóng thì chỉ tiêu bị khoá, chỉ Khoa điều chỉnh được. Hệ thống chặn giảng viên đồng ý vượt chỉ tiêu.
+
+## Hạn duyệt sinh viên của giảng viên
+Giảng viên duyệt (đồng ý, từ chối) được tới khi Khoa công bố kết quả phân công; sau công bố thì không đổi được. Nên duyệt trước khi Khoa chạy phân công, vì thuật toán chỉ loại những nguyện vọng đã bị từ chối tại thời điểm chạy.
+
+## Cấu hình trước khi chạy phân công
+Thuật toán phân công không cần chỉnh tham số. Những gì ảnh hưởng kết quả: số sinh viên tối đa của từng đề tài (giảng viên đặt khi đăng đề tài), chỉ tiêu hướng dẫn của từng giảng viên (ở hồ sơ giảng viên), và trọng số tính điểm phù hợp theo AHP (quản trị hệ thống đặt ở trang Quản trị → Bộ trọng số).
+
+## Công bố kết quả làm gì
+Bấm "Công bố" sẽ chuyển toàn bộ kết quả phân công nháp thành chính thức, chuyển đợt sang trạng thái "Đã công bố" và khoá chỉnh sửa (không đổi duyệt, không xếp lại). Sinh viên xem kết quả ở mục "Kết quả". Hiện hệ thống chưa gửi email hay thông báo tự động; Khoa thông báo cho sinh viên theo kênh thường dùng.
+
+## Mẫu Excel để nhập dữ liệu
+Ở trang "Nhập Excel" của Khoa có nút "Tải tệp mẫu (.xlsx)". Tệp mẫu có 4 sheet: SinhVien (Mã sinh viên, Họ đệm, Tên, GPA, Email, Chuyên ngành, Ghi chú), GiangVien (Mã giảng viên, Họ đệm, Tên, Email, Bộ môn, Chỉ tiêu, Lĩnh vực), DeTai (Tên đề tài, Mã giảng viên, Mô tả, Lĩnh vực, Độ khó, GPA tối thiểu, Số lượng) và KyNang. Nhập theo 2 bước: kiểm tra lỗi, rồi xác nhận mới ghi; có lỗi ở bất kỳ dòng nào thì không ghi dòng nào.

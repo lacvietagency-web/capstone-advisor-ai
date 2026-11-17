@@ -111,6 +111,13 @@ class AssistantTests(TestCase):
         self.client.post("/tro-ly/hoi/", {"reset": "1"})
         self.assertEqual(self.client.session["chat"], [])
 
+    def test_verify_fixes_code_title_pairs(self):
+        c1, c2 = self.t1.code, self.t2.code
+        wrong_code = f'- {c2} "Chatbot tư vấn" [1]'  # tên đúng của t1, mã của t2 → sửa mã
+        self.assertEqual(chat.verify(wrong_code), f'- {c1} "Chatbot tư vấn" [1]')
+        mixed = f"- {c1} “Chatbot tư vấn bán hàng” [h]"  # tên ghép bịa → lấy tên thật theo mã, bỏ [h]
+        self.assertEqual(chat.verify(mixed), f'- {c1} "Chatbot tư vấn"')
+
     def test_widget_on_pages_when_logged_in(self):
         self.client.login(username="sv1", password="x")
         self.assertContains(self.client.get("/trang-chu/"), 'id="tlRoot"')

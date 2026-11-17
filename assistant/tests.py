@@ -133,6 +133,53 @@ class AssistantTests(TestCase):
         self.assertEqual(chat._source("guide", g, None, None, chat.ROLE_PAGES["LECTURER"])[1], "")
         self.assertIn("?lecturer=", chat._source("lecturer", self.gv, None, None, chat.ROLE_PAGES["STUDENT"])[1])
 
+    def test_role_scoped_sources(self):
+        """Phân quyền: SV không nhận hồ sơ riêng của GV (SĐT, tiểu sử) hay tên GVHD khoá trước; Khoa thì có GVHD."""
+        g = self.gv
+        g.phone, g.bio, g.keywords = "0912345678", "tiểu sử riêng", "từ khoá riêng"
+        g.save()
+        sv_text = chat._source("lecturer", g, None, None, chat.ROLE_PAGES["STUDENT"], "STUDENT")[2]
+        gv_text = chat._source("lecturer", g, None, None, chat.ROLE_PAGES["LECTURER"], "LECTURER")[2]
+        self.assertIn("Chatbot tư vấn", sv_text)  # SV vẫn biết GV đang có đề tài nào
+        for secret in ("tiểu sử riêng", "từ khoá riêng", "0912345678"):
+            self.assertNotIn(secret, sv_text)
+        self.assertIn("từ khoá riêng", gv_text)
+        self.assertNotIn("0912345678", gv_text)  # SĐT không bao giờ vào mô hình
+        a = ArchivedTopic.objects.get()
+        a.lecturer_name = "ThS. Người Hướng Dẫn"
+        a.save()
+        self.assertNotIn("Người Hướng Dẫn", chat._source("archived", a, None, None, set(), "STUDENT")[2])
+        self.assertIn("Người Hướng Dẫn", chat._source("archived", a, None, None, set(), "ADMIN")[2])
+
+    def test_verify_cleans_citations(self):
+        self.assertEqual(chat.verify("A [[Hệ thống]] B [Vai] C [3, h] D [Bạn]"), "A [Hệ thống] B C [3] D [Bạn]")
+
+    def test_history_brings_back_mentioned_topic(self):
+        found = chat._from_history([["Thầy An có đề tài nào?", f'Có {self.t1.code} "Chatbot tư vấn"']])
+        self.assertIn(("topic", self.t1), found)
+
+    def test_keyword_bonus_matches_without_diacritics(self):
+        titles = ["Quản lý ký túc xá", "Quản lý thư viện", "Quản lý bán hàng"] + [f"Quản lý mục {i}" for i in range(30)]
+        b = chat._lex_bonus("muon lam he thong quan ly ky tuc xa", titles)
+        self.assertEqual(b[0], 0.3)  # "ky tuc" + "tuc xa"
+        self.assertEqual(b[1], 0)  # "quan ly" quá phổ biến → không cộng
+
+    def test_redact_pii_not_in_allowed_data(self):
+        out = chat.redact("Gọi 0987654321, mail x@y.vn, MSSV 20231337; email GV gv@eaut.edu.vn", "gv@eaut.edu.vn")
+        self.assertEqual(out, "Gọi [đã ẩn], mail [đã ẩn], MSSV [đã ẩn]; email GV gv@eaut.edu.vn")
+
+    def test_faculty_stats_numbers_only(self):
+        txt = chat._faculty_stats(self.period)
+        self.assertIn("2 sinh viên, 2 đã nộp", txt)
+        self.assertNotIn("SV1", txt)
+        self.assertNotIn("sv2", txt)
+
+    def test_role_quota_lecturer_higher_than_student(self):
+        from .views import LIMITS
+
+        self.assertLess(LIMITS["STUDENT"][0], LIMITS["LECTURER"][0])
+        self.assertLess(LIMITS["STUDENT"][1], LIMITS["LECTURER"][1])
+
     def test_widget_on_pages_when_logged_in(self):
         self.client.login(username="sv1", password="x")
         self.assertContains(self.client.get("/trang-chu/"), 'id="tlRoot"')

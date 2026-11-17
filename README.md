@@ -15,10 +15,16 @@ Khoa CNTT, Trường Đại học Công nghệ Đông Á (EAUT).
   (dùng cả hướng phát triển mà chính khoá trước đề xuất).
 - **Khoa:** bảng điều khiển, nhập Excel 2 bước (kiểm tra → xác nhận), phân công tối ưu ILP / Greedy, xếp tay pha 2,
   chốt & công bố (đợt đã công bố chỉ còn chế độ xem), thống kê có biểu đồ và bảng số liệu, rà soát đề tài trùng lặp toàn khoa.
+- **Trợ lý ảo (chatbot RAG, mọi vai):** trả lời theo dữ liệu thật của hệ thống — hướng dẫn quy trình, đề tài đang mở
+  (điều kiện, số chỗ, số người chọn NV1), giảng viên, kho đề tài khoá trước kèm hướng phát triển, dữ liệu của chính người hỏi —
+  có trích nguồn (thẻ bấm mở đúng trang). Tìm kiếm lai Sentence-BERT + từ khoá (khớp cả khi gõ không dấu).
+  **Phân quyền theo vai:** trợ lý chỉ nhận đúng phần dữ liệu giao diện của vai đó được xem; lọc thông tin cá nhân ở đầu ra;
+  hạn mức câu hỏi theo vai; nhật ký hỏi–đáp để đánh giá.
 
 ## Công nghệ
 Python 3.12 · Django 5.2 · SQLite (mặc định) hoặc MySQL · Bootstrap 5.3 + hệ thiết kế riêng **ATLAS** · Chart.js 4 ·
-sentence-transformers (MiniLM đa ngôn ngữ, M4) · PuLP / CBC (ILP) · LLM qua API tương thích OpenAI (Groq / Gemini / Ollama, M5).
+sentence-transformers (MiniLM đa ngôn ngữ, M4) · PuLP / CBC (ILP) · LLM qua API tương thích OpenAI (Groq / Gemini / Ollama, M5
+và trợ lý ảo).
 
 ## Cài đặt và chạy (Windows / Linux)
 ```bash
@@ -39,7 +45,9 @@ Mở http://127.0.0.1:8000 — tài khoản demo (mật khẩu `123456`): `sv001
 
 Biến môi trường chính (`.env`): `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DB_ENGINE=mysql` + `DB_*` (dùng MySQL),
 `LLM_PROVIDER` / `LLM_MODEL` / `LLM_API_KEY` (bật M5), `RECOMMEND_SEMANTIC=0` / `RECOMMEND_LLM=0` (tắt M4 / M5 khi chạy máy yếu),
-`ASSETS_FROM_CDN=0` (chỉ dùng thư viện lưu sẵn trong dự án, chạy được khi không có Internet).
+`ASSETS_FROM_CDN=0` (chỉ dùng thư viện lưu sẵn trong dự án, chạy được khi không có Internet),
+`CHAT_PROVIDER` / `CHAT_MODELS` (nhiều mô hình cách nhau dấu phẩy, mô hình đầu lỗi thì dùng mô hình sau) / `CHAT_API_KEY`
+(bật trợ lý ảo; thiếu khoá thì trợ lý chạy chế độ dự phòng: trả các đoạn tìm được).
 
 ## Cấu trúc thư mục
 ```
@@ -60,6 +68,8 @@ capstone-advisor/
 │   └── ahp.py         Tính vector trọng số và tỷ số nhất quán CR
 ├── allocate/          Phân công: mô hình ILP (PuLP/CBC), Greedy đối chứng, chỉ số chất lượng, pha 2 xếp tay, công bố
 ├── reports/           Thống kê cho Khoa (biểu đồ + bảng số liệu)
+├── assistant/         Trợ lý ảo: chat.py (truy hồi lai, ngữ cảnh theo vai, gọi LLM, máy kiểm sau trả lời),
+│                      kb/ (hướng dẫn quy trình — mỗi mục "##" là một đoạn tri thức), nhật ký ChatLog
 ├── templates/         Giao diện: base.html (khung chung), components/ (thành phần dùng lại), trang theo ứng dụng
 ├── static/
 │   ├── css/atlas.css  Hệ thiết kế ATLAS: biến màu sáng/tối, chữ, khoảng cách, thành phần
@@ -74,7 +84,7 @@ capstone-advisor/
 
 ## Kiểm thử
 ```bash
-python manage.py test        # 230 ca: nghiệp vụ SV/GV/Khoa, phân quyền, AHP, ILP, nhập Excel, đề tài trùng, giao diện
+python manage.py test        # 248 ca: nghiệp vụ SV/GV/Khoa, phân quyền, AHP, ILP, nhập Excel, đề tài trùng, trợ lý ảo, giao diện
 ruff check .                 # kiểm tra phong cách mã + độ phức tạp hàm (McCabe ≤ 10)
 ```
 Thực nghiệm cho báo cáo: xem `experiments/README.md`.

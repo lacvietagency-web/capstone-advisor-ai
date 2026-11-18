@@ -57,7 +57,7 @@
     </section>
 
     <div class="at-grid">
-      <section class="at-panel at-panel--flush at-col-8">
+      <section class="at-panel at-panel--flush at-col-8" id="duyet">
         <div class="at-panel-header">
           <div>
             <h2 class="h3">Đề tài có sinh viên chờ duyệt</h2>
@@ -233,4 +233,42 @@
     </div>
   </div>
 </div>
+{% if popup_cho %}
+<div class="modal fade" id="loginPopup" tabindex="-1" aria-labelledby="loginPopupTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h4" id="loginPopupTitle">Có {{ popup_cho.n }} sinh viên đang chờ thầy/cô duyệt</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-unstyled at-mb-0" style="display:grid;gap:12px">
+          {% for p in popup_cho.rows %}
+          <li><strong>{{ p.student.user.get_full_name }}</strong> ({{ p.student.student_code }}) chọn <strong>{{ p.topic.title }}</strong> làm NV{{ p.rank }}{% if p.submitted_at %}<br><span class="at-secondary">nộp lúc {{ p.submitted_at|date:"H:i d/m/Y" }}</span>{% endif %}</li>
+          {% endfor %}
+        </ul>
+        {% if popup_cho.n > 5 %}<p class="at-secondary at-mt-3 at-mb-0">… và {{ popup_cho.n|add:"-5" }} đơn khác.</p>{% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Để sau</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-di-toi="duyet">Duyệt ngay</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
+
+{% block extra_js %}{% if popup_cho %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var el = document.getElementById("loginPopup");
+    if (!el || !window.bootstrap) return;
+    var m = bootstrap.Modal.getOrCreateInstance(el);
+    el.querySelector("[data-di-toi]").addEventListener("click", function () {
+      el.addEventListener("hidden.bs.modal", function () { document.getElementById("duyet").scrollIntoView({ behavior: "smooth" }); }, { once: true });
+    });
+    m.show();
+  });
+</script>
+{% endif %}{% endblock %}

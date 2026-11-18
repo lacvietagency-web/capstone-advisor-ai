@@ -391,3 +391,30 @@ class LecturerHomeDashboardTests(TestCase):
         self.assertEqual(resp.context["n_pending"], 0)
         self.assertEqual(resp.context["n_accepted"], 0)
         self.assertContains(resp, "Chưa có đề tài")
+
+
+class LoginPopupTests(TestCase):
+    """GV đăng nhập → trang chủ hiện popup "SV chờ duyệt" đúng một lần (chủ dự án chốt 18/11/2026)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", students=8, lecturers=3, topics=6, verbosity=0)
+
+    def _login(self, username):
+        self.client.post("/dang-nhap/", {"username": username, "password": "123456"})
+
+    def test_popup_gv_chi_hien_mot_lan(self):
+        p = Preference.objects.filter(status=Preference.Status.PENDING, submitted=True).select_related("topic").first()
+        self._login(p.topic.lecturer.user.username)
+        r = self.client.get("/trang-chu/")
+        self.assertContains(r, 'id="loginPopup"')
+        self.assertContains(r, "đang chờ thầy/cô duyệt")
+        self.assertNotContains(self.client.get("/trang-chu/"), 'id="loginPopup"')  # tải lại: không hiện nữa
+
+    def test_khong_popup_khi_khong_co_don_cho(self):
+        p = Preference.objects.filter(submitted=True).select_related("topic").first()
+        Preference.objects.filter(topic__lecturer=p.topic.lecturer).update(status=Preference.Status.ACCEPTED)
+        self._login(p.topic.lecturer.user.username)
+        self.assertNotContains(self.client.get("/trang-chu/"), 'id="loginPopup"')
+        self._login("sv001")  # sinh viên không có popup này
+        self.assertNotContains(self.client.get("/trang-chu/"), 'id="loginPopup"')

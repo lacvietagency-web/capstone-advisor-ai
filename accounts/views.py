@@ -146,6 +146,7 @@ def home(request):
     - Hiển thị trạng thái chờ 'Hội đồng Khoa đang thẩm định phân công' khi chưa công bố.
     """
     user = request.user
+    vua_dang_nhap = request.session.pop("vua_dang_nhap", False)  # đặt ở accounts.apps khi đăng nhập
     if user.is_faculty_admin:
         return render(
             request,
@@ -165,6 +166,13 @@ def home(request):
         if not hasattr(user, "lecturer"):
             return render(request, "pages/missing_profile.html")
         context = {**_get_lecturer_dashboard_context(user.lecturer), **_review_rows(user.lecturer, request.GET)}
+        if vua_dang_nhap:  # popup báo đơn chờ duyệt, chỉ ngay sau khi đăng nhập
+            cho = Preference.objects.filter(
+                topic__lecturer=user.lecturer, submitted=True, status=Preference.Status.PENDING
+            ).select_related("student__user", "topic")
+            n = cho.count()
+            if n:
+                context["popup_cho"] = {"n": n, "rows": list(cho.order_by("-submitted_at")[:5])}
         return render(request, "pages/home_lecturer.html", context)
     if not hasattr(user, "student"):
         return render(request, "pages/missing_profile.html")

@@ -424,6 +424,30 @@ def _llm(messages):
 CODE_TITLE = re.compile(r'(DT-\d{4}-\d{3})([^"“\n]{0,4})["“]([^"”\n]+)["”]')
 
 
+MATH = {  # \geq trước \ge, \leq trước \le (thay theo thứ tự)
+    r"\geq": "≥",
+    r"\ge": "≥",
+    r"\leq": "≤",
+    r"\le": "≤",
+    r"\neq": "≠",
+    r"\ne": "≠",
+    r"\times": "×",
+    r"\approx": "≈",
+}
+
+
+def plain_math(text):
+    """Mô hình đôi khi viết công thức LaTeX ("$\\ge 5.00$") → khung chat hiện nguyên ký tự; đổi về ký hiệu thường."""
+
+    def inner(m):
+        s = m.group(1)
+        for k, v in MATH.items():  # \geq trước \ge, \leq trước \le (thứ tự trong dict)
+            s = s.replace(k, v)
+        return s.replace("\\", "").strip()
+
+    return re.sub(r"\$([^$\n]{1,40})\$", inner, text)
+
+
 def verify(text):
     """Máy kiểm sau trả lời (chống bịa): mã–tên đề tài phải là một cặp thật trong CSDL.
     Tên trùng đúng một đề tài → sửa mã theo tên; không thì mã có thật → sửa tên theo mã.
@@ -521,7 +545,7 @@ def answer(user, question, history=()):
     text, model = _llm(messages)
     mode = "llm"
     if text is not None:
-        text = redact(verify(text), messages[-1]["content"])
+        text = redact(verify(plain_math(text)), messages[-1]["content"])
     else:
         text, mode = _fallback(sources), "fallback"
     cited = {int(n) for g in re.findall(r"\[([\d,\s\w]+)\]", text) for n in re.findall(r"\d+", g)}

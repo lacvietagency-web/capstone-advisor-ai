@@ -1224,3 +1224,7 @@
     width: 100%;
   }
 }
+
+/* Bảng đợt: 2 nút xếp dọc; nhãn trạng thái dài (Đã chạy phân công (nháp)) được xuống dòng thay vì đẩy cột Thao tác ra ngoài khung */
+.pg-18 .pg18-actions { display: inline-flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.pg-18 .pg18-table .at-badge, .pg-18 .pg18-table .at-status { white-space: normal; text-align: left; }

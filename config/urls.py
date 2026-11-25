@@ -45,6 +45,8 @@ urlpatterns = [
         name="allocation_student_detail",
     ),
     path("khoa/nhap-excel/", cv.faculty_import, name="faculty_import"),
+    path("khoa/dot-dang-ky/moi/", cv.faculty_period_edit, name="faculty_period_new"),
+    path("khoa/dot-dang-ky/<int:pk>/sua/", cv.faculty_period_edit, name="faculty_period_edit"),
     path("khoa/nhap-excel/mau.xlsx", cv.faculty_import_sample, name="faculty_import_sample"),
     path("khoa/thong-ke/", rv.faculty_statistics, name="faculty_statistics"),
     path("khoa/ra-soat-trung-lap/", cv.faculty_duplicates, name="faculty_duplicates"),

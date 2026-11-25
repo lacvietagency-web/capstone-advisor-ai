@@ -76,6 +76,9 @@
           <div>
             <h2>Các đợt đăng ký</h2>
           </div>
+          <a href="{% url 'faculty_period_new' %}" class="btn btn-primary btn-sm">
+            {% include "components/icon.html" with name="plus" size=14 %}Mở đợt mới
+          </a>
         </div>
 
         {% if periods %}
@@ -83,11 +86,11 @@
             <table class="at-table d-none d-md-table pg18-table">
               <thead>
                 <tr>
-                  <th style="width:34%">Đợt đăng ký</th>
+                  <th style="width:30%">Đợt đăng ký</th>
                   <th style="width:26%">Thời gian</th>
                   <th style="width:12%" class="at-text-center">Sinh viên</th>
                   <th style="width:16%" class="at-text-center">Trạng thái</th>
-                  <th style="width:12%" class="at-text-center">Thao tác</th>
+                  <th style="width:16%" class="at-text-center">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,7 +109,10 @@
                       {% endif %}
                     </td>
                     <td class="at-text-center">
-                      <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="pg18-btn-assign">Phân công</a>
+                      <div class="pg18-actions">
+                        <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="pg18-btn-assign">Phân công</a>
+                        <a href="{% url 'faculty_period_edit' p.pk %}" class="pg18-btn-assign">Sửa</a>
+                      </div>
                     </td>
                   </tr>
                 {% endfor %}
@@ -135,6 +141,7 @@
                     <dd class="at-num">{{ p.student_count|default:"0" }}</dd>
                   </dl>
                   <div class="at-form-actions at-mt-4">
+                    <a href="{% url 'faculty_period_edit' p.pk %}" class="pg18-btn-assign">Sửa</a>
                     <a href="{% url 'allocation_dashboard' %}?period_id={{ p.pk }}" class="pg18-btn-assign">Phân công</a>
                   </div>
                 </article>
@@ -143,7 +150,8 @@
           </div>
         {% else %}
           <div class="at-panel-body">
-            {% include "components/empty.html" with illustration="empty-topics" title="Chưa có đợt đăng ký" desc="Khoa chưa mở đợt đăng ký đồ án nào trong năm học này." %}
+            {% url 'faculty_period_new' as url_new_period %}
+            {% include "components/empty.html" with illustration="empty-topics" title="Chưa có đợt đăng ký" desc="Khoa chưa mở đợt đăng ký đồ án nào trong năm học này." primary_url=url_new_period primary_label="Mở đợt mới" %}
           </div>
         {% endif %}
       </section>

@@ -184,6 +184,7 @@ ROLE_PAGES = {
         "faculty_import",
         "faculty_statistics",
         "faculty_duplicates",
+        "faculty_period_new",
         "lecturer_profile",
         "topic_list",
         "password_change",

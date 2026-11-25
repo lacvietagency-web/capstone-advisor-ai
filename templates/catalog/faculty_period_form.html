@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{% if period %}Sửa đợt đăng ký{% else %}Mở đợt đăng ký{% endif %} — Đồ Án LV{% endblock %}
+{% block content %}
+<header class="at-page-header">
+  <div>
+    <nav class="at-breadcrumb" aria-label="Vị trí"><a href="{% url 'home' %}">Khoa</a><span>{% if period %}Sửa đợt{% else %}Mở đợt mới{% endif %}</span></nav>
+    <h1>{% if period %}Sửa đợt đăng ký{% else %}Mở đợt đăng ký mới{% endif %}</h1>
+  </div>
+</header>
+<form class="at-panel at-form-480" method="post" data-at-busy>
+  <div class="at-panel-header"><div><h2>Thông tin đợt</h2></div></div>
+  {% csrf_token %}
+  {% for f in form %}
+    <div class="at-field">
+      <label class="form-label{% if f.field.required and not f.field.disabled %} at-required{% endif %}" for="{{ f.id_for_label }}">{{ f.label }}</label>
+      {{ f }}
+      {% for e in f.errors %}<div class="at-error">{{ e }}</div>{% endfor %}
+    </div>
+  {% endfor %}
+  <div class="at-form-actions">
+    <a href="{% url 'home' %}" class="btn btn-secondary">Huỷ</a>
+    <button type="submit" class="btn btn-primary">{% if period %}Lưu thay đổi{% else %}Mở đợt{% endif %}</button>
+  </div>
+</form>
+{% endblock %}

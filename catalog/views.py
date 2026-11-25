@@ -17,6 +17,7 @@ from recommend.services import ensure_recommendations, refresh_student, score_pr
 from .forms import (
     LecturerProfileForm,
     PreferenceForm,
+    RegistrationPeriodForm,
     StudentAboutForm,
     StudentContactForm,
     StudentInterestPickForm,
@@ -834,6 +835,33 @@ def _import_page(request, lecturer=None):
         "catalog/faculty_import.html",
         {"result": result, "max_mb": MAX_IMPORT_BYTES // (1024 * 1024), "gv": lecturer is not None},
     )
+
+
+@login_required
+def faculty_period_edit(request, pk=None):
+    """Khoa mở đợt đăng ký mới hoặc sửa đợt (tên, thời gian, Đang mở / Đã đóng)."""
+    if not (getattr(request.user, "is_faculty_admin", False) or request.user.is_superuser):
+        raise PermissionDenied("Chỉ tài khoản Khoa mới mở được đợt đăng ký.")
+    period = get_object_or_404(RegistrationPeriod, pk=pk) if pk else None
+    now = timezone.localtime().replace(second=0, microsecond=0)
+    initial = (
+        None
+        if period
+        else {"name": f"Đợt đăng ký ĐATN {now.year}", "start_at": now, "end_at": now + timezone.timedelta(days=30)}
+    )
+    form = RegistrationPeriodForm(request.POST or None, instance=period, initial=initial)
+    if request.method == "POST" and form.is_valid():
+        p = form.save()
+        AuditLog.objects.create(
+            user=request.user,
+            action="update_period" if period else "open_period",
+            entity="RegistrationPeriod",
+            entity_id=p.pk,
+            detail={"name": p.name, "status": p.status},
+        )
+        messages.success(request, f'Đã lưu đợt "{p.name}" ({p.get_status_display().lower()}).')
+        return redirect("home")
+    return render(request, "catalog/faculty_period_form.html", {"form": form, "period": period})
 
 
 @login_required

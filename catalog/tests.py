@@ -1002,3 +1002,34 @@ class LecturerTopicImportTests(TestCase):
         self.client.force_login(self.gv.user)
         r = self.client.get("/de-tai/nhap-excel/mau.xlsx")
         self.assertEqual(openpyxl.load_workbook(BytesIO(r.content)).sheetnames, ["DeTai"])
+
+
+class FacultyPeriodTests(TestCase):
+    """Khoa mở đợt mới / sửa đợt ngay trên giao diện (trước chỉ ở trang Quản trị)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", students=2, lecturers=1, topics=1, verbosity=0)
+
+    def test_khoa_mo_va_dong_dot(self):
+        self.client.force_login(User.objects.get(username="khoa01"))
+        self.assertContains(self.client.get("/trang-chu/"), "Mở đợt mới")
+        self.assertEqual(self.client.get("/khoa/dot-dang-ky/moi/").status_code, 200)
+        r = self.client.post(
+            "/khoa/dot-dang-ky/moi/",
+            {"name": "Đợt ĐATN 2027", "start_at": "2027-01-05T08:00", "end_at": "2027-01-04T08:00", "status": "OPEN"},
+        )
+        self.assertContains(r, "Hạn chót phải sau thời điểm bắt đầu.")
+        data = {"name": "Đợt ĐATN 2027", "start_at": "2027-01-05T08:00", "end_at": "2027-02-05T17:00", "status": "OPEN"}
+        self.assertRedirects(self.client.post("/khoa/dot-dang-ky/moi/", data), "/trang-chu/")
+        p = RegistrationPeriod.objects.get(name="Đợt ĐATN 2027")
+        self.assertEqual(p.status, RegistrationPeriod.Status.OPEN)
+        self.client.post(f"/khoa/dot-dang-ky/{p.pk}/sua/", {**data, "status": "CLOSED"})
+        p.refresh_from_db()
+        self.assertEqual(p.status, RegistrationPeriod.Status.CLOSED)
+        self.assertTrue(AuditLog.objects.filter(action="open_period", entity_id=p.pk).exists())
+
+    def test_gv_sv_khong_mo_duoc(self):
+        for user in (Lecturer.objects.first().user, Student.objects.first().user):
+            self.client.force_login(user)
+            self.assertEqual(self.client.get("/khoa/dot-dang-ky/moi/").status_code, 403)

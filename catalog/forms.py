@@ -5,7 +5,17 @@ import re
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
 
-from .models import Field, Lecturer, Student, StudentInterest, StudentSkill, Topic, TopicPrerequisite, TopicSkill
+from .models import (
+    Field,
+    Lecturer,
+    RegistrationPeriod,
+    Student,
+    StudentInterest,
+    StudentSkill,
+    Topic,
+    TopicPrerequisite,
+    TopicSkill,
+)
 
 ABOUT_HINT = "Ví dụ: Em thích làm backend, đã làm web bán hàng bằng Django, muốn làm Backend Developer…"
 
@@ -293,3 +303,37 @@ class LecturerProfileForm(forms.ModelForm):
                     "Đợt đăng ký đã đóng. Chỉ tiêu đã bị khoá, chỉ Khoa mới có quyền điều chỉnh."
                 )
         return val
+
+
+class RegistrationPeriodForm(forms.ModelForm):
+    """Khoa mở / sửa đợt đăng ký. Trạng thái chỉ Đang mở / Đã đóng; Đã phân công, Đã công bố do trang Phân công đặt."""
+
+    FMT = "%Y-%m-%dT%H:%M"
+
+    class Meta:
+        model = RegistrationPeriod
+        fields = ["name", "start_at", "end_at", "status"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in ("start_at", "end_at"):
+            self.fields[f].widget = forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"}, format=self.FMT
+            )
+            self.fields[f].input_formats = [self.FMT]
+        self.fields["name"].widget.attrs["class"] = "form-control"
+        self.fields["status"].widget.attrs["class"] = "form-select"
+        managed = self.instance.pk and self.instance.status not in ("OPEN", "CLOSED")
+        if managed:  # đợt đã phân công / công bố: không đổi trạng thái ở đây
+            self.fields["status"].disabled = True
+        else:
+            self.fields["status"].choices = [
+                (RegistrationPeriod.Status.OPEN, "Đang mở đăng ký"),
+                (RegistrationPeriod.Status.CLOSED, "Đã đóng đăng ký"),
+            ]
+
+    def clean(self):
+        data = super().clean()
+        if data.get("start_at") and data.get("end_at") and data["end_at"] <= data["start_at"]:
+            self.add_error("end_at", "Hạn chót phải sau thời điểm bắt đầu.")
+        return data

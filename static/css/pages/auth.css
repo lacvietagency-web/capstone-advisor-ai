@@ -462,6 +462,16 @@
   gap: 6px;
   padding: 12px 16px 14px 16px;
 }
+.pg-01 .pg-01-demo-list { max-height: min(440px, 60vh); overflow-y: auto; } /* nhiều tài khoản: cuộn trong khung */
+.pg-01 .pg-01-demo-group {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--at-ink-muted, #596579);
+}
+.pg-01 .pg-01-demo-group:first-child { margin-top: 0; }
 
 .pg-01 .pg-01-demo-row {
   display: flex;

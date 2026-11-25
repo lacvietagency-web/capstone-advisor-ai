@@ -486,3 +486,24 @@ class NotifyAndSettingsTests(TestCase):
         self.assertContains(r, 'id="loginPopup"')
         self.assertContains(r, "giảng viên đã đồng ý")
         self.assertNotContains(self.client.get("/trang-chu/"), 'id="loginPopup"')
+
+
+class DemoLoginPanelTests(TestCase):
+    """Trang đăng nhập bản demo liệt kê mọi tài khoản theo vai (trừ admin); tắt được bằng DEMO_LOGIN."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", students=3, lecturers=2, topics=2, verbosity=0)
+
+    def test_liet_ke_moi_tai_khoan(self):
+        r = self.client.get("/dang-nhap/")
+        for name in ("khoa01", "gv001", "gv002", "sv001", "sv002", "sv003"):
+            self.assertContains(r, f'data-at-demo="{name}"')
+        self.assertNotContains(r, 'data-at-demo="admin"')
+        self.assertContains(r, 'data-at-demo-pass="123456"')
+
+    @override_settings(DEMO_LOGIN=False)
+    def test_tat_khi_chay_that(self):
+        r = self.client.get("/dang-nhap/")
+        self.assertNotContains(r, 'data-at-demo="')
+        self.assertNotContains(r, "pg-01-card--demo")

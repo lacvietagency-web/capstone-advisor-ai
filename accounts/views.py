@@ -1,6 +1,7 @@
 """Trang chủ chia theo vai trò: sinh viên, giảng viên, Khoa thấy nội dung khác nhau."""
 
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
@@ -211,6 +212,26 @@ def home(request):
 
 def root(request):
     return redirect("home")
+
+
+class DangNhapView(auth_views.LoginView):
+    """Đăng nhập. Bản demo (DEMO_LOGIN) liệt kê sẵn tài khoản theo vai; "Sử dụng" điền tên + mật khẩu chung."""
+
+    DEMO_ROLES = (
+        (User.Role.ADMIN, "Khoa", "faculty", "building-2"),
+        (User.Role.LECTURER, "Giảng viên", "lecturer", "user-round"),
+        (User.Role.STUDENT, "Sinh viên", "student", "graduation-cap"),
+    )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        if settings.DEMO_LOGIN:
+            users = User.objects.filter(is_active=True).exclude(username="admin").order_by("username")
+            ctx["demo_groups"] = [
+                (label, kind, icon, list(users.filter(role=role)[:20])) for role, label, kind, icon in self.DEMO_ROLES
+            ]
+            ctx["demo_password"] = settings.DEMO_PASSWORD
+        return ctx
 
 
 class EmailForm(forms.ModelForm):

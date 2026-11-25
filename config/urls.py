@@ -4,7 +4,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.views.generic import TemplateView
 
-from accounts.views import CaiDatView, home, root
+from accounts.views import CaiDatView, DangNhapView, home, root
 from allocate import views as av
 from assistant import views as asv
 from catalog import views as cv
@@ -13,7 +13,7 @@ from reports import views as rv
 urlpatterns = [
     path("", root),
     path("trang-chu/", home, name="home"),
-    path("dang-nhap/", auth_views.LoginView.as_view(), name="login"),
+    path("dang-nhap/", DangNhapView.as_view(), name="login"),
     path("trinh-bay/", rv.trinh_bay, name="trinh_bay"),  # trang trình bày cho GVHD, công khai
     path("gop-y/", rv.gop_y, name="gop_y"),
     path("dang-xuat/", auth_views.LogoutView.as_view(), name="logout"),

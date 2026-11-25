@@ -139,53 +139,34 @@
           </form>
         </div>
 
-        <!-- Panel 2: Tài khoản demo -->
+        {# Panel 2: Tài khoản demo — liệt kê từ CSDL (accounts.views.DangNhapView), tắt bằng DJANGO_DEMO_LOGIN=0 #}
+        {% if demo_groups %}
         <div class="pg-01-card pg-01-card--demo">
           <div class="pg-01-demo-header">
             <h3 class="pg-01-demo-title">Tài khoản demo</h3>
-            <p class="pg-01-demo-desc">Sử dụng các tài khoản mẫu để trải nghiệm hệ thống</p>
+            <p class="pg-01-demo-desc">Mật khẩu chung: {{ demo_password }}</p>
           </div>
-          <div class="pg-01-demo-list">
+          <div class="pg-01-demo-list" data-at-demo-pass="{{ demo_password }}">
+            {% for label, kind, icon, users in demo_groups %}{% if users %}
+            <div class="pg-01-demo-group">{{ label }}</div>
+            {% for u in users %}
             <div class="pg-01-demo-row">
               <div class="pg-01-demo-identity">
-                <span class="pg-01-demo-avatar pg-01-demo-avatar--student" aria-hidden="true">
-                  {% include "components/icon.html" with name="graduation-cap" size=18 %}
+                <span class="pg-01-demo-avatar pg-01-demo-avatar--{{ kind }}" aria-hidden="true">
+                  {% include "components/icon.html" with name=icon size=18 %}
                 </span>
                 <div class="pg-01-demo-meta">
-                  <span class="pg-01-demo-code">sv001</span>
-                  <span class="pg-01-demo-role">Sinh viên</span>
+                  <span class="pg-01-demo-code">{{ u.username }}</span>
+                  <span class="pg-01-demo-role">{{ u.get_full_name|default:label }}</span>
                 </div>
               </div>
-              <button type="button" class="pg-01-demo-btn" data-at-demo="sv001">Sử dụng</button>
+              <button type="button" class="pg-01-demo-btn" data-at-demo="{{ u.username }}">Sử dụng</button>
             </div>
-
-            <div class="pg-01-demo-row">
-              <div class="pg-01-demo-identity">
-                <span class="pg-01-demo-avatar pg-01-demo-avatar--lecturer" aria-hidden="true">
-                  {% include "components/icon.html" with name="user-round" size=18 %}
-                </span>
-                <div class="pg-01-demo-meta">
-                  <span class="pg-01-demo-code">gv001</span>
-                  <span class="pg-01-demo-role">Giảng viên</span>
-                </div>
-              </div>
-              <button type="button" class="pg-01-demo-btn" data-at-demo="gv001">Sử dụng</button>
-            </div>
-
-            <div class="pg-01-demo-row">
-              <div class="pg-01-demo-identity">
-                <span class="pg-01-demo-avatar pg-01-demo-avatar--faculty" aria-hidden="true">
-                  {% include "components/icon.html" with name="building-2" size=18 %}
-                </span>
-                <div class="pg-01-demo-meta">
-                  <span class="pg-01-demo-code">khoa01</span>
-                  <span class="pg-01-demo-role">Cán bộ Khoa</span>
-                </div>
-              </div>
-              <button type="button" class="pg-01-demo-btn" data-at-demo="khoa01">Sử dụng</button>
-            </div>
+            {% endfor %}
+            {% endif %}{% endfor %}
           </div>
         </div>
+        {% endif %}
       </div>
     </section>
   </main>
@@ -205,9 +186,13 @@
           u.dispatchEvent(new Event("input", { bubbles: true }));
           u.dispatchEvent(new Event("change", { bubbles: true }));
         }
-        if (p) {
-          p.focus();
+        var list = b.closest("[data-at-demo-pass]");
+        if (p && list) {
+          p.value = list.getAttribute("data-at-demo-pass");  /* bản demo: điền sẵn mật khẩu chung */
+          p.dispatchEvent(new Event("input", { bubbles: true }));
         }
+        var submit = document.querySelector("form button[type=submit]");
+        if (submit) { submit.focus(); } else if (p) { p.focus(); }
       });
     });
 

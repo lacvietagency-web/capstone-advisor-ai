@@ -5,6 +5,7 @@ Bao gồm:
 """
 
 import json
+import textwrap
 from urllib.parse import urlparse
 
 from django.contrib.auth.decorators import login_required
@@ -29,6 +30,15 @@ from .services import (
     get_registration_stats,
     get_topic_nv1_distribution,
 )
+
+
+def _wrap_label(title, width=18, max_lines=3):
+    """Nhãn trục biểu đồ: xuống dòng theo từ (Chart.js nhận mảng dòng); quá dài thì dòng cuối thêm "…"."""
+    lines = textwrap.wrap(title, width) or [title]
+    if len(lines) > max_lines:
+        lines = lines[:max_lines]
+        lines[-1] = lines[-1].rstrip(" ,.;") + "…"
+    return lines
 
 
 def _check_faculty_admin(user):
@@ -69,7 +79,7 @@ def _prepare_chart_data(reg_stats, topic_nv1_list, field_list, comparison, lectu
             "data": [reg_stats["registered_students"], reg_stats["unregistered_students"]],
         },
         "topics": {
-            "labels": [t["title"][:22] + "..." if len(t["title"]) > 22 else t["title"] for t in top_topics],
+            "labels": [_wrap_label(t["title"]) for t in top_topics],
             "full_titles": [t["title"] for t in top_topics],
             "counts": [t["nv1_count"] for t in top_topics],
             "capacities": [t["capacity"] for t in top_topics],

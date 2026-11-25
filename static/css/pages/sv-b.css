@@ -1837,3 +1837,14 @@
 
 /* Claude: điện thoại — thanh Lưu/Nộp thay thanh điều hướng đáy (không chồng 2 thanh) */
 @media (max-width: 767.98px) { body:has(.pg-09 .pref-save-bar) .at-bottomnav { display: none; } }
+
+/* 25/11/2026: chữ không tràn / bẻ dòng xấu trên trang Nguyện vọng (máy tính và điện thoại) */
+.pg-09 .nv-select-wrap select { min-width: 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; padding-right: 2.5rem; }
+.pg-09 .score-type-label { white-space: nowrap; }
+.pg-09 .eligibility-left { min-width: 0; }
+.pg-09 .eligibility-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg-09 .eligibility-value { text-align: right; }
+@media (max-width: 560px) {
+  .pg-09 .pref-save-left { display: none; }
+  .pg-09 .btn-draft, .pg-09 .btn-submit-nv { white-space: nowrap; padding-inline: 12px; }
+}

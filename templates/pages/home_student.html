@@ -183,7 +183,7 @@
               <article class="pg-07-top1">
                 <div class="pg-07-top1-header">
                   <div class="pg-07-top1-badge-row">
-                    <span class="pg-07-top1-rank">#{{ r.rank }}</span>
+                    <span class="pg-07-top1-rank">#{{ forloop.counter }}</span>
                     <span class="pg-07-top1-tag">Đề tài phù hợp nhất</span>
                   </div>
                   <h3 class="pg-07-top1-title">
@@ -251,7 +251,7 @@
               {% endif %}
             {% else %}
               <a class="pg-07-rec-row" href="{% url 'topic_detail' r.topic.pk %}">
-                <span class="pg-07-rec-rank">#{{ r.rank }}</span>
+                <span class="pg-07-rec-rank">#{{ forloop.counter }}</span>
                 <span class="pg-07-rec-title">{{ r.topic.title }}</span>
                 <span class="pg-07-rec-gv">GVHD: {{ r.topic.lecturer.user.get_full_name|default:r.topic.lecturer.user.username }}</span>
                 <span class="pg-07-rec-score"><strong>{{ r.final_score|floatformat:1 }}</strong> / 100</span>

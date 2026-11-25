@@ -65,3 +65,13 @@ a.tl-thumb:focus-visible { outline: 3px solid var(--at-focus-ring); outline-offs
   .tl-panel { right: 0; left: 0; bottom: 0; width: 100%; height: calc(100vh - var(--at-topbar-h)); border-radius: var(--at-radius-lg) var(--at-radius-lg) 0 0; }
 }
 @media (prefers-reduced-motion: reduce) { .tl-fab, .tl-thumb, .tl-thumb > .at-icon { transition: none; } .tl-fab::before, .tl-bob, .tl-eyes, .tl-tassel { animation: none; } .tl-wait::after { animation: none; content: "…"; } }
+
+/* 25/11/2026: nút trợ lý gọn (chỉ biểu tượng, rê chuột mới hiện chữ) để không che nút chính ở góc phải;
+   ẩn hẳn khi đang mở ngăn kéo (offcanvas) hoặc hộp thoại (modal) — trước đây đè nút "Đồng ý" của GV. */
+.tl-fab { width: 56px; padding: 0; justify-content: center; }
+.tl-fab .tl-fab-label { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .tl-fab:hover, .tl-fab:focus-visible { width: auto; padding: 0 20px 0 6px; }
+  .tl-fab:hover .tl-fab-label, .tl-fab:focus-visible .tl-fab-label { display: inline; }
+}
+body.modal-open .tl, body:has(.offcanvas.show) .tl, body:has(.offcanvas.showing) .tl { display: none; }

@@ -5,6 +5,8 @@ Hai việc, cùng một lõi là độ gần nghĩa Sentence-BERT (cosine của 
 2. `archived_advice`      — đề tài có giống đề tài KHOÁ TRƯỚC không → tư vấn cải tiến (LLM, có bản dự phòng).
 """
 
+import re
+
 from recommend.engine import SemanticModel
 
 # Hiệu chỉnh 17/11/2026: kho thật 449 đề tài khoá trước, 300 cặp mẫu phân tầng có nhãn (experiments/rq4b_nguong.py)
@@ -52,7 +54,8 @@ def _heuristic_points(topic, past):
     """Gợi ý cải tiến không cần LLM: so công nghệ và phạm vi với đề tài khoá trước."""
     out = []
     if past.future_work:
-        out.append(f"Chính khoá trước đề xuất hướng phát triển: {past.future_work} — chọn một hướng làm điểm mới.")
+        hp = "; ".join(x.strip().rstrip(".;") for x in re.split(r"[;\n]+", past.future_work) if x.strip(" .;"))
+        out.append(f"Chính khoá trước đề xuất hướng phát triển: {hp}. Chọn một hướng làm điểm mới.")
     new_tech = {x.strip().lower() for x in (topic.technologies or "").replace(";", ",").split(",") if x.strip()}
     old_tech = {x.strip().lower() for x in (past.technologies or "").replace(";", ",").split(",") if x.strip()}
     if old_tech and old_tech == new_tech:

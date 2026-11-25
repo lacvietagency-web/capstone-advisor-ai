@@ -168,7 +168,7 @@ def condition_checklist(p: Profile, topic: Topic, remaining=None, held=False):
             "value": (
                 "Thiếu " + ", ".join(ts.skill.name for ts in missing_mandatory)
                 if missing_mandatory
-                else ("Phù hợp" if len(met) == len(req) else f"Đạt {len(met)}/{len(req)}")
+                else ("Phù hợp" if len(met) == len(req) else f"Có {len(met)}/{len(req)} (không bắt buộc)")
             ),
         }
     )

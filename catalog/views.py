@@ -200,13 +200,20 @@ def student_preferences(request):
             messages.success(request, "Đã lưu nháp nguyện vọng — giảng viên chưa thấy cho tới khi bạn nộp chính thức.")
         return redirect("student_preferences")
     # bảng điểm mọi đề tài cho JS của trang (≈100 dòng): nạp kèm đề tài + GV, tránh 3 truy vấn mỗi dòng (N+1)
-    scores = {r.topic_id: r for r in Recommendation.objects.filter(student=st).select_related("topic__lecturer__user")}
+    scores = {
+        r.topic_id: r
+        for r in Recommendation.objects.filter(student=st)
+        .select_related("topic__lecturer__user")
+        .prefetch_related("topic__skills__skill", "topic__prerequisites__course", "topic__fields")
+    }
     top5 = Recommendation.objects.filter(student=st, rank__isnull=False).select_related("topic").order_by("rank")[:5]
-    return render(
-        request,
-        "catalog/student_preferences.html",
-        {"period": period, "form": form, "top5": top5, "scores": scores, **_preference_rows(st, period, scores)},
-    )
+    # khối "Kiểm tra điều kiện" khi SV đổi lựa chọn: đúng luật như sau khi lưu (trước đây JS ghi cứng "Phù hợp")
+    # ponytail: 2 truy vấn mỗi đề tài (chỗ còn, đang giữ) — gom theo lô nếu danh mục vài trăm đề tài
+    topic_checks = {
+        tid: _checklist(st, r.topic, remaining_capacity(r.topic, period), period) for tid, r in scores.items()
+    }
+    context = {"period": period, "form": form, "top5": top5, "scores": scores, "topic_checks": topic_checks}
+    return render(request, "catalog/student_preferences.html", {**context, **_preference_rows(st, period, scores)})
 
 
 def _preference_rows(student, period, scores):

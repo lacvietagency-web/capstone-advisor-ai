@@ -1845,3 +1845,6 @@
 
 /* Claude: cột Thao tác đủ 3 nút (Xem · Sửa · ⋮), chip trạng thái không xuống dòng/không bị đè */
 .pg-14 .at-table td:nth-child(6) .at-status, .pg-14 .at-table td:nth-child(6) .at-badge { white-space: nowrap; }
+
+/* 25/11/2026: mở ngăn "Phân tích" làm bảng hẹp lại — MSSV không bị bẻ đôi */
+.pg-16 .at-table td:first-child, .pg-16 .at-table th:first-child { white-space: nowrap; }

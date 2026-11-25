@@ -944,3 +944,18 @@ class CoreMosaicTests(TestCase):
         bad.name = "x.txt"
         r = self.client.post("/khoa/nhap-excel/", {"file": bad})
         self.assertIsNone(r.context["result"])
+
+
+class FutureWorkPunctuationTests(TestCase):
+    def test_no_double_punctuation(self):
+        from types import SimpleNamespace
+
+        from catalog.similarity import _heuristic_points
+
+        past = SimpleNamespace(
+            future_work="Bổ sung dữ liệu.; Thêm hội thoại âm thanh.;\nLàm đẹp giao diện.", technologies=""
+        )
+        topic = SimpleNamespace(technologies="")
+        first = _heuristic_points(topic, past)[0]
+        self.assertNotIn(".;", first)
+        self.assertIn("Bổ sung dữ liệu; Thêm hội thoại âm thanh; Làm đẹp giao diện.", first)

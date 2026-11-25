@@ -366,3 +366,16 @@ class TrinhBayGopYTests(TestCase):
         self.assertEqual(post(json.dumps({"gop_y": "a"}), HTTP_ORIGIN="https://khac.example").status_code, 403)
         self.assertEqual(self.client.get("/gop-y/").status_code, 405)
         self.assertEqual(GopY.objects.count(), 1)
+
+
+class WrapLabelTests(TestCase):
+    def test_wrap_label(self):
+        from reports.views import _wrap_label
+
+        self.assertEqual(_wrap_label("Ngắn"), ["Ngắn"])
+        lines = _wrap_label("Ứng dụng di động quản lý ký túc xá trường đại học bằng Flutter và Firebase")
+        self.assertLessEqual(len(lines), 3)
+        self.assertTrue(lines[-1].endswith("…"))  # quá 3 dòng thì dòng cuối có dấu …
+        self.assertNotEqual(
+            _wrap_label("Ứng dụng di động quản lý khách sạn"), _wrap_label("Ứng dụng di động quản lý sự kiện")
+        )

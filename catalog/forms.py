@@ -135,12 +135,15 @@ class StudentInterestPickForm(forms.Form):
         )
 
 
+PICK = "Chọn đề tài…"  # thay "---------" mặc định của Django
+
+
 class PreferenceForm(forms.Form):
     """Chọn tối đa 3 nguyện vọng, không trùng nhau."""
 
-    nv1 = forms.ModelChoiceField(Topic.objects.none(), label="Nguyện vọng 1")
-    nv2 = forms.ModelChoiceField(Topic.objects.none(), label="Nguyện vọng 2", required=False)
-    nv3 = forms.ModelChoiceField(Topic.objects.none(), label="Nguyện vọng 3", required=False)
+    nv1 = forms.ModelChoiceField(Topic.objects.none(), label="Nguyện vọng 1", empty_label=PICK)
+    nv2 = forms.ModelChoiceField(Topic.objects.none(), label="Nguyện vọng 2", required=False, empty_label=PICK)
+    nv3 = forms.ModelChoiceField(Topic.objects.none(), label="Nguyện vọng 3", required=False, empty_label=PICK)
 
     def __init__(self, *args, topics=None, student=None, **kw):
         super().__init__(*args, **kw)

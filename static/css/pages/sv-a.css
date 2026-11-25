@@ -2635,3 +2635,6 @@
   .pg-07 .pg-07-top1-body { grid-template-columns: 160px minmax(0, 1fr); }
   .pg-07 .pg-07-top1-body > :last-child { grid-column: 1 / -1; }
 }
+
+/* 25/11/2026: cột "Nhận xét phù hợp / Thông báo chính thức" không tràn ra mép thẻ */
+.pg-12 .pg-12-notice-box { min-width: 0; padding-right: 16px; overflow-wrap: anywhere; }

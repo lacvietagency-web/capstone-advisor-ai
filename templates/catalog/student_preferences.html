@@ -14,7 +14,7 @@
       <div class="pref-meta">
         MSSV: <span class="at-num">{{ student.student_code }}</span> &nbsp;|&nbsp;
         Ngành: {{ student.major.name|default:student.major }} &nbsp;|&nbsp;
-        GPA: <span class="at-num">{{ student.gpa|floatformat:2 }}</span>
+        GPA:&nbsp;<span class="at-num">{{ student.gpa|floatformat:2 }}</span>
       </div>
       <p class="pref-desc">Bạn có thể chọn và sắp xếp thứ tự 3 nguyện vọng đề tài trước khi nộp chính thức.</p>
     </div>
@@ -559,6 +559,8 @@
   }
   </script>
 
+  {{ topic_checks|json_script:"topic-checks-data" }}
+
   {# Dữ liệu nguyện vọng đã lưu trong CSDL của đợt này #}
   <script id="saved-preferences-data" type="application/json">
   {
@@ -680,6 +682,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  var checksMap = {};
+  try { checksMap = JSON.parse((document.getElementById("topic-checks-data") || {}).textContent || "{}"); } catch (e) { console.error(e); }
+
   var nv1 = document.getElementById("id_nv1");
   var nv2 = document.getElementById("id_nv2");
   var nv3 = document.getElementById("id_nv3");
@@ -794,7 +799,23 @@ document.addEventListener("DOMContentLoaded", function () {
     var remOk = held || remaining > 0;
     var remValue = held ? 'Giảng viên đã đồng ý' : (remOk ? ('Còn ' + remaining + '/' + capacity) : 'Hết chỗ');
 
-    var checklistHtml =
+    var failIcon = '<span class="at-icon at-danger-ink" style="--i:url(\'/static/icons/circle-x.svg\');--s:14px" aria-hidden="true"></span>';
+    var checks = checksMap[topicId];
+    var checklistHtml;
+    if (checks && checks.length) {
+      checklistHtml = '<div class="eligibility-title">Kiểm tra điều kiện</div><div class="eligibility-list">' +
+        checks.map(function (c) {
+          var state = c.state || (c.ok ? "ok" : "fail");
+          var isQuota = c.label === "Chỉ tiêu còn chỗ";
+          var value = c.value;
+          if (isQuota && held) { state = "ok"; value = "Giảng viên đã đồng ý"; }
+          var icon = state === "ok" ? checkIcon : (state === "fail" ? failIcon : warnIcon);
+          return '<div class="eligibility-row"><div class="eligibility-left">' + icon +
+            '<span class="eligibility-label" title="' + escapeHtml(c.label) + '">' + escapeHtml(c.label) + '</span></div>' +
+            '<span class="eligibility-value is-' + state + '">' + escapeHtml(value) + '</span></div>';
+        }).join("") + '</div>';
+    } else {
+    checklistHtml =
       '<div class="eligibility-title">Kiểm tra điều kiện</div>' +
       '<div class="eligibility-list">' +
         '<div class="eligibility-row">' +
@@ -826,6 +847,7 @@ document.addEventListener("DOMContentLoaded", function () {
           '<span class="eligibility-value is-' + (remOk ? 'ok' : 'warn') + '">' + remValue + '</span>' +
         '</div>' +
       '</div>';
+    }
 
     detailSlot.setAttribute("data-topic-id", topicId);
     detailSlot.innerHTML = stripHtml + reasonHtml;

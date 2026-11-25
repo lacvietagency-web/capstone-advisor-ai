@@ -433,6 +433,7 @@
         </div>
         <div class="modal-body">
           <p class="at-mb-0">
+            {% if metrics and metrics.unassigned_count %}<span class="d-block at-mb-2" style="color: var(--at-warning)"><strong>Còn {{ metrics.unassigned_count }} sinh viên chưa được xếp đề tài.</strong> Nên xếp tay trước khi công bố; sau khi công bố không sửa được.</span>{% endif %}
             <strong>Bước 1 — Rà soát:</strong> Tổng cộng {{ total_count }} sinh viên trong đợt này. Vui lòng rà soát danh sách phân công trước khi công bố. Sau khi công bố, sinh viên và giảng viên sẽ thấy kết quả chính thức và không thể hoàn tác.
           </p>
           <div>
@@ -499,7 +500,7 @@
       {% endfor %}
 
       var maxVal = Math.max(nv1, nv2, nv3, other, unassigned, 10);
-      var chartMax = maxVal <= 60 ? 60 : Math.ceil(maxVal / 10) * 10;
+      var chartMax = Math.max(4, Math.ceil(maxVal * 1.25));  // theo dữ liệu (trước cố định ≥ 60 nên cột 1–3 SV gần như không thấy)
 
       var el = document.getElementById("atAllocChart");
       if (el) {
@@ -541,7 +542,7 @@
                 beginAtZero: true,
                 max: chartMax,
                 grid: { color: "#DDE4EF", drawTicks: false },
-                ticks: { stepSize: 20, precision: 0, font: { size: 12, family: "'Be Vietnam Pro', sans-serif" } }
+                ticks: { precision: 0, font: { size: 12, family: "'Be Vietnam Pro', sans-serif" } }
               }
             }
           }

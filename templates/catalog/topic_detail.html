@@ -279,7 +279,7 @@
                   </div>
                   <div class="pg-11-score-caption">
                     {% if recommendation.m5_llm is None %}
-                      Điểm sơ bộ M1–M4
+                      Điểm sơ bộ (chưa có M5)
                     {% else %}
                       Điểm phù hợp (AI)
                     {% endif %}
@@ -335,7 +335,7 @@
               {% if recommendation.m5_llm is None %}
                 <div class="pg-11-ai-note">
                   {% include "components/icon.html" with name="info" size=13 %}
-                  <span>Điểm sơ bộ tính trên các mô hình M1–M4. M5 Đánh giá LLM sẽ được tính khi hội đồng kích hoạt.</span>
+                  <span>Điểm sơ bộ tính trên M1, M3, M4. M5 (đánh giá bằng LLM) chưa có cho đề tài này.</span>
                 </div>
               {% endif %}
             {% else %}

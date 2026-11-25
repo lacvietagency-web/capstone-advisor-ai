@@ -150,7 +150,7 @@
                           <span class="score-unit">/ 100</span>
                         </div>
                         <span class="score-type-label">
-                          {% if r.rec.m5_llm is None %}Điểm sơ bộ M1–M4{% else %}Điểm phù hợp (AI){% endif %}
+                          {% if r.rec.m5_llm is None %}Điểm sơ bộ (chưa có M5){% else %}Điểm phù hợp (AI){% endif %}
                         </span>
                       </div>
                     </div>
@@ -265,7 +265,7 @@
                           <span class="score-unit">/ 100</span>
                         </div>
                         <span class="score-type-label">
-                          {% if r.rec.m5_llm is None %}Điểm sơ bộ M1–M4{% else %}Điểm phù hợp (AI){% endif %}
+                          {% if r.rec.m5_llm is None %}Điểm sơ bộ (chưa có M5){% else %}Điểm phù hợp (AI){% endif %}
                         </span>
                       </div>
                     </div>
@@ -380,7 +380,7 @@
                           <span class="score-unit">/ 100</span>
                         </div>
                         <span class="score-type-label">
-                          {% if r.rec.m5_llm is None %}Điểm sơ bộ M1–M4{% else %}Điểm phù hợp (AI){% endif %}
+                          {% if r.rec.m5_llm is None %}Điểm sơ bộ (chưa có M5){% else %}Điểm phù hợp (AI){% endif %}
                         </span>
                       </div>
                     </div>
@@ -760,7 +760,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Điểm số
     var scoreVal = (data && data.final_score) ? data.final_score : "—";
-    var scoreLabel = (data && data.is_preliminary) ? "Điểm sơ bộ M1–M4" : "Điểm phù hợp (AI)";
+    var scoreLabel = (data && data.is_preliminary) ? "Điểm sơ bộ (chưa có M5)" : "Điểm phù hợp (AI)";
 
     // Dải đề tài
     var stripHtml =

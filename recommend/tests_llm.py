@@ -261,3 +261,52 @@ class LLMScoringTests(TestCase):
         r3 = explain(c3)
         self.assertTrue(r3.startswith("Phù hợp vì"))
         self.assertIn("Cần bổ sung: Docker", r3)
+
+
+class ClaudeM5Tests(__import__("django.test", fromlist=["TestCase"]).TestCase):
+    """LLM_PROVIDER=claude: M5 do Claude chấm sẵn → xuất đề bài, nạp điểm vào cache; web không gọi mạng."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from django.core.management import call_command
+
+        call_command("seed_demo", students=2, lecturers=1, topics=3, verbosity=0)
+
+    def test_xuat_nap_va_khong_goi_mang(self):
+        import io
+        import json
+        import re
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+
+        from django.core.management import call_command
+        from django.test import override_settings
+
+        from catalog.models import Student
+        from recommend.models import Recommendation
+        from recommend.services import ensure_recommendations
+
+        out = io.StringIO()
+        with (
+            override_settings(
+                LLM_PROVIDER="claude", LLM_MODEL="claude-test", RECOMMEND_LLM=True, RECOMMEND_SEMANTIC=False
+            ),
+            patch("recommend.llm.call_openai_http", side_effect=AssertionError("không được gọi mạng")),
+            TemporaryDirectory() as d,
+        ):
+            call_command("cham_m5_claude", "xuat", f"{d}/de.json", stdout=out)
+            sv = json.loads(Path(f"{d}/de.json").read_text(encoding="utf-8"))["students"][0]
+            ids = [int(i) for i in re.findall(r"Đề tài #(\d+)", sv["prompt"])]
+            self.assertTrue(ids)
+            ok = {"feasibility": 30, "career": 20, "nature": 15, "motivation": 10, "total": 75, "reason": "Hợp hướng."}
+            wrong = {"feasibility": 40, "career": 0, "nature": 0, "motivation": 0, "total": 40, "reason": "sai thang"}
+            scores = [{"student_id": sv["student_id"], "topic_id": i, **ok} for i in ids]
+            scores.append({"student_id": sv["student_id"], "topic_id": ids[0], **wrong})  # sai rubric → bỏ
+            Path(f"{d}/diem.json").write_text(json.dumps({"scores": scores}), encoding="utf-8")
+            call_command("cham_m5_claude", "nap", f"{d}/diem.json", stdout=out, stderr=out)
+            st = Student.objects.get(pk=sv["student_id"])
+            self.assertEqual(Recommendation.objects.filter(student=st, m5_llm=75).count(), len(ids))
+            Recommendation.objects.all().delete()  # vd GV vừa nhập đề tài → mở trang tính lại, M5 lấy từ cache
+            ensure_recommendations(st)
+            self.assertEqual(Recommendation.objects.filter(student=st, m5_llm=75).count(), len(ids))

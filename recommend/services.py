@@ -111,4 +111,5 @@ def ensure_recommendations(student):
     Chỉ tính M1–M4 (chạy tại chỗ, không tốn phí); M5 (LLM) vẫn được chấm khi SV lưu hồ sơ hoặc nguyện vọng.
     """
     if not Recommendation.objects.filter(student=student).exists():
-        refresh_student(student, llm=False)
+        # M5 do Claude chấm sẵn (LLM_PROVIDER=claude) chỉ đọc cache → lấy luôn; nhà cung cấp gọi mạng thì đợi SV lưu
+        refresh_student(student, llm=settings.RECOMMEND_LLM and settings.LLM_PROVIDER == "claude")

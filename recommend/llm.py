@@ -301,7 +301,10 @@ def call_provider_with_retry(
 ) -> list[dict] | None:
     """Gọi LLM provider với cơ chế thử lại tối đa 1 lần nếu gặp lỗi mạng hoặc JSON.
     Sau 1 lần thử lại vẫn lỗi → ghi log và trả về None (để engine tự chia lại trọng số).
+    provider "claude": M5 do Claude chấm sẵn theo cùng rubric (lệnh cham_m5_claude) → web chỉ đọc cache, không gọi mạng.
     """
+    if provider == "claude":
+        return None
     for attempt in range(2):
         try:
             if provider == "fake":

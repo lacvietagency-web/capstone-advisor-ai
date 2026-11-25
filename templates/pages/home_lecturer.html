@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Tổng quan — Giảng viên — Capstone AI{% endblock %}
+{% block title %}Tổng quan — Giảng viên — Cố vấn Đồ án AI{% endblock %}
 
 {% block content %}
 <div class="pg-13">
@@ -105,7 +105,7 @@
                     <td class="at-student-name">
                       {{ r.pref.student.user.get_full_name|default:r.pref.student.user.username }}
                     </td>
-                    <td class="at-num at-student-code">
+                    <td class="at-num at-student-code text-nowrap">
                       {{ r.pref.student.student_code }}
                     </td>
                     <td class="at-num at-ai-score text-end">
@@ -199,11 +199,11 @@
             <div class="at-period-status-box">
               <div class="at-row at-row--middle at-mb-1">
                 {% include "components/icon.html" with name="circle-dot" class="at-success-ink" size=14 %}
-                <strong>Đang nhận đăng ký</strong>
+                <strong>{% if current_period %}{{ current_period.get_status_display }}{% else %}Chưa có đợt đăng ký{% endif %}</strong>
               </div>
-              <p class="at-secondary at-mb-0">
+              {% if current_period.status == "OPEN" %}<p class="at-secondary at-mb-0">
                 Sinh viên đang đăng ký đề tài. Giảng viên vui lòng xem xét và duyệt các đăng ký trong thời gian quy định.
-              </p>
+              </p>{% endif %}
             </div>
           </div>
 
@@ -225,8 +225,12 @@
               {% include "components/icon.html" with name="file-text" size=16 class="at-muted" %}
               <span class="at-period-status-label">Kết quả phân công</span>
             </div>
-            <div class="at-period-status-date"><strong>Kết quả đang chờ Khoa phân công</strong></div>
-            <p class="at-secondary at-mb-0">Sau khi kết thúc đợt đăng ký, Khoa sẽ thực hiện phân công đề tài.</p>
+            {% if current_period.status == "PUBLISHED" %}
+              <div class="at-period-status-date"><strong>Khoa đã công bố kết quả chính thức</strong></div>
+            {% else %}
+              <div class="at-period-status-date"><strong>Kết quả đang chờ Khoa phân công</strong></div>
+              <p class="at-secondary at-mb-0">Sau khi kết thúc đợt đăng ký, Khoa sẽ thực hiện phân công đề tài.</p>
+            {% endif %}
           </div>
         </div>
       </aside>

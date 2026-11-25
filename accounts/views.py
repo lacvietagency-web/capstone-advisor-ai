@@ -1,5 +1,8 @@
 """Trang chủ chia theo vai trò: sinh viên, giảng viên, Khoa thấy nội dung khác nhau."""
 
+from django import forms
+from django.contrib import messages
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.shortcuts import redirect, render
@@ -9,6 +12,8 @@ from catalog.models import Lecturer, Preference, RegistrationPeriod, Student, To
 from catalog.views import profile_completeness
 from recommend.models import Recommendation
 from recommend.services import ensure_recommendations
+
+from .models import User
 
 PENDING_ROWS = 10
 REVIEW_FILTERS = {
@@ -180,10 +185,18 @@ def home(request):
     ensure_recommendations(student)
     allocation_result = get_student_allocation_result(student)
     preferences = Preference.objects.filter(student=student).select_related("topic__lecturer__user").order_by("rank")
+    popup_sv = None
+    if vua_dang_nhap:  # popup báo GV đã duyệt / Khoa đã công bố, chỉ ngay sau khi đăng nhập
+        # ponytail: hiện mỗi lần đăng nhập khi còn tin; cần "đã xem" thì lưu mốc thời gian vào tài khoản
+        duyet = [p for p in preferences if p.submitted and p.status != Preference.Status.PENDING]
+        if duyet or allocation_result["is_published"]:
+            pub = allocation_result["is_published"]  # đã công bố thì chỉ báo kết quả, khỏi kể lại từng NV
+            popup_sv = {"duyet": [] if pub else duyet, "ket_qua": allocation_result if pub else None}
     return render(
         request,
         "pages/home_student.html",
         {
+            "popup_sv": popup_sv,
             "student": student,
             "preferences": preferences,
             "journey": student_journey(student, bool(preferences), allocation_result["period"]),
@@ -198,3 +211,32 @@ def home(request):
 
 def root(request):
     return redirect("home")
+
+
+class EmailForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["email"]
+        labels = {"email": "Email nhận thông báo"}
+
+
+class CaiDatView(auth_views.PasswordChangeView):
+    """Cài đặt tài khoản: email nhận thư thông báo + đổi mật khẩu (UC03). Form nào gửi thì xử lý form đó."""
+
+    template_name = "registration/password_change_form.html"
+
+    def get_context_data(self, **kwargs):
+        kwargs.setdefault("email_form", EmailForm(instance=self.request.user))
+        return super().get_context_data(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("action") != "email":
+            return super().post(request, *args, **kwargs)
+        f = EmailForm(request.POST, instance=request.user)
+        if f.is_valid():
+            f.save()
+            messages.success(
+                request, "Đã lưu email nhận thông báo." if f.instance.email else "Đã bỏ email nhận thông báo."
+            )
+            return redirect("password_change")
+        return self.render_to_response(self.get_context_data(email_form=f, form=self.form_class(request.user)))

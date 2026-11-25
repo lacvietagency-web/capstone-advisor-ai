@@ -1,5 +1,6 @@
+from django.core import mail
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from accounts.models import User
@@ -192,11 +193,11 @@ class PasswordChangeTests(TestCase):
         self.assertTrue(self.user.check_password("OldPassword123!"))
 
     def test_user_menu_contains_password_change_link(self):
-        """Người dùng đăng nhập thấy liên kết 'Đổi mật khẩu' (/doi-mat-khau/) trong thanh menu điều hướng."""
+        """Người dùng đăng nhập thấy liên kết 'Cài đặt' (/doi-mat-khau/: email nhận thư + đổi mật khẩu) trong menu."""
         self.client.login(username="testuser", password="OldPassword123!")
         resp = self.client.get("/trang-chu/")
         self.assertContains(resp, 'href="/doi-mat-khau/"')
-        self.assertContains(resp, "Đổi mật khẩu")
+        self.assertContains(resp, "Cài đặt")
 
     def test_lecturer_user_can_also_change_password(self):
         """Giảng viên cũng đổi được mật khẩu theo đúng quy trình xác thực và băm mật khẩu mới."""
@@ -416,5 +417,72 @@ class LoginPopupTests(TestCase):
         Preference.objects.filter(topic__lecturer=p.topic.lecturer).update(status=Preference.Status.ACCEPTED)
         self._login(p.topic.lecturer.user.username)
         self.assertNotContains(self.client.get("/trang-chu/"), 'id="loginPopup"')
-        self._login("sv001")  # sinh viên không có popup này
+        self._login("sv001")  # sinh viên không có popup "chờ duyệt" (popup SV là loại khác)
+        self.assertNotContains(self.client.get("/trang-chu/"), "đang chờ thầy/cô duyệt")
+
+
+@override_settings(NOTIFY_EMAIL_TO="demo@inbox.test")
+class NotifyAndSettingsTests(TestCase):
+    """Thư thông báo 3 bước (SV nộp → GV, GV duyệt → SV, Khoa công bố → SV), trang Cài đặt nhập email, popup SV."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", students=8, lecturers=3, topics=6, verbosity=0)
+
+    def test_sv_nop_bao_gv_mot_lan(self):
+        st = Student.objects.get(user__username="sv001")
+        Preference.objects.filter(student=st).delete()
+        self.client.login(username="sv001", password="123456")
+        topic = self.client.get("/nguyen-vong/").context["form"].fields["nv1"].queryset.first()
+        topic.lecturer.user.email = "gv@truong.test"
+        topic.lecturer.user.save()
+        self.client.post("/nguyen-vong/", {"nv1": topic.pk, "action": "submit"})
+        self.assertEqual([m.to for m in mail.outbox], [["gv@truong.test"]])  # GV có email riêng → gửi thẳng
+        self.assertIn(topic.title, mail.outbox[0].body)
+        self.client.post("/nguyen-vong/", {"nv1": topic.pk, "action": "submit"})  # nộp lại y nguyên: không báo nữa
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_gv_duyet_bao_sv_va_cong_bo_bao_sv(self):
+        from allocate.services import publish_allocations, run_allocation
+
+        pref = (
+            Preference.objects.filter(submitted=True).select_related("topic__lecturer__user", "student__user").first()
+        )
+        self.client.force_login(pref.topic.lecturer.user)
+        self.client.post(
+            f"/de-tai/{pref.topic.pk}/dang-ky/",
+            {"preference_id": pref.pk, "action": "reject", "reason": "Chưa đủ kỹ năng"},
+        )
+        m = mail.outbox[-1]
+        self.assertEqual(m.to, ["demo@inbox.test"])  # SV chưa nhập email → hộp demo, tiêu đề ghi người nhận
+        self.assertIn(pref.student.user.username, m.subject)
+        self.assertIn("Chưa đủ kỹ năng", m.body)
+        period = RegistrationPeriod.objects.get()
+        period.status = RegistrationPeriod.Status.CLOSED
+        period.save()
+        run_allocation(period)
+        mail.outbox.clear()
+        publish_allocations(period, user=None)
+        self.assertEqual(len(mail.outbox), period.allocations.count())
+        self.assertTrue(all("Kết quả phân công chính thức" in m.subject for m in mail.outbox))
+
+    def test_cai_dat_luu_email(self):
+        self.client.login(username="sv001", password="123456")
+        r = self.client.get("/doi-mat-khau/")
+        self.assertContains(r, "<h1>Cài đặt</h1>", html=True)
+        self.assertContains(r, "Email nhận thông báo")
+        r = self.client.post("/doi-mat-khau/", {"action": "email", "email": "sai-dinh-dang"})
+        self.assertContains(r, "is-invalid")
+        self.client.post("/doi-mat-khau/", {"action": "email", "email": "sv@truong.test"})
+        self.assertEqual(User.objects.get(username="sv001").email, "sv@truong.test")
+
+    def test_popup_sv_khi_gv_da_duyet(self):
+        pref = Preference.objects.filter(student__user__username="sv001", submitted=True).first()
+        self.client.post("/dang-nhap/", {"username": "sv001", "password": "123456"})
+        self.assertNotContains(self.client.get("/trang-chu/"), 'id="loginPopup"')  # chưa ai duyệt: không popup
+        Preference.objects.filter(pk=pref.pk).update(status=Preference.Status.ACCEPTED)
+        self.client.post("/dang-nhap/", {"username": "sv001", "password": "123456"})
+        r = self.client.get("/trang-chu/")
+        self.assertContains(r, 'id="loginPopup"')
+        self.assertContains(r, "giảng viên đã đồng ý")
         self.assertNotContains(self.client.get("/trang-chu/"), 'id="loginPopup"')

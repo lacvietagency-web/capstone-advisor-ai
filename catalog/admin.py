@@ -32,8 +32,8 @@ from .models import (
     TopicSkill,
 )
 
-admin.site.site_header = "Capstone Advisor AI — Quản trị Khoa"
-admin.site.site_title = "Capstone Advisor AI"
+admin.site.site_header = "Cố vấn Đồ án AI — Quản trị Khoa"
+admin.site.site_title = "Cố vấn Đồ án AI"
 
 
 def download_sample_excel_response() -> HttpResponse:

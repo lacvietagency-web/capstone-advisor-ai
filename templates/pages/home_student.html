@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Trang chủ Sinh viên — Capstone AI{% endblock %}
+{% block title %}Trang chủ Sinh viên — Cố vấn Đồ án AI{% endblock %}
 
 {% block content %}
 <div class="pg-07">
@@ -314,4 +314,34 @@
   {% endif %}
 </div>
 </div>
+{% if popup_sv %}
+<div class="modal fade" id="loginPopup" tabindex="-1" aria-labelledby="loginPopupTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h4" id="loginPopupTitle">{% if popup_sv.ket_qua %}Đã có kết quả phân công chính thức{% else %}Giảng viên đã phản hồi nguyện vọng{% endif %}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-unstyled at-mb-0" style="display:grid;gap:12px">
+          {% if popup_sv.ket_qua %}<li>{% if popup_sv.ket_qua.topic %}Đề tài: <strong>{{ popup_sv.ket_qua.topic.title }}</strong><br><span class="at-secondary">GVHD {{ popup_sv.ket_qua.lecturer }}</span>{% else %}Bạn chưa được xếp đề tài. Hãy liên hệ Khoa.{% endif %}</li>{% endif %}
+          {% for p in popup_sv.duyet %}
+          <li>NV{{ p.rank }} <strong>{{ p.topic.title }}</strong>: {% if p.status == "ACCEPTED" %}<span class="at-success-ink">giảng viên đã đồng ý</span>{% else %}<span class="at-danger-ink">giảng viên đã từ chối</span>{% if p.reject_reason %}<br><span class="at-secondary">Lý do: {{ p.reject_reason }}</span>{% endif %}{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        <a class="btn btn-primary" href="{% if popup_sv.ket_qua %}{% url 'student_allocation_result' %}{% else %}{% url 'student_preferences' %}{% endif %}">{% if popup_sv.ket_qua %}Xem kết quả{% else %}Xem nguyện vọng{% endif %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var el = document.getElementById("loginPopup");
+    if (el && window.bootstrap) bootstrap.Modal.getOrCreateInstance(el).show();
+  });
+</script>
+{% endif %}
 {% endblock %}

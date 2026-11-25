@@ -10,6 +10,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from accounts.notify import notify
 from recommend.models import Recommendation
 from recommend.services import ensure_recommendations, refresh_student, score_preferences
 
@@ -150,6 +151,7 @@ def _save_preferences(request, student, period, form, submit):
     with transaction.atomic():
         old = Preference.objects.filter(student=student, period=period)
         kept = {p.topic_id: (p.status, p.reject_reason, p.lecturer_note) for p in old}
+        was_submitted = {p.topic_id for p in old if p.submitted}  # nộp lại cùng đề tài thì không báo GV lần nữa
         old.delete()
         for rank in (1, 2, 3):
             topic = form.cleaned_data.get(f"nv{rank}")
@@ -173,7 +175,23 @@ def _save_preferences(request, student, period, form, submit):
             entity_id=student.pk,
             detail={f"nv{r}": getattr(form.cleaned_data.get(f"nv{r}"), "pk", None) for r in (1, 2, 3)},
         )
+    if submit:
+        _notify_new_preferences(student, period, was_submitted)
     score_preferences(student)
+
+
+def _notify_new_preferences(student, period, skip_topics):
+    """Thư báo GV: có SV vừa chọn đề tài của mình (chỉ đơn mới, đang chờ duyệt)."""
+    news = Preference.objects.filter(student=student, period=period, status=Preference.Status.PENDING).exclude(
+        topic_id__in=skip_topics
+    )
+    for p in news.select_related("topic__lecturer__user"):
+        notify(
+            p.topic.lecturer.user,
+            f"SV {student.user.get_full_name()} chọn đề tài của thầy/cô (NV{p.rank})",
+            f'Sinh viên {student} vừa nộp nguyện vọng {p.rank}: "{p.topic.title}".\n'
+            "Thầy/cô vào mục Đề tài → Đăng ký để xem hồ sơ và Đồng ý / Từ chối.",
+        )
 
 
 @login_required
@@ -409,6 +427,14 @@ def _handle_preference_action(request, topic):
         )
 
     label = "đồng ý" if new_status == Preference.Status.ACCEPTED else "từ chối"
+    extra = f"Lý do: {pref.reject_reason}\n" if pref.reject_reason else ""
+    extra += f"Nhận xét của giảng viên: {pref.lecturer_note}\n" if pref.lecturer_note else ""
+    notify(
+        pref.student.user,
+        f"Giảng viên đã {label} NV{pref.rank} của bạn",
+        f'Giảng viên {topic.lecturer} đã {label} nguyện vọng {pref.rank}: "{topic.title}".\n{extra}'
+        "Xem chi tiết ở mục Nguyện vọng.",
+    )
     reason_txt = f" Lý do: {pref.reject_reason}" if pref.reject_reason else ""  # list mặc định chỉ hiện Chờ duyệt
     messages.success(request, f"Đã {label} nguyện vọng của sinh viên {pref.student}.{reason_txt}")
     return redirect("lecturer_registrations", pk=topic.pk)

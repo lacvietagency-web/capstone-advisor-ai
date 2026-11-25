@@ -7,7 +7,7 @@
   <section class="tl-panel" id="tlPanel" role="dialog" aria-labelledby="tlTitle" hidden>
     <header class="tl-head">
       <span class="tl-avatar">{% include "assistant/_bot.html" with size=34 %}</span>
-      <div class="tl-head-text"><strong id="tlTitle">Trợ lý Capstone AI</strong><small>Phạm vi: {% if user.is_student %}Sinh viên · dữ liệu của bạn + thông tin công khai{% elif user.is_lecturer %}Giảng viên · đề tài của thầy/cô + thông tin công khai{% else %}Khoa · số liệu toàn Khoa{% endif %}</small></div>
+      <div class="tl-head-text"><strong id="tlTitle">Trợ lý Cố vấn Đồ án</strong><small>Phạm vi: {% if user.is_student %}Sinh viên · dữ liệu của bạn + thông tin công khai{% elif user.is_lecturer %}Giảng viên · đề tài của thầy/cô + thông tin công khai{% else %}Khoa · số liệu toàn Khoa{% endif %}</small></div>
       <button type="button" class="tl-icon" id="tlNew" aria-label="Bắt đầu cuộc trò chuyện mới" title="Cuộc trò chuyện mới">{% include "components/icon.html" with name="refresh-cw" size=16 %}</button>
       <button type="button" class="tl-icon" id="tlClose" aria-label="Đóng trợ lý">{% include "components/icon.html" with name="x" size=18 %}</button>
     </header>

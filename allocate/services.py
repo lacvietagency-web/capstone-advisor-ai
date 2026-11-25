@@ -13,6 +13,7 @@ import time
 
 from django.db import transaction
 
+from accounts.notify import notify
 from catalog.models import AuditLog, Lecturer, Preference, RegistrationPeriod, Student, Topic
 from recommend.engine import DEFAULT_WEIGHTS, Profile, eligible, score_student
 from recommend.models import Recommendation
@@ -314,6 +315,13 @@ def publish_allocations(period: RegistrationPeriod, user=None) -> int:
             entity_id=str(period.pk),
             detail={"status": RegistrationPeriod.Status.PUBLISHED, "total_allocations": updated_count},
         )
+    for a in Allocation.objects.filter(period=period).select_related("student__user", "topic__lecturer"):
+        if a.topic:
+            nv = f" (đạt NV{a.preference_rank})" if a.preference_rank else ""
+            body = f'Đề tài: "{a.topic.title}"{nv}\nGiảng viên hướng dẫn: {a.topic.lecturer}'
+        else:
+            body = "Bạn chưa được xếp đề tài trong đợt này. Hãy liên hệ Khoa để được hỗ trợ."
+        notify(a.student.user, f"Kết quả phân công chính thức – {period.name}", body + "\nXem ở mục Kết quả phân công.")
     return updated_count
 
 

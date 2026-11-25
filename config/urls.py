@@ -4,7 +4,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.views.generic import TemplateView
 
-from accounts.views import home, root
+from accounts.views import CaiDatView, home, root
 from allocate import views as av
 from assistant import views as asv
 from catalog import views as cv
@@ -19,9 +19,7 @@ urlpatterns = [
     path("dang-xuat/", auth_views.LogoutView.as_view(), name="logout"),
     path(
         "doi-mat-khau/",
-        auth_views.PasswordChangeView.as_view(
-            template_name="registration/password_change_form.html",
-        ),
+        CaiDatView.as_view(),  # trang Cài đặt: email nhận thông báo + đổi mật khẩu
         name="password_change",
     ),
     path(

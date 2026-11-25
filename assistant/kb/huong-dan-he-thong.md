@@ -1,10 +1,10 @@
-# Hướng dẫn và quy trình của hệ thống Capstone AI
+# Hướng dẫn và quy trình của hệ thống Cố vấn Đồ án AI
 
 Mỗi mục "##" là một đoạn tri thức của trợ lý ảo; {tên_url ...} cuối tiêu đề = trang mở khi bấm nguồn (trang đầu tiên người hỏi vào được). Nội dung lấy đúng theo luật đang chạy trong mã nguồn;
 sửa luật trong code thì sửa cả mục tương ứng ở đây.
 
-## Capstone AI là gì, ai dùng {home}
-Capstone AI là hệ thống hỗ trợ tư vấn và phân công đề tài đồ án tốt nghiệp. Có 3 vai trò: Sinh viên (khai hồ sơ năng lực, xem gợi ý đề tài, nộp nguyện vọng, xem kết quả), Giảng viên (đăng đề tài, duyệt sinh viên đăng ký), Khoa (nhập dữ liệu, rà soát đề tài trùng, chạy phân công tối ưu, công bố kết quả, xem thống kê). Mỗi người đăng nhập bằng tài khoản Khoa cấp.
+## Cố vấn Đồ án AI là gì, ai dùng {home}
+Cố vấn Đồ án AI (tên cũ Capstone Advisor AI, Capstone AI) là hệ thống hỗ trợ tư vấn và phân công đề tài đồ án tốt nghiệp. Có 3 vai trò: Sinh viên (khai hồ sơ năng lực, xem gợi ý đề tài, nộp nguyện vọng, xem kết quả), Giảng viên (đăng đề tài, duyệt sinh viên đăng ký), Khoa (nhập dữ liệu, rà soát đề tài trùng, chạy phân công tối ưu, công bố kết quả, xem thống kê). Mỗi người đăng nhập bằng tài khoản Khoa cấp.
 
 ## Các bước đăng ký đề tài của sinh viên {home}
 Sinh viên đi 4 bước, hiển thị ở "Hành trình" trên Trang chủ: (1) Hồ sơ năng lực: khai kỹ năng, lĩnh vực quan tâm, giới thiệu bản thân; (2) Gợi ý AI: hệ thống tính Top 5 đề tài phù hợp; (3) Nguyện vọng: chọn tối đa 3 đề tài (NV1, NV2, NV3) và nộp chính thức trong hạn của đợt; (4) Kết quả phân công: sau khi Khoa công bố, xem đề tài chính thức và giảng viên hướng dẫn ở mục "Kết quả".
@@ -43,7 +43,7 @@ Khi giảng viên soạn hoặc sửa đề tài, hệ thống đo độ giống
 Khoa: nhập danh sách sinh viên, giảng viên, đề tài, điểm bằng Excel theo 2 bước (kiểm tra lỗi trước, xác nhận mới ghi; có lỗi thì không ghi dòng nào); rà soát đề tài trùng toàn khoa; chạy phân công tối ưu và xếp tay sinh viên chưa được xếp; công bố kết quả; xem thống kê đăng ký, tải giảng viên, so sánh thuật toán.
 
 ## Tài khoản và mật khẩu {password_change}
-Đổi mật khẩu ở menu tài khoản (góc trên bên phải) → "Đổi mật khẩu". Hệ thống chưa có chức năng tự lấy lại mật khẩu; quên mật khẩu thì liên hệ Khoa để được cấp lại.
+Đổi mật khẩu và nhập email nhận thư thông báo ở menu tài khoản (góc trên bên phải) → "Cài đặt". Hệ thống chưa có chức năng tự lấy lại mật khẩu; quên mật khẩu thì liên hệ Khoa để được cấp lại.
 
 ## Quy chế chính thức của trường
 Hệ thống chưa nạp văn bản quy chế đào tạo và quy định đồ án tốt nghiệp chính thức của trường. Các câu hỏi về thang điểm, hội đồng bảo vệ, định dạng quyển báo cáo, thời lượng, học phí, điều kiện được làm đồ án theo quy chế thì trợ lý chưa có căn cứ để trả lời: hãy liên hệ giáo vụ Khoa hoặc giảng viên hướng dẫn. Khi Khoa cung cấp văn bản, trợ lý sẽ trả lời kèm trích dẫn điều, khoản.

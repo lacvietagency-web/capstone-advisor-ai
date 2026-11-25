@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Đăng nhập — Capstone AI{% endblock %}
+{% block title %}Đăng nhập — Cố vấn Đồ án AI{% endblock %}
 {% block body %}
 <div class="pg-01">
   <main class="pg-01-main at-auth" id="main">
@@ -12,14 +12,14 @@
           {% include "components/logo.html" %}
         </div>
         <div class="pg-01-brand-meta">
-          <span class="pg-01-brand-name">Capstone AI</span>
-          <span class="pg-01-brand-sub">Academic Decision Workspace</span>
+          <span class="pg-01-brand-name">Cố vấn Đồ án AI</span>
+          <span class="pg-01-brand-sub">Tư vấn và phân công đề tài</span>
         </div>
       </div>
 
       <!-- Khối giới thiệu ở khoảng 31–35% chiều cao viewport (top: 280px, left: 48px, width: 490px) -->
       <div class="pg-01-intro">
-        <h1 class="pg-01-hero-title">Capstone AI</h1>
+        <h1 class="pg-01-hero-title">Cố vấn Đồ án AI</h1>
         <p class="pg-01-hero-desc">Hệ thống tư vấn và phân công đề tài tốt nghiệp bằng AI.</p>
 
         <ul class="pg-01-features" aria-label="Tính năng chính của hệ thống">
@@ -68,15 +68,15 @@
             {% include "components/logo.html" %}
           </div>
           <div class="pg-01-mobile-meta">
-            <span class="pg-01-mobile-name">Capstone AI</span>
-            <span class="pg-01-mobile-sub">Academic Decision Workspace</span>
+            <span class="pg-01-mobile-name">Cố vấn Đồ án AI</span>
+            <span class="pg-01-mobile-sub">Tư vấn và phân công đề tài</span>
           </div>
         </div>
 
         <!-- Panel 1: Đăng nhập -->
         <div class="pg-01-card pg-01-card--login">
           <h2 class="pg-01-card-title">Đăng nhập</h2>
-          <p class="pg-01-card-desc">Truy cập hệ thống Capstone AI</p>
+          <p class="pg-01-card-desc">Truy cập hệ thống Cố vấn Đồ án AI</p>
 
           <form method="post" action="{% url 'login' %}" data-at-busy novalidate>
             {% csrf_token %}

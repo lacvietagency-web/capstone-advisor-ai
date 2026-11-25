@@ -1,4 +1,4 @@
-"""Trợ lý ảo Capstone AI (chatbot RAG) — bản đầu của GĐ2 phương án NCKH, 17/11/2026.
+"""Trợ lý ảo Cố vấn Đồ án AI (chatbot RAG) — bản đầu của GĐ2 phương án NCKH, 17/11/2026.
 
 Một câu hỏi đi qua 4 bước:
 1. Truy hồi bằng Sentence-BERT (cùng mô hình của M4) trên 4 nguồn: hướng dẫn quy trình (kb/*.md), đề tài đang mở,
@@ -42,7 +42,7 @@ SCOPE = {  # phân quyền trợ lý = đúng phần giao diện của vai đó 
     "viên qua trợ lý (xem ở các trang quản lý).",
 }
 
-SYSTEM = """Bạn là "Trợ lý Capstone AI" của hệ thống tư vấn và phân công đề tài đồ án tốt nghiệp. Người hỏi là {role}.
+SYSTEM = """Bạn là "Trợ lý Cố vấn Đồ án" của hệ thống tư vấn và phân công đề tài đồ án tốt nghiệp. Người hỏi là {role}.
 PHẠM VI CỦA VAI NÀY: {scope}
 Phân biệt đúng 3 trường hợp, mỗi trường hợp một câu trả lời:
   (1) KHÔNG THUỘC QUYỀN — CHỈ dùng khi người hỏi đòi đúng thứ nằm trong mục "Không có" của phạm vi trên (dữ liệu người

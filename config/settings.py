@@ -202,3 +202,19 @@ CHAT_TIMEOUT = int(os.getenv("CHAT_TIMEOUT", "25"))
 # Bootstrap/Chart.js: lấy từ CDN trước (đỡ tải qua đường hầm/LAN chậm), CDN lỗi thì dùng bản static/vendor.
 # ASSETS_FROM_CDN=0: chỉ dùng bản trong dự án (máy kiểm giao diện, máy không có Internet).
 ASSETS_FROM_CDN = os.getenv("ASSETS_FROM_CDN", "1") == "1"
+
+# Thư thông báo (accounts/notify.py). Có mật khẩu ứng dụng Gmail thì gửi thật qua SMTP, không có thì in ra log.
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST_PASSWORD
+    else "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = True
+EMAIL_TIMEOUT = 20
+DEFAULT_FROM_EMAIL = f"Cố vấn Đồ án AI <{EMAIL_HOST_USER or 'no-reply@localhost'}>"
+NOTIFY_EMAIL_TO = os.getenv("NOTIFY_EMAIL_TO", "")  # demo: người chưa nhập email thì thư về hộp này
+SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000")

@@ -425,12 +425,12 @@
             <div class="pg-11-version-footer">
               <span class="pg-11-ver-item">
                 {% include "components/icon.html" with name="settings-2" size=13 %}
-                <span>Weights version: <strong>{{ recommendation.weights_version|default:"AHP-2026.1" }}</strong></span>
+                <span>Phiên bản trọng số: <strong>{{ recommendation.weights_version|default:"AHP-2026.1" }}</strong></span>
               </span>
               <span class="pg-11-ver-sep">·</span>
               <span class="pg-11-ver-item">
                 {% include "components/icon.html" with name="database" size=13 %}
-                <span>Model version: <strong>{{ recommendation.model_version|default:"REC-2.4" }}</strong></span>
+                <span>Phiên bản mô hình: <strong>{{ recommendation.model_version|default:"REC-2.4" }}</strong></span>
               </span>
             </div>
           {% endif %}

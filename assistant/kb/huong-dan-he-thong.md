@@ -1,10 +1,10 @@
-# Hướng dẫn và quy trình của hệ thống Cố vấn Đồ án AI
+# Hướng dẫn và quy trình của hệ thống Đồ Án LV
 
 Mỗi mục "##" là một đoạn tri thức của trợ lý ảo; {tên_url ...} cuối tiêu đề = trang mở khi bấm nguồn (trang đầu tiên người hỏi vào được). Nội dung lấy đúng theo luật đang chạy trong mã nguồn;
 sửa luật trong code thì sửa cả mục tương ứng ở đây.
 
-## Cố vấn Đồ án AI là gì, ai dùng {home}
-Cố vấn Đồ án AI (tên cũ Capstone Advisor AI, Capstone AI) là hệ thống hỗ trợ tư vấn và phân công đề tài đồ án tốt nghiệp. Có 3 vai trò: Sinh viên (khai hồ sơ năng lực, xem gợi ý đề tài, nộp nguyện vọng, xem kết quả), Giảng viên (đăng đề tài, duyệt sinh viên đăng ký), Khoa (nhập dữ liệu, rà soát đề tài trùng, chạy phân công tối ưu, công bố kết quả, xem thống kê). Mỗi người đăng nhập bằng tài khoản Khoa cấp.
+## Đồ Án LV là gì, ai dùng {home}
+Đồ Án LV (tên cũ Capstone Advisor AI, Capstone AI) là hệ thống hỗ trợ tư vấn và phân công đề tài đồ án tốt nghiệp. Có 3 vai trò: Sinh viên (khai hồ sơ năng lực, xem gợi ý đề tài, nộp nguyện vọng, xem kết quả), Giảng viên (đăng đề tài, duyệt sinh viên đăng ký), Khoa (nhập dữ liệu, rà soát đề tài trùng, chạy phân công tối ưu, công bố kết quả, xem thống kê). Mỗi người đăng nhập bằng tài khoản Khoa cấp.
 
 ## Các bước đăng ký đề tài của sinh viên {home}
 Sinh viên đi 4 bước, hiển thị ở "Hành trình" trên Trang chủ: (1) Hồ sơ năng lực: khai kỹ năng, lĩnh vực quan tâm, giới thiệu bản thân; (2) Gợi ý AI: hệ thống tính Top 5 đề tài phù hợp; (3) Nguyện vọng: chọn tối đa 3 đề tài (NV1, NV2, NV3) và nộp chính thức trong hạn của đợt; (4) Kết quả phân công: sau khi Khoa công bố, xem đề tài chính thức và giảng viên hướng dẫn ở mục "Kết quả".

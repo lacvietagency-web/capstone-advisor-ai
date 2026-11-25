@@ -19,8 +19,8 @@ def notify(user, subject, body):
         return
     if not own:
         subject = f"[gửi {user.get_full_name() or user.username} · {user.username}] {subject}"
-    body = f"{body}\n\nXem trên hệ thống: {settings.SITE_URL}\n— Cố vấn Đồ án AI (thư tự động, không cần trả lời)"
-    args = ("Cố vấn Đồ án AI: " + subject, body, None, [to])
+    body = f"{body}\n\nXem trên hệ thống: {settings.SITE_URL}\n— Đồ Án LV (thư tự động, không cần trả lời)"
+    args = ("Đồ Án LV: " + subject, body, None, [to])
     if settings.EMAIL_BACKEND.endswith("locmem.EmailBackend"):  # test: gửi ngay để kiểm mail.outbox
         send_mail(*args)
     else:  # ponytail: luồng nền mỗi thư, đủ cho vài chục thư/đợt; nhiều hơn thì dùng hàng đợi (Celery/cron)

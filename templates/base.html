@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>{% block title %}Cố vấn Đồ án AI — Tư vấn và phân công đề tài tốt nghiệp{% endblock %}</title>
+  <title>{% block title %}Đồ Án LV — Tư vấn và phân công đề tài tốt nghiệp{% endblock %}</title>
   <script>
     /* Đặt chế độ sáng/tối trước khi vẽ trang để không nháy. Lựa chọn: light | dark | system (theo thiết bị). */
     (function () {
@@ -31,14 +31,14 @@
 
   {% if user.is_authenticated %}
     <aside class="at-sidebar" aria-label="Điều hướng chính">
-      <a class="at-brand" href="{% url 'home' %}" aria-label="Cố vấn Đồ án AI — về trang chủ">{% include "components/logo.html" %}<span>Cố vấn Đồ án AI</span></a>
+      <a class="at-brand" href="{% url 'home' %}" aria-label="Đồ Án LV — về trang chủ">{% include "components/logo.html" %}<span>Đồ Án LV</span></a>
       <nav>{% include "components/nav_links.html" with link_class="at-side-link" %}</nav>
       <div class="at-side-foot">{{ user.get_role_display }} · {{ user.get_full_name|default:user.username }}</div>
     </aside>
 
     <div class="offcanvas offcanvas-start" tabindex="-1" id="atNavDrawer" aria-labelledby="atNavDrawerTitle">
       <div class="offcanvas-header">
-        <h2 class="offcanvas-title" id="atNavDrawerTitle">Cố vấn Đồ án AI</h2>
+        <h2 class="offcanvas-title" id="atNavDrawerTitle">Đồ Án LV</h2>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
       </div>
       <div class="offcanvas-body">
@@ -54,15 +54,15 @@
           {% include "components/icon.html" with name="layout-dashboard" %}
         </button>
       {% endif %}
-      <a class="at-brand" href="{% url 'home' %}" aria-label="Cố vấn Đồ án AI — về trang chủ">
-        {% include "components/logo.html" %}<span>Cố vấn Đồ án AI</span>
+      <a class="at-brand" href="{% url 'home' %}" aria-label="Đồ Án LV — về trang chủ">
+        {% include "components/logo.html" %}<span>Đồ Án LV</span>
       </a>
       <div class="at-topbar-context">
         {% if current_period %}
           <strong>{{ current_period.name }}</strong>
           <span>{{ current_period.get_status_display }} · {{ current_period.start_at|date:"d/m/Y" }} – {{ current_period.end_at|date:"d/m/Y" }}</span>
         {% else %}
-          <strong>Cố vấn Đồ án AI</strong>
+          <strong>Đồ Án LV</strong>
           <span>Tư vấn và phân công đề tài tốt nghiệp</span>
         {% endif %}
       </div>
@@ -107,7 +107,7 @@
       {% block content %}{% endblock %}
     </main>
     <footer class="at-footer">
-      <span>Cố vấn Đồ án AI · Hệ thống hỗ trợ tư vấn và phân công đề tài tốt nghiệp</span>
+      <span>Đồ Án LV · Hệ thống hỗ trợ tư vấn và phân công đề tài tốt nghiệp</span>
       <span>Điểm phù hợp tính theo trọng số AHP “{{ ahp.version }}”</span>
     </footer>
   </div>

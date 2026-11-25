@@ -215,6 +215,6 @@ EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = True
 EMAIL_TIMEOUT = 20
-DEFAULT_FROM_EMAIL = f"Cố vấn Đồ án AI <{EMAIL_HOST_USER or 'no-reply@localhost'}>"
+DEFAULT_FROM_EMAIL = f"Đồ Án LV <{EMAIL_HOST_USER or 'no-reply@localhost'}>"
 NOTIFY_EMAIL_TO = os.getenv("NOTIFY_EMAIL_TO", "")  # demo: người chưa nhập email thì thư về hộp này
 SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000")

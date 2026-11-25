@@ -959,3 +959,46 @@ class FutureWorkPunctuationTests(TestCase):
         first = _heuristic_points(topic, past)[0]
         self.assertNotIn(".;", first)
         self.assertIn("Bổ sung dữ liệu; Thêm hội thoại âm thanh; Làm đẹp giao diện.", first)
+
+
+class LecturerTopicImportTests(TestCase):
+    """GV tự tải tệp đề tài (1 sheet, không cột mã GV) → đề tài của chính GV, Đang mở; SV và Khoa thấy ngay."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", students=3, lecturers=2, topics=2, verbosity=0)
+        cls.gv = Lecturer.objects.select_related("user").first()
+        cls.other = Lecturer.objects.exclude(pk=cls.gv.pk).first()
+
+    def _file(self):
+        rows = [
+            ["Tên đề tài", "Mã giảng viên", "Mô tả", "Lĩnh vực", "Kỹ năng", "Số lượng"],
+            ["Chatbot tư vấn tuyển sinh bằng RAG", self.other.user.username, "Trợ lý hỏi đáp", "Web", "Python; RAG", 2],
+        ]
+        return SimpleUploadedFile("de-tai.xlsx", create_in_memory_workbook({"Trang1": rows}).getvalue())
+
+    def test_gv_nhap_sv_khoa_thay_va_goi_y_tinh_lai(self):
+        sv = Student.objects.select_related("user").first()
+        self.client.force_login(sv.user)
+        self.client.get("/trang-chu/")  # SV đã có gợi ý từ trước khi GV đăng đề tài
+        self.assertTrue(Recommendation.objects.filter(student=sv).exists())
+        self.client.force_login(self.gv.user)
+        r = self.client.post("/de-tai/nhap-excel/", {"file": self._file(), "action": "check"})
+        self.assertContains(r, "Nhập đề tài từ Excel")
+        self.assertFalse(Topic.objects.filter(title__startswith="Chatbot tư vấn tuyển sinh").exists())  # mới kiểm tra
+        self.client.post("/de-tai/nhap-excel/", {"action": "confirm"})
+        t = Topic.objects.get(title="Chatbot tư vấn tuyển sinh bằng RAG")
+        self.assertEqual(t.lecturer, self.gv)  # cột mã GV khác bị bỏ qua: GV chỉ nhập được đề tài của mình
+        self.assertEqual(t.status, Topic.Status.OPEN)
+        self.assertEqual(sorted(t.skills.values_list("skill__name", flat=True)), ["Python", "RAG"])
+        self.assertFalse(Recommendation.objects.exists())  # gợi ý cũ bị xoá → tính lại khi SV mở trang
+        for user in (sv.user, User.objects.filter(role=User.Role.ADMIN).first()):
+            self.client.force_login(user)
+            self.assertContains(self.client.get("/danh-sach-de-tai/"), "Chatbot tư vấn tuyển sinh bằng RAG")
+
+    def test_sv_khong_vao_duoc_trang_nhap_cua_gv(self):
+        self.client.force_login(Student.objects.first().user)
+        self.assertEqual(self.client.get("/de-tai/nhap-excel/").status_code, 403)
+        self.client.force_login(self.gv.user)
+        r = self.client.get("/de-tai/nhap-excel/mau.xlsx")
+        self.assertEqual(openpyxl.load_workbook(BytesIO(r.content)).sheetnames, ["DeTai"])

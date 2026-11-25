@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Nhập dữ liệu từ Excel — Đồ Án LV{% endblock %}
+{% block title %}{% if gv %}Nhập đề tài từ Excel{% else %}Nhập dữ liệu từ Excel{% endif %} — Đồ Án LV{% endblock %}
 
 {% block canvas_class %}at-canvas--read{% endblock %}
 
@@ -8,14 +8,19 @@
 <header class="at-page-header">
   <div>
     <nav class="at-breadcrumb" aria-label="Vị trí">
-      <a href="{% url 'home' %}">Khoa</a>
+      {% if gv %}<a href="{% url 'lecturer_topics' %}">Đề tài của tôi</a>{% else %}<a href="{% url 'home' %}">Khoa</a>{% endif %}
       <span>Nhập Excel</span>
     </nav>
+    {% if gv %}
+    <h1>Nhập đề tài từ Excel</h1>
+    <p class="at-page-desc">Đăng nhiều đề tài cùng lúc. Đề tài nhập xong ở trạng thái Đang mở, sinh viên và Khoa thấy ngay.</p>
+    {% else %}
     <h1>Nhập dữ liệu từ Excel</h1>
     <p class="at-page-desc">Nhận dữ liệu sinh viên, giảng viên, đề tài từ tệp Excel để phục vụ quản lý đợt đăng ký.</p>
+    {% endif %}
   </div>
   <div class="at-page-actions">
-    <a href="{% url 'faculty_import_sample' %}" class="btn btn-secondary">
+    <a href="{% if gv %}{% url 'lecturer_import_sample' %}{% else %}{% url 'faculty_import_sample' %}{% endif %}" class="btn btn-secondary">
       {% include "components/icon.html" with name="file-spreadsheet" %}Tải tệp mẫu (.xlsx)
     </a>
   </div>
@@ -35,7 +40,8 @@
       <div class="at-inset">
         <dl class="at-kv">
           <dt>Bước 1</dt>
-          <dd>Tải tệp mẫu Excel chuẩn (.xlsx) gồm 4 sheet: <strong>SinhVien</strong>, <strong>GiangVien</strong>, <strong>DeTai</strong>, <strong>KyNang</strong>.</dd>
+          {% if gv %}<dd>Tải tệp mẫu (.xlsx) 1 sheet <strong>DeTai</strong>: tên đề tài, mô tả, lĩnh vực, kỹ năng, độ khó, GPA tối thiểu, số lượng.</dd>
+          {% else %}<dd>Tải tệp mẫu Excel chuẩn (.xlsx) gồm 4 sheet: <strong>SinhVien</strong>, <strong>GiangVien</strong>, <strong>DeTai</strong>, <strong>KyNang</strong>.</dd>{% endif %}
           <dt>Bước 2</dt>
           <dd>Điền đầy đủ thông tin theo đúng định dạng và thứ tự cột trong tệp mẫu.</dd>
           <dt>Bước 3</dt>
@@ -53,12 +59,12 @@
       <div class="at-panel-header">
         <div>
           <h2>Tải mẫu</h2>
-          <p>Tải tệp mẫu chuẩn của Khoa.</p>
+          <p>{% if gv %}Tệp mẫu đề tài của giảng viên.{% else %}Tải tệp mẫu chuẩn của Khoa.{% endif %}</p>
         </div>
       </div>
-      <p class="at-secondary">Tệp mẫu gồm 4 sheet (SinhVien, GiangVien, DeTai, KyNang) đã được định dạng sẵn cấu trúc và dữ liệu mẫu.</p>
+      <p class="at-secondary">{% if gv %}1 sheet DeTai, có sẵn 1 dòng ví dụ. Không cần cột mã giảng viên.{% else %}Tệp mẫu gồm 4 sheet (SinhVien, GiangVien, DeTai, KyNang) đã được định dạng sẵn cấu trúc và dữ liệu mẫu.{% endif %}</p>
       <div class="at-mt-4">
-        <a href="{% url 'faculty_import_sample' %}" class="btn btn-secondary at-w-100">
+        <a href="{% if gv %}{% url 'lecturer_import_sample' %}{% else %}{% url 'faculty_import_sample' %}{% endif %}" class="btn btn-secondary at-w-100">
           {% include "components/icon.html" with name="file-spreadsheet" %}Tải tệp mẫu (.xlsx)
         </a>
       </div>
@@ -170,7 +176,7 @@
             <input type="hidden" name="action" value="confirm">
             <p class="at-secondary at-mb-0">Dữ liệu hợp lệ sẽ được ghi vào cơ sở dữ liệu hệ thống. Vui lòng kiểm tra kỹ trước khi xác nhận.</p>
             <div class="at-row">
-              <a href="{% url 'faculty_import' %}" class="btn btn-secondary">Huỷ</a>
+              <a href="{% if gv %}{% url 'lecturer_topic_import' %}{% else %}{% url 'faculty_import' %}{% endif %}" class="btn btn-secondary">Huỷ</a>
               <button type="submit" class="btn btn-primary">
                 {% include "components/icon.html" with name="check" %}Xác nhận nhập
               </button>

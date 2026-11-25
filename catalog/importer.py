@@ -18,7 +18,7 @@ from django.db import transaction
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 from accounts.models import User
-from catalog.models import Field, Lecturer, Major, Skill, Student, Topic
+from catalog.models import Field, Lecturer, Major, Skill, Student, Topic, TopicSkill
 
 SHEET_ALIASES = {
     "SinhVien": {"sinhvien", "sinh vien", "sinh_vien", "sinh viên", "students", "student"},
@@ -54,6 +54,7 @@ COL_ALIASES = {
         "difficulty": {"do_kho", "độ khó", "difficulty"},
         "min_gpa": {"gpa_toi_thieu", "gpa tối thiểu", "min_gpa", "diem_toi_thieu", "điểm tối thiểu"},
         "capacity": {"so_luong", "số lượng", "suc_chua", "sức chứa", "capacity", "so_sv", "số sinh viên tối đa"},
+        "skills": {"ky_nang", "kỹ năng", "kỹ năng yêu cầu", "ky_nang_yeu_cau", "skills", "cong_nghe", "công nghệ"},
     },
     "KyNang": {
         "name": {"ten_ky_nang", "tên kỹ năng", "ky_nang", "kỹ năng", "name", "skill", "ten", "tên"},
@@ -252,16 +253,18 @@ def _parse_giang_vien_sheet(ws, errors: list[str]) -> list[dict]:
     return items
 
 
-def _parse_de_tai_sheet(ws, available_lecturer_codes: set[str], errors: list[str]) -> list[dict]:
-    """Phân tích và kiểm tra tính hợp lệ của sheet Đề tài."""
+def _parse_de_tai_sheet(ws, available_lecturer_codes: set[str], errors: list[str], force_code=None) -> list[dict]:
+    """Phân tích và kiểm tra tính hợp lệ của sheet Đề tài. force_code: GV tự nhập → mọi đề tài là của GV đó."""
     rows = _read_sheet_rows(ws, "DeTai", errors)
     items = []
     for r_idx, r in rows:
         title = normalize_str(r.get("title"))
-        lec_code = normalize_str(r.get("lecturer"))
+        lec_code = force_code or normalize_str(r.get("lecturer"))
         if not title:
             errors.append(f"Sheet DeTai, dòng {r_idx}: Thiếu tên đề tài bắt buộc.")
-        if not lec_code:
+        if force_code:
+            pass
+        elif not lec_code:
             errors.append(f"Sheet DeTai, dòng {r_idx}: Thiếu mã giảng viên hướng dẫn.")
         elif (
             lec_code.lower() not in available_lecturer_codes
@@ -285,6 +288,7 @@ def _parse_de_tai_sheet(ws, available_lecturer_codes: set[str], errors: list[str
                 "lecturer_code": lec_code,
                 "description": normalize_str(r.get("description")) or title,
                 "fields": [f.strip() for f in normalize_str(r.get("fields")).split(",") if f.strip()],
+                "skills": [k.strip() for k in re.split(r"[,;]", normalize_str(r.get("skills"))) if k.strip()],
                 "difficulty": diff or Topic.Difficulty.MEDIUM,
                 "min_gpa": min_gpa,
                 "capacity": capacity or 1,
@@ -394,6 +398,9 @@ def _save_imported_topics(items: list[dict], new_lecturers: dict[str, Lecturer])
         if item["fields"]:
             field_objs = [Field.objects.get_or_create(name=fname)[0] for fname in item["fields"]]
             topic.fields.set(field_objs)
+        for name in dict.fromkeys(item.get("skills", [])):  # kỹ năng yêu cầu, mức 3/5 (GV sửa lại trên web nếu cần)
+            skill = Skill.objects.filter(name__iexact=name).first() or Skill.objects.create(name=name)
+            TopicSkill.objects.get_or_create(topic=topic, skill=skill, defaults={"required_level": 3})
         count += 1
     return count
 
@@ -456,7 +463,7 @@ def _open_workbook(file_or_path):
         return None, f"Tệp không đúng định dạng Excel (.xlsx) hợp lệ: {e}"
 
 
-def import_excel_data(file_or_path, dry_run: bool = False) -> tuple[bool, list[str], dict[str, int]]:
+def import_excel_data(file_or_path, dry_run: bool = False, lecturer=None) -> tuple[bool, list[str], dict[str, int]]:
     """Nhập dữ liệu từ tệp Excel với bảo toàn giao dịch ACID (UC15).
 
     Công thức tổng hợp dữ liệu thành công:
@@ -465,6 +472,7 @@ def import_excel_data(file_or_path, dry_run: bool = False) -> tuple[bool, list[s
     Nếu phát hiện bất kỳ lỗi nào, toàn bộ giao dịch được hoàn tác (rollback),
     đảm bảo tính toàn vẹn tuyệt đối của cơ sở dữ liệu.
     dry_run=True: chạy đủ các bước ghi trong giao dịch rồi hoàn tác — trả về đúng số dòng SẼ nhập, không lưu gì.
+    lecturer: GV tự nhập đề tài của mình — chỉ đọc sheet DeTai (không có thì sheet đầu), bỏ cột mã GV.
     """
     stats = {"students": 0, "lecturers": 0, "topics": 0, "skills": 0}
     errors = []
@@ -473,13 +481,9 @@ def import_excel_data(file_or_path, dry_run: bool = False) -> tuple[bool, list[s
     if open_error:
         return False, [open_error], stats
 
-    sheet_map = {}
-    for name in wb.sheetnames:
-        norm = normalize_token(name)
-        for canon, alias_set in SHEET_ALIASES.items():
-            if canon not in sheet_map and any(normalize_token(a) == norm for a in alias_set):
-                sheet_map[canon] = wb[name]
-
+    sheet_map = _map_sheets(wb)
+    if lecturer is not None:
+        sheet_map = {"DeTai": sheet_map.get("DeTai") or wb.worksheets[0]}
     if not sheet_map:
         return (
             False,
@@ -494,7 +498,9 @@ def import_excel_data(file_or_path, dry_run: bool = False) -> tuple[bool, list[s
     skill_items = _parse_ky_nang_sheet(sheet_map["KyNang"], errors) if "KyNang" in sheet_map else []
     lec_items = _parse_giang_vien_sheet(sheet_map["GiangVien"], errors) if "GiangVien" in sheet_map else []
     avail_lec_codes = {item["code"].lower() for item in lec_items if item["code"]}
-    topic_items = _parse_de_tai_sheet(sheet_map["DeTai"], avail_lec_codes, errors) if "DeTai" in sheet_map else []
+    force = lecturer.user.username if lecturer is not None else None
+    topic_ws = sheet_map.get("DeTai")
+    topic_items = _parse_de_tai_sheet(topic_ws, avail_lec_codes, errors, force) if topic_ws else []
     student_items = _parse_sinh_vien_sheet(sheet_map["SinhVien"], errors) if "SinhVien" in sheet_map else []
 
     # 2. Nếu có lỗi, trả về danh sách lỗi và không ghi gì vào DB
@@ -505,16 +511,30 @@ def import_excel_data(file_or_path, dry_run: bool = False) -> tuple[bool, list[s
     try:
         with transaction.atomic():
             stats["skills"] = _save_imported_skills(skill_items)
-            n_lec, new_lecs = _save_imported_lecturers(lec_items)
-            stats["lecturers"] = n_lec
+            stats["lecturers"], new_lecs = _save_imported_lecturers(lec_items)
             stats["topics"] = _save_imported_topics(topic_items, new_lecs)
             stats["students"] = _save_imported_students(student_items)
             if dry_run:
                 transaction.set_rollback(True)
+            elif stats["topics"]:  # đề tài mới → gợi ý của mọi SV tính lại khi SV mở trang (như lưu đề tài bằng form)
+                from recommend.models import Recommendation
+
+                Recommendation.objects.all().delete()
     except Exception as exc:
         return False, [f"Lỗi hệ thống khi lưu dữ liệu vào cơ sở dữ liệu: {exc}"], stats
 
-    return True, [], stats
+    return True, [], ({"topics": stats["topics"]} if lecturer is not None else stats)
+
+
+def _map_sheets(wb) -> dict:
+    """Tên sheet trong tệp → tên chuẩn (SinhVien/GiangVien/DeTai/KyNang), không phân biệt hoa thường, dấu."""
+    sheet_map = {}
+    for name in wb.sheetnames:
+        norm = normalize_token(name)
+        for canon, alias_set in SHEET_ALIASES.items():
+            if canon not in sheet_map and any(normalize_token(a) == norm for a in alias_set):
+                sheet_map[canon] = wb[name]
+    return sheet_map
 
 
 # ---------------------------------------------------------------- Tạo file Excel mẫu
@@ -643,3 +663,30 @@ def create_sample_excel(output_path: str | Path | None = None) -> bytes | Path:
     bio = BytesIO()
     wb.save(bio)
     return bio.getvalue()
+
+
+def create_lecturer_sample() -> bytes:
+    """Tệp mẫu cho GV tự nhập đề tài: 1 sheet DeTai, không cần cột mã GV (đề tài gắn với GV đang đăng nhập)."""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "DeTai"
+    ws.append(["Tên đề tài", "Mô tả", "Lĩnh vực", "Kỹ năng", "Độ khó", "GPA tối thiểu", "Số lượng"])
+    ws.append(
+        [
+            "Hệ thống gợi ý đề tài tốt nghiệp bằng học máy",
+            "Xây dựng cổng thông tin khuyến nghị đề tài dựa trên hồ sơ năng lực sinh viên",
+            "Trí tuệ nhân tạo, Web",
+            "Python, Django, Machine Learning",
+            2,
+            2.5,
+            2,
+        ]
+    )
+    for cell in ws[1]:
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+    for col, width in zip("ABCDEFG", (44, 60, 26, 30, 9, 13, 10), strict=True):
+        ws.column_dimensions[col].width = width
+    buf = BytesIO()
+    wb.save(buf)
+    return buf.getvalue()

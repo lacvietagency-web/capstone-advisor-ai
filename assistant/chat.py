@@ -169,7 +169,15 @@ ROLE_PAGES = {
         "topic_list",
         "password_change",
     },
-    "LECTURER": {"home", "lecturer_topics", "lecturer_topic_new", "lecturer_profile", "topic_list", "password_change"},
+    "LECTURER": {
+        "home",
+        "lecturer_topics",
+        "lecturer_topic_new",
+        "lecturer_topic_import",
+        "lecturer_profile",
+        "topic_list",
+        "password_change",
+    },
     "ADMIN": {
         "home",
         "allocation_dashboard",

@@ -735,6 +735,16 @@
   }
 }
 
+/* Nút Nhập từ Excel cạnh Thêm đề tài */
+.pg-14 .at-toolbar .at-toolbar-action { display: flex; gap: 8px; }
+.pg-14 .at-toolbar .btn-secondary {
+  height: 40px; padding: 0 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
+}
+@media (max-width: 767.98px) {
+  .pg-14 .at-toolbar .at-toolbar-action .btn { flex: 1 1 0; width: auto; }
+}
+
 /* Bảng */
 .pg-14 .at-table-wrap {
   border: 1px solid var(--at-line, #E6ECF5);
@@ -777,11 +787,11 @@
 
 .pg-14 .at-table th:nth-child(1), .pg-14 .at-table td:nth-child(1) { width: 4%; text-align: center; }
 .pg-14 .at-table th:nth-child(2), .pg-14 .at-table td:nth-child(2) { width: 30%; text-align: left; }
-.pg-14 .at-table th:nth-child(3), .pg-14 .at-table td:nth-child(3) { width: 17%; text-align: left; }
+.pg-14 .at-table th:nth-child(3), .pg-14 .at-table td:nth-child(3) { width: 14%; text-align: left; }
 .pg-14 .at-table th:nth-child(4), .pg-14 .at-table td:nth-child(4) { width: 7%; text-align: center; }
 .pg-14 .at-table th:nth-child(5), .pg-14 .at-table td:nth-child(5) { width: 9%; text-align: center; }
 .pg-14 .at-table th:nth-child(6), .pg-14 .at-table td:nth-child(6) { width: 13%; text-align: center; }
-.pg-14 .at-table th:nth-child(7), .pg-14 .at-table td:nth-child(7) { width: 20%; text-align: center; }
+.pg-14 .at-table th:nth-child(7), .pg-14 .at-table td:nth-child(7) { width: 23%; text-align: center; }
 
 .pg-14 .at-topic-title {
   display: block;
@@ -845,9 +855,9 @@
 .pg-14 .at-td-actions > * + * { margin-left: 8px; }
 .pg-14 .at-td-actions .btn {
   height: 32px;
-  width: 44px;
+  width: auto; /* nút "SV đăng ký" dài hơn 44px: để cố định thì chữ tràn đè lên nút "Sửa" */
   min-width: 44px;
-  padding: 0;
+  padding: 0 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

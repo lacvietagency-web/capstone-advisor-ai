@@ -750,13 +750,13 @@ def _uploaded_file(request):
     return None
 
 
-def _import_check(request, f):
+def _import_check(request, f, lecturer=None):
     """Bước 1: kiểm tra (chạy thử rồi hoàn tác). Sạch lỗi thì giữ tệp lại, chờ bước xác nhận."""
     import uuid
 
     from .importer import import_excel_data
 
-    ok, errors, stats = import_excel_data(f, dry_run=True)
+    ok, errors, stats = import_excel_data(f, dry_run=True, lecturer=lecturer)
     if not ok:
         messages.error(request, f"Tệp có {len(errors)} lỗi — sửa rồi tải lên lại. Chưa nhập gì.")
         return _import_result(ok, errors, stats, f.name)
@@ -769,7 +769,7 @@ def _import_check(request, f):
     return _import_result(ok, errors, stats, f.name, pending=True)
 
 
-def _import_confirm(request):
+def _import_confirm(request, lecturer=None):
     """Bước 2: nhập thật đúng tệp đã kiểm tra ở bước 1 (cùng phiên đăng nhập)."""
     from .importer import import_excel_data
 
@@ -778,7 +778,7 @@ def _import_confirm(request):
     if not path or not path.exists():
         messages.error(request, "Không còn tệp chờ xác nhận — hãy tải lên và kiểm tra lại.")
         return None
-    ok, errors, stats = import_excel_data(path)
+    ok, errors, stats = import_excel_data(path, lecturer=lecturer)
     path.unlink(missing_ok=True)
     return _import_result(ok, errors, stats, pending["filename"])
 
@@ -789,18 +789,28 @@ def faculty_import(request):
     Không có action: kiểm tra và nhập luôn (all-or-nothing) như bản trước."""
     if not (getattr(request.user, "is_faculty_admin", False) or request.user.is_superuser):
         raise PermissionDenied("Chỉ tài khoản Khoa mới có quyền nhập dữ liệu.")
+    return _import_page(request)
+
+
+@login_required
+def lecturer_topic_import(request):
+    """GV tải tệp Excel đề tài của mình (1 sheet), cùng 2 bước kiểm tra → xác nhận như Khoa."""
+    return _import_page(request, _lecturer(request))
+
+
+def _import_page(request, lecturer=None):
     from .importer import import_excel_data
 
     result = None
     action = request.POST.get("action", "")
     if request.method == "POST" and action == "confirm":
-        result = _import_confirm(request)
+        result = _import_confirm(request, lecturer)
     elif request.method == "POST":
         f = _uploaded_file(request)
         if f and action == "check":
-            result = _import_check(request, f)
+            result = _import_check(request, f, lecturer)
         elif f:
-            ok, errors, stats = import_excel_data(f)
+            ok, errors, stats = import_excel_data(f, lecturer=lecturer)
             result = _import_result(ok, errors, stats, f.name)
     if result is not None and not result["pending"]:
         AuditLog.objects.create(
@@ -820,8 +830,24 @@ def faculty_import(request):
         elif action != "check":
             messages.error(request, f"Không nhập gì vì có {len(result['errors'])} lỗi — sửa tệp rồi tải lên lại.")
     return render(
-        request, "catalog/faculty_import.html", {"result": result, "max_mb": MAX_IMPORT_BYTES // (1024 * 1024)}
+        request,
+        "catalog/faculty_import.html",
+        {"result": result, "max_mb": MAX_IMPORT_BYTES // (1024 * 1024), "gv": lecturer is not None},
     )
+
+
+@login_required
+def lecturer_import_sample(request):
+    """Tệp mẫu cho GV: 1 sheet DeTai, không cột mã GV."""
+    _lecturer(request)
+    from .importer import create_lecturer_sample
+
+    resp = HttpResponse(
+        create_lecturer_sample(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    resp["Content-Disposition"] = 'attachment; filename="mau_de_tai_giang_vien.xlsx"'
+    return resp
 
 
 @login_required

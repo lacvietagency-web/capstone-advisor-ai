@@ -44,6 +44,9 @@
             </select>
           </div>
           <div class="at-toolbar-action">
+            <a href="{% url 'lecturer_topic_import' %}" class="btn btn-secondary">
+              {% include "components/icon.html" with name="upload" size=14 %}Nhập từ Excel
+            </a>
             <a href="{% url 'lecturer_topic_new' %}" class="btn btn-primary">
               {% include "components/icon.html" with name="plus" size=14 %}Thêm đề tài
             </a>
@@ -161,8 +164,8 @@
         </div>
       {% else %}
         <div class="at-panel-body">
-          {% url 'lecturer_topic_new' as url_new_topic %}
-          {% include "components/empty.html" with illustration="empty-topics" title="Bạn chưa tạo đề tài nào" desc="Bắt đầu thêm đề tài để sinh viên đăng ký trong đợt tốt nghiệp." primary_url=url_new_topic primary_label="Thêm đề tài" %}
+          {% url 'lecturer_topic_new' as url_new_topic %}{% url 'lecturer_topic_import' as url_import %}
+          {% include "components/empty.html" with illustration="empty-topics" title="Bạn chưa tạo đề tài nào" desc="Thêm từng đề tài, hoặc nhập nhiều đề tài cùng lúc từ tệp Excel." primary_url=url_new_topic primary_label="Thêm đề tài" secondary_url=url_import secondary_label="Nhập từ Excel" %}
         </div>
       {% endif %}
     </section>

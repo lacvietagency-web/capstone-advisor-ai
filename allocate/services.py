@@ -66,6 +66,19 @@ def _prepare_solver_data(period, students):
     return prefs, scores, cap, owner, quota, gpa
 
 
+def accepted_locks(period, prefs):
+    """{sv: đề tài} các NV giảng viên ĐÃ ĐỒNG Ý (NV cao nhất nếu có nhiều) — bộ giải giữ nguyên chỗ này."""
+    locks = {}
+    for sid, tid in (
+        Preference.objects.filter(period=period, submitted=True, status=Preference.Status.ACCEPTED)
+        .order_by("student_id", "rank")
+        .values_list("student_id", "topic_id")
+    ):
+        if tid in prefs.get(sid, ()):
+            locks.setdefault(sid, tid)
+    return locks
+
+
 def real_ranks(period):
     """{(sv, đề tài): thứ tự NV thật} của các NV đã nộp.
     prefs của bộ giải đã bỏ NV bị loại nên vị trí trong prefs không phải thứ tự thật."""
@@ -129,10 +142,11 @@ def run_allocation(period: RegistrationPeriod, algorithm: str = "ILP", user=None
 
     ranks = real_ranks(period)
     t0 = time.perf_counter()
+    locked = accepted_locks(period, prefs)  # đơn GV đã đồng ý: giữ chỗ
     if algorithm == "ILP":
-        assign = solve_ilp(prefs, scores, cap, owner, quota, gpa, ranks=ranks)
+        assign = solve_ilp(prefs, scores, cap, owner, quota, gpa, ranks=ranks, locked=locked)
     else:
-        assign = solve_greedy(prefs, scores, cap, owner, quota, gpa)
+        assign = solve_greedy(prefs, scores, cap, owner, quota, gpa, locked=locked)
     elapsed_time = round(time.perf_counter() - t0, 3)
 
     metrics_result = calculate_metrics(assign, prefs, scores, cap, owner, quota, ranks=ranks)

@@ -28,7 +28,7 @@ def compute_utility(s, t, rank, scores, gpa, alpha=0.4, beta=0.6, eps=1e-3):
     return alpha * (score / 100.0) + beta * bonus + eps * (student_gpa / 4.0)
 
 
-def _build_ilp_constraints(prob, prefs, x, u, cap, owner, quota):
+def _build_ilp_constraints(prob, prefs, x, u, cap, owner, quota, locked=None):
     """Thêm các ràng buộc tuyến tính cho bài toán ILP.
 
     Ràng buộc:
@@ -54,9 +54,12 @@ def _build_ilp_constraints(prob, prefs, x, u, cap, owner, quota):
     for g, vars_list in lecturer_vars.items():
         if g in quota:
             prob += pulp.lpSum(vars_list) <= quota[g]
+    for s, t in (locked or {}).items():  # NV giảng viên đã đồng ý: giữ chỗ
+        if (s, t) in x:
+            prob += x[s, t] == 1
 
 
-def solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=None, eps=1e-3, ranks=None):
+def solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=None, eps=1e-3, ranks=None, locked=None):
     """Phân công đề tài bằng quy hoạch nguyên tuyến tính (PuLP + CBC).
 
     `ranks[(s, t)]` = thứ tự NV thật của SV (1–3). prefs đã bỏ NV bị GV từ chối / không đủ điều kiện, nên vị trí
@@ -70,6 +73,9 @@ def solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=No
     (+lam) khi đó luôn hơn mọi phần thoả dụng có thể mất khi dời các SV khác. lam cố định = 2 KHÔNG đủ: chuỗi 4 SV phải
     lùi NV1 → NV3 để nhường chỗ (mất 4 × 0,82 > 2 + 1) thì ILP bỏ 1 SV dù xếp được hết (test V39MaxCoverage).
     Mặc định lam = 1 + n·(alpha + beta + eps); truyền lam để tái lập thí nghiệm cũ.
+
+    `locked[s] = t`: NV giảng viên ĐÃ ĐỒNG Ý → bắt buộc x[s, t] = 1 (giữ chỗ, chủ dự án chốt 25/11/2026). Nếu giữ chỗ
+    làm bài toán vô nghiệm (số đơn đồng ý vượt sức chứa/chỉ tiêu) thì giải lại không giữ chỗ.
     """
     if not prefs:
         return {}
@@ -92,10 +98,12 @@ def solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=No
             obj_terms.append(x[s, t] * utility)
 
     prob += pulp.lpSum(obj_terms)
-    _build_ilp_constraints(prob, prefs, x, u, cap, owner, quota)
+    _build_ilp_constraints(prob, prefs, x, u, cap, owner, quota, locked)
 
     solver = pulp.PULP_CBC_CMD(msg=False)
     prob.solve(solver)
+    if locked and pulp.LpStatus[prob.status] != "Optimal":
+        return solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha, beta, lam, eps, ranks)
 
     assigned = {}
     for s, topic_list in prefs.items():
@@ -110,11 +118,25 @@ def solve_ilp(prefs, scores, cap, owner, quota, gpa, alpha=0.4, beta=0.6, lam=No
     return assigned
 
 
-def solve_greedy(prefs, scores, cap, owner, quota, gpa):
+def _greedy_fits(t, owner, rem_cap, rem_quota):
+    g = owner.get(t)
+    return rem_cap.get(t, 0) > 0 and ((g is None) or (rem_quota.get(g, 0) > 0))
+
+
+def _greedy_take(s, t, owner, assigned, rem_cap, rem_quota):
+    g = owner.get(t)
+    assigned[s] = t
+    rem_cap[t] -= 1
+    if g is not None and g in rem_quota:
+        rem_quota[g] -= 1
+
+
+def solve_greedy(prefs, scores, cap, owner, quota, gpa, locked=None):
     """Phân công đề tài theo thuật toán tham lam (Greedy).
 
-    Sắp xếp SV theo điểm cao nhất của các NV giảm dần (hòa điểm thì xét GPA giảm dần).
-    Gán lần lượt NV1 -> NV2 -> NV3 nếu đề tài còn chỗ và giảng viên còn chỉ tiêu.
+    Xếp trước các NV giảng viên đã đồng ý (`locked`, như solve_ilp) nếu còn chỗ. Sau đó sắp xếp SV theo điểm cao nhất
+    của các NV giảm dần (hòa điểm thì xét GPA giảm dần), gán lần lượt NV1 -> NV2 -> NV3 nếu đề tài còn chỗ và giảng
+    viên còn chỉ tiêu.
     """
     if not prefs:
         return {}
@@ -130,17 +152,16 @@ def solve_greedy(prefs, scores, cap, owner, quota, gpa):
     rem_quota = dict(quota)
     assigned = {s: None for s in prefs}
 
+    for s, t in (locked or {}).items():
+        if s in assigned and t in prefs.get(s, []) and _greedy_fits(t, owner, rem_cap, rem_quota):
+            _greedy_take(s, t, owner, assigned, rem_cap, rem_quota)
+
     for s in sorted_students:
-        for t in prefs.get(s, []):
-            g = owner.get(t)
-            topic_ok = rem_cap.get(t, 0) > 0
-            lecturer_ok = (g is None) or (rem_quota.get(g, 0) > 0)
-            if topic_ok and lecturer_ok:
-                assigned[s] = t
-                rem_cap[t] -= 1
-                if g is not None and g in rem_quota:
-                    rem_quota[g] -= 1
-                break
+        if assigned[s] is not None:
+            continue
+        t = next((t for t in prefs.get(s, []) if _greedy_fits(t, owner, rem_cap, rem_quota)), None)
+        if t is not None:
+            _greedy_take(s, t, owner, assigned, rem_cap, rem_quota)
 
     return assigned
 

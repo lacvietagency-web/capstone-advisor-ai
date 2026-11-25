@@ -46,6 +46,23 @@ class SolverTests(SimpleTestCase):
         a = solve_ilp(**d)
         self.assertEqual(a, {"s1": "A", "s2": "B"})
 
+    def test_locked_keeps_accepted_seat(self):
+        """GV đã đồng ý s1 vào A → ILP và Greedy giữ chỗ đó, dù dời s1 sang B sẽ xếp thêm được s2 (chốt 25/11/2026).
+        Giữ chỗ vượt sức chứa → bài toán vô nghiệm → giải lại không giữ chỗ, không lỗi."""
+        d = base(
+            prefs={"s1": ["A", "B"], "s2": ["A"]},
+            scores={("s1", "A"): 60, ("s1", "B"): 60, ("s2", "A"): 60},
+            cap={"A": 1, "B": 1},
+            owner={"A": "g1", "B": "g2"},
+            quota={"g1": 5, "g2": 5},
+            gpa={"s1": 3, "s2": 3},
+        )
+        self.assertEqual(solve_ilp(**d), {"s1": "B", "s2": "A"})  # không giữ chỗ: xếp đủ 2 SV
+        self.assertEqual(solve_ilp(**d, locked={"s1": "A"}), {"s1": "A", "s2": None})
+        self.assertEqual(solve_greedy(**d, locked={"s1": "A"})["s1"], "A")
+        d["cap"]["A"] = 0
+        self.assertEqual(solve_ilp(**d, locked={"s1": "A"})["s1"], "B")
+
     def test_ilp_beats_greedy_on_coverage(self):
         """Ca kinh điển: Greedy xếp s1 (điểm cao) vào A → s2 (chỉ chọn A) trắng tay. ILP đẩy s1 sang B để xếp đủ cả hai."""
         d = base(

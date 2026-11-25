@@ -174,7 +174,7 @@
             <section class="at-panel at-drawer-panel">
               <div class="at-panel-header">
                 <h4 class="at-drawer-panel-title">Kết quả đánh giá AI</h4>
-                <span class="at-drawer-ahp">AHP: 25% / 20% / 15% / 20% / 20%</span>
+                <span class="at-drawer-ahp">AHP: {% for c in ahp.criteria %}{{ c.percent }}%{% if not forloop.last %} / {% endif %}{% endfor %}</span>
               </div>
               <div class="at-drawer-ai-body">
                 <div class="at-drawer-score-box">

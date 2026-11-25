@@ -147,6 +147,9 @@ class BusinessFlowTests(TestCase):
         self.assertEqual(r_get.status_code, 200)
         self.assertContains(r_get, "Đồng ý")
         self.assertContains(r_get, "Từ chối")
+        self.assertNotContains(
+            r_get, "AHP: 25% / 20% / 15% / 20% / 20%"
+        )  # trọng số lấy từ bộ AHP đang dùng, không ghi cứng
 
         r_post = self.client.post(url, {"preference_id": pref.pk, "action": "accept"})
         self.assertRedirects(r_post, url)

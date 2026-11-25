@@ -45,6 +45,8 @@ SECRET_KEY = _secret_key()
 DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+# Địa chỉ có cổng riêng (vd bản thử https://...ts.net:8443) — proxy có thể bỏ cổng khỏi Host làm CSRF chặn đăng nhập
+CSRF_TRUSTED_ORIGINS = [o for o in os.getenv("DJANGO_CSRF_ORIGINS", "").split(",") if o]
 
 # Triển khai sau HTTPS (máy chủ thật): DJANGO_HTTPS=1 bật HSTS, chuyển hướng SSL và cookie chỉ gửi qua HTTPS.
 # Bản demo chạy http://localhost nên để tắt (manage.py check --deploy sẽ nhắc 4 mục này — đúng như mong đợi).

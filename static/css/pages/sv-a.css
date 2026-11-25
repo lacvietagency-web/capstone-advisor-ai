@@ -1485,7 +1485,7 @@
 /* Khối Phân tích AI */
 .pg-11 .pg-11-ai-body {
   display: grid;
-  grid-template-columns: 35% 65%;
+  grid-template-columns: minmax(0, 35fr) minmax(0, 65fr); /* 35% 65% + gap 12px = tràn 12px qua viền phải */
   gap: 12px;
   align-items: stretch;
 }
@@ -1539,8 +1539,8 @@
 
 .pg-11 .pg-11-ai-headers {
   display: grid;
-  grid-template-columns: 24px 92px minmax(40px, 1fr) 36px 56px; /* 80px cắt mất chữ cuối của Đánh giá LLM */
-  gap: 6px 8px;
+  grid-template-columns: 22px 90px minmax(32px, 1fr) 32px 52px; /* tên 90px đủ "Đánh giá LLM", tổng vẫn vừa khung hẹp */
+  gap: 6px;
   margin-bottom: 4px;
   font-size: 12px;
   font-weight: 600;
@@ -1569,9 +1569,9 @@
 
 .pg-11 .pg-11-evidence-list li {
   display: grid;
-  grid-template-columns: 24px 92px minmax(40px, 1fr) 36px 56px; /* 80px cắt mất chữ cuối của Đánh giá LLM */
+  grid-template-columns: 22px 90px minmax(32px, 1fr) 32px 52px; /* khớp cột với .pg-11-ai-headers */
   align-items: center;
-  gap: 6px 8px;
+  gap: 6px;
   min-height: 24px;
   font-size: 12px;
 }
